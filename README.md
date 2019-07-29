@@ -4,6 +4,7 @@ PC Ambilight based on Lightpack library
 Components:
 - Arduino C++ sketch running on an ESP8266EX D1 Mini from Lolin running @ 160MHz
 - WS2812B 5V LED Strip (95 LED)
+- 3.3V/5V Logic Level Converter 
 - 1000uf capacitor for 5V power stabilization
 - Raspberry + Home Assistant for Web GUI, automations and MQTT server (HA is optional but an MQTT server is needed)
 - Google Home Mini for Voice Recognition (optional)
