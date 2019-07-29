@@ -13,4 +13,4 @@ Components:
 
 PC Ambilight YouTube video
 
-[![IMAGE ALT TEXT HERE](https://youtu.be/phW3lJt-T38)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/phW3lJt-T38/0.jpg)](https://www.youtube.com/watch?v=phW3lJt-T38)
