@@ -10,6 +10,8 @@ Components:
 - Raspberry + Home Assistant for Web GUI, automations and MQTT server (HA is optional but an MQTT server is needed)
 - Google Home Mini for Voice Recognition (optional)
 
+NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
+
 ![CIRCUITS](https://github.com/sblantipodi/pc_ambilight/blob/master/ambilight_bb.png)
 
 
