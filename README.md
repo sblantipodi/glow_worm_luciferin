@@ -17,4 +17,4 @@ NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recomme
 
 PC Ambilight YouTube video
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/phW3lJt-T38/0.jpg)](https://www.youtube.com/watch?v=phW3lJt-T38)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/68pnR5HMCTU/0.jpg)](https://www.youtube.com/watch?v=68pnR5HMCTU)
