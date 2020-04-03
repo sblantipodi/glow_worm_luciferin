@@ -470,7 +470,7 @@ void sendState() {
   root["Whoami"] = SENSORNAME;
   root["IP"] = WiFi.localIP().toString();
   root["MAC"] = WiFi.macAddress();
-  root["ver"] = VERSION;
+  root["ver"] = VERSION_SHORT;
   
   root["Time"] = timedate;
   root["state"] = (stateOn) ? on_cmd : off_cmd;

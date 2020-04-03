@@ -3,4 +3,5 @@
 .piolibdeps
 .clang_complete
 .gcc-flags.json
+platformio_ota.ini
 include/Secrets.h
