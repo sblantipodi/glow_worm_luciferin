@@ -12,11 +12,11 @@ Components:
 
 NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 
-![CIRCUITS](https://github.com/sblantipodi/pc_ambilight/blob/master/ambilight_bb.png)
+![CIRCUITS](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/ambilight_bb.png)
 
 Mobile Client Screenshot
 
-![SCREENSHOT](https://github.com/sblantipodi/pc_ambilight/blob/master/HA_mobile_client_screenshot.jpg)
+![SCREENSHOT](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/HA_mobile_client_screenshot.jpg)
 
 
 PC Ambilight YouTube video (click to watch it in YouTube)
