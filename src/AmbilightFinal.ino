@@ -38,7 +38,6 @@ String oldeffectString = "solid";
 
 /****************************************FOR JSON***************************************/
 const int BUFFER_SIZE = JSON_OBJECT_SIZE(20);
-#define MQTT_MAX_PACKET_SIZE 512
 
 /********************************* AmbiLight *************************************/
 #define max_bright 255       // maximum brightness (0 - 255)
