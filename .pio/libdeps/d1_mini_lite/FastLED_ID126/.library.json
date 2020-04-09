@@ -1,0 +1,80 @@
+{
+    "license": "MIT", 
+    "name": "FastLED", 
+    "repository": {
+        "url": "https://github.com/FastLED/FastLED.git", 
+        "type": "git"
+    }, 
+    "platforms": [
+        "espressif32", 
+        "freescalekinetis", 
+        "teensy", 
+        "atmelavr", 
+        "nordicnrf52", 
+        "nordicnrf51", 
+        "atmelsam", 
+        "ststm32", 
+        "espressif8266", 
+        "nxplpc"
+    ], 
+    "frameworks": [
+        "arduino"
+    ], 
+    "version": "3.3.3", 
+    "export": {
+        "exclude": [
+            "docs", 
+            "extras"
+        ]
+    }, 
+    "build": {
+        "srcFilter": [
+            "+<*.c>", 
+            "+<*.cpp>", 
+            "+<*.h>"
+        ], 
+        "libArchive": false
+    }, 
+    "authors": [
+        {
+            "maintainer": true, 
+            "name": "Daniel Garcia", 
+            "url": "https://github.com/focalintent", 
+            "email": null
+        }, 
+        {
+            "maintainer": true, 
+            "name": "Mark Kriegsman", 
+            "url": "https://github.com/kriegsman", 
+            "email": null
+        }, 
+        {
+            "maintainer": true, 
+            "name": "Sam Guyer", 
+            "url": "https://github.com/samguyer", 
+            "email": null
+        }, 
+        {
+            "maintainer": true, 
+            "name": "Jason Coon", 
+            "url": "https://github.com/jasoncoon", 
+            "email": null
+        }, 
+        {
+            "maintainer": true, 
+            "name": "Josh Huber", 
+            "url": "https://github.com/uberjay", 
+            "email": null
+        }
+    ], 
+    "keywords": [
+        "rgb", 
+        "noise", 
+        "led", 
+        "fast", 
+        "math"
+    ], 
+    "homepage": "http://fastled.io", 
+    "id": 126, 
+    "description": "FastLED is a library for programming addressable rgb led strips (APA102/Dotstar, WS2812/Neopixel, LPD8806, and a dozen others) acting both as a driver and as a library for color management and fast math."
+}
