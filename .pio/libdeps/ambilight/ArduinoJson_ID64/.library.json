@@ -1,0 +1,52 @@
+{
+    "name": "ArduinoJson", 
+    "repository": {
+        "url": "https://github.com/bblanchon/ArduinoJson.git", 
+        "type": "git"
+    }, 
+    "platforms": [
+        "atmelavr", 
+        "atmelmegaavr", 
+        "atmelsam", 
+        "espressif32", 
+        "espressif8266", 
+        "gd32v", 
+        "infineonxmc", 
+        "intel_arc32", 
+        "kendryte210", 
+        "microchippic32", 
+        "nordicnrf51", 
+        "nordicnrf52", 
+        "ststm32", 
+        "ststm8", 
+        "teensy", 
+        "timsp430"
+    ], 
+    "frameworks": [
+        "arduino"
+    ], 
+    "version": "6.15.1", 
+    "export": {
+        "exclude": [
+            ".github", 
+            "extras"
+        ]
+    }, 
+    "authors": [
+        {
+            "url": "https://blog.benoitblanchon.fr", 
+            "maintainer": false, 
+            "email": null, 
+            "name": "Benoit Blanchon"
+        }
+    ], 
+    "keywords": [
+        "web", 
+        "json", 
+        "http", 
+        "rest"
+    ], 
+    "homepage": "https://arduinojson.org/?utm_source=meta&utm_medium=library.json", 
+    "id": 64, 
+    "description": "A simple and efficient JSON library for embedded C++. ArduinoJson supports \u2714 serialization, \u2714 deserialization, \u2714 MessagePack, \u2714 fixed allocation, \u2714 zero-copy, \u2714 streams, \u2714 filtering, and more. It is the most popular Arduino library on GitHub \u2764\u2764\u2764\u2764\u2764. Check out arduinojson.org for a comprehensive documentation."
+}
