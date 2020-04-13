@@ -48,6 +48,11 @@ sensor:
     state_topic: 'lights/pcambilight'
     name: 'Last Seen Ambilight'
     value_template: '{{ value_json.Time }}'    
+  - platform: mqtt
+    state_topic: 'lights/pcambilight'
+    name: 'Ambilight Version'
+    unit_of_measurement: ' '
+    value_template: '{{ value_json.ver }}'   
     
 automation:
   - id: '1551286434142'
@@ -182,7 +187,6 @@ automation:
   - id: '4321674486'
     alias: PC Animation Speed
     initial_state: true
-    hide_entity: true
     trigger:
     - platform: state
       entity_id: input_number.pc_animation_speed
