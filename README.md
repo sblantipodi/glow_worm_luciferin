@@ -1,5 +1,6 @@
 # PC Ambilight
-PC Ambilight based on Lightpack library
+PC Ambilight based on Lightpack library  
+DPsoftware (Davide Perini)  
 
 Components:
 - Arduino C++ sketch running on an ESP8266EX D1 Mini from Lolin running @ 160MHz
