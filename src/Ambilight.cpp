@@ -1,171 +1,22 @@
-#include <ArduinoJson.h>
-#include <ESP8266WiFi.h>
-#include <PubSubClient.h>
-#include "FastLED.h"
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-#include <Secrets.h>
-#include <Version.h>
-
-
-/************ WIFI and MQTT Information (CHANGE THESE FOR YOUR SETUP) ******************/
-const int mqtt_port = 1883;
-
-/**************************** FOR OTA **************************************************/
-#define SENSORNAME "ambilight" //change this to whatever you want to call your device
-int OTAport = 8266;
-// the IP address for the shield:
-IPAddress arduinoip(192, 168, 1, 52);
-// the DNS address for the shield:
-IPAddress mydns(192, 168, 1, 1);
-// the GATEWAY address for the shield:
-IPAddress mygateway(192, 168, 1, 1);
-
-
-/************* MQTT TOPICS (change these topics as you wish)  **************************/
-const char* light_state_topic = "lights/pcambilight";  //da configurare
-const char* light_set_topic = "lights/pcambiligh/set";  //da configurare
-const char* smartostat_climate_state_topic = "stat/smartostat/CLIMATE";
-const char* cmnd_ambi_reboot = "cmnd/ambilight/reboot";
-const char* stat_ambi_reboot = "stat/ambilight/reboot";
-
-const char* on_cmd = "ON";
-const char* off_cmd = "OFF";
-const char* effect = "solid";
-String effectString = "solid";
-String oldeffectString = "solid";
-
-/****************************************FOR JSON***************************************/
-const int BUFFER_SIZE = JSON_OBJECT_SIZE(20);
-
-/********************************* AmbiLight *************************************/
-#define max_bright 255       // maximum brightness (0 - 255)
-#define min_bright 50        // the minimum brightness (0 - 255)
-#define bright_constant 500  // the gain constant from external light (0 - 1023)
-// than the LESS constant, the "sharper" the brightness will be added
-#define coef 0.9             // the filter coefficient (0.0 - 1.0), the more - the more slowly the brightness changes
-
-int new_bright, new_bright_f;
-unsigned long bright_timer, off_timer;
-
-#define serialRate 500000
-uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
-bool led_state = true;
-
-/*********************************** FastLED Defintions ********************************/
-#define NUM_LEDS    95 //95  //da configurare
-#define DATA_PIN    5 // Su Wemos D1 Mini Lite sarebbe il PIN D5
-//#define CLOCK_PIN 5
-#define CHIPSET     WS2812
-#define COLOR_ORDER GRB
-
-byte realRed = 0;
-byte realGreen = 0;
-byte realBlue = 0;
-
-byte red = 255;
-byte green = 255;
-byte blue = 255;
-byte brightness = 255;
-
-/******************************** GLOBALS for fade/flash *******************************/
-bool stateOn = false;
-bool startFade = false;
-bool onbeforeflash = false;
-unsigned long lastLoop = 0;
-int transitionTime = 0;
-int effectSpeed = 0;
-bool inFade = false;
-int loopCount = 0;
-int stepR, stepG, stepB;
-int redVal, grnVal, bluVal;
-
-bool flash = false;
-bool startFlash = false;
-int flashLength = 0;
-unsigned long flashStartTime = 0;
-byte flashRed = red;
-byte flashGreen = green;
-byte flashBlue = blue;
-byte flashBrightness = brightness;
-
-/********************************** GLOBALS for EFFECTS ******************************/
-//RAINBOW
-uint8_t thishue = 0;                                          // Starting hue value.
-uint8_t deltahue = 10;
-
-//CANDYCANE
-CRGBPalette16 currentPalettestriped; //for Candy Cane
-CRGBPalette16 gPal; //for fire
-
-//NOISE
-static uint16_t dist;         // A random number for our noise generator.
-uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
-uint8_t maxChanges = 48;      // Value for blending between palettes.
-CRGBPalette16 targetPalette(OceanColors_p);
-CRGBPalette16 currentPalette(CRGB::Black);
-
-//TWINKLE
-#define DENSITY     80
-int twinklecounter = 0;
-
-//RIPPLE
-uint8_t colour;                                               // Ripple colour is randomized.
-int center = 0;                                               // Center of the current ripple.
-int step = -1;                                                // -1 is the initializing step.
-uint8_t myfade = 255;                                         // Starting brightness.
-#define maxsteps 16                                           // Case statement wouldn't allow a variable.
-uint8_t bgcol = 0;                                            // Background colour rotates.
-int thisdelay = 20;                                           // Standard delay value.
-
-//DOTS
-uint8_t   count =   0;                                        // Count up to 255 and then reverts to 0
-uint8_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
-uint8_t bpm = 30;
-
-//LIGHTNING
-uint8_t frequency = 50;                                       // controls the interval between strikes
-uint8_t flashes = 8;                                          //the upper limit of flashes per strike
-unsigned int dimmer = 1;
-uint8_t ledstart;                                             // Starting location of a flash
-uint8_t ledlen;
-int lightningcounter = 0;
-
-//FUNKBOX
-int idex = 0;                //-LED INDEX (0 to NUM_LEDS-1
-int TOP_INDEX = int(NUM_LEDS / 2);
-int thissat = 255;           //-FX LOOPS DELAY VAR
-uint8_t thishuepolice = 0;
-int antipodal_index(int i) {
-  int iN = i + TOP_INDEX;
-  if (i >= TOP_INDEX) {
-    iN = ( i + TOP_INDEX ) % NUM_LEDS;
-  }
-  return iN;
-}
-
-//FIRE
-#define COOLING  55
-#define SPARKING 120
-bool gReverseDirection = false;
-
-//BPM
-uint8_t gHue = 0;
-
-
-WiFiClient espClient;
-PubSubClient client(espClient);
-CRGB leds[NUM_LEDS];
-
-// LED_BUILTIN vars
-unsigned long previousMillis = 0;     // will store last time LED was updated
-const long interval = 200;           // interval at which to blink (milliseconds)
-bool ledTriggered = false;
-const int blinkTimes = 6; // 6 equals to 3 blink on and 3 off
-int blinkCounter = 0;
-
-String timedate = "OFF";
+/*
+ * PC AMBILIGHT
+ * 
+ * PC Ambilight based on Lightpack library
+ * DPsoftware (Davide Perini)
+ * Components:
+ *  - Arduino C++ sketch running on an ESP8266EX D1 Mini from Lolin running @ 160MHz
+ *  - WS2812B 5V LED Strip (95 LED)
+ *  - 3.3V/5V Logic Level Converter
+ *  - 220Ω resistor
+ *  - 1000uf capacitor for 5V power stabilization
+ *  - Raspberry + Home Assistant for Web GUI, automations and MQTT server (HA is optional but an MQTT server is needed)
+ *  - Google Home Mini for Voice Recognition (optional)
+ * NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, 
+ * some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
+ * 
+ * MIT license
+ */
+#include <Ambilight.h>
 
 /********************************** START SETUP*****************************************/
 void setup() {
@@ -250,23 +101,6 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-/*
-  SAMPLE PAYLOAD:
-  {
-    "brightness": 120,
-    "color": {
-      "r": 255,
-      "g": 100,
-      "b": 100
-    },
-    "flash": 2,
-    "transition": 5,
-    "state": "ON"
-  }
-*/
-
-
-
 /********************************** START CALLBACK*****************************************/
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(F("Message arrived ["));
@@ -295,13 +129,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   
   if (stateOn) {
-
     realRed = map(red, 0, 255, 0, brightness);
     realGreen = map(green, 0, 255, 0, brightness);
     realBlue = map(blue, 0, 255, 0, brightness);
-  }
-  else {
-
+  } else {
     realRed = 0;
     realGreen = 0;
     realBlue = 0;
@@ -315,42 +146,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   Serial.println(effect);
-
   startFade = true;
   inFade = false; // Kill the current fade
-
   sendState();
 }
 
-
-bool processSmartostatClimateJson(char* message) {
-  StaticJsonDocument<BUFFER_SIZE> doc;
-  DeserializationError error = deserializeJson(doc, message);
-  if (error) {
-    Serial.println(F("parseObject() failed 2"));
-    return false;
-  }
-
-  if (doc.containsKey("smartostat")) {
-    const char* timeConst = doc["Time"];
-    timedate = timeConst;  
-  }
-
-  return true;
-}
-
-bool processAmbilightRebootCmnd(char* message) {
-  String rebootState = message;
-  if (rebootState == off_cmd) {     
-    stateOn = false;   
-    sendState(); 
-    delay(1500);
-    ESP.restart();
-  }
-  return true;
-}
-
-/********************************** START PROCESS JSON*****************************************/
+/********************************** START PROCESS JSON *****************************************/
 bool processJson(char* message) {
   StaticJsonDocument<BUFFER_SIZE> doc;
   DeserializationError error = deserializeJson(doc, message);
@@ -363,8 +164,7 @@ bool processJson(char* message) {
   if (doc.containsKey("state")) {
     if (strcmp(doc["state"], on_cmd) == 0) {
       stateOn = true;
-    }
-    else if (strcmp(doc["state"], off_cmd) == 0) {
+    } else if (strcmp(doc["state"], off_cmd) == 0) {
       stateOn = false;
       onbeforeflash = false;
     }
@@ -378,8 +178,7 @@ bool processJson(char* message) {
 
     if (doc.containsKey("brightness")) {
       flashBrightness = doc["brightness"];
-    }
-    else {
+    } else {
       flashBrightness = brightness;
     }
 
@@ -387,8 +186,7 @@ bool processJson(char* message) {
       flashRed = doc["color"]["r"];
       flashGreen = doc["color"]["g"];
       flashBlue = doc["color"]["b"];
-    }
-    else {
+    } else {
       flashRed = red;
       flashGreen = green;
       flashBlue = blue;
@@ -402,21 +200,19 @@ bool processJson(char* message) {
 
     if (doc.containsKey("transition")) {
       transitionTime = doc["transition"];
-    }
-    else if ( effectString == "solid") {
+    } else if ( effectString == "solid") {
       transitionTime = 0;
-    }
+    } 
 
     flashRed = map(flashRed, 0, 255, 0, flashBrightness);
     flashGreen = map(flashGreen, 0, 255, 0, flashBrightness);
     flashBlue = map(flashBlue, 0, 255, 0, flashBrightness);
-
     flash = true;
     startFlash = true;
-  }
-  else { // Not flashing
-    flash = false;
 
+  } else { // Not flashing
+
+    flash = false;
     if (stateOn) {   //if the light is turned on and the light isn't flashing
       onbeforeflash = true;
     }
@@ -431,9 +227,7 @@ bool processJson(char* message) {
       //temp comes in as mireds, need to convert to kelvin then to RGB
       int color_temp = doc["color_temp"];
       //      unsigned int kelvin  = MILLION / color_temp;
-      //
       //      temp2rgb(kelvin);
-
     }
 
     if (doc.containsKey("brightness")) {
@@ -448,8 +242,7 @@ bool processJson(char* message) {
 
     if (doc.containsKey("transition")) {
       transitionTime = doc["transition"];
-    }
-    else if ( effectString == "solid") {
+    } else if ( effectString == "solid") {
       transitionTime = 0;
     }
 
@@ -457,7 +250,6 @@ bool processJson(char* message) {
 
   return true;
 }
-
 
 
 /********************************** START SEND STATE*****************************************/
@@ -507,9 +299,8 @@ void nonBlokingBlink() {
   }  
 }
 
-
-/********************************** START RECONNECT*****************************************/
-void reconnect() {
+/********************************** START MQTT RECONNECT *****************************************/
+void mqttReconnect() {
   // variabile usata per tenere il conto di quanti tentativi di connessione al broker mqtt faccio
   int brokermqttcounter = 0;
   // Loop until we're reconnected
@@ -543,7 +334,32 @@ void reconnect() {
   }
 }
 
+// Get Time Info from MQTT queue, you can remove this part if you don't need it. I use it for monitoring
+bool processSmartostatClimateJson(char* message) {
+  StaticJsonDocument<BUFFER_SIZE> doc;
+  DeserializationError error = deserializeJson(doc, message);
+  if (error) {
+    Serial.println(F("parseObject() failed 2"));
+    return false;
+  }
+  if (doc.containsKey("smartostat")) {
+    const char* timeConst = doc["Time"];
+    timedate = timeConst;  
+  }
+  return true;
+}
 
+// MQTT reboot command
+bool processAmbilightRebootCmnd(char* message) {
+  String rebootState = message;
+  if (rebootState == off_cmd) {     
+    stateOn = false;   
+    sendState(); 
+    delay(1500);
+    ESP.restart();
+  }
+  return true;
+}
 
 /********************************** START Set Color*****************************************/
 void setColor(int inR, int inG, int inB) {
@@ -564,12 +380,10 @@ void setColor(int inR, int inG, int inB) {
   Serial.println(inB);
 }
 
-
-void check_connection() {
+void checkConnection() {
   if (!client.connected()) {
-    reconnect();
+    mqttReconnect();
   }
-
   if (WiFi.status() != WL_CONNECTED) {
     delay(1);
     Serial.print(F("WIFI Disconnected. Attempting reconnection."));
@@ -577,15 +391,13 @@ void check_connection() {
     return;
   }
   client.loop();
-
 }
-
 
 /********************************** START MAIN LOOP*****************************************/
 void loop() {
 
   if (!client.connected()) {
-    reconnect();
+    mqttReconnect();
   }
 
   if (WiFi.status() != WL_CONNECTED) {
@@ -606,17 +418,17 @@ void loop() {
     off_timer = millis();
 
     for (i = 0; i < sizeof prefix; ++i) {
-waitLoop: while (!Serial.available()) check_connection();;
+      waitLoop: while (!Serial.available()) checkConnection();;
       if (prefix[i] == Serial.read()) continue;
       i = 0;
       goto waitLoop;
     }
 
-    while (!Serial.available()) check_connection();;
+    while (!Serial.available()) checkConnection();;
     hi = Serial.read();
-    while (!Serial.available()) check_connection();;
+    while (!Serial.available()) checkConnection();;
     lo = Serial.read();
-    while (!Serial.available()) check_connection();;
+    while (!Serial.available()) checkConnection();;
     chk = Serial.read();
     if (chk != (hi ^ lo ^ 0x55))
     {
@@ -628,11 +440,11 @@ waitLoop: while (!Serial.available()) check_connection();;
     for (uint8_t i = 0; i < NUM_LEDS; i++) {
       byte r, g, b;
       // читаем данные для каждого цвета
-      while (!Serial.available()) check_connection();
+      while (!Serial.available()) checkConnection();
       r = Serial.read();
-      while (!Serial.available()) check_connection();
+      while (!Serial.available()) checkConnection();
       g = Serial.read();
-      while (!Serial.available()) check_connection();
+      while (!Serial.available()) checkConnection();
       b = Serial.read();
       leds[i].r = r;
       leds[i].g = g;
@@ -659,7 +471,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     showleds();
   }
 
-
   //EFFECT Candy Cane
   if (effectString == "candy cane") {
     static uint8_t startIndex = 0;
@@ -673,7 +484,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     showleds();
   }
 
-
   //EFFECT CONFETTI
   if (effectString == "confetti" ) {
     fadeToBlackBy( leds, NUM_LEDS, 25);
@@ -684,7 +494,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     }
     showleds();
   }
-
 
   //EFFECT CYCLON RAINBOW
   if (effectString == "cyclon rainbow") {                    //Single Dot Down
@@ -714,7 +523,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     }
   }
 
-
   //EFFECT DOTS
   if (effectString == "dots") {
     uint8_t inner = beatsin8(bpm, NUM_LEDS / 4, NUM_LEDS / 4 * 3);
@@ -731,7 +539,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     showleds();
   }
 
-
   //EFFECT FIRE
   if (effectString == "fire") {
     Fire2012WithPalette();
@@ -740,9 +547,7 @@ waitLoop: while (!Serial.available()) check_connection();;
     }
     showleds();
   }
-
   random16_add_entropy( random8());
-
 
   //EFFECT Glitter
   if (effectString == "glitter") {
@@ -753,7 +558,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     }
     showleds();
   }
-
 
   //EFFECT JUGGLE
   if (effectString == "juggle" ) {                           // eight colored dots, weaving in and out of sync with each other
@@ -766,7 +570,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     }
     showleds();
   }
-
 
   //EFFECT LIGHTNING
   if (effectString == "lightning") {
@@ -794,7 +597,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     }
     showleds();
   }
-
 
   //EFFECT POLICE ALL
   if (effectString == "police all") {                 //POLICE LIGHTS (TWO COLOR SOLID)
@@ -839,7 +641,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     showleds();
   }
 
-
   //EFFECT RAINBOW
   if (effectString == "rainbow") {
     // FastLED's built-in rainbow generator
@@ -877,7 +678,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     showleds();
   }
 
-
   //EFFECT SIENLON
   if (effectString == "sinelon") {
     fadeToBlackBy( leds, NUM_LEDS, 20);
@@ -888,7 +688,6 @@ waitLoop: while (!Serial.available()) check_connection();;
     }
     showleds();
   }
-
 
   //EFFECT TWINKLE
   if (effectString == "twinkle") {
@@ -917,7 +716,7 @@ waitLoop: while (!Serial.available()) check_connection();;
     showleds();
   }
 
-
+  //EVERY 10 MILLISECONDS
   EVERY_N_MILLISECONDS(10) {
 
     nblendPaletteTowardPalette(currentPalette, targetPalette, maxChanges);  // FOR NOISE ANIMATIon
@@ -969,11 +768,10 @@ waitLoop: while (!Serial.available()) check_connection();;
 
   }
 
-
+  // EVERY 5 SECONDS
   EVERY_N_SECONDS(5) {
     targetPalette = CRGBPalette16(CHSV(random8(), 255, random8(128, 255)), CHSV(random8(), 255, random8(128, 255)), CHSV(random8(), 192, random8(128, 255)), CHSV(random8(), 255, random8(128, 255)));
   }
-
 
   //FLASH AND FADE SUPPORT
   if (flash) {
@@ -1051,7 +849,6 @@ waitLoop: while (!Serial.available()) check_connection();;
   }
 }
 
-
 /**************************** START TRANSITION FADER *****************************************/
 // From https://www.arduino.cc/en/Tutorial/ColorCrossfader
 /* BELOW THIS LINE IS THE MATH -- YOU SHOULDN'T NEED TO CHANGE THIS FOR THE BASICS
@@ -1111,17 +908,12 @@ int calculateVal(int step, int val, int i) {
   return val;
 }
 
-
-
 /**************************** START STRIPLED PALETTE *****************************************/
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA) {
   currentPalettestriped = CRGBPalette16(
-                            A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-                            //    A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-                          );
+    A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B    
+  );
 }
-
-
 
 /********************************** START FADE************************************************/
 void fadeall() {
@@ -1130,11 +922,8 @@ void fadeall() {
   }
 }
 
-
-
 /********************************** START FIRE **********************************************/
-void Fire2012WithPalette()
-{
+void Fire2012WithPalette() {
   // Array of temperature readings at each simulation cell
   static byte heat[NUM_LEDS];
 
@@ -1170,33 +959,23 @@ void Fire2012WithPalette()
   }
 }
 
-
-
 /********************************** START ADD GLITTER *********************************************/
-void addGlitter( fract8 chanceOfGlitter)
-{
+void addGlitter(fract8 chanceOfGlitter) {
   if ( random8() < chanceOfGlitter) {
     leds[ random16(NUM_LEDS) ] += CRGB::White;
   }
 }
 
-
-
 /********************************** START ADD GLITTER COLOR ****************************************/
-void addGlitterColor( fract8 chanceOfGlitter, int red, int green, int blue)
-{
+void addGlitterColor( fract8 chanceOfGlitter, int red, int green, int blue) {
   if ( random8() < chanceOfGlitter) {
     leds[ random16(NUM_LEDS) ] += CRGB(red, green, blue);
   }
 }
 
-
-
 /********************************** START SHOW LEDS ***********************************************/
 void showleds() {
-
   delay(1);
-
   if (stateOn) {
     FastLED.setBrightness(brightness);  //EXECUTE EFFECT COLOR
     FastLED.show();
@@ -1210,6 +989,7 @@ void showleds() {
     startFade = false;
   }
 }
+
 void temp2rgb(unsigned int kelvin) {
   int tmp_internal = kelvin / 100.0;
 
@@ -1263,4 +1043,5 @@ void temp2rgb(unsigned int kelvin) {
       blue = tmp_blue;
     }
   }
+  
 }
