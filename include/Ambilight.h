@@ -1,3 +1,6 @@
+#ifndef PC_AMBILIGHT_H
+#define PC_AMBILIGHT_H
+
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
@@ -5,26 +8,26 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include <Secrets.h>
 #include <Version.h>
+#include "../arduino_bootstrapper/core/Secrets.h"
+#include "../arduino_bootstrapper/core/Helpers.h"
+#include "../arduino_bootstrapper/core/WifiManager.h"
+#include "../arduino_bootstrapper/core/QueueManager.h"
+
+
+WifiManager wifiManager;
 
 /****************** WIFI and MQTT INFO ******************/
 // MQTT server port
 const int mqtt_port = 1883;
-// DNS address for the microcontroller:
-IPAddress mydns(192, 168, 1, 1);
-// GATEWAY address for the microcontroller:
-IPAddress mygateway(192, 168, 1, 1);
+
+
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-/****************** OTA ******************/
-// SENSORNAME will be used as device network name
-#define SENSORNAME "ambilight"
-// Port for the OTA firmware uplaod
-int OTAport = 8266;
-// Static IP address for the microcontroller:
-IPAddress arduinoip(192, 168, 1, 52); 
+
+
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 const char* light_state_topic = "lights/pcambilight";  
@@ -52,7 +55,6 @@ const int BUFFER_SIZE = JSON_OBJECT_SIZE(20);
 int new_bright, new_bright_f;
 unsigned long bright_timer, off_timer;
 
-#define serialRate 500000
 uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
 bool led_state = true;
 
@@ -167,7 +169,6 @@ int blinkCounter = 0;
 String timedate = "OFF";
 
 /********************************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) *****************************************/
-void setup_wifi();
 void sendState();
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
 void callback(char* topic, byte* payload, unsigned int length);
@@ -187,3 +188,6 @@ void showleds();
 void temp2rgb(unsigned int kelvin);
 int calculateStep(int prevValue, int endValue);
 int calculateVal(int step, int val, int i);
+void manageDisconnections(int reconnectAttemp);
+
+#endif

@@ -16,7 +16,7 @@
  * 
  * MIT license
  */
-#include <Ambilight.h>
+#include "Ambilight.h"
 
 /********************************** START SETUP*****************************************/
 void setup() {
@@ -28,78 +28,24 @@ void setup() {
   setupStripedPalette( CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
   gPal = HeatColors_p; //for FIRE
 
-  Serial.begin(serialRate);
-  Serial.print(F("Ada\n"));     // Связаться с компом
+  Serial.begin(SERIAL_RATE);
 
-  setup_wifi();
+  // Initialize Wifi manager
+  wifiManager.setupWiFi(manageDisconnections, 0);
+
+
+
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
 
-  //OTA SETUP
-  ArduinoOTA.setPort(OTAport);
-  // Hostname defaults to esp8266-[ChipID]
-  ArduinoOTA.setHostname(SENSORNAME);
+  // Initialize OTA manager
+  wifiManager.setupOTAUpload();
 
-  // No authentication by default
-  ArduinoOTA.setPassword((const char *)OTApassword);
-
-  ArduinoOTA.onStart([]() {
-    Serial.print(F("Starting"));
-  });
-  ArduinoOTA.onEnd([]() {
-    Serial.print(F("\nEnd"));
-  });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-  });
-  ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.print(F("Auth Failed"));
-    else if (error == OTA_BEGIN_ERROR) Serial.print(F("Begin Failed"));
-    else if (error == OTA_CONNECT_ERROR) Serial.print(F("Connect Failed"));
-    else if (error == OTA_RECEIVE_ERROR) Serial.print(F("Receive Failed"));
-    else if (error == OTA_END_ERROR) Serial.print(F("End Failed"));
-  });
-  ArduinoOTA.begin();
-
-  Serial.print(F("Ready"));
-  Serial.print(F("IP Address: "));
-  Serial.println(WiFi.localIP());
 
 }
 
-/********************************** START SETUP WIFI*****************************************/
-void setup_wifi() {
 
-  delay(10);
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print(F("Connecting to "));
-  Serial.println(ssid);
 
-  WiFi.persistent(false);   // Solve possible wifi init errors (re-add at 6.2.1.16 #4044, #4083)
-  WiFi.disconnect(true);    // Delete SDK wifi config
-  delay(200);
-  WiFi.mode(WIFI_STA);      // Disable AP mode
-  //WiFi.setSleepMode(WIFI_NONE_SLEEP);
-  WiFi.setAutoConnect(true);
-  // IP of the arduino, dns, gateway
-  WiFi.config(arduinoip, mydns, mygateway);
-
-  WiFi.hostname(SENSORNAME);
-
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(F("."));
-  }
-
-  Serial.print(F(""));
-  Serial.print(F("WiFi connected"));
-  Serial.print(F("IP address: "));
-  Serial.println(WiFi.localIP());
-}
 
 /********************************** START CALLBACK*****************************************/
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -258,7 +204,7 @@ void sendState() {
 
   JsonObject root = doc.to<JsonObject>();
 
-  root["Whoami"] = SENSORNAME;
+  root["Whoami"] = WIFI_DEVICE_NAME;
   root["IP"] = WiFi.localIP().toString();
   root["MAC"] = WiFi.macAddress();
   root["ver"] = VERSION;
@@ -307,7 +253,7 @@ void mqttReconnect() {
   while (!client.connected()) {
     Serial.print(F("Attempting MQTT connection..."));
     // Attempt to connect
-    if (client.connect(SENSORNAME, mqtt_username, mqtt_password)) {
+    if (client.connect(WIFI_DEVICE_NAME, mqtt_username, mqtt_password)) {
       Serial.print(F("connected"));
       client.subscribe(light_set_topic);
       client.subscribe(smartostat_climate_state_topic);
@@ -324,8 +270,8 @@ void mqttReconnect() {
       Serial.println(brokermqttcounter);
       // se dopo 10 tentativi di connessione al broker mqtt non ottengo risposta, spengo i led forzatamente.
       if (brokermqttcounter == 10) {
-        setColor(0, 0, 0);
-        sendState();
+        // setColor(0, 0, 0);
+        // sendState();
       }
       brokermqttcounter++;
       // Wait 5 seconds before retrying
@@ -380,6 +326,22 @@ void setColor(int inR, int inG, int inB) {
   Serial.println(inB);
 }
 
+void manageDisconnections(int reconnectAttemp) {
+  delay(DELAY_500);
+  Serial.print(F("."));
+  reconnectAttemp++;
+  if (reconnectAttemp > 10) {
+    Serial.print(F("Reconnect attemp= "));
+    Serial.print(reconnectAttemp);
+    if (reconnectAttemp >= MAX_RECONNECT) {
+      Serial.println(F("Max retry reached, powering off peripherals."));
+      setColor(0, 0, 0);
+    }
+  } else if (reconnectAttemp > 10000) {
+    reconnectAttemp = 0;
+  }
+}
+
 void checkConnection() {
   if (!client.connected()) {
     mqttReconnect();
@@ -387,7 +349,7 @@ void checkConnection() {
   if (WiFi.status() != WL_CONNECTED) {
     delay(1);
     Serial.print(F("WIFI Disconnected. Attempting reconnection."));
-    setup_wifi();
+    wifiManager.setupWiFi(manageDisconnections, 0);
     return;
   }
   client.loop();
@@ -403,7 +365,7 @@ void loop() {
   if (WiFi.status() != WL_CONNECTED) {
     delay(1);
     Serial.print(F("WIFI Disconnected. Attempting reconnection."));
-    setup_wifi();
+    wifiManager.setupWiFi(manageDisconnections, 0);
     return;
   }
   client.loop();
