@@ -31,7 +31,7 @@ void setup() {
   gPal = HeatColors_p; //for FIRE
   
   // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(manageDisconnections, callback, NULL);
+  bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback, NULL);
 
 }
 
