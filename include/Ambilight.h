@@ -143,7 +143,10 @@ int blinkCounter = 0;
 String timedate = "OFF";
 
 /********************************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) *****************************************/
-void sendState();
+void manageDisconnections();
+void manageQueueSubscription();
+void manageHardwareButton();
+void sendStatus();
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
 void callback(char* topic, byte* payload, unsigned int length);
 bool processSmartostatClimateJson(char* message);
@@ -161,7 +164,5 @@ void showleds();
 void temp2rgb(unsigned int kelvin);
 int calculateStep(int prevValue, int endValue);
 int calculateVal(int step, int val, int i);
-void manageDisconnections();
-void manageQueueSubscription();
 
 #endif

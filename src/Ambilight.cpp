@@ -18,7 +18,7 @@
  */
 #include "Ambilight.h"
 
-/********************************** START SETUP*****************************************/
+/********************************** START SETUP *****************************************/
 void setup() {
   
   Serial.begin(SERIAL_RATE);
@@ -31,8 +31,25 @@ void setup() {
   gPal = HeatColors_p; //for FIRE
   
   // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(manageDisconnections, callback);
+  bootstrapManager.bootstrapSetup(manageDisconnections, callback, NULL);
 
+}
+
+/********************************** MANAGE WIFI AND MQTT DISCONNECTION *****************************************/
+void manageDisconnections() {
+  setColor(0, 0, 0);
+}
+
+/********************************** MQTT SUBSCRIPTIONS *****************************************/
+void manageQueueSubscription() {
+  mqttClient.subscribe(light_set_topic);
+  mqttClient.subscribe(smartostat_climate_state_topic);
+  mqttClient.subscribe(cmnd_ambi_reboot);            
+}
+
+/********************************** MANAGE HARDWARE BUTTON *****************************************/
+void manageHardwareButton() {
+  // no hardware button at the moment
 }
 
 /********************************** START CALLBACK*****************************************/
@@ -82,7 +99,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println(effect);
   startFade = true;
   inFade = false; // Kill the current fade
-  sendState();
+  sendStatus();
 }
 
 /********************************** START PROCESS JSON *****************************************/
@@ -186,7 +203,7 @@ bool processJson(char* message) {
 }
 
 /********************************** START SEND STATE*****************************************/
-void sendState() {
+void sendStatus() {
   StaticJsonDocument<BUFFER_SIZE> doc;
 
   JsonObject root = doc.to<JsonObject>();
@@ -252,7 +269,7 @@ bool processAmbilightRebootCmnd(char* message) {
   String rebootState = message;
   if (rebootState == OFF_CMD) {     
     stateOn = false;   
-    sendState(); 
+    sendStatus(); 
     delay(1500);
     ESP.restart();
   }
@@ -278,19 +295,9 @@ void setColor(int inR, int inG, int inB) {
   Serial.println(inB);
 }
 
-void manageDisconnections() {
-  setColor(0, 0, 0);
-}
-
-void manageQueueSubscription() {
-  mqttClient.subscribe(light_set_topic);
-  mqttClient.subscribe(smartostat_climate_state_topic);
-  mqttClient.subscribe(cmnd_ambi_reboot);            
-}
-
 void checkConnection() {
   // Bootsrap loop() with Wifi, MQTT and OTA functions
-  bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription);
+  bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton, NULL);
 }
 
 /********************************** START MAIN LOOP*****************************************/
@@ -688,7 +695,7 @@ void loop() {
       else {
         stateOn = false;
         setColor(0, 0, 0);
-        sendState();
+        sendStatus();
       }
     }
   }

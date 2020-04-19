@@ -5,6 +5,8 @@
 
 // Serial rate for debug
 #define SERIAL_RATE 500000
+// Specify if you want to use a display or only Serial
+const bool PRINT_TO_DISPLAY = false;
 
 // SENSORNAME will be used as device network name
 #define WIFI_DEVICE_NAME "ambilight"
