@@ -1,30 +1,12 @@
 #ifndef PC_AMBILIGHT_H
 #define PC_AMBILIGHT_H
 
-#include <ArduinoJson.h>
 #include <FastLED.h>
 #include <Version.h>
-
-
 #include "../arduino_bootstrapper/core/BootstrapManager.h"
 
-// #include "../arduino_bootstrapper/core/WifiManager.h"
-// #include "../arduino_bootstrapper/core/QueueManager.h"
-
-
-// // WifiManager class for Wifi management
-// WifiManager wifiManager;
-
-// QueueManager queueManager;
-
-/****************** WIFI and MQTT INFO ******************/
-
+/****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;
-
-
-
-
-
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 const char* light_state_topic = "lights/pcambilight";  
@@ -33,14 +15,9 @@ const char* smartostat_climate_state_topic = "stat/smartostat/CLIMATE";
 const char* cmnd_ambi_reboot = "cmnd/ambilight/reboot";
 const char* stat_ambi_reboot = "stat/ambilight/reboot";
 
-const char* on_cmd = "ON";
-const char* off_cmd = "OFF";
 const char* effect = "solid";
 String effectString = "solid";
 String oldeffectString = "solid";
-
-/****************************************FOR JSON***************************************/
-const int BUFFER_SIZE = JSON_OBJECT_SIZE(20);
 
 /********************************* AmbiLight *************************************/
 #define max_bright 255       // maximum brightness (0 - 255)

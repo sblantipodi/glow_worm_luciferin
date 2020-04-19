@@ -96,9 +96,9 @@ bool processJson(char* message) {
   }
 
   if (doc.containsKey("state")) {
-    if (strcmp(doc["state"], on_cmd) == 0) {
+    if (strcmp(doc["state"], ON_CMD) == 0) {
       stateOn = true;
-    } else if (strcmp(doc["state"], off_cmd) == 0) {
+    } else if (strcmp(doc["state"], OFF_CMD) == 0) {
       stateOn = false;
       onbeforeflash = false;
     }
@@ -185,7 +185,6 @@ bool processJson(char* message) {
   return true;
 }
 
-
 /********************************** START SEND STATE*****************************************/
 void sendState() {
   StaticJsonDocument<BUFFER_SIZE> doc;
@@ -198,7 +197,7 @@ void sendState() {
   root["ver"] = VERSION;
   
   root["Time"] = timedate;
-  root["state"] = (stateOn) ? on_cmd : off_cmd;
+  root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
   JsonObject color = root.createNestedObject("color");
   color["r"] = red;
   color["g"] = green;
@@ -233,8 +232,6 @@ void nonBlokingBlink() {
   }  
 }
 
-
-
 // Get Time Info from MQTT queue, you can remove this part if you don't need it. I use it for monitoring
 bool processSmartostatClimateJson(char* message) {
   StaticJsonDocument<BUFFER_SIZE> doc;
@@ -253,7 +250,7 @@ bool processSmartostatClimateJson(char* message) {
 // MQTT reboot command
 bool processAmbilightRebootCmnd(char* message) {
   String rebootState = message;
-  if (rebootState == off_cmd) {     
+  if (rebootState == OFF_CMD) {     
     stateOn = false;   
     sendState(); 
     delay(1500);
