@@ -2,29 +2,26 @@
 #define PC_AMBILIGHT_H
 
 #include <ArduinoJson.h>
-#include <ESP8266WiFi.h>
-#include <PubSubClient.h>
 #include <FastLED.h>
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
 #include <Version.h>
-#include "../arduino_bootstrapper/core/Secrets.h"
-#include "../arduino_bootstrapper/core/Helpers.h"
-#include "../arduino_bootstrapper/core/WifiManager.h"
-#include "../arduino_bootstrapper/core/QueueManager.h"
 
 
-WifiManager wifiManager;
+#include "../arduino_bootstrapper/core/BootstrapManager.h"
+
+// #include "../arduino_bootstrapper/core/WifiManager.h"
+// #include "../arduino_bootstrapper/core/QueueManager.h"
+
+
+// // WifiManager class for Wifi management
+// WifiManager wifiManager;
+
+// QueueManager queueManager;
 
 /****************** WIFI and MQTT INFO ******************/
-// MQTT server port
-const int mqtt_port = 1883;
+
+BootstrapManager bootstrapManager;
 
 
-
-WiFiClient espClient;
-PubSubClient client(espClient);
 
 
 
@@ -175,7 +172,6 @@ void callback(char* topic, byte* payload, unsigned int length);
 bool processSmartostatClimateJson(char* message);
 bool processJson(char* message);
 void nonBlokingBlink();
-void mqttReconnect();
 bool processAmbilightRebootCmnd(char* message);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
@@ -188,6 +184,7 @@ void showleds();
 void temp2rgb(unsigned int kelvin);
 int calculateStep(int prevValue, int endValue);
 int calculateVal(int step, int val, int i);
-void manageDisconnections(int reconnectAttemp);
+void manageDisconnections();
+void manageQueueSubscription();
 
 #endif

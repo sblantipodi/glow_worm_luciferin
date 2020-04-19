@@ -20,32 +20,20 @@
 
 /********************************** START SETUP*****************************************/
 void setup() {
-  // LED_BUILTIN
-  pinMode(LED_BUILTIN, OUTPUT);
-
-  FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-
-  setupStripedPalette( CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
-  gPal = HeatColors_p; //for FIRE
-
+  
   Serial.begin(SERIAL_RATE);
 
-  // Initialize Wifi manager
-  wifiManager.setupWiFi(manageDisconnections, 0);
-
-
-
-  client.setServer(mqtt_server, mqtt_port);
-  client.setCallback(callback);
-
-  // Initialize OTA manager
-  wifiManager.setupOTAUpload();
-
+  // Pin configuration
+  pinMode(LED_BUILTIN, OUTPUT);
+  
+  FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  setupStripedPalette( CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
+  gPal = HeatColors_p; //for FIRE
+  
+  // Bootsrap setup() with Wifi and MQTT functions
+  bootstrapManager.bootstrapSetup(manageDisconnections, callback);
 
 }
-
-
-
 
 /********************************** START CALLBACK*****************************************/
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -222,7 +210,7 @@ void sendState() {
   char buffer[measureJson(root) + 1];
   serializeJson(root, buffer, sizeof(buffer));
 
-  client.publish(light_state_topic, buffer, true);
+  mqttClient.publish(light_state_topic, buffer, true);
 
   // Built in led triggered
   ledTriggered = true;
@@ -245,40 +233,7 @@ void nonBlokingBlink() {
   }  
 }
 
-/********************************** START MQTT RECONNECT *****************************************/
-void mqttReconnect() {
-  // variabile usata per tenere il conto di quanti tentativi di connessione al broker mqtt faccio
-  int brokermqttcounter = 0;
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print(F("Attempting MQTT connection..."));
-    // Attempt to connect
-    if (client.connect(WIFI_DEVICE_NAME, mqtt_username, mqtt_password)) {
-      Serial.print(F("connected"));
-      client.subscribe(light_set_topic);
-      client.subscribe(smartostat_climate_state_topic);
-      client.subscribe(cmnd_ambi_reboot);            
-      // ogni tanto quando HA smette di rispondere si disconnette per 10 secondi e mi spegne i led tolto il set state a 0
-      //setColor(0, 0, 0);
-      //sendState();
-      brokermqttcounter = 0;
-    } else {
-      Serial.print(F("failed, rc="));
-      Serial.print(client.state());
-      Serial.print(F(" try again in 5 seconds"));
-      Serial.print(F("Numbers of retry="));
-      Serial.println(brokermqttcounter);
-      // se dopo 10 tentativi di connessione al broker mqtt non ottengo risposta, spengo i led forzatamente.
-      if (brokermqttcounter == 10) {
-        // setColor(0, 0, 0);
-        // sendState();
-      }
-      brokermqttcounter++;
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
+
 
 // Get Time Info from MQTT queue, you can remove this part if you don't need it. I use it for monitoring
 bool processSmartostatClimateJson(char* message) {
@@ -326,51 +281,25 @@ void setColor(int inR, int inG, int inB) {
   Serial.println(inB);
 }
 
-void manageDisconnections(int reconnectAttemp) {
-  delay(DELAY_500);
-  Serial.print(F("."));
-  reconnectAttemp++;
-  if (reconnectAttemp > 10) {
-    Serial.print(F("Reconnect attemp= "));
-    Serial.print(reconnectAttemp);
-    if (reconnectAttemp >= MAX_RECONNECT) {
-      Serial.println(F("Max retry reached, powering off peripherals."));
-      setColor(0, 0, 0);
-    }
-  } else if (reconnectAttemp > 10000) {
-    reconnectAttemp = 0;
-  }
+void manageDisconnections() {
+  setColor(0, 0, 0);
+}
+
+void manageQueueSubscription() {
+  mqttClient.subscribe(light_set_topic);
+  mqttClient.subscribe(smartostat_climate_state_topic);
+  mqttClient.subscribe(cmnd_ambi_reboot);            
 }
 
 void checkConnection() {
-  if (!client.connected()) {
-    mqttReconnect();
-  }
-  if (WiFi.status() != WL_CONNECTED) {
-    delay(1);
-    Serial.print(F("WIFI Disconnected. Attempting reconnection."));
-    wifiManager.setupWiFi(manageDisconnections, 0);
-    return;
-  }
-  client.loop();
+  // Bootsrap loop() with Wifi, MQTT and OTA functions
+  bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription);
 }
 
 /********************************** START MAIN LOOP*****************************************/
 void loop() {
-
-  if (!client.connected()) {
-    mqttReconnect();
-  }
-
-  if (WiFi.status() != WL_CONNECTED) {
-    delay(1);
-    Serial.print(F("WIFI Disconnected. Attempting reconnection."));
-    wifiManager.setupWiFi(manageDisconnections, 0);
-    return;
-  }
-  client.loop();
   
-  ArduinoOTA.handle();
+  checkConnection();
 
   nonBlokingBlink();
 
