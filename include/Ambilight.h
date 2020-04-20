@@ -133,13 +133,6 @@ bool gReverseDirection = false;
 uint8_t gHue = 0;
 CRGB leds[NUM_LEDS];
 
-// LED_BUILTIN vars
-unsigned long previousMillis = 0;     // will store last time LED was updated
-const long interval = 200;           // interval at which to blink (milliseconds)
-bool ledTriggered = false;
-const int blinkTimes = 6; // 6 equals to 3 blink on and 3 off
-int blinkCounter = 0;
-
 String timedate = "OFF";
 
 /********************************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) *****************************************/
@@ -151,7 +144,6 @@ void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
 void callback(char* topic, byte* payload, unsigned int length);
 bool processSmartostatClimateJson(char* message);
 bool processJson(char* message);
-void nonBlokingBlink();
 bool processAmbilightRebootCmnd(char* message);
 void setColor(int inR, int inG, int inB);
 void checkConnection();

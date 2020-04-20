@@ -232,23 +232,6 @@ void sendStatus() {
   ledTriggered = true;
 }
 
-// Blink LED_BUILTIN without bloking delay
-void nonBlokingBlink() {
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval && ledTriggered) {
-    // save the last time you blinked the LED
-    previousMillis = currentMillis;
-    // blink led
-    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-    blinkCounter++;
-    if (blinkCounter >= blinkTimes) {
-      blinkCounter = 0;
-      ledTriggered = false;
-      digitalWrite(LED_BUILTIN, HIGH);
-    }
-  }  
-}
-
 // Get Time Info from MQTT queue, you can remove this part if you don't need it. I use it for monitoring
 bool processSmartostatClimateJson(char* message) {
   StaticJsonDocument<BUFFER_SIZE> doc;
@@ -305,7 +288,7 @@ void loop() {
   
   checkConnection();
 
-  nonBlokingBlink();
+  bootstrapManager.nonBlokingBlink();
 
   //EFFECT BPM
   if (effectString == "AmbiLight") {
