@@ -2,11 +2,18 @@
 #define _DPSOFTWARE_CONFIG_H
 
 #include <ESP8266WiFi.h>
+#include <Adafruit_SSD1306.h>
+
 
 // Serial rate for debug
 #define SERIAL_RATE 500000
 // Specify if you want to use a display or only Serial
 const bool PRINT_TO_DISPLAY = false;
+// Display specs
+#define OLED_RESET LED_BUILTIN // Pin used for integrated D1 Mini blue LED
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+extern Adafruit_SSD1306 display;
 
 // SENSORNAME will be used as device network name
 #define WIFI_DEVICE_NAME "ambilight"

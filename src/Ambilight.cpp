@@ -31,7 +31,7 @@ void setup() {
   gPal = HeatColors_p; //for FIRE
   
   // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback, NULL);
+  bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
 
 }
 
@@ -297,7 +297,7 @@ void setColor(int inR, int inG, int inB) {
 
 void checkConnection() {
   // Bootsrap loop() with Wifi, MQTT and OTA functions
-  bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton, NULL);
+  bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
 }
 
 /********************************** START MAIN LOOP*****************************************/
