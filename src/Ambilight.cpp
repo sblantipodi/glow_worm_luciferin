@@ -267,7 +267,7 @@ bool processSmartostatClimateJson(char* message) {
 // MQTT reboot command
 bool processAmbilightRebootCmnd(char* message) {
   String rebootState = message;
-  if (rebootState == OFF_CMD) {     
+  if (rebootState == OFF_CMD) {
     stateOn = false;   
     sendStatus(); 
     delay(1500);
