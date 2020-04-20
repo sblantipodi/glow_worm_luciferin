@@ -27,6 +27,7 @@
   NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, 
   some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 */
+
 #include "Ambilight.h"
 
 /********************************** START SETUP *****************************************/
