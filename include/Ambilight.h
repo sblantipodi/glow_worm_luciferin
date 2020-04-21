@@ -32,7 +32,7 @@
 #define PC_AMBILIGHT_H
 
 #include <FastLED.h>
-#include <Version.h>
+#include "Version.h"
 #include "../arduino_bootstrapper/core/BootstrapManager.h"
 
 /****************** BOOTSTRAP MANAGER ******************/
