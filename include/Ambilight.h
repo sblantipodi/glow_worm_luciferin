@@ -28,15 +28,13 @@
   some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 */
 
-#ifndef PC_AMBILIGHT_H
-#define PC_AMBILIGHT_H
-
 #include <FastLED.h>
 #include "Version.h"
 #include "../arduino_bootstrapper/core/BootstrapManager.h"
 
 /****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;
+Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 const char* light_state_topic = "lights/pcambilight";  
@@ -186,5 +184,3 @@ void showleds();
 void temp2rgb(unsigned int kelvin);
 int calculateStep(int prevValue, int endValue);
 int calculateVal(int step, int val, int i);
-
-#endif

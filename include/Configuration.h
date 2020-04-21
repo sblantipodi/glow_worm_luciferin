@@ -36,7 +36,7 @@ const bool PRINT_TO_DISPLAY = false;
 extern Adafruit_SSD1306 display;
 
 // SENSORNAME will be used as device network name
-#define WIFI_DEVICE_NAME "ambilight"
+#define WIFI_DEVICE_NAME "AMBILIGHT"
 // GATEWAY IP
 #define IP_GATEWAY IPAddress(192, 168, 1, 1);
 // STATIC IP FOR THE MICROCONTROLLER

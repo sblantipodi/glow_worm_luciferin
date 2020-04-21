@@ -54,7 +54,7 @@ void manageDisconnections() {
 
 /********************************** MQTT SUBSCRIPTIONS *****************************************/
 void manageQueueSubscription() {
-  mqttClient.subscribe(light_set_topic);
+  mqttClient.subscribe(LIGHT_SET_TOPIC);
   mqttClient.subscribe(smartostat_climate_state_topic);
   mqttClient.subscribe(cmnd_ambi_reboot);            
 }
@@ -64,7 +64,7 @@ void manageHardwareButton() {
   // no hardware button at the moment
 }
 
-/********************************** START CALLBACK*****************************************/
+/********************************** START CALLBACK *****************************************/
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(F("Message arrived ["));
   Serial.print(topic);
