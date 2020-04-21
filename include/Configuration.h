@@ -23,6 +23,7 @@
 #include <ESP8266WiFi.h>
 #include <Adafruit_SSD1306.h>
 
+#define AUTHOR "DPsoftware"
 
 // Serial rate for debug
 #define SERIAL_RATE 500000
