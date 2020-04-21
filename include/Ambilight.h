@@ -163,8 +163,6 @@ bool gReverseDirection = false;
 uint8_t gHue = 0;
 CRGB leds[NUM_LEDS];
 
-String timedate = "OFF";
-
 /********************************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) *****************************************/
 // Bootstrap functions
 void callback(char* topic, byte* payload, unsigned int length);
