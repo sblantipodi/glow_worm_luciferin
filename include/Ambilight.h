@@ -166,12 +166,14 @@ CRGB leds[NUM_LEDS];
 String timedate = "OFF";
 
 /********************************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) *****************************************/
+// Bootstrap functions
+void callback(char* topic, byte* payload, unsigned int length);
 void manageDisconnections();
 void manageQueueSubscription();
 void manageHardwareButton();
+// Project specific functions
 void sendStatus();
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
-void callback(char* topic, byte* payload, unsigned int length);
 bool processSmartostatClimateJson(char* message);
 bool processJson(char* message);
 bool processAmbilightRebootCmnd(char* message);
