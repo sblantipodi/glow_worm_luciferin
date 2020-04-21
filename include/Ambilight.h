@@ -37,11 +37,11 @@ BootstrapManager bootstrapManager;
 Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
-const char* light_state_topic = "lights/pcambilight";  
-const char* light_set_topic = "lights/pcambiligh/set";  
-const char* smartostat_climate_state_topic = "stat/smartostat/CLIMATE";
-const char* cmnd_ambi_reboot = "cmnd/ambilight/reboot";
-const char* stat_ambi_reboot = "stat/ambilight/reboot";
+const char* LIGHT_STATE_TOPIC = "lights/pcambilight";  
+const char* LIGHT_SET_TOPIC = "lights/pcambiligh/set";  
+const char* SMARTOSTAT_CLIMATE_STATE_TOPIC = "stat/smartostat/CLIMATE";
+const char* CMND_AMBI_REBOOT = "cmnd/ambilight/reboot";
+const char* STAT_AMBI_REBOOT = "stat/ambilight/reboot";
 
 const char* effect = "solid";
 String effectString = "solid";

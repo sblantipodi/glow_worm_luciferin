@@ -55,8 +55,8 @@ void manageDisconnections() {
 /********************************** MQTT SUBSCRIPTIONS *****************************************/
 void manageQueueSubscription() {
   mqttClient.subscribe(LIGHT_SET_TOPIC);
-  mqttClient.subscribe(smartostat_climate_state_topic);
-  mqttClient.subscribe(cmnd_ambi_reboot);            
+  mqttClient.subscribe(SMARTOSTAT_CLIMATE_STATE_TOPIC);
+  mqttClient.subscribe(CMND_AMBI_REBOOT);            
 }
 
 /********************************** MANAGE HARDWARE BUTTON *****************************************/
@@ -77,11 +77,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
   message[length] = '\0';
   Serial.println(message);
 
-  if(strcmp(topic, smartostat_climate_state_topic) == 0) {
+  if(strcmp(topic, SMARTOSTAT_CLIMATE_STATE_TOPIC) == 0) {
     if (!processSmartostatClimateJson(message)) {
       return;
     }
-  } else if(strcmp(topic, cmnd_ambi_reboot) == 0) {
+  } else if(strcmp(topic, CMND_AMBI_REBOOT) == 0) {
     if (!processAmbilightRebootCmnd(message)) {
       return;
     }
@@ -231,7 +231,7 @@ void sendStatus() {
   char buffer[measureJson(root) + 1];
   serializeJson(root, buffer, sizeof(buffer));
 
-  mqttClient.publish(light_state_topic, buffer, true);
+  mqttClient.publish(LIGHT_STATE_TOPIC, buffer, true);
 
   // Built in led triggered
   ledTriggered = true;
