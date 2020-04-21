@@ -83,7 +83,7 @@ bool stateOn = false;
 bool startFade = false;
 bool onbeforeflash = false;
 unsigned long lastLoop = 0;
-int transitionTime = 0;
+unsigned transitionTime = 0;
 int effectSpeed = 0;
 bool inFade = false;
 int loopCount = 0;
@@ -92,7 +92,7 @@ int redVal, grnVal, bluVal;
 
 bool flash = false;
 bool startFlash = false;
-int flashLength = 0;
+unsigned int flashLength = 0;
 unsigned long flashStartTime = 0;
 byte flashRed = red;
 byte flashGreen = green;

@@ -71,7 +71,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(F("] "));
 
   char message[length + 1];
-  for (int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++) {
     message[i] = (char)payload[i];
   }
   message[length] = '\0';
@@ -184,14 +184,7 @@ bool processJson(char* message) {
       red = doc["color"]["r"];
       green = doc["color"]["g"];
       blue = doc["color"]["b"];
-    }
-
-    if (doc.containsKey("color_temp")) {
-      //temp comes in as mireds, need to convert to kelvin then to RGB
-      int color_temp = doc["color_temp"];
-      //      unsigned int kelvin  = MILLION / color_temp;
-      //      temp2rgb(kelvin);
-    }
+    }    
 
     if (doc.containsKey("brightness")) {
       brightness = doc["brightness"];
@@ -355,7 +348,7 @@ void loop() {
     for ( int i = 0; i < NUM_LEDS; i++) { //9948
       leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
     }
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 30;
     }
     showleds();
@@ -368,7 +361,7 @@ void loop() {
     fill_palette( leds, NUM_LEDS,
                   startIndex, 16, /* higher = narrower stripes */
                   currentPalettestriped, 255, LINEARBLEND);
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 0;
     }
     showleds();
@@ -379,7 +372,7 @@ void loop() {
     fadeToBlackBy( leds, NUM_LEDS, 25);
     int pos = random16(NUM_LEDS);
     leds[pos] += CRGB(realRed + random8(64), realGreen, realBlue);
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 30;
     }
     showleds();
@@ -423,7 +416,7 @@ void loop() {
     leds[outer] = CRGB::Aqua;
     nscale8(leds, NUM_LEDS, fadeval);
 
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 30;
     }
     showleds();
@@ -432,7 +425,7 @@ void loop() {
   //EFFECT FIRE
   if (effectString == "fire") {
     Fire2012WithPalette();
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 150;
     }
     showleds();
@@ -443,7 +436,7 @@ void loop() {
   if (effectString == "glitter") {
     fadeToBlackBy( leds, NUM_LEDS, 20);
     addGlitterColor(80, realRed, realGreen, realBlue);
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 30;
     }
     showleds();
@@ -455,7 +448,7 @@ void loop() {
     for (int i = 0; i < 8; i++) {
       leds[beatsin16(i + 7, 0, NUM_LEDS - 1  )] |= CRGB(realRed, realGreen, realBlue);
     }
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 130;
     }
     showleds();
@@ -482,7 +475,7 @@ void loop() {
       delay(50 + random8(100));             // shorter delay between strokes
     }
     delay(random8(frequency) * 100);        // delay between strikes
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 0;
     }
     showleds();
@@ -499,7 +492,7 @@ void loop() {
     int thathue = (thishuepolice + 160) % 255;
     leds[idexR] = CHSV(thishuepolice, thissat, 255);
     leds[idexB] = CHSV(thathue, thissat, 255);
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 30;
     }
     showleds();
@@ -525,7 +518,7 @@ void loop() {
         leds[i] = CHSV(0, 0, 0);
       }
     }
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 30;
     }
     showleds();
@@ -534,9 +527,9 @@ void loop() {
   //EFFECT RAINBOW
   if (effectString == "rainbow") {
     // FastLED's built-in rainbow generator
-    static uint8_t starthue = 0;    thishue++;
+    thishue++;
     fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 130;
     }
     showleds();
@@ -545,9 +538,9 @@ void loop() {
   //SOLID RAINBOW
   if (effectString == "solid rainbow") {
     // FastLED's built-in rainbow generator
-    static uint8_t starthue = 0;    thishue++;
+    thishue++;
     fill_solid(leds, NUM_LEDS, CHSV(thishue,255,255));
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 40;
     }
     if (transitionTime < 130) {
@@ -558,11 +551,10 @@ void loop() {
 
   //EFFECT RAINBOW WITH GLITTER
   if (effectString == "rainbow with glitter") {               // FastLED's built-in rainbow generator with Glitter
-    static uint8_t starthue = 0;
     thishue++;
     fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
     addGlitter(80);
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 130;
     }
     showleds();
@@ -573,7 +565,7 @@ void loop() {
     fadeToBlackBy( leds, NUM_LEDS, 20);
     int pos = beatsin16(13, 0, NUM_LEDS - 1);
     leds[pos] += CRGB(realRed, realGreen, realBlue);
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 150;
     }
     showleds();
@@ -600,7 +592,7 @@ void loop() {
       if ( !leds[j] ) leds[j] = lightcolor;
     }
 
-    if (transitionTime == 0 or transitionTime == NULL) {
+    if (transitionTime == 0) {
       transitionTime = 0;
     }
     showleds();
@@ -622,7 +614,7 @@ void loop() {
       }
       dist += beatsin8(10, 1, 4);                                              // Moving along the distance (that random number we started out with). Vary it a bit with a sine wave.
       // In some sketches, I've used millis() instead of an incremented counter. Works a treat.
-      if (transitionTime == 0 or transitionTime == NULL) {
+      if (transitionTime == 0) {
         transitionTime = 0;
       }
       showleds();
@@ -650,7 +642,7 @@ void loop() {
           step ++;                                                         // Next step.
           break;
       }
-      if (transitionTime == 0 or transitionTime == NULL) {
+      if (transitionTime == 0) {
         transitionTime = 30;
       }
       showleds();
