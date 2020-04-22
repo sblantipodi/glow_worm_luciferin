@@ -49,14 +49,18 @@ void setup() {
 
 /********************************** MANAGE WIFI AND MQTT DISCONNECTION *****************************************/
 void manageDisconnections() {
+
   setColor(0, 0, 0);
+
 }
 
 /********************************** MQTT SUBSCRIPTIONS *****************************************/
 void manageQueueSubscription() {
-  mqttClient.subscribe(LIGHT_SET_TOPIC);
-  mqttClient.subscribe(SMARTOSTAT_CLIMATE_STATE_TOPIC);
-  mqttClient.subscribe(CMND_AMBI_REBOOT);            
+
+  bootstrapManager.subscribe(LIGHT_SET_TOPIC);
+  bootstrapManager.subscribe(SMARTOSTAT_CLIMATE_STATE_TOPIC);
+  bootstrapManager.subscribe(CMND_AMBI_REBOOT);  
+            
 }
 
 /********************************** MANAGE HARDWARE BUTTON *****************************************/
@@ -209,17 +213,10 @@ bool processJson(char* message) {
 
 /********************************** START SEND STATE*****************************************/
 void sendStatus() {
-  StaticJsonDocument<BUFFER_SIZE> doc;
 
-  JsonObject root = doc.to<JsonObject>();
-
-  root["Whoami"] = WIFI_DEVICE_NAME;
-  root["IP"] = WiFi.localIP().toString();
-  root["MAC"] = WiFi.macAddress();
-  root["ver"] = VERSION;
-  
-  root["Time"] = timedate;
+  JsonObject root = bootstrapManager.getJsonObject();
   root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
+  
   JsonObject color = root.createNestedObject("color");
   color["r"] = red;
   color["g"] = green;
@@ -228,10 +225,7 @@ void sendStatus() {
   root["brightness"] = brightness;
   root["effect"] = effectString.c_str();
 
-  char buffer[measureJson(root) + 1];
-  serializeJson(root, buffer, sizeof(buffer));
-
-  mqttClient.publish(LIGHT_STATE_TOPIC, buffer, true);
+  bootstrapManager.sendState(LIGHT_STATE_TOPIC, root, VERSION);
 
   // Built in led triggered
   ledTriggered = true;
