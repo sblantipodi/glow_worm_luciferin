@@ -170,9 +170,9 @@ void manageHardwareButton();
 // Project specific functions
 void sendStatus();
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
-bool processSmartostatClimateJson(char* message);
-bool processJson(char* message);
-bool processAmbilightRebootCmnd(char* message);
+bool processSmartostatClimateJson(StaticJsonDocument<BUFFER_SIZE> json);
+bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
+bool processAmbilightRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);

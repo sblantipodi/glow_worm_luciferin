@@ -70,29 +70,15 @@ void manageHardwareButton() {
 
 /********************************** START CALLBACK *****************************************/
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print(F("Message arrived ["));
-  Serial.print(topic);
-  Serial.print(F("] "));
 
-  char message[length + 1];
-  for (unsigned int i = 0; i < length; i++) {
-    message[i] = (char)payload[i];
-  }
-  message[length] = '\0';
-  Serial.println(message);
+  StaticJsonDocument<BUFFER_SIZE> json = bootstrapManager.parseQueueMsg(topic, payload, length);
 
   if(strcmp(topic, SMARTOSTAT_CLIMATE_STATE_TOPIC) == 0) {
-    if (!processSmartostatClimateJson(message)) {
-      return;
-    }
+    processSmartostatClimateJson(json);
   } else if(strcmp(topic, CMND_AMBI_REBOOT) == 0) {
-    if (!processAmbilightRebootCmnd(message)) {
-      return;
-    }
+    processAmbilightRebootCmnd(json);
   } else {
-    if (!processJson(message)) {
-      return;
-    }
+    processJson(json);
   }
   
   if (stateOn) {
@@ -112,61 +98,55 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
   }
 
-  Serial.println(effect);
+  Serial.print(F("Effect= ")); Serial.println(effect);
   startFade = true;
   inFade = false; // Kill the current fade
   sendStatus();
+
 }
 
 /********************************** START PROCESS JSON *****************************************/
-bool processJson(char* message) {
-  StaticJsonDocument<BUFFER_SIZE> doc;
-  DeserializationError error = deserializeJson(doc, message);
+bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
 
-  if (error) {
-    Serial.print(F("parseObject() failed"));
-    return false;
-  }
-
-  if (doc.containsKey("state")) {
-    if (strcmp(doc["state"], ON_CMD) == 0) {
+  if (json.containsKey("state")) {
+    if (strcmp(json["state"], ON_CMD) == 0) {
       stateOn = true;
-    } else if (strcmp(doc["state"], OFF_CMD) == 0) {
+    } else if (strcmp(json["state"], OFF_CMD) == 0) {
       stateOn = false;
       onbeforeflash = false;
     }
   }
 
   // If "flash" is included, treat RGB and brightness differently
-  if (doc.containsKey("flash")) {
-    flashLength = (int)doc["flash"] * 1000;
+  if (json.containsKey("flash")) {
+    flashLength = (int)json["flash"] * 1000;
 
     oldeffectString = effectString;
 
-    if (doc.containsKey("brightness")) {
-      flashBrightness = doc["brightness"];
+    if (json.containsKey("brightness")) {
+      flashBrightness = json["brightness"];
     } else {
       flashBrightness = brightness;
     }
 
-    if (doc.containsKey("color")) {
-      flashRed = doc["color"]["r"];
-      flashGreen = doc["color"]["g"];
-      flashBlue = doc["color"]["b"];
+    if (json.containsKey("color")) {
+      flashRed = json["color"]["r"];
+      flashGreen = json["color"]["g"];
+      flashBlue = json["color"]["b"];
     } else {
       flashRed = red;
       flashGreen = green;
       flashBlue = blue;
     }
 
-    if (doc.containsKey("effect")) {
-      effect = doc["effect"];
+    if (json.containsKey("effect")) {
+      effect = json["effect"];
       effectString = effect;
       twinklecounter = 0; //manage twinklecounter
     }
 
-    if (doc.containsKey("transition")) {
-      transitionTime = doc["transition"];
+    if (json.containsKey("transition")) {
+      transitionTime = json["transition"];
     } else if ( effectString == "solid") {
       transitionTime = 0;
     } 
@@ -184,24 +164,24 @@ bool processJson(char* message) {
       onbeforeflash = true;
     }
 
-    if (doc.containsKey("color")) {
-      red = doc["color"]["r"];
-      green = doc["color"]["g"];
-      blue = doc["color"]["b"];
+    if (json.containsKey("color")) {
+      red = json["color"]["r"];
+      green = json["color"]["g"];
+      blue = json["color"]["b"];
     }    
 
-    if (doc.containsKey("brightness")) {
-      brightness = doc["brightness"];
+    if (json.containsKey("brightness")) {
+      brightness = json["brightness"];
     }
 
-    if (doc.containsKey("effect")) {
-      effect = doc["effect"];
+    if (json.containsKey("effect")) {
+      effect = json["effect"];
       effectString = effect;
       twinklecounter = 0; //manage twinklecounter
     }
 
-    if (doc.containsKey("transition")) {
-      transitionTime = doc["transition"];
+    if (json.containsKey("transition")) {
+      transitionTime = json["transition"];
     } else if ( effectString == "solid") {
       transitionTime = 0;
     }
@@ -209,6 +189,7 @@ bool processJson(char* message) {
   }
 
   return true;
+
 }
 
 /********************************** START SEND STATE*****************************************/
@@ -229,37 +210,36 @@ void sendStatus() {
 
   // Built in led triggered
   ledTriggered = true;
+
 }
 
 // Get Time Info from MQTT queue, you can remove this part if you don't need it. I use it for monitoring
-bool processSmartostatClimateJson(char* message) {
-  StaticJsonDocument<BUFFER_SIZE> doc;
-  DeserializationError error = deserializeJson(doc, message);
-  if (error) {
-    Serial.println(F("parseObject() failed 2"));
-    return false;
-  }
-  if (doc.containsKey("smartostat")) {
-    const char* timeConst = doc["Time"];
+bool processSmartostatClimateJson(StaticJsonDocument<BUFFER_SIZE> json) {
+
+  if (json.containsKey("smartostat")) {
+    const char* timeConst = json["Time"];
     timedate = timeConst;  
   }
   return true;
+
 }
 
 // MQTT reboot command
-bool processAmbilightRebootCmnd(char* message) {
-  String rebootState = message;
-  if (rebootState == OFF_CMD) {
+bool processAmbilightRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json) {
+
+  if (json[VALUE] == OFF_CMD) {
     stateOn = false;   
     sendStatus(); 
     delay(1500);
     ESP.restart();
   }
   return true;
+
 }
 
 /********************************** START Set Color*****************************************/
 void setColor(int inR, int inG, int inB) {
+
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i].red   = inR;
     leds[i].green = inG;
@@ -275,11 +255,14 @@ void setColor(int inR, int inG, int inB) {
   Serial.print(inG);
   Serial.print(F(", b: "));
   Serial.println(inB);
+
 }
 
 void checkConnection() {
+
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
+  
 }
 
 /********************************** START MAIN LOOP*****************************************/
@@ -316,7 +299,6 @@ void loop() {
     memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
     for (uint8_t i = 0; i < NUM_LEDS; i++) {
       byte r, g, b;
-      // читаем данные для каждого цвета
       while (!Serial.available()) checkConnection();
       r = Serial.read();
       while (!Serial.available()) checkConnection();
@@ -646,7 +628,9 @@ void loop() {
 
   // EVERY 5 SECONDS
   EVERY_N_SECONDS(5) {
+
     targetPalette = CRGBPalette16(CHSV(random8(), 255, random8(128, 255)), CHSV(random8(), 255, random8(128, 255)), CHSV(random8(), 192, random8(128, 255)), CHSV(random8(), 255, random8(128, 255)));
+
   }
 
   //FLASH AND FADE SUPPORT
@@ -751,19 +735,23 @@ void loop() {
   between adjustments in the value.
 */
 int calculateStep(int prevValue, int endValue) {
+
   int step = endValue - prevValue; // What's the overall gap?
   if (step) {                      // If its non-zero,
     step = 1020 / step;          //   divide by 1020
   }
 
   return step;
+
 }
+
 /* The next function is calculateVal. When the loop value, i,
    reaches the step size appropriate for one of the
    colors, it increases or decreases the value of that color by 1.
    (R, G, and B are each calculated separately.)
 */
 int calculateVal(int step, int val, int i) {
+
   if ((step) && i % step == 0) { // If step is non-zero and its time to change a value,
     if (step > 0) {              //   increment the value if step is positive...
       val += 1;
@@ -782,24 +770,30 @@ int calculateVal(int step, int val, int i) {
   }
 
   return val;
+
 }
 
 /**************************** START STRIPLED PALETTE *****************************************/
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA) {
+
   currentPalettestriped = CRGBPalette16(
     A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B    
   );
+
 }
 
 /********************************** START FADE************************************************/
 void fadeall() {
+
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i].nscale8(250);  //for CYCLon
   }
+
 }
 
 /********************************** START FIRE **********************************************/
 void Fire2012WithPalette() {
+
   // Array of temperature readings at each simulation cell
   static byte heat[NUM_LEDS];
 
@@ -833,24 +827,30 @@ void Fire2012WithPalette() {
     }
     leds[pixelnumber] = color;
   }
+
 }
 
 /********************************** START ADD GLITTER *********************************************/
 void addGlitter(fract8 chanceOfGlitter) {
+
   if ( random8() < chanceOfGlitter) {
     leds[ random16(NUM_LEDS) ] += CRGB::White;
   }
+
 }
 
 /********************************** START ADD GLITTER COLOR ****************************************/
 void addGlitterColor( fract8 chanceOfGlitter, int red, int green, int blue) {
+
   if ( random8() < chanceOfGlitter) {
     leds[ random16(NUM_LEDS) ] += CRGB(red, green, blue);
   }
+
 }
 
 /********************************** START SHOW LEDS ***********************************************/
 void showleds() {
+
   delay(1);
   if (stateOn) {
     FastLED.setBrightness(brightness);  //EXECUTE EFFECT COLOR
@@ -864,9 +864,11 @@ void showleds() {
     setColor(0, 0, 0);
     startFade = false;
   }
+
 }
 
 void temp2rgb(unsigned int kelvin) {
+
   int tmp_internal = kelvin / 100.0;
 
   // red
