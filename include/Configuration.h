@@ -23,6 +23,8 @@
 #include <ESP8266WiFi.h>
 #include <Adafruit_SSD1306.h>
 
+#define DEBUG_QUEUE_MSG true
+
 #define AUTHOR "DPsoftware"
 
 // Serial rate for debug
@@ -54,6 +56,6 @@ const int MQTT_PORT = 1883;
 // Maximum number of reconnection (WiFi/MQTT) attemp before powering off peripherals
 #define MAX_RECONNECT 500
 // Maximum JSON Object Size
-#define MAX_JSON_OBJECT_SIZE 20
+#define MAX_JSON_OBJECT_SIZE 30
 
 #endif
