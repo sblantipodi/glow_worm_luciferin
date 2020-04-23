@@ -213,7 +213,10 @@ void sendStatus() {
 
 }
 
-// Get Time Info from MQTT queue, you can remove this part if you don't need it. I use it for monitoring
+/* Get Time Info from MQTT queue, you can remove this part if you don't need it. I use it for monitoring
+   NOTE: This is specific of my home "ecosystem", I prefer to take time from my internal network and not from the internet, you can delete this if you don't need it.
+   Or you can take your time in this function.
+*/
 bool processSmartostatClimateJson(StaticJsonDocument<BUFFER_SIZE> json) {
 
   if (json.containsKey("smartostat")) {
