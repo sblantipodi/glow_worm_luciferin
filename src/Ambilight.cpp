@@ -109,9 +109,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
 bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
 
   if (json.containsKey("state")) {
-    if (strcmp(json["state"], ON_CMD) == 0) {
+    String state = json["state"];
+    if (state == ON_CMD) {
       stateOn = true;
-    } else if (strcmp(json["state"], OFF_CMD) == 0) {
+    } else if (state == OFF_CMD) {
       stateOn = false;
       onbeforeflash = false;
     }
