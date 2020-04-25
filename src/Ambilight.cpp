@@ -28,6 +28,7 @@
   some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 */
 
+#include <FS.h> //this needs to be first, or it all crashes and burns...
 #include "Ambilight.h"
 
 /********************************** START SETUP *****************************************/
