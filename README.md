@@ -13,6 +13,8 @@ If you like **PC Ambilight**, give it a star, or fork it and contribute!
 [![GitHub stars](https://img.shields.io/github/stars/sblantipodi/pc_ambilight.svg?style=social&label=Star)](https://github.com/sblantipodi/pc_ambilight/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/sblantipodi/pc_ambilight.svg?style=social&label=Fork)](https://github.com/sblantipodi/pc_ambilight/network)
 
+Project is bootstrapped with [Arduino Bootstrapper](https://github.com/sblantipodi/arduino_bootstrapper)
+
 ## Credits
 - Davide Perini
 
