@@ -1,4 +1,4 @@
-# Adafruit STMPE610 Library [![Build Status](https://github.com/adafruit/Adafruit_STMPE610/workflows/Arduino%20Library%20CI/badge.svg)](https://github.com/adafruit/Adafruit_STMPE610/actions)
+# Adafruit STMPE610 Library [![Build Status](https://github.com/adafruit/Adafruit_STMPE610/workflows/Arduino%20Library%20CI/badge.svg)](https://github.com/adafruit/Adafruit_STMPE610/actions)[![Documentation](https://github.com/adafruit/ci-arduino/blob/master/assets/doxygen_badge.svg)](http://adafruit.github.io/Adafruit_STMPE610/html/index.html)
 
 <a href="http://www.adafruit.com/products/1571"><img src="assets/board.jpg?raw=true" width="500px"></a>
 
