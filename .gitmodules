@@ -4,6 +4,3 @@
 [submodule "arduino_bootstrapper"]
 	path = arduino_bootstrapper
 	url = https://github.com/sblantipodi/arduino_bootstrapper.git
-[submodule "lib/arduino_bootstrapper"]
-	path = lib/arduino_bootstrapper
-	url = git@github.com:sblantipodi/arduino_bootstrapper.git
