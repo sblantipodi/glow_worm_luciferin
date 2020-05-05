@@ -15,10 +15,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install platformio
-        python --version
+        python --version        
+    - name: Install submodules
+        run: |        
         pwd
         git submodule update --init
-        # cd /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/core
-        ls
     - name: Run PlatformIO
-      run: platformio run -e ambilight
+      run: platformio run -e github_actions_ci
