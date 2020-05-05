@@ -17,5 +17,7 @@ jobs:
         pip install platformio
         python --version
         pwd
+        cd /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/core
+        ls
     - name: Run PlatformIO
       run: platformio run -e ambilight
