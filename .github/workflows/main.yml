@@ -21,6 +21,5 @@ jobs:
         pwd
         git submodule update --init
         ls
-        export PLATFORMIO_BUILD_FLAGS='-DPLATFORMIO_LIB_EXTRA_DIRS=\"/home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/arduino_bootstrapper\"' 
     - name: Run PlatformIO
-      run: platformio run -e ambilight
+      run: platformio run -e github_actions_ci
