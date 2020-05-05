@@ -7,10 +7,15 @@ cache:
     directories:
         - "~/.platformio"
 
+env:
+    - PLATFORMIO_CI_SRC=src
+    - PLATFORMIO_CI_SRC=arduino_bootstrapper
+
 install:
     - sudo pip install -U platformio
     - sudo platformio update
 
 script:
+    - pwd
     - platformio ci --project-conf=/home/travis/build/sblantipodi/pc_ambilight/platformio.ini
     - sudo platformio run
