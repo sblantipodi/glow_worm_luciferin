@@ -8,8 +8,8 @@ cache:
     directories:
         - "~/.platformio"
 
-env:
-    - PLATFORMIO_CI_SRC=/home/travis/build/sblantipodi/pc_ambilight 
+# env:
+#     - PLATFORMIO_CI_SRC=/home/travis/build/sblantipodi/pc_ambilight 
 
 install:
     - sudo pip install -U platformio
