@@ -14,7 +14,7 @@ cache:
 install:
     - sudo pip install -U platformio
     - sudo platformio update
-    - export PLATFORMIO_BUILD_FLAGS="-D PLATFORMIO_LIB_EXTRA_DIRS=arduino_bootstrapper"
+    - export PLATFORMIO_BUILD_FLAGS="-D PLATFORMIO_LIB_EXTRA_DIRS=\"/home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper\""
 
 
 script:
