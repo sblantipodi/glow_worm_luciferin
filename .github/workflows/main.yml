@@ -15,10 +15,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install platformio
-        python --version        
-    - name: Install submodules
-        run: |        
+        python --version
+    - name: Install submodules 
+      run: |        
         pwd
         git submodule update --init
+        ls
     - name: Run PlatformIO
-      run: platformio run -e github_actions_ci
+      run: platformio run -e ambilight
