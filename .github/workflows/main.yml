@@ -21,7 +21,7 @@ jobs:
         pwd
         git submodule update --init
         ls
-        sed -i 's,^arduino_bootstrapper =.*$,arduino_bootstrapper = /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/arduino_bootstrapper,' platformio.ini
+        sed -i 's,^lib_extra_dirs =.*$,lib_extra_dirs = /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/arduino_bootstrapper,' platformio.ini
         echo "OK"
         cat platformio.ini
     - name: Run PlatformIO
