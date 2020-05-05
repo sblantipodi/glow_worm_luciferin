@@ -22,6 +22,6 @@ script:
     # - rm -rf /home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper/src/ChangeName.cpp
     # - rm -rf /home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper/src/Configuration.cpp
     # - ls;
-    - sudo platformio ci --project-conf=/home/travis/build/sblantipodi/pc_ambilight/platformio.ini --lib="/home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper"
+    - sudo platformio ci --project-conf=/home/travis/build/sblantipodi/pc_ambilight/platformio.ini --lib="." --lib="/home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper"
     # - sudo platformio run -c /home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
     # - sudo platformio run -e ambilight
