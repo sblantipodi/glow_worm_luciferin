@@ -19,5 +19,5 @@ script:
     - pwd
     # - cd /home/travis/build/sblantipodi/pc_ambilight/ ;
     - ls;
-    - platformio ci --project-conf=/home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
+    - sudo platformio ci --project-conf=/home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
     # - sudo platformio run -c /home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
