@@ -14,13 +14,13 @@ cache:
 install:
     - sudo pip install -U platformio
     - sudo platformio update
-    - export PLATFORMIO_BUILD_FLAGS="-DPLATFORMIO_LIB_EXTRA_DIRS=/home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper"
+    # - export PLATFORMIO_BUILD_FLAGS="-DPLATFORMIO_LIB_EXTRA_DIRS=/home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper"
 
 
 script:
     - pwd
     - sudo platformio --version
-    - cd /home/travis/build/sblantipodi/pc_ambilight/;
+    # - cd /home/travis/build/sblantipodi/pc_ambilight/;
     # - sudo export P LATFORMIO_BUILD_FLAGS='-DPLATFORMIO_LIB_EXTRA_DIRS=\"arduino_bootstrapper\"'
 
     # - rm -rf /home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper/src/ChangeName.cpp
