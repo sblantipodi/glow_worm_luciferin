@@ -15,5 +15,5 @@ install:
     - sudo platformio update
 
 script:
-    - platformio ci --lib="arduino_bootstrapper"
+    - platformio ci --project-conf=/platoformio.ini --lib="arduino_bootstrapper"
     - sudo platformio run
