@@ -9,7 +9,7 @@ cache:
         - "~/.platformio"
 
 env:
-    - PLATFORMIO_CI_SRC=/home/travis/build/sblantipodi/pc_ambilight
+    - PLATFORMIO_CI_SRC=/prova 
 
 install:
     - sudo pip install -U platformio
@@ -17,7 +17,7 @@ install:
 
 script:
     - pwd
-    - cd /home/travis/build/sblantipodi/pc_ambilight/ ;
+    # - cd /home/travis/build/sblantipodi/pc_ambilight/ ;
     - ls;
     - platformio ci --project-conf=/home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
     # - sudo platformio run -c /home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
