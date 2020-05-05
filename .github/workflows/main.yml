@@ -20,7 +20,8 @@ jobs:
       run: |        
         pwd
         git submodule update --init
-        ls
+    - name: Set lib extra dirs for CI
+      run: |     
         sed -i 's,^lib_extra_dirs =.*$,lib_extra_dirs = /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/arduino_bootstrapper,' platformio.ini
         cat platformio.ini
     - name: Run PlatformIO
@@ -28,5 +29,5 @@ jobs:
     - name: Creating artifact from BIN file
       uses: actions/upload-artifact@v1
       with:
-        name: firmware_build_artifact.bin
+        name: firmware_build_artifact_pc_ambilight.bin
         path: .pio/build/ambilight/firmware.bin
