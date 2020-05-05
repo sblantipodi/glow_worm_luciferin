@@ -3,12 +3,13 @@ python:
     - "3.7"
 
 sudo: false
+
 cache:
     directories:
         - "~/.platformio"
 
 env:
-    - PLATFORMIO_CI_SRC=arduino_bootstrapper/core
+    - PLATFORMIO_CI_SRC=arduino_bootstrapper
 
 install:
     - sudo pip install -U platformio
