@@ -15,4 +15,5 @@ install:
     - sudo platformio update
 
 script:
+    - platformio ci $PLATFORMIO_CI_EXTRA_ARGS
     - sudo platformio run
