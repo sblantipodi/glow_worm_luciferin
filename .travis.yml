@@ -8,8 +8,8 @@ cache:
     directories:
         - "~/.platformio"
 
-env: 
-    - PLATFORMIO_CI_SRC=/home/travis/build/sblantipodi/pc_ambilight 
+# env:
+#     - PLATFORMIO_CI_SRC=/home/travis/build/sblantipodi/pc_ambilight 
 
 install:
     - sudo pip install -U platformio
@@ -19,9 +19,11 @@ script:
     - pwd
     - sudo platformio --version
     - cd /home/travis/build/sblantipodi/pc_ambilight/;
+    - sudo export PLATFORMIO_BUILD_FLAGS='-DPLATFORMIO_LIB_EXTRA_DIRS=\"arduino_bootstrapper\"'
+
     # - rm -rf /home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper/src/ChangeName.cpp
     # - rm -rf /home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper/src/Configuration.cpp
     # - ls;
-    - sudo platformio ci --project-conf=/home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
+    # - sudo platformio ci --project-conf=/home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
     # - sudo platformio run -c /home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
-    # - sudo platformio run -e ambilight
+    - sudo platformio run -e ambilight
