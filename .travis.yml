@@ -17,6 +17,7 @@ install:
 
 script:
     - pwd
-    - tree
+    - cd /home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper;
+    - ls;
     # - platformio ci --project-conf=/home/travis/build/sblantipodi/pc_ambilight/platformio.ini --lib="arduino_bootstrapper/core"
-    - sudo platformio run -c /home/travis/build/sblantipodi/pc_ambilight/platformio.ini
+    - sudo platformio run -c /home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
