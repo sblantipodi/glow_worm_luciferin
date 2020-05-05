@@ -7,6 +7,9 @@ cache:
     directories:
         - "~/.platformio"
 
+env:
+    - PLATFORMIO_CI_SRC=arduino_bootstrapper/core
+
 install:
     - sudo pip install -U platformio
     - sudo platformio update
