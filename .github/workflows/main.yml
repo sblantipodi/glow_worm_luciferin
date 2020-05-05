@@ -22,7 +22,11 @@ jobs:
         git submodule update --init
         ls
         sed -i 's,^lib_extra_dirs =.*$,lib_extra_dirs = /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/arduino_bootstrapper,' platformio.ini
-        echo "OK"
         cat platformio.ini
     - name: Run PlatformIO
       run: platformio run -e ambilight
+    - name: Creating artifact from BIN file
+      uses: actions/upload-artifact@v1
+      with:
+        name: firmware_build_artifact.bin
+        path: .pio/build/ambilight/firmware.bin
