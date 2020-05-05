@@ -10,6 +10,8 @@ cache:
 env:
     - PLATFORMIO_CI_SRC=arduino_bootstrapper
     - PLATFORMIO_CI_SRC=arduino_bootstrapper/core
+    - PLATFORMIO_CI_SRC=arduino_bootstrapper/core/src
+    - PLATFORMIO_CI_SRC=arduino_bootstrapper/core/include
 
 install:
     - sudo pip install -U platformio
