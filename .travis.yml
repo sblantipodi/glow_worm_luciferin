@@ -17,7 +17,8 @@ install:
 
 script:
     - pwd
-    - cd /home/travis/build/sblantipodi/pc_ambilight/ ;
+    - cd /home/travis/build/sblantipodi/pc_ambilight/;
+    - rm -rf /home/travis/build/sblantipodi/pc_ambilight/arduino_bootstrapper/src/ChangeName.cpp
     - ls;
     - sudo platformio ci --project-conf=/home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
     # - sudo platformio run -c /home/travis/build/sblantipodi/pc_ambilight/platformio.ini 
