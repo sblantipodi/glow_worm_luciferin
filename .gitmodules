@@ -1,6 +1,6 @@
 [submodule "platformio_version_increment"]
 	path = platformio_version_increment
-	url = git@github.com:sblantipodi/platformio_version_increment.git
+	url = https://github.com/sblantipodi/platformio_version_increment.git
 [submodule "arduino_bootstrapper"]
 	path = arduino_bootstrapper
-	url = git@github.com:sblantipodi/arduino_bootstrapper.git
+	url = https://github.com/sblantipodi/arduino_bootstrapper.git
