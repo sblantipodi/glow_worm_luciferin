@@ -2,6 +2,7 @@
 PC Ambilight based on Lightpack library   
 _Written for Arduino IDE and PlatformIO._
 
+[![GitHub Actions CI](https://github.com/sblantipodi/pc_ambilight/workflows/GitHub%20Actions%20CI/badge.svg)](https://github.com/sblantipodi/pc_ambilight/actions)
 [![GitHub version](https://img.shields.io/github/v/release/sblantipodi/pc_ambilight.svg)](https://img.shields.io/github/v/release/sblantipodi/pc_ambilight.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/sblantipodi/pc_ambilight/graphs/commit-activity)
