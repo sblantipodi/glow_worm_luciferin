@@ -18,7 +18,6 @@ jobs:
         python --version
     - name: Install submodules 
       run: |        
-        pwd
         git submodule update --init
     - name: Set lib extra dirs for CI
       run: |     
