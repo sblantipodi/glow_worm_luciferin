@@ -23,6 +23,11 @@ jobs:
       run: |     
         sed -i 's,^lib_extra_dirs =.*$,lib_extra_dirs = /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/arduino_bootstrapper,' platformio.ini
         cat platformio.ini
+        - name: Setup template config files
+      run: |                
+        cp /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Secrets.h.template /home/runner/work/pc_ambilight/pc_ambilight/include/Secrets.h
+        cp /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Secrets.h.template /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Secrets.h   
+        cp /home/runner/work/pc_ambilight/pc_ambilight/include/Configuration.h /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Configuration.h  
     - name: Run PlatformIO
       run: platformio run -e ambilight
     - name: Creating artifact from BIN file
