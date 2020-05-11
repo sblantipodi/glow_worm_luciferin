@@ -29,7 +29,9 @@ jobs:
         cp /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Secrets.h.template /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Secrets.h   
         cp /home/runner/work/pc_ambilight/pc_ambilight/include/Configuration.h /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Configuration.h  
     # - name: Setup tmate session
-    #   uses: mxschmitt/action-tmate@v2          
+    #   uses: mxschmitt/action-tmate@v2  
+    - name: Static code analysis
+      run: platformio check --verbose --severity=high --skip-packages                
     - name: Run PlatformIO
       run: platformio run -e ambilight
     - name: Creating artifact from BIN file
