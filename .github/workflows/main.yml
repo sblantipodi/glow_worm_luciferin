@@ -3,11 +3,10 @@ name: GitHub Actions CI
 on: [push]
 
 jobs:
-  
-  env:
-    commitmsg: ${{ github.event.head_commit.message }}
 
   build:
+    env:
+      commitmsg: ${{ github.event.head_commit.message }}
 
     runs-on: ubuntu-latest
 
