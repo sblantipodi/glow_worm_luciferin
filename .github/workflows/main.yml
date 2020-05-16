@@ -20,15 +20,9 @@ jobs:
     - name: Install submodules 
       run: |        
         git submodule update --init
-    - name: Set lib extra dirs for CI
-      run: |     
-        sed -i 's,^lib_extra_dirs =.*$,lib_extra_dirs = /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/arduino_bootstrapper,' platformio.ini
-        cat platformio.ini
     - name: Setup template config files
-      run: |                
-        cp /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Secrets.h.template /home/runner/work/pc_ambilight/pc_ambilight/include/Secrets.h
-        cp /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Secrets.h.template /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Secrets.h   
-        cp /home/runner/work/pc_ambilight/pc_ambilight/include/Configuration.h /home/runner/work/pc_ambilight/pc_ambilight/arduino_bootstrapper/include/Configuration.h  
+      run: |      
+        cp /home/runner/work/pc_ambilight/pc_ambilight/secrets.ini.template /home/runner/work/pc_ambilight/pc_ambilight/secrets.ini        
     # - name: Setup tmate session
     #   uses: mxschmitt/action-tmate@v2  
     - name: Static code analysis
