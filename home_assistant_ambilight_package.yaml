@@ -47,7 +47,7 @@ sensor:
   - platform: mqtt
     state_topic: 'lights/pcambilight'
     name: 'Last Seen Ambilight'
-    value_template: '{{ value_json.Time }}'    
+    value_template: '{{ value_json.time }}'    
   - platform: mqtt
     state_topic: 'lights/pcambilight'
     name: 'Ambilight Version'
@@ -216,3 +216,4 @@ switch:
     retain: false
     payload_on: "ON"
     payload_off: "OFF"  
+    
