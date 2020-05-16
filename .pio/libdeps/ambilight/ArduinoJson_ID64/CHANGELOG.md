@@ -1,6 +1,18 @@
 ArduinoJson: change log
 =======================
 
+v6.15.2 (2020-05-15)
+-------
+
+* CMake: don't build tests when imported in another project
+* CMake: made project arch-independent
+* Visual Studio: fixed error C2766 with flag `/Zc:__cplusplus` (issue #1250)
+* Added support for `JsonDocument` to `copyArray()` (issue #1255)
+* Added support for `enum`s in `as<T>()` and `is<T>()`  (issue #1256)
+* Added `JsonVariant` as an input type for `deserializeXxx()`  
+  For example, you can do: `deserializeJson(doc2, doc1["payload"])`
+* Break the build if using 64-bit integers with ARDUINOJSON_USE_LONG_LONG==0
+
 v6.15.1 (2020-04-08)
 -------
 

@@ -25,7 +25,7 @@
     "frameworks": [
         "arduino"
     ], 
-    "version": "6.15.1", 
+    "version": "6.15.2", 
     "export": {
         "exclude": [
             ".github", 

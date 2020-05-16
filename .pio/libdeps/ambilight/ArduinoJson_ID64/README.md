@@ -2,7 +2,7 @@
 
 ---
 
-[![arduino-library-badge](https://www.ardu-badge.com/badge/ArduinoJson.svg?version=6.15.1)](https://www.ardu-badge.com/ArduinoJson/6.15.1)
+[![arduino-library-badge](https://www.ardu-badge.com/badge/ArduinoJson.svg?version=6.15.2)](https://www.ardu-badge.com/ArduinoJson/6.15.2)
 [![Build Status](https://ci.appveyor.com/api/projects/status/m7s53wav1l0abssg/branch/6.x?svg=true)](https://ci.appveyor.com/project/bblanchon/arduinojson/branch/6.x)
 [![Build Status](https://travis-ci.org/bblanchon/ArduinoJson.svg?branch=6.x)](https://travis-ci.org/bblanchon/ArduinoJson)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/arduinojson.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:arduinojson)
@@ -17,7 +17,7 @@ ArduinoJson is a C++ JSON library for Arduino and IoT (Internet Of Things).
     * [Optionally decodes UTF-16 escape sequences to UTF-8](https://arduinojson.org/v6/api/config/decode_unicode/?utm_source=github&utm_medium=readme)
     * [Optionally stores links to the input buffer (zero-copy)](https://arduinojson.org/v6/api/json/deserializejson/?utm_source=github&utm_medium=readme)
     * [Optionally supports comments in the input](https://arduinojson.org/v6/api/config/enable_comments/?utm_source=github&utm_medium=readme)
-    * [Optionally filters the input to keep only desired values](https://arduinojson.org/v6/api/json/deserializejson/#filtering?utm_source=github&utm_medium=readme)
+    * [Optionally filters the input to keep only desired values](https://arduinojson.org/v6/api/json/deserializejson/?utm_source=github&utm_medium=readme#filtering)
     * Supports single quotes as a string delimiter
     * Compatible with NDJSON and JSON Lines
 * [JSON serialization](https://arduinojson.org/v6/api/json/serializejson/?utm_source=github&utm_medium=readme)
@@ -36,7 +36,7 @@ ArduinoJson is a C++ JSON library for Arduino and IoT (Internet Of Things).
     * Supports [Arduino's `String`](https://arduinojson.org/v6/api/config/enable_arduino_string/) and [STL's `std::string`](https://arduinojson.org/v6/api/config/enable_std_string/?utm_source=github&utm_medium=readme)
     * Supports Arduino's `Stream` and [STL's `std::istream`/`std::ostream`](https://arduinojson.org/v6/api/config/enable_std_stream/?utm_source=github&utm_medium=readme)
     * [Supports Flash strings](https://arduinojson.org/v6/api/config/enable_progmem/?utm_source=github&utm_medium=readme)
-    * Supports [custom readers](https://arduinojson.org/v6/api/json/deserializejson/#custom-reader) and [custom writers](https://arduinojson.org/v6/api/json/serializejson/#custom-writer?utm_source=github&utm_medium=readme)
+    * Supports [custom readers](https://arduinojson.org/v6/api/json/deserializejson/?utm_source=github&utm_medium=readme#custom-reader) and [custom writers](https://arduinojson.org/v6/api/json/serializejson/?utm_source=github&utm_medium=readme#custom-writer)
 * Portable
     * Usable on any C++ project (not limited to Arduino)
     * Compatible with C++98
@@ -62,14 +62,15 @@ ArduinoJson is a C++ JSON library for Arduino and IoT (Internet Of Things).
         * [Visual Micro](http://www.visualmicro.com/)
         * [Visual Studio](https://www.visualstudio.com/)
     * [Even works with online compilers like wandbox.org](https://wandbox.org/permlink/t7KP7I6dVuLhqzDl)
+    * [CMake friendly](https://arduinojson.org/v6/how-to/use-arduinojson-with-cmake/?utm_source=github&utm_medium=readme)
 * Well designed
-    * [Elegant API](http://127.0.0.1:4000/v6/example/)
+    * [Elegant API](http://arduinojson.org/v6/example/?utm_source=github&utm_medium=readme)
     * [Thread-safe](https://en.wikipedia.org/wiki/Thread_safety)
     * Self-contained (no external dependency)
     * `const` friendly
     * [`for` friendly](https://arduinojson.org/v6/api/jsonobject/begin_end/?utm_source=github&utm_medium=readme)
     * [TMP friendly](https://en.wikipedia.org/wiki/Template_metaprogramming)
-    * Handles [integer overflows](https://arduinojson.org/v6/api/jsonvariant/as/#integer-overflows?utm_source=github&utm_medium=readme)
+    * Handles [integer overflows](https://arduinojson.org/v6/api/jsonvariant/as/?utm_source=github&utm_medium=readme#integer-overflows)
 * Well tested
     * [Unit test coverage close to 100%](https://coveralls.io/github/bblanchon/ArduinoJson?branch=6.x)
     * Continuously tested on
