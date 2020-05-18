@@ -277,7 +277,7 @@ void loop() {
 
   bootstrapManager.nonBlokingBlink();
 
-  //EFFECT BPM
+  // AMBILIGHT, serial connection with Prismatik or Ambibox
   if (effectString == "AmbiLight") {
     if (!led_state) led_state = true;
     off_timer = millis();
@@ -318,6 +318,32 @@ void loop() {
     // Flush serial buffer
     while(Serial.available() > 0) {
       Serial.read();
+    }
+  
+  }
+
+  // AMBILIGHT, serial connection with Java ScreenCaptureAmbilight
+  if (effectString == "ScreenCaptureAmbilight") {
+    if(Serial.available() > NUM_LEDS) {
+      memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
+      if(Serial.read() == 0xff) {
+        for (uint8_t i = 0; i < NUM_LEDS; i++) {
+          byte r, g, b;
+          while (!Serial.available()) checkConnection();
+          r = Serial.read();
+          while (!Serial.available()) checkConnection();
+          g = Serial.read();
+          while (!Serial.available()) checkConnection();
+          b = Serial.read();
+          leds[i].r = r;
+          leds[i].g = g;
+          leds[i].b = b;
+        }
+        FastLED.show();  
+        while(Serial.available() > 0) {
+          Serial.read();
+        }
+      }   
     }
   }
 
