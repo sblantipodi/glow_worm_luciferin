@@ -314,7 +314,7 @@ void loop() {
       leds[i].g = g;
       leds[i].b = b;
     }
-    FastLED.show();  // записываем цвета в ленту
+    FastLED.show();  
     // Flush serial buffer
     while(Serial.available() > 0) {
       Serial.read();
