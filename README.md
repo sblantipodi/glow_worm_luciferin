@@ -1,5 +1,5 @@
 # PC Ambilight
-PC Ambilight based on Lightpack library   
+PC Ambilight based on Arduino and my [Fast Screen Capture](https://github.com/sblantipodi/JavaFastScreenCapture) software.
 _Written for Arduino IDE and PlatformIO._
 
 [![GitHub Actions CI](https://github.com/sblantipodi/pc_ambilight/workflows/GitHub%20Actions%20CI/badge.svg)](https://github.com/sblantipodi/pc_ambilight/actions)
