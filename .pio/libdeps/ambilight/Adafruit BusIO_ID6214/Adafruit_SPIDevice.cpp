@@ -215,7 +215,7 @@ bool Adafruit_SPIDevice::write(uint8_t *buffer, size_t len,
     DEBUG_SERIAL.print(F("0x"));
     DEBUG_SERIAL.print(buffer[i], HEX);
     DEBUG_SERIAL.print(F(", "));
-    if (len % 32 == 31) {
+    if (i % 32 == 31) {
       DEBUG_SERIAL.println();
     }
   }
@@ -301,7 +301,6 @@ bool Adafruit_SPIDevice::write_then_read(uint8_t *write_buffer,
   }
   DEBUG_SERIAL.println();
 #endif
-  delay(10);
 
   // do the reading
   for (size_t i = 0; i < read_len; i++) {

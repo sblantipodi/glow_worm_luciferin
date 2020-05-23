@@ -323,7 +323,7 @@ void loop() {
   }
 
   // AMBILIGHT, serial connection with Java ScreenCaptureAmbilight
-  if (effectString == "ScreenCaptureAmbilight") {
+  if (effectString == "FastScreenCapture") {
     if(Serial.available() > NUM_LEDS) {
       memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
       if(Serial.read() == 0xff) {
