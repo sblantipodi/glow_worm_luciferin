@@ -5,6 +5,7 @@
         "type": "git"
     }, 
     "platforms": [
+        "asrmicro650x", 
         "atmelavr", 
         "atmelmegaavr", 
         "atmelsam", 
@@ -49,6 +50,6 @@
     "frameworks": [
         "arduino"
     ], 
-    "version": "2.2.1", 
+    "version": "2.3.0", 
     "homepage": null
 }
