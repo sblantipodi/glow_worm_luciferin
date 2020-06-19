@@ -1,3 +1,4 @@
 .vscode
 .pio/build
 secrets.ini
+.version_no_increment
