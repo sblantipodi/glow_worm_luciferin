@@ -1,6 +1,8 @@
 # PC Ambilight
 PC Ambilight based on Arduino and my [Fast Screen Capture](https://github.com/sblantipodi/JavaFastScreenCapture) software.   
 _Written for Arduino IDE and PlatformIO._
+<img align="right" width="100" height="100" src="https://github.com/sblantipodi/JavaFastScreenCapture/blob/master/data/img/java_fast_screen_capture_logo.png">
+
 
 [![GitHub Actions CI](https://github.com/sblantipodi/pc_ambilight/workflows/GitHub%20Actions%20CI/badge.svg)](https://github.com/sblantipodi/pc_ambilight/actions)
 [![GitHub version](https://img.shields.io/github/v/release/sblantipodi/pc_ambilight.svg)](https://github.com/sblantipodi/pc_ambilight/releases)
