@@ -38,7 +38,7 @@ NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recomme
 ## Home Assistant Mobile Client Screenshots
 ![SCREENSHOT](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/HA_mobile_client_screenshot.jpg)
 
-## PC Ambilight YouTube video (click to watch it in YouTube)
+## PC Ambilight + Java Fast Screen Capture YouTube video (click to watch it in YouTube)
 [![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## License
