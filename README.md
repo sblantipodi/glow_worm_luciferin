@@ -1,7 +1,7 @@
 # PC Ambilight
 PC Ambilight based on Arduino and my [Fast Screen Capture](https://github.com/sblantipodi/JavaFastScreenCapture) software.   
 _Written for Arduino IDE and PlatformIO._
-<img align="right" width="100" height="100" src="https://github.com/sblantipodi/JavaFastScreenCapture/blob/master/data/img/java_fast_screen_capture_logo.png">
+<img align="right" width="100" height="100" src="https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight_logo.png">
 
 
 [![GitHub Actions CI](https://github.com/sblantipodi/pc_ambilight/workflows/GitHub%20Actions%20CI/badge.svg)](https://github.com/sblantipodi/pc_ambilight/actions)
@@ -38,8 +38,8 @@ NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recomme
 ## Home Assistant Mobile Client Screenshots
 ![SCREENSHOT](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/HA_mobile_client_screenshot.jpg)
 
-## PC Ambilight YouTube video (click to watch it in YouTube)
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/68pnR5HMCTU/0.jpg)](https://www.youtube.com/watch?v=68pnR5HMCTU)
+## PC Ambilight + Java Fast Screen Capture (click to watch it on YouTube)
+[![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## License
 This program is licensed under MIT License
