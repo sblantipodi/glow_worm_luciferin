@@ -208,7 +208,6 @@ void sendStatus() {
   root["brightness"] = brightness;
   root["effect"] = effectString.c_str();
 
-  Ping.ping(IP_DNS);
   bootstrapManager.sendState(LIGHT_STATE_TOPIC, root, VERSION);
 
   // Built in led triggered
@@ -580,6 +579,13 @@ void loop() {
       transitionTime = 0;
     }
     showleds();
+  }
+
+  //EVERY 10 MINUTES
+  EVERY_N_SECONDS(600) {
+    // Ping gateway to add presence on the routing table, 
+    // command is synchrounous and adds a bit of lag to the loop
+    Ping.ping(IP_DNS);
   }
 
   //EVERY 10 MILLISECONDS
