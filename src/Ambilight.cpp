@@ -208,6 +208,7 @@ void sendStatus() {
   root["brightness"] = brightness;
   root["effect"] = effectString.c_str();
 
+  Ping.ping(IP_DNS);
   bootstrapManager.sendState(LIGHT_STATE_TOPIC, root, VERSION);
 
   // Built in led triggered
