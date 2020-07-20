@@ -44,4 +44,7 @@ NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recomme
 ## License
 This program is licensed under MIT License
 
-
+## Thanks To 
+|  Thanks              |  For                           |
+|----------------------|--------------------------------|
+|<img width="200" src="https://raw.githubusercontent.com/sblantipodi/arduino_bootstrapper/master/data/img/jetbrains.png">| For the <a href="https://www.jetbrains.com/clion">CLion IDE</a> licenses.|
