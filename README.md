@@ -16,7 +16,7 @@ If you like **PC Ambilight**, give it a star, or fork it and contribute!
 [![GitHub stars](https://img.shields.io/github/stars/sblantipodi/pc_ambilight.svg?style=social&label=Star)](https://github.com/sblantipodi/pc_ambilight/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/sblantipodi/pc_ambilight.svg?style=social&label=Fork)](https://github.com/sblantipodi/pc_ambilight/network)
 
-Project is bootstrapped with [Arduino Bootstrapper](https://github.com/sblantipodi/arduino_bootstrapper)
+Project is bootstrapped with my [Arduino Bootstrapper](https://github.com/sblantipodi/arduino_bootstrapper) library.
 
 ## Credits
 - Davide Perini
@@ -44,4 +44,8 @@ NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recomme
 ## License
 This program is licensed under MIT License
 
+## Thanks To 
+|  Thanks              |  For                           |
+|----------------------|--------------------------------|
+|<a href="https://www.jetbrains.com/"><img width="200" src="https://raw.githubusercontent.com/sblantipodi/arduino_bootstrapper/master/data/img/jetbrains.png"></a>| For the <a href="https://www.jetbrains.com/clion">CLion IDE</a> licenses.|
 
