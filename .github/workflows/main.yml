@@ -28,9 +28,9 @@ jobs:
     - name: Static code analysis
       run: platformio check --verbose --severity=high --skip-packages                
     - name: Run PlatformIO
-      run: platformio run -e GlowWorm
+      run: platformio run -e GlowWormLuciferin
     - name: Creating artifact from BIN file
       uses: actions/upload-artifact@v1
       with:
         name: firmware_build_artifact_glow_worm_luciferin.bin
-        path: .pio/build/GlowWorm/firmware.bin
+        path: .pio/build/GlowWormLuciferin/firmware.bin
