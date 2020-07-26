@@ -22,15 +22,15 @@ jobs:
         git submodule update --init
     - name: Setup template config files
       run: |      
-        cp /home/runner/work/pc_ambilight/pc_ambilight/secrets.ini.template /home/runner/work/pc_ambilight/pc_ambilight/secrets.ini        
+        cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
     # - name: Setup tmate session
     #   uses: mxschmitt/action-tmate@v2  
     - name: Static code analysis
       run: platformio check --verbose --severity=high --skip-packages                
     - name: Run PlatformIO
-      run: platformio run -e ambilight
+      run: platformio run -e GlowWorm
     - name: Creating artifact from BIN file
       uses: actions/upload-artifact@v1
       with:
-        name: firmware_build_artifact_pc_ambilight.bin
-        path: .pio/build/ambilight/firmware.bin
+        name: firmware_build_artifact_glow_worm_luciferin.bin
+        path: .pio/build/GlowWorm/firmware.bin

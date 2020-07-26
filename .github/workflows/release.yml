@@ -36,7 +36,7 @@ jobs:
 
       - name: Setup template config files
         run: |      
-          cp /home/runner/work/pc_ambilight/pc_ambilight/secrets.ini.template /home/runner/work/pc_ambilight/pc_ambilight/secrets.ini        
+          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
 
       - name: Static code analysis
         run: platformio check --verbose --severity=high --skip-packages    
