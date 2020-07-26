@@ -1,6 +1,9 @@
 # Glow Worm Luciferin
-Glow Worm Luciferin based on Arduino and my [Fast Screen Capture](https://github.com/sblantipodi/JavaFastScreenCapture) software.   
-_Written for Arduino IDE and PlatformIO._
+Luciferin is a generic term for the light-emitting compound found in organisms that generate bioluminescence like Fireflies and Glow Worms.
+`Glow Worm Luciferin is a firmware` for ESP8266/ESP32 boards designed for [Firefly Luciferin](https://github.com/sblantipodi/firefly_luciferin) software, those two software creates the perfect `Bias Lighting and Ambient Light system for PC`.  
+_Written for Arduino IDE and PlatformIO._  
+  
+  
 <img align="right" width="100" height="100" src="https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight_logo.png">
 
 
@@ -38,7 +41,7 @@ NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recomme
 ## Home Assistant Mobile Client Screenshots
 ![SCREENSHOT](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/HA_mobile_client_screenshot.jpg)
 
-## Glow Worm Luciferin + Java Fast Screen Capture (click to watch it on YouTube)
+## Glow Worm Luciferin + Firefly Luciferin (click to watch it on YouTube)
 [![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## License

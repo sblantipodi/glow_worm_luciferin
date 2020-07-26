@@ -1,4 +1,8 @@
 .vscode
+.idea
 .pio/build
 secrets.ini
 .version_no_increment
+cmake-build-*
+CMakeLists.txt
+CMakeListsPrivate.txt
