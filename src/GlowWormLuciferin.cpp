@@ -91,7 +91,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     realRed = 0;
     realGreen = 0;
     realBlue = 0;
-    if (effectString == "AmbiLight") {
+    if (effectString == "GlowWorm") {
       effect = "solid";
       effectString = "solid";
       oldeffectString = "solid";
@@ -280,7 +280,7 @@ void loop() {
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
   // or Java Fast Screen Capture
-  if (effectString == "AmbiLight") {
+  if (effectString == "GlowWorm") {
     if (!led_state) led_state = true;
     off_timer = millis();
 

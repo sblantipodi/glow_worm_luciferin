@@ -40,10 +40,10 @@ BootstrapManager bootstrapManager;
 Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
-const char* LIGHT_STATE_TOPIC = "lights/pcambilight";  
+const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
 const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
 const char* SMARTOSTAT_CLIMATE_STATE_TOPIC = "stat/smartostat/CLIMATE";
-const char* CMND_AMBI_REBOOT = "cmnd/ambilight/reboot";
+const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
 
 const char* effect = "solid";
 String effectString = "solid";
