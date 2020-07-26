@@ -1,5 +1,6 @@
 /*
-  Ambilight.h - PC Ambilight based on Lightpack library
+  GlowWormLuciferin.h - Glow Worm Luciferin for Firefly Luciferin
+  All in one Bias Lighting system for PC
   
   Copyright (C) 2020  Davide Perini
   
@@ -40,16 +41,15 @@ Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 const char* LIGHT_STATE_TOPIC = "lights/pcambilight";  
-const char* LIGHT_SET_TOPIC = "lights/pcambiligh/set";  
+const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
 const char* SMARTOSTAT_CLIMATE_STATE_TOPIC = "stat/smartostat/CLIMATE";
 const char* CMND_AMBI_REBOOT = "cmnd/ambilight/reboot";
-const char* STAT_AMBI_REBOOT = "stat/ambilight/reboot";
 
 const char* effect = "solid";
 String effectString = "solid";
 String oldeffectString = "solid";
 
-/********************************* AmbiLight *************************************/
+/********************************* Glow Worm Luciferin *************************************/
 #define max_bright 255       // maximum brightness (0 - 255)
 #define min_bright 50        // the minimum brightness (0 - 255)
 #define bright_constant 500  // the gain constant from external light (0 - 1023)
@@ -174,7 +174,7 @@ void sendStatus();
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
 bool processSmartostatClimateJson(StaticJsonDocument<BUFFER_SIZE> json);
 bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
-bool processAmbilightRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
+bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);

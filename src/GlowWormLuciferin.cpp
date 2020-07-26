@@ -1,6 +1,7 @@
 /*
-  Ambilight.h - PC Ambilight based on Lightpack library
-  
+  GlowWormLuciferin.cpp - Glow Worm Luciferin for Firefly Luciferin
+  All in one Bias Lighting system for PC
+
   Copyright (C) 2020  Davide Perini
   
   Permission is hereby granted, free of charge, to any person obtaining a copy of 
@@ -29,7 +30,7 @@
 */
 
 #include <FS.h> //this needs to be first, or it all crashes and burns...
-#include "Ambilight.h"
+#include "GlowWormLuciferin.h"
 
 /********************************** START SETUP *****************************************/
 void setup() {
@@ -40,7 +41,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   
   FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-  setupStripedPalette( CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
+  setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
   gPal = HeatColors_p; //for FIRE
   
   // Bootsrap setup() with Wifi and MQTT functions
@@ -77,7 +78,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if(strcmp(topic, SMARTOSTAT_CLIMATE_STATE_TOPIC) == 0) {
     processSmartostatClimateJson(json);
   } else if(strcmp(topic, CMND_AMBI_REBOOT) == 0) {
-    processAmbilightRebootCmnd(json);
+    processGlowWormLuciferinRebootCmnd(json);
   } else {
     processJson(json);
   }
@@ -230,7 +231,7 @@ bool processSmartostatClimateJson(StaticJsonDocument<BUFFER_SIZE> json) {
 }
 
 // MQTT reboot command
-bool processAmbilightRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json) {
+bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json) {
 
   if (json[VALUE] == OFF_CMD) {
     stateOn = false;   
@@ -277,7 +278,7 @@ void loop() {
 
   bootstrapManager.nonBlokingBlink();
 
-  // AMBILIGHT, serial connection with Prismatik or Ambibox 
+  // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
   // or Java Fast Screen Capture
   if (effectString == "AmbiLight") {
     if (!led_state) led_state = true;

@@ -1,5 +1,5 @@
-# PC Ambilight
-PC Ambilight based on Arduino and my [Fast Screen Capture](https://github.com/sblantipodi/JavaFastScreenCapture) software.   
+# Glow Worm Luciferin
+Glow Worm Luciferin based on Arduino and my [Fast Screen Capture](https://github.com/sblantipodi/JavaFastScreenCapture) software.   
 _Written for Arduino IDE and PlatformIO._
 <img align="right" width="100" height="100" src="https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight_logo.png">
 
@@ -11,7 +11,7 @@ _Written for Arduino IDE and PlatformIO._
 [![DPsoftware](https://img.shields.io/static/v1?label=DP&message=Software&color=orange)](https://www.dpsoftware.org)
 
 
-If you like **PC Ambilight**, give it a star, or fork it and contribute!
+If you like **Glow Worm Luciferin**, give it a star, or fork it and contribute!
 
 [![GitHub stars](https://img.shields.io/github/stars/sblantipodi/pc_ambilight.svg?style=social&label=Star)](https://github.com/sblantipodi/pc_ambilight/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/sblantipodi/pc_ambilight.svg?style=social&label=Fork)](https://github.com/sblantipodi/pc_ambilight/network)
@@ -38,7 +38,7 @@ NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recomme
 ## Home Assistant Mobile Client Screenshots
 ![SCREENSHOT](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/HA_mobile_client_screenshot.jpg)
 
-## PC Ambilight + Java Fast Screen Capture (click to watch it on YouTube)
+## Glow Worm Luciferin + Java Fast Screen Capture (click to watch it on YouTube)
 [![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## License

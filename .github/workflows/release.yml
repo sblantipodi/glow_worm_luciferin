@@ -66,5 +66,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: .pio/build/ambilight/firmware.bin
-          asset_name: PC_Ambilight_ESP8266_firmware.bin
+          asset_name: GlowWormLuciferin_ESP8266_firmware.bin
           asset_content_type: application/octet-stream          
