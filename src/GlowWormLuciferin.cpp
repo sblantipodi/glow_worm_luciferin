@@ -39,13 +39,14 @@ void setup() {
 
   // Pin configuration
   pinMode(LED_BUILTIN, OUTPUT);
-  
+
+
   FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
   gPal = HeatColors_p; //for FIRE
-  
-  // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
+
+    // Bootsrap setup() with Wifi and MQTT functions
+    bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
 
 }
 
@@ -279,7 +280,6 @@ void loop() {
   bootstrapManager.nonBlokingBlink();
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
-  // or Java Fast Screen Capture
   if (effectString == "GlowWorm") {
     if (!led_state) led_state = true;
     off_timer = millis();
@@ -287,7 +287,9 @@ void loop() {
     for (i = 0; i < sizeof prefix; ++i) {
       waitLoop: while (!Serial.available()) checkConnection();;
       if (prefix[i] == Serial.read()) continue;
-      i = 0;
+        Serial.print(".x"); delay(200);
+
+        i = 0;
       goto waitLoop;
     }
 

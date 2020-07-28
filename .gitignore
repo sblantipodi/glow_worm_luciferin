@@ -3,6 +3,6 @@
 .pio/build
 secrets.ini
 .version_no_increment
-cmake-build-glowwormluciferin
+cmake-build-*
 CMakeLists.txt
 CMakeListsPrivate.txt
