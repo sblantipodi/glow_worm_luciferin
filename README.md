@@ -1,5 +1,5 @@
 # Glow Worm Luciferin
-Luciferin is a generic term for the light-emitting compound found in organisms that generate bioluminescence like Fireflies and Glow Worms.
+**Luciferin** is a generic term for the light-emitting compound found in organisms that generate bioluminescence like Fireflies and Glow Worms.
 `Glow Worm Luciferin is a firmware` for ESP8266/ESP32 boards designed for [Firefly Luciferin](https://github.com/sblantipodi/firefly_luciferin) software, those two software creates the perfect `Bias Lighting and Ambient Light system for PC`.  
 _Written for Arduino IDE and PlatformIO._  
   
