@@ -21,6 +21,10 @@ If you like **Glow Worm Luciferin**, give it a star, or fork it and contribute!
 
 Project is bootstrapped with my [Arduino Bootstrapper](https://github.com/sblantipodi/arduino_bootstrapper) library.
 
+## Quick start
+Why don't you build your own `Luciferin`?  
+Here a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferin/wiki/Quick-start)  
+
 ## Credits
 - Davide Perini
 
