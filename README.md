@@ -23,7 +23,7 @@ Project is bootstrapped with my [Arduino Bootstrapper](https://github.com/sblant
 
 ## Quick start
 Why don't you build your own `Luciferin`?  
-Here a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferin/wiki/Quick-start)  
+Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferin/wiki/Quick-start)  
 
 ## Credits
 - Davide Perini
