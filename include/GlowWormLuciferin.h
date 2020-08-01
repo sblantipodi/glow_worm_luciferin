@@ -64,7 +64,7 @@ bool led_state = true;
 int lastLedUpdate = 10000;
 
 /*********************************** FastLED Defintions ********************************/
-#define NUM_LEDS    95 //95  
+#define NUM_LEDS    200 // Max Led support
 #define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
 //#define CLOCK_PIN 5
 #define CHIPSET     WS2812

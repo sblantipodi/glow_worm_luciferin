@@ -293,6 +293,7 @@ void loop() {
   #endif
   bootstrapManager.nonBlokingBlink();
 
+
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (effectString == "GlowWorm") {
@@ -301,7 +302,7 @@ void loop() {
     off_timer = millis();
 
     for (i = 0; i < sizeof prefix; ++i) {
-      waitLoop: while (!Serial.available()) checkConnection();;
+      waitLoop: while (!Serial.available()) checkConnection();
       if (prefix[i] == Serial.read()) continue;
       i = 0;
       goto waitLoop;
@@ -313,14 +314,15 @@ void loop() {
     lo = Serial.read();
     while (!Serial.available()) checkConnection();;
     chk = Serial.read();
+
     if (chk != (hi ^ lo ^ 0x55))
     {
       i = 0;
       goto waitLoop;
     }
 
-    memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
-    for (uint8_t i = 0; i < NUM_LEDS; i++) {
+    memset(leds, 0, (lo+1) * sizeof(struct CRGB));
+    for (uint8_t i = 0; i < (lo+1); i++) {
       byte r, g, b;
       while (!Serial.available()) checkConnection();
       r = Serial.read();
