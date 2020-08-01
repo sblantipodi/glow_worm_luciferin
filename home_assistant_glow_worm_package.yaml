@@ -41,7 +41,7 @@ input_number:
     
 input_boolean:
   effettosolido:
-    name: Luci effetto solido
+    name: Bias Light
 
 sensor:
   - platform: mqtt
@@ -55,113 +55,8 @@ sensor:
     value_template: '{{ value_json.ver }}'   
     
 automation:
-  - id: '1551286434142'
-    alias: Transizione GlowWorm WE
-    trigger:
-    - at: '23:00:00'
-      platform: time
-    condition:
-    - condition: state
-      entity_id: light.glowworm
-      state: 'on'
-    - condition: time
-      weekday:
-          - fri
-          - sat
-    - condition: template
-      value_template: '{{ states.light.glowwormluciferin.attributes.effect == "solid" }}'
-    action:
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 127, "g": 0, "b":
-          255}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-    - delay: 00:05:00
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 191, "g": 0, "b":
-          255}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-    - delay: 00:05:00
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 255, "g": 0, "b":
-          255}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-    - delay: 00:05:00
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 255, "g": 0, "b":
-          191}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-    - delay: 00:05:00
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 255, "g": 0, "b":
-          127}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-    - delay: 00:05:00
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 255, "g": 0, "b":
-          63}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-  - id: '1551286434576'
-    alias: Transizione Glowworm 
-    trigger:
-    - at: '21:00:00'
-      platform: time
-    condition:
-    - condition: state
-      entity_id: light.glowwormluciferin
-      state: 'on'
-    - condition: template
-      value_template: '{{ states.light.glowwormluciferin.attributes.effect == "solid" }}'
-    - condition: time
-      weekday:
-          - mon
-          - tue
-          - wed
-          - thu
-          - sun
-    action:
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 127, "g": 0, "b":
-          255}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-    - delay: 00:05:00
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 191, "g": 0, "b":
-          255}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-    - delay: 00:05:00
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 255, "g": 0, "b":
-          255}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-    - delay: 00:05:00
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 255, "g": 0, "b":
-          191}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-    - delay: 00:05:00
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 255, "g": 0, "b":
-          127}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
-    - delay: 00:05:00
-    - data:
-        payload: '{"state": "ON", "brightness": 255, "color": {"r": 255, "g": 0, "b":
-          63}, "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
   - id: '1548456985521'
-    alias: Luci Effetto solido ON
+    alias: GlowWorm ON
     trigger:
     - entity_id: input_boolean.effettosolido
       from: 'off'
@@ -178,7 +73,7 @@ automation:
         topic: lights/glowwormluciferin/set
       service: mqtt.publish
   - id: '1548456985522'
-    alias: Luci Effetto solido OFF
+    alias: GlowWorm OFF
     trigger:
     - entity_id: input_boolean.effettosolido
       from: 'on'
@@ -195,7 +90,7 @@ automation:
         topic: lights/glowwormluciferin/set
       service: mqtt.publish
   - id: '3845456985522'
-    alias: Luci Effetto solido OFF JFSC
+    alias: GlowWorm OFF JFSC
     trigger:
       platform: mqtt
       topic: lights/glowwormluciferin/set
@@ -205,7 +100,7 @@ automation:
       data:
         entity_id: input_boolean.effettosolido
   - id: '3845456985521'
-    alias: Luci Effetto solido ON JFSC
+    alias: GlowWorm ON JFSC
     trigger:
       platform: mqtt
       topic: lights/glowwormluciferin/set
@@ -225,18 +120,7 @@ automation:
       data_template:
         topic: lights/glowwormluciferin/set
         payload: '{"transition":{{ trigger.to_state.state | int }}}'
-  - id: '1598969517535'      
-    alias: Glowworm Alive
-    trigger:
-      platform: time_pattern
-      seconds: '/300'
-    condition:
-      condition: template
-      value_template: "{{ not (as_timestamp(now()) < (as_timestamp(states('sensor.last_seen_glowworml')) + 300)) }}"
-    action:
-    - data:
-        message: "Glowworm ha smesso di rispondere!"
-      service: notify.telegram_notifier
+        
 switch:
   - platform: mqtt
     name: "rebootglowworm"
