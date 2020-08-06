@@ -114,6 +114,8 @@ void setup() {
   /********************************** START PROCESS JSON *****************************************/
   bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
 
+    lastLedUpdate = millis();
+
     if (json.containsKey("state")) {
       String state = json["state"];
       if (state == ON_CMD) {
@@ -275,6 +277,16 @@ void checkConnection() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
+  EVERY_N_SECONDS(15) {
+    // No updates since 15 seconds, turn off LEDs
+    if(!breakLoop && (effectString == "GlowWorm") && (millis() > lastLedUpdate + 10000)){
+      breakLoop = true;
+      effectString = "solid";
+      stateOn = ON_CMD;
+      bootstrapManager.publish(LIGHT_SET_TOPIC, helper.string2char("{\"state\": \"ON\", \"effect\": \"solid\"}"), false);
+      delay(DELAY_500);
+    }
+  }
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
     EVERY_N_SECONDS(15) {
       // No updates since 15 seconds, turn off LEDs
@@ -283,6 +295,10 @@ void checkConnection() {
       }
     }
 #endif
+}
+
+int serialRead() {
+  return !breakLoop ? Serial.read() : -1;
 }
 
 /********************************** START MAIN LOOP *****************************************/
@@ -302,21 +318,20 @@ void loop() {
     off_timer = millis();
 
     for (i = 0; i < sizeof prefix; ++i) {
-      waitLoop: while (!Serial.available()) checkConnection();
-      if (prefix[i] == Serial.read()) continue;
+      waitLoop: while (!breakLoop && !Serial.available()) checkConnection();
+      if (breakLoop || prefix[i] == serialRead()) continue;
       i = 0;
       goto waitLoop;
     }
 
-    while (!Serial.available()) checkConnection();;
-    hi = Serial.read();
-    while (!Serial.available()) checkConnection();;
-    lo = Serial.read();
-    while (!Serial.available()) checkConnection();;
-    chk = Serial.read();
+    while (!breakLoop && !Serial.available()) checkConnection();
+    hi = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
+    lo = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
+    chk = serialRead();
 
-    if (chk != (hi ^ lo ^ 0x55))
-    {
+    if (!breakLoop && (chk != (hi ^ lo ^ 0x55))) {
       i = 0;
       goto waitLoop;
     }
@@ -324,24 +339,23 @@ void loop() {
     memset(leds, 0, (lo+1) * sizeof(struct CRGB));
     for (uint8_t i = 0; i < (lo+1); i++) {
       byte r, g, b;
-      while (!Serial.available()) checkConnection();
-      r = Serial.read();
-      while (!Serial.available()) checkConnection();
-      g = Serial.read();
-      while (!Serial.available()) checkConnection();
-      b = Serial.read();
+      while (!breakLoop && !Serial.available()) checkConnection();
+      r = serialRead();
+      while (!breakLoop && !Serial.available()) checkConnection();
+      g = serialRead();
+      while (!breakLoop && !Serial.available()) checkConnection();
+      b = serialRead();
       leds[i].r = r;
       leds[i].g = g;
       leds[i].b = b;
     }
-    #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-      lastLedUpdate = millis();
-    #endif
+    lastLedUpdate = millis();
     FastLED.show();
     // Flush serial buffer
-    while(Serial.available() > 0) {
-      Serial.read();
+    while(!breakLoop && Serial.available() > 0) {
+      serialRead();
     }
+    breakLoop = false;
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
   }
   #endif
