@@ -4,6 +4,6 @@
         #define VERSION "3.8.2"
     #endif
     #ifndef BUILD_TIMESTAMP
-        #define BUILD_TIMESTAMP "2020-08-06 15:08:29.118982"
+        #define BUILD_TIMESTAMP "2020-08-07 16:48:40.923630"
     #endif
     

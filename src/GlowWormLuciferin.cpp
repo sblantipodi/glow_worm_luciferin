@@ -619,13 +619,6 @@ void loop() {
       showleds();
     }
 
-    //EVERY 10 MINUTES
-    EVERY_N_SECONDS(600) {
-      // Ping gateway to add presence on the routing table,
-      // command is synchrounous and adds a bit of lag to the loop
-      Ping.ping(IP_DNS, 1);
-    }
-
     //EVERY 10 MILLISECONDS
     EVERY_N_MILLISECONDS(10) {
 
