@@ -40,8 +40,10 @@ BootstrapManager bootstrapManager;
 Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
+const size_t streamCapacity = JSON_ARRAY_SIZE(300) + JSON_OBJECT_SIZE(2) + 20;
 const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
 const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
+const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
 const char* SMARTOSTAT_CLIMATE_STATE_TOPIC = "stat/smartostat/CLIMATE";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
 
@@ -62,6 +64,7 @@ unsigned long bright_timer, off_timer;
 uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
 bool led_state = true;
 int lastLedUpdate = 10000;
+int lastStream = 0;
 
 /*********************************** FastLED Defintions ********************************/
 #define NUM_LEDS    200 // Max Led support

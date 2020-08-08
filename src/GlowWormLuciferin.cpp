@@ -3,18 +3,18 @@
   All in one Bias Lighting system for PC
 
   Copyright (C) 2020  Davide Perini
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy of 
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
   this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-  copies of the Software, and to permit persons to whom the Software is 
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in 
+  The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
-  
-  You should have received a copy of the MIT License along with this program.  
+
+  You should have received a copy of the MIT License along with this program.
   If not, see <https://opensource.org/licenses/MIT/>.
 
   * Components:
@@ -25,7 +25,7 @@
    - 1000uf capacitor for 5V power stabilization
    - Raspberry + Home Assistant for Web GUI, automations and MQTT server (HA is optional but an MQTT server is needed)
    - Google Home Mini for Voice Recognition (optional)
-  NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, 
+  NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it,
   some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 */
 
@@ -64,6 +64,7 @@ void setup() {
   void manageQueueSubscription() {
 
     bootstrapManager.subscribe(LIGHT_SET_TOPIC);
+    bootstrapManager.subscribe(STREAM_TOPIC, 0);
     bootstrapManager.subscribe(SMARTOSTAT_CLIMATE_STATE_TOPIC);
     bootstrapManager.subscribe(CMND_AMBI_REBOOT);
 
@@ -77,37 +78,60 @@ void setup() {
   /********************************** START CALLBACK *****************************************/
   void callback(char* topic, byte* payload, unsigned int length) {
 
-    StaticJsonDocument<BUFFER_SIZE> json = bootstrapManager.parseQueueMsg(topic, payload, length);
+    if(strcmp(topic, STREAM_TOPIC) == 0) {
 
-    if(strcmp(topic, SMARTOSTAT_CLIMATE_STATE_TOPIC) == 0) {
-      processSmartostatClimateJson(json);
-    } else if(strcmp(topic, CMND_AMBI_REBOOT) == 0) {
-      processGlowWormLuciferinRebootCmnd(json);
-    } else {
-      processJson(json);
-    }
-
-    if (stateOn) {
-      realRed = map(red, 0, 255, 0, brightness);
-      realGreen = map(green, 0, 255, 0, brightness);
-      realBlue = map(blue, 0, 255, 0, brightness);
-    } else {
-      realRed = 0;
-      realGreen = 0;
-      realBlue = 0;
-      if (effectString == "GlowWorm") {
-        effect = "solid";
-        effectString = "solid";
-        oldeffectString = "solid";
-        FastLED.clear();
-        FastLED.show();
+      DynamicJsonDocument doc(streamCapacity);
+      deserializeJson(doc, payload);
+      int lednum = doc["lednum"];
+      JsonArray stream = doc["stream"];
+      memset(leds, 0, lednum * sizeof(struct CRGB));
+      for (uint8_t i = 0; i < lednum; i++) {
+        int rgb = stream[i];
+        leds[i].r =  ((rgb >> 16) & 0xFF);
+        leds[i].g =  ((rgb >> 8) & 0xFF);
+        leds[i].b =  ((rgb >> 0) & 0xFF);
       }
-    }
+      FastLED.show();
 
-    Serial.print(F("Effect= ")); Serial.println(effect);
-    startFade = true;
-    inFade = false; // Kill the current fade
-    sendStatus();
+      lastStream = millis();
+      effectString = "GlowWormWifi";
+
+    } else if (effectString != "GlowWormWifi") {
+
+      StaticJsonDocument<BUFFER_SIZE> json = bootstrapManager.parseQueueMsg(topic, payload, length);
+
+      if (strcmp(topic, SMARTOSTAT_CLIMATE_STATE_TOPIC) == 0) {
+        processSmartostatClimateJson(json);
+      } else if (strcmp(topic, CMND_AMBI_REBOOT) == 0) {
+        processGlowWormLuciferinRebootCmnd(json);
+      } else {
+        processJson(json);
+      }
+
+      if (stateOn) {
+        realRed = map(red, 0, 255, 0, brightness);
+        realGreen = map(green, 0, 255, 0, brightness);
+        realBlue = map(blue, 0, 255, 0, brightness);
+      } else {
+        realRed = 0;
+        realGreen = 0;
+        realBlue = 0;
+        if (effectString == "GlowWorm") {
+          effect = "solid";
+          effectString = "solid";
+          oldeffectString = "solid";
+          FastLED.clear();
+          FastLED.show();
+        }
+      }
+
+      Serial.print(F("Effect= "));
+      Serial.println(effect);
+      startFade = true;
+      inFade = false; // Kill the current fade
+      sendStatus();
+
+    }
 
   }
 
@@ -279,10 +303,11 @@ void checkConnection() {
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
   EVERY_N_SECONDS(15) {
     // No updates since 15 seconds, turn off LEDs
-    if(!breakLoop && (effectString == "GlowWorm") && (millis() > lastLedUpdate + 10000)){
+    if((!breakLoop && (effectString == "GlowWorm") && (millis() > lastLedUpdate + 10000)) ||
+      (!breakLoop && (effectString == "GlowWormWifi") && (millis() > lastStream + 10000))){
       breakLoop = true;
       effectString = "solid";
-      stateOn = ON_CMD;
+      stateOn = false;
       bootstrapManager.publish(LIGHT_SET_TOPIC, helper.string2char("{\"state\": \"ON\", \"effect\": \"solid\"}"), false);
       delay(DELAY_500);
     }
