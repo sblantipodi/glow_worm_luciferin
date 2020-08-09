@@ -47,9 +47,10 @@ const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
 const char* SMARTOSTAT_CLIMATE_STATE_TOPIC = "stat/smartostat/CLIMATE";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
 
-const char* effect = "solid";
-String effectString = "solid";
-String oldeffectString = "solid";
+enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, candy_cane, confetti, cyclon_rainbow, dots,
+        fire, glitter, juggle, lightning, police_all, police_one, rainbow, solid_rainbow, rainbow_with_glitter,
+        sinelon, twinkle, noise, ripple };
+Effect effect;
 
 /********************************* Glow Worm Luciferin *************************************/
 #define max_bright 255       // maximum brightness (0 - 255)

@@ -80,34 +80,33 @@ void setup() {
 
     if(strcmp(topic, STREAM_TOPIC) == 0) {
 
-      DynamicJsonDocument doc(streamCapacity);
-      deserializeJson(doc, payload);
-      int lednum = doc["lednum"];
-      JsonArray stream = doc["stream"];
-      memset(leds, 0, lednum * sizeof(struct CRGB));
-      for (uint8_t i = 0; i < lednum; i++) {
-        int rgb = stream[i];
-        leds[i].r =  ((rgb >> 16) & 0xFF);
-        leds[i].g =  ((rgb >> 8) & 0xFF);
-        leds[i].b =  ((rgb >> 0) & 0xFF);
+      if (effect == Effect::GlowWormWifi) {
+        bootstrapManager.jsonDoc.clear();
+        deserializeJson(bootstrapManager.jsonDoc, payload);
+        int lednum = bootstrapManager.jsonDoc["lednum"];
+        JsonArray stream = bootstrapManager.jsonDoc["stream"];
+        memset(leds, 0, lednum * sizeof(struct CRGB));
+        for (uint8_t i = 0; i < lednum; i++) {
+          int rgb = stream[i];
+          leds[i].r =  ((rgb >> 16) & 0xFF);
+          leds[i].g =  ((rgb >> 8) & 0xFF);
+          leds[i].b =  ((rgb >> 0) & 0xFF);
+        }
+        FastLED.show();
+        lastStream = millis();
       }
-      FastLED.show();
 
-      lastStream = millis();
-      effectString = "GlowWormWifi";
+    } else if (effect != Effect::GlowWormWifi) {
 
-    } else if (effectString != "GlowWormWifi") {
-
-      StaticJsonDocument<BUFFER_SIZE> json = bootstrapManager.parseQueueMsg(topic, payload, length);
-
+      bootstrapManager.jsonDoc.clear();
+      bootstrapManager.parseQueueMsg(topic, payload, length);
       if (strcmp(topic, SMARTOSTAT_CLIMATE_STATE_TOPIC) == 0) {
-        processSmartostatClimateJson(json);
+        processSmartostatClimateJson(bootstrapManager.jsonDoc);
       } else if (strcmp(topic, CMND_AMBI_REBOOT) == 0) {
-        processGlowWormLuciferinRebootCmnd(json);
-      } else {
-        processJson(json);
+        processGlowWormLuciferinRebootCmnd(bootstrapManager.jsonDoc);
+      } else if (strcmp(topic, LIGHT_SET_TOPIC) == 0) {
+        processJson(bootstrapManager.jsonDoc);
       }
-
       if (stateOn) {
         realRed = map(red, 0, 255, 0, brightness);
         realGreen = map(green, 0, 255, 0, brightness);
@@ -116,17 +115,12 @@ void setup() {
         realRed = 0;
         realGreen = 0;
         realBlue = 0;
-        if (effectString == "GlowWorm") {
-          effect = "solid";
-          effectString = "solid";
-          oldeffectString = "solid";
+        if (effect == Effect::GlowWorm) {
+          effect = Effect::solid;
           FastLED.clear();
           FastLED.show();
         }
       }
-
-      Serial.print(F("Effect= "));
-      Serial.println(effect);
       startFade = true;
       inFade = false; // Kill the current fade
       sendStatus();
@@ -154,7 +148,6 @@ void setup() {
     if (json.containsKey("flash")) {
       flashLength = (int)json["flash"] * 1000;
 
-      oldeffectString = effectString;
 
       if (json.containsKey("brightness")) {
         flashBrightness = json["brightness"];
@@ -172,15 +165,9 @@ void setup() {
         flashBlue = blue;
       }
 
-      if (json.containsKey("effect")) {
-        effect = json["effect"];
-        effectString = effect;
-        twinklecounter = 0; //manage twinklecounter
-      }
-
       if (json.containsKey("transition")) {
         transitionTime = json["transition"];
-      } else if ( effectString == "solid") {
+      } else if (effect == Effect::solid) {
         transitionTime = 0;
       }
 
@@ -207,18 +194,41 @@ void setup() {
         brightness = json["brightness"];
       }
 
-      if (json.containsKey("effect")) {
-        effect = json["effect"];
-        effectString = effect;
-        twinklecounter = 0; //manage twinklecounter
-      }
-
       if (json.containsKey("transition")) {
         transitionTime = json["transition"];
-      } else if ( effectString == "solid") {
+      } else if (effect == Effect::solid) {
         transitionTime = 0;
       }
 
+    }
+
+    if (json.containsKey("effect")) {
+      JsonVariant requestedEffect = json["effect"];
+      if (requestedEffect == "solid") effect = Effect::solid;
+      else if (requestedEffect == "GlowWorm") effect = Effect::GlowWorm;
+      else if (requestedEffect == "GlowWormWifi") effect = Effect::GlowWormWifi;
+      else if (requestedEffect == "bpm") effect = Effect::bpm;
+      else if (requestedEffect == "candy cane") effect = Effect::candy_cane;
+      else if (requestedEffect == "confetti") effect = Effect::confetti;
+      else if (requestedEffect == "cyclon rainbow") effect = Effect::cyclon_rainbow;
+      else if (requestedEffect == "dots") effect = Effect::dots;
+      else if (requestedEffect == "fire") effect = Effect::fire;
+      else if (requestedEffect == "glitter") effect = Effect::glitter;
+      else if (requestedEffect == "juggle") effect = Effect::juggle;
+      else if (requestedEffect == "lightning") effect = Effect::lightning;
+      else if (requestedEffect == "police all") effect = Effect::police_all;
+      else if (requestedEffect == "police one") effect = Effect::police_one;
+      else if (requestedEffect == "rainbow") effect = Effect::rainbow;
+      else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
+      else if (requestedEffect == "rainbow with glitter") effect = Effect::rainbow_with_glitter;
+      else if (requestedEffect == "sinelon") effect = Effect::sinelon;
+      else if (requestedEffect == "twinkle") effect = Effect::twinkle;
+      else if (requestedEffect == "noise") effect = Effect::noise;
+      else if (requestedEffect == "ripple") effect = Effect::ripple;
+      else {
+        effect = Effect::solid;
+      }
+      twinklecounter = 0; //manage twinklecounter
     }
 
     return true;
@@ -237,8 +247,30 @@ void setup() {
     color["b"] = blue;
 
     root["brightness"] = brightness;
-    root["effect"] = effectString.c_str();
 
+    switch (effect) {
+      case Effect::solid: root["effect"] = "solid"; break;
+      case Effect::GlowWorm: root["effect"] = "GlowWorm"; break;
+      case Effect::GlowWormWifi: root["effect"] = "GlowWormWifi"; break;
+      case Effect::bpm: root["effect"] = "bpm"; break;
+      case Effect::candy_cane: root["effect"] = "candy cane"; break;
+      case Effect::confetti: root["effect"] = "confetti"; break;
+      case Effect::cyclon_rainbow: root["effect"] = "cyclon rainbow"; break;
+      case Effect::dots: root["effect"] = "dots"; break;
+      case Effect::fire: root["effect"] = "fire"; break;
+      case Effect::glitter: root["effect"] = "glitter"; break;
+      case Effect::juggle: root["effect"] = "juggle"; break;
+      case Effect::lightning: root["effect"] = "lightning"; break;
+      case Effect::police_all: root["effect"] = "police all"; break;
+      case Effect::police_one: root["effect"] = "police one"; break;
+      case Effect::rainbow: root["effect"] = "rainbow"; break;
+      case Effect::solid_rainbow: root["effect"] = "solid rainbow"; break;
+      case Effect::rainbow_with_glitter: root["effect"] = "rainbow with glitter"; break;
+      case Effect::twinkle: root["effect"] = "twinkle"; break;
+      case Effect::noise: root["effect"] = "noise"; break;
+      case Effect::ripple: root["effect"] = "ripple"; break;
+      default: root["effect"] = "solid"; break;
+    }
     bootstrapManager.sendState(LIGHT_STATE_TOPIC, root, VERSION);
 
     // Built in led triggered
@@ -301,13 +333,13 @@ void checkConnection() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
-  EVERY_N_SECONDS(15) {
-    // No updates since 15 seconds, turn off LEDs
-    if((!breakLoop && (effectString == "GlowWorm") && (millis() > lastLedUpdate + 10000)) ||
-      (!breakLoop && (effectString == "GlowWormWifi") && (millis() > lastStream + 10000))){
+  EVERY_N_SECONDS(7) {
+    // No updates since 7 seconds, turn off LEDs
+    if((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 5000)) ||
+       (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 5000))){
       breakLoop = true;
-      effectString = "solid";
-      stateOn = false;
+      effect = Effect::solid;
+      stateOn = true;
       bootstrapManager.publish(LIGHT_SET_TOPIC, helper.string2char("{\"state\": \"ON\", \"effect\": \"solid\"}"), false);
       delay(DELAY_500);
     }
@@ -337,7 +369,7 @@ void loop() {
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (effectString == "GlowWorm") {
+  if (effect == Effect::GlowWorm) {
   #endif
     if (!led_state) led_state = true;
     off_timer = millis();
@@ -380,14 +412,14 @@ void loop() {
     while(!breakLoop && Serial.available() > 0) {
       serialRead();
     }
-    breakLoop = false;
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
   }
   #endif
+  breakLoop = false;
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
 
     //EFFECT BPM
-    if (effectString == "bpm") {
+    if (effect == Effect::bpm) {
       uint8_t BeatsPerMinute = 62;
       CRGBPalette16 palette = PartyColors_p;
       uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
@@ -401,7 +433,7 @@ void loop() {
     }
 
     //EFFECT Candy Cane
-    if (effectString == "candy cane") {
+    if (effect == Effect::candy_cane) {
       static uint8_t startIndex = 0;
       startIndex = startIndex + 1; /* higher = faster motion */
       fill_palette( leds, NUM_LEDS,
@@ -414,7 +446,7 @@ void loop() {
     }
 
     //EFFECT CONFETTI
-    if (effectString == "confetti" ) {
+    if (effect == Effect::confetti) {
       fadeToBlackBy( leds, NUM_LEDS, 25);
       int pos = random16(NUM_LEDS);
       leds[pos] += CRGB(realRed + random8(64), realGreen, realBlue);
@@ -425,7 +457,7 @@ void loop() {
     }
 
     //EFFECT CYCLON RAINBOW
-    if (effectString == "cyclon rainbow") {                    //Single Dot Down
+    if (effect == Effect::cyclon_rainbow) {                    //Single Dot Down
       static uint8_t hue = 0;
       // First slide the led in one direction
       for (int i = 0; i < NUM_LEDS; i++) {
@@ -453,7 +485,7 @@ void loop() {
     }
 
     //EFFECT DOTS
-    if (effectString == "dots") {
+    if (effect == Effect::dots) {
       uint8_t inner = beatsin8(bpm, NUM_LEDS / 4, NUM_LEDS / 4 * 3);
       uint8_t outer = beatsin8(bpm, 0, NUM_LEDS - 1);
       uint8_t middle = beatsin8(bpm, NUM_LEDS / 3, NUM_LEDS / 3 * 2);
@@ -469,7 +501,7 @@ void loop() {
     }
 
     //EFFECT FIRE
-    if (effectString == "fire") {
+    if (effect == Effect::fire) {
       Fire2012WithPalette();
       if (transitionTime == 0) {
         transitionTime = 150;
@@ -479,7 +511,7 @@ void loop() {
     random16_add_entropy( random8());
 
     //EFFECT Glitter
-    if (effectString == "glitter") {
+    if (effect == Effect::glitter) {
       fadeToBlackBy( leds, NUM_LEDS, 20);
       addGlitterColor(80, realRed, realGreen, realBlue);
       if (transitionTime == 0) {
@@ -489,7 +521,7 @@ void loop() {
     }
 
     //EFFECT JUGGLE
-    if (effectString == "juggle" ) {                           // eight colored dots, weaving in and out of sync with each other
+    if (effect == Effect::juggle) {                           // eight colored dots, weaving in and out of sync with each other
       fadeToBlackBy(leds, NUM_LEDS, 20);
       for (int i = 0; i < 8; i++) {
         leds[beatsin16(i + 7, 0, NUM_LEDS - 1  )] |= CRGB(realRed, realGreen, realBlue);
@@ -501,7 +533,7 @@ void loop() {
     }
 
     //EFFECT LIGHTNING
-    if (effectString == "lightning") {
+    if (effect == Effect::lightning) {
       twinklecounter = twinklecounter + 1;                     //Resets strip if previous animation was running
       if (twinklecounter < 2) {
         FastLED.clear();
@@ -528,7 +560,7 @@ void loop() {
     }
 
     //EFFECT POLICE ALL
-    if (effectString == "police all") {                 //POLICE LIGHTS (TWO COLOR SOLID)
+    if (effect == Effect::police_all) {                 //POLICE LIGHTS (TWO COLOR SOLID)
       idex++;
       if (idex >= NUM_LEDS) {
         idex = 0;
@@ -545,7 +577,7 @@ void loop() {
     }
 
     //EFFECT POLICE ONE
-    if (effectString == "police one") {
+    if (effect == Effect::police_one) {
       idex++;
       if (idex >= NUM_LEDS) {
         idex = 0;
@@ -571,7 +603,7 @@ void loop() {
     }
 
     //EFFECT RAINBOW
-    if (effectString == "rainbow") {
+    if (effect == Effect::rainbow) {
       // FastLED's built-in rainbow generator
       thishue++;
       fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
@@ -582,7 +614,7 @@ void loop() {
     }
 
     //SOLID RAINBOW
-    if (effectString == "solid rainbow") {
+    if (effect == Effect::solid_rainbow) {
       // FastLED's built-in rainbow generator
       thishue++;
       fill_solid(leds, NUM_LEDS, CHSV(thishue,255,255));
@@ -596,7 +628,7 @@ void loop() {
     }
 
     //EFFECT RAINBOW WITH GLITTER
-    if (effectString == "rainbow with glitter") {               // FastLED's built-in rainbow generator with Glitter
+    if (effect == Effect::rainbow_with_glitter) {               // FastLED's built-in rainbow generator with Glitter
       thishue++;
       fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
       addGlitter(80);
@@ -607,7 +639,7 @@ void loop() {
     }
 
     //EFFECT SIENLON
-    if (effectString == "sinelon") {
+    if (effect == Effect::sinelon) {
       fadeToBlackBy( leds, NUM_LEDS, 20);
       int pos = beatsin16(13, 0, NUM_LEDS - 1);
       leds[pos] += CRGB(realRed, realGreen, realBlue);
@@ -618,7 +650,7 @@ void loop() {
     }
 
     //EFFECT TWINKLE
-    if (effectString == "twinkle") {
+    if (effect == Effect::twinkle) {
       twinklecounter = twinklecounter + 1;
       if (twinklecounter < 2) {                               //Resets strip if previous animation was running
         FastLED.clear();
@@ -653,7 +685,7 @@ void loop() {
       }
 
       //EFFECT NOISE
-      if (effectString == "noise") {
+      if (effect == Effect::noise) {
         for (int i = 0; i < NUM_LEDS; i++) {                                     // Just onE loop to fill up the LED array as all of the pixels change.
           uint8_t index = inoise8(i * scale, dist + i * scale) % 255;            // Get a value from the noise function. I'm using both x and y axis.
           leds[i] = ColorFromPalette(currentPalette, index, 255, LINEARBLEND);   // With that value, look up the 8 bit colour palette value and assign it to the current LED.
@@ -667,7 +699,7 @@ void loop() {
       }
 
       //EFFECT RIPPLE
-      if (effectString == "ripple") {
+      if (effect == Effect::ripple) {
         for (int i = 0; i < NUM_LEDS; i++) leds[i] = CHSV(bgcol++, 255, 15);  // Rotate background colour.
         switch (step) {
           case -1:                                                          // Initialize ripple variables.
@@ -723,7 +755,6 @@ void loop() {
       }
       else {
         flash = false;
-        effectString = oldeffectString;
         if (onbeforeflash) { //keeps light off after flash if light was originally off
           setColor(realRed, realGreen, realBlue);
         }
@@ -735,7 +766,7 @@ void loop() {
       }
     }
 
-    if (startFade && effectString == "solid") {
+    if (startFade && effect == Effect::solid) {
       // If we don't want to fade, skip it.
       if (transitionTime == 0) {
         setColor(realRed, realGreen, realBlue);
@@ -767,7 +798,7 @@ void loop() {
           grnVal = calculateVal(stepG, grnVal, loopCount);
           bluVal = calculateVal(stepB, bluVal, loopCount);
 
-          if (effectString == "solid") {
+          if (effect == Effect::solid) {
             setColor(redVal, grnVal, bluVal); // Write current values to LED pins
           }
           loopCount++;
