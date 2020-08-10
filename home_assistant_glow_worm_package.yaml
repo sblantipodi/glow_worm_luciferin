@@ -7,25 +7,26 @@ light:
     effect: true
     effect_list:
       - GlowWorm
+      - GlowWormWifi
       - bpm
-      - candy cane  
-      - confetti  
-      - cyclon rainbow  
-      - dots  
-      - fire  
-      - glitter  
-      - juggle  
+      - candy cane
+      - confetti
+      - cyclon rainbow
+      - dots
+      - fire
+      - glitter
+      - juggle
       - lightning
-      - noise  
-      - police all  
-      - police one  
-      - rainbow  
+      - noise
+      - police all
+      - police one
+      - rainbow
       - solid rainbow
-      - rainbow with glitter  
-      - ripple  
-      - sinelon  
-      - solid  
-      - twinkle  
+      - rainbow with glitter
+      - ripple
+      - sinelon
+      - solid
+      - twinkle
     brightness: true
     rgb: true
     optimistic: true
@@ -38,89 +39,88 @@ input_number:
     min: 1
     max: 150
     step: 1
-    
+
 input_boolean:
   solideffect:
-    name: Bias Light
+    name: Luci effetto solido
 
 sensor:
   - platform: mqtt
     state_topic: 'lights/glowwormluciferin'
     name: 'Last Seen GlowWorm'
-    value_template: '{{ value_json.time }}'    
+    value_template: '{{ value_json.time }}'
   - platform: mqtt
     state_topic: 'lights/glowwormluciferin'
     name: 'GlowWorm Version'
     unit_of_measurement: ' '
-    value_template: '{{ value_json.ver }}'   
-    
+    value_template: '{{ value_json.ver }}'
+
 automation:
   - id: '1548456985521'
-    alias: GlowWorm ON
+    alias: GlowWorm Solid Effect ON
     trigger:
-    - entity_id: input_boolean.solideffect
-      from: 'off'
-      platform: state
-      to: 'on'
+      - entity_id: input_boolean.solideffect
+        from: 'off'
+        platform: state
+        to: 'on'
     action:
-    - data:
-        payload: '{"JFSC": "STOP"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish    
-    - delay: 00:00:04
-    - data:
-        payload: '{"state": "ON", "effect": "solid"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
+      - data:
+          payload: '{"JFSC": "STOP"}'
+          topic: lights/glowwormluciferin/set
+        service: mqtt.publish
   - id: '1548456985522'
-    alias: GlowWorm OFF
+    alias: GlowWorm Solid Effect OFF
     trigger:
-    - entity_id: input_boolean.solideffect
-      from: 'on'
-      platform: state
-      to: 'off'
+      - entity_id: input_boolean.solideffect
+        from: 'on'
+        platform: state
+        to: 'off'
     action:
-    - data:
-        payload: '{"JFSC": "START"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish    
-    - delay: 00:00:04    
-    - data:
-        payload: '{"state": "ON", "effect": "GlowWorm"}'
-        topic: lights/glowwormluciferin/set
-      service: mqtt.publish
+      - data:
+          payload: '{"JFSC": "START"}'
+          topic: lights/glowwormluciferin/set
+        service: mqtt.publish
   - id: '3845456985522'
-    alias: GlowWorm OFF JFSC
+    alias: GlowWorm Solid Effect OFF JFSC
     trigger:
       platform: mqtt
       topic: lights/glowwormluciferin/set
       payload: '{"state": "ON", "effect": "GlowWorm"}'
     action:
-    - service: input_boolean.turn_off
-      data:
-        entity_id: input_boolean.solideffect
+      - service: input_boolean.turn_off
+        data:
+          entity_id: input_boolean.solideffect
+  - id: '1345456985522'
+    alias: GlowWorm Solid Effect OFF JFSC Wifi
+    trigger:
+      platform: mqtt
+      topic: lights/glowwormluciferin/set
+      payload: '{"state": "ON", "effect": "GlowWormWifi"}'
+    action:
+      - service: input_boolean.turn_off
+        data:
+          entity_id: input_boolean.solideffect
   - id: '3845456985521'
-    alias: GlowWorm ON JFSC
+    alias: LGlowWorm Solid Effect ON JFSC
     trigger:
       platform: mqtt
       topic: lights/glowwormluciferin/set
       payload: '{"state": "ON", "effect": "solid"}'
     action:
-    - service: input_boolean.turn_on
-      data:
-        entity_id: input_boolean.solideffect        
+      - service: input_boolean.turn_on
+        data:
+          entity_id: input_boolean.solideffect
   - id: '4321674486'
     alias: PC Animation Speed
     initial_state: true
     trigger:
-    - platform: state
-      entity_id: input_number.pc_animation_speed
+      - platform: state
+        entity_id: input_number.pc_animation_speed
     action:
-    - service: mqtt.publish
-      data_template:
-        topic: lights/glowwormluciferin/set
-        payload: '{"transition":{{ trigger.to_state.state | int }}}'
-        
+      - service: mqtt.publish
+        data_template:
+          topic: lights/glowwormluciferin/set
+          payload: '{"transition":{{ trigger.to_state.state | int }}}'
 switch:
   - platform: mqtt
     name: "rebootglowworm"
@@ -129,4 +129,4 @@ switch:
     qos: 1
     retain: false
     payload_on: "ON"
-    payload_off: "OFF"  
+    payload_off: "OFF"
