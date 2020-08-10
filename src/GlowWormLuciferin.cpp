@@ -115,11 +115,6 @@ void setup() {
         realRed = 0;
         realGreen = 0;
         realBlue = 0;
-        if (effect == Effect::GlowWorm) {
-          effect = Effect::solid;
-          FastLED.clear();
-          FastLED.show();
-        }
       }
       startFade = true;
       inFade = false; // Kill the current fade
@@ -204,9 +199,14 @@ void setup() {
 
     if (json.containsKey("effect")) {
       JsonVariant requestedEffect = json["effect"];
-      if (requestedEffect == "solid") effect = Effect::solid;
-      else if (requestedEffect == "GlowWorm") effect = Effect::GlowWorm;
-      else if (requestedEffect == "GlowWormWifi") effect = Effect::GlowWormWifi;
+      if (requestedEffect == "GlowWorm") {
+        effect = Effect::GlowWorm;
+        lastLedUpdate = millis();
+      }
+      else if (requestedEffect == "GlowWormWifi") {
+        effect = Effect::GlowWormWifi;
+        lastStream = millis();
+      }
       else if (requestedEffect == "bpm") effect = Effect::bpm;
       else if (requestedEffect == "candy cane") effect = Effect::candy_cane;
       else if (requestedEffect == "confetti") effect = Effect::confetti;
@@ -269,7 +269,6 @@ void setup() {
       case Effect::twinkle: root["effect"] = "twinkle"; break;
       case Effect::noise: root["effect"] = "noise"; break;
       case Effect::ripple: root["effect"] = "ripple"; break;
-      default: root["effect"] = "solid"; break;
     }
     bootstrapManager.sendState(LIGHT_STATE_TOPIC, root, VERSION);
 
@@ -318,7 +317,7 @@ void setColor(int inR, int inG, int inB) {
 
   FastLED.show();
 
-  Serial.print(F("Setting LEDs:"));
+  Serial.print(F("Setting LEDs: "));
   Serial.print(F("r: "));
   Serial.print(inR);
   Serial.print(F(", g: "));
@@ -340,8 +339,6 @@ void checkConnection() {
       breakLoop = true;
       effect = Effect::solid;
       stateOn = true;
-      bootstrapManager.publish(LIGHT_SET_TOPIC, helper.string2char("{\"state\": \"ON\", \"effect\": \"solid\"}"), false);
-      delay(DELAY_500);
     }
   }
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
