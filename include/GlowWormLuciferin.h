@@ -32,7 +32,6 @@
 #include <FastLED.h>
 #include "Version.h"
 #include "BootstrapManager.h"
-#include <ESP8266Ping.h>
 
 
 /****************** BOOTSTRAP MANAGER ******************/
@@ -40,16 +39,19 @@ BootstrapManager bootstrapManager;
 Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
+const size_t streamCapacity = JSON_ARRAY_SIZE(300) + JSON_OBJECT_SIZE(2) + 20;
 const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
 const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
+const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
 const char* SMARTOSTAT_CLIMATE_STATE_TOPIC = "stat/smartostat/CLIMATE";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
 
-const char* effect = "solid";
-String effectString = "solid";
-String oldeffectString = "solid";
+enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, candy_cane, confetti, cyclon_rainbow, dots,
+        fire, glitter, juggle, lightning, police_all, police_one, rainbow, solid_rainbow, rainbow_with_glitter,
+        sinelon, twinkle, noise, ripple };
+Effect effect;
 
-/********************************* Glow Worm Luciferin *************************************/
+/****************** Glow Worm Luciferin ******************/
 #define max_bright 255       // maximum brightness (0 - 255)
 #define min_bright 50        // the minimum brightness (0 - 255)
 #define bright_constant 500  // the gain constant from external light (0 - 1023)
@@ -62,8 +64,9 @@ unsigned long bright_timer, off_timer;
 uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
 bool led_state = true;
 int lastLedUpdate = 10000;
+int lastStream = 0;
 
-/*********************************** FastLED Defintions ********************************/
+/****************** FastLED Defintions ******************/
 #define NUM_LEDS    200 // Max Led support
 #define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
 //#define CLOCK_PIN 5
@@ -79,7 +82,7 @@ byte green = 255;
 byte blue = 255;
 byte brightness = 255;
 
-/******************************** GLOBALS for fade/flash *******************************/
+/****************** GLOBALS for fade/flash ******************/
 bool stateOn = false;
 bool startFade = false;
 bool onbeforeflash = false;
@@ -100,9 +103,8 @@ byte flashGreen = green;
 byte flashBlue = blue;
 byte flashBrightness = brightness;
 
-/********************************** GLOBALS for EFFECTS ******************************/
 //RAINBOW
-uint8_t thishue = 0;                                          // Starting hue value.
+uint8_t thishue = 0; // Starting hue value.
 uint8_t deltahue = 10;
 
 //CANDYCANE
@@ -164,7 +166,9 @@ bool gReverseDirection = false;
 uint8_t gHue = 0;
 CRGB leds[NUM_LEDS];
 
-/********************************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) *****************************************/
+bool breakLoop = false;
+
+/****************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) ******************/
 // Bootstrap functions
 void callback(char* topic, byte* payload, unsigned int length);
 void manageDisconnections();
@@ -178,7 +182,6 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
 bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
-void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
 void fadeall();
 void Fire2012WithPalette();
 void addGlitter(fract8 chanceOfGlitter);
