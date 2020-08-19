@@ -290,7 +290,17 @@ void sendStatus() {
     case Effect::ripple: root["effect"] = "ripple"; break;
     case Effect::sinelon: root["effect"] = "sinelon"; break;
   }
-  bootstrapManager.sendState(LIGHT_STATE_TOPIC, root, VERSION);
+
+  root["Whoami"] = WIFI_DEVICE_NAME;
+  root["IP"] = microcontrollerIP;
+  root["MAC"] = MAC;
+  root["ver"] = VERSION;
+  if (timedate != OFF_CMD) {
+    root["time"] = timedate;
+  }
+
+  // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
+  bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
 
   // Built in led triggered
   ledTriggered = true;
