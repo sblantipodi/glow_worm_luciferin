@@ -40,7 +40,9 @@ void setup() {
   Serial.begin(SERIAL_RATE);
 
   // Pin configuration
+  #if defined(ESP8266)
   pinMode(LED_BUILTIN, OUTPUT);
+  #endif
 
   FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
@@ -412,8 +414,9 @@ void loop() {
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
     checkConnection();
   #endif
+  #if defined(ESP8266)
   bootstrapManager.nonBlokingBlink();
-
+  #endif
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
