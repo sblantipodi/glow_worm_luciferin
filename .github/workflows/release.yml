@@ -42,7 +42,7 @@ jobs:
         run: platformio check --verbose --severity=high --skip-packages    
 
       - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinfull
+        run: platformio run -e glowwormluciferinfull_esp8266
            
       - name: Create Release
         id: create_release
@@ -58,21 +58,36 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Save artifact (glowwormluciferinfull)
+      - name: Save artifact (glowwormluciferinfull_esp8266)
         run: |
           mkdir esp8266_firmware;
-          cp .pio/build/glowwormluciferinfull/firmware.bin esp8266_firmware/GlowWormLuciferinFULL_ESP8266_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp8266/firmware.bin esp8266_firmware/GlowWormLuciferinFULL_ESP8266_firmware.bin
 
       - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinlight
+        run: platformio run -e glowwormluciferinlight_esp8266
 
-      - name: Save artifact (glowwormluciferinlight)
+      - name: Save artifact (glowwormluciferinlight_esp8266)
         run: |
-          cp .pio/build/glowwormluciferinlight/firmware.bin esp8266_firmware/GlowWormLuciferinLIGHT_ESP8266_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp8266/firmware.bin esp8266_firmware/GlowWormLuciferinLIGHT_ESP8266_firmware.bin
+
+      - name: Run PlatformIO
+        run: platformio run -e glowwormluciferinfull_esp32
+
+      - name: Save artifact (glowwormluciferinfull_esp32)
+        run: |
+          mkdir esp32_firmware;
+          cp .pio/build/glowwormluciferinfull_esp32/firmware.bin esp32_firmware/GlowWormLuciferinFULL_ESP32_firmware.bin
+
+      - name: Run PlatformIO
+        run: platformio run -e glowwormluciferinlight_esp32
+
+      - name: Save artifact (glowwormluciferinlight_esp32)
+        run: |
+          cp .pio/build/glowwormluciferinlight_esp32/firmware.bin esp32_firmware/GlowWormLuciferinLIGHT_ESP32_firmware.bin
 
       - name: Creating tar file
         run: |
-          tar cf Luciferin_ESP8266_firmware.tar esp8266_firmware
+          tar cf Luciferin_firmware.tar esp8266_firmware esp32_firmware
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -81,6 +96,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: Luciferin_ESP8266_firmware.tar
-          asset_name: Luciferin_ESP8266_firmware.tar
+          asset_path: Luciferin_firmware.tar
+          asset_name: Luciferin_firmware.tar
           asset_content_type: application/octet-stream          
