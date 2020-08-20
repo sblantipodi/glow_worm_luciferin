@@ -4,7 +4,7 @@
 _Written for Arduino IDE and PlatformIO._  
   
   
-<img align="right" width="100" height="100" src="https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight_logo.png">
+<img align="right" width="100" height="100" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight_logo.png">
 
 
 [![GitHub Actions CI](https://github.com/sblantipodi/pc_ambilight/workflows/GitHub%20Actions%20CI/badge.svg)](https://github.com/sblantipodi/pc_ambilight/actions)
@@ -40,13 +40,13 @@ Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferi
 NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 
 ## Schematic
-![CIRCUITS](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/ambilight_bb.png)
+![CIRCUITS](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/ambilight_bb.png)
 
 ## Home Assistant Mobile Client Screenshots
-![SCREENSHOT](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/HA_mobile_client_screenshot.jpg)
+![SCREENSHOT](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/HA_mobile_client_screenshot.jpg)
 
 ## Glow Worm Luciferin + Firefly Luciferin (click to watch it on YouTube)
-[![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
+[![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## License
 This program is licensed under MIT License

@@ -28,3 +28,9 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+add_custom_target(
+    UPLOAD_FS_ALL
+    COMMAND platformio.exe run --target uploadfs
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
