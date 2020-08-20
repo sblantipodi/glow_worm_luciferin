@@ -42,8 +42,9 @@ void setup() {
   // Pin configuration
   #if defined(ESP8266)
   pinMode(LED_BUILTIN, OUTPUT);
+  #elif defined(ESP32)
+  digitalWrite(LED_BUILTIN, HIGH);
   #endif
-
   FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
   gPal = HeatColors_p; //for FIRE
@@ -73,7 +74,7 @@ void manageQueueSubscription() {
 
   bootstrapManager.subscribe(LIGHT_SET_TOPIC);
   bootstrapManager.subscribe(STREAM_TOPIC, 0);
-  bootstrapManager.subscribe(SMARTOSTAT_CLIMATE_STATE_TOPIC);
+  bootstrapManager.subscribe(TIME_TOPIC);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
 
 }
@@ -115,8 +116,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     bootstrapManager.jsonDoc.clear();
     bootstrapManager.parseQueueMsg(topic, payload, length);
-    if (strcmp(topic, SMARTOSTAT_CLIMATE_STATE_TOPIC) == 0) {
-      processSmartostatClimateJson(bootstrapManager.jsonDoc);
+    if (strcmp(topic, TIME_TOPIC) == 0) {
+      processTimeJson(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, CMND_AMBI_REBOOT) == 0) {
       processGlowWormLuciferinRebootCmnd(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, LIGHT_SET_TOPIC) == 0) {
@@ -133,7 +134,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     startFade = true;
     inFade = false; // Kill the current fade
-    sendStatus();
+    if (strcmp(topic, TIME_TOPIC) != 0) {
+      sendStatus();
+    }
 
   }
 
@@ -318,9 +321,9 @@ void sendStatus() {
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool processSmartostatClimateJson(StaticJsonDocument<BUFFER_SIZE> json) {
+bool processTimeJson(StaticJsonDocument<BUFFER_SIZE> json) {
 
-  if (json.containsKey("smartostat")) {
+  if (json.containsKey("Time")) {
     const char* timeConst = json["Time"];
     timedate = timeConst;
   }
@@ -377,33 +380,37 @@ void setColor(int inR, int inG, int inB) {
  * Check connection and turn off the LED strip if no input received
  */
 void checkConnection() {
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-// Bootsrap loop() with Wifi, MQTT and OTA functions
-bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
-EVERY_N_SECONDS(7) {
-  // No updates since 7 seconds, turn off LEDs
-  if((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 5000)) ||
-     (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 5000))){
-    breakLoop = true;
-    effect = Effect::solid;
-    stateOn = true;
+
+  #ifdef TARGET_GLOWWORMLUCIFERINFULL
+  // Bootsrap loop() with Wifi, MQTT and OTA functions
+  bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
+  EVERY_N_SECONDS(7) {
+    // No updates since 7 seconds, turn off LEDs
+    if((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 5000)) ||
+       (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 5000))){
+      breakLoop = true;
+      effect = Effect::solid;
+      stateOn = true;
+    }
   }
-}
-EVERY_N_SECONDS(60) {
-  sendStatus();
-}
-#elif  TARGET_GLOWWORMLUCIFERINLIGHT
-EVERY_N_SECONDS(15) {
-  // No updates since 15 seconds, turn off LEDs
-  if(millis() > lastLedUpdate + 10000){
-    setColor(0, 0, 0);
+  EVERY_N_SECONDS(10) {
+    sendStatus();
   }
-}
-#endif
+  #elif  TARGET_GLOWWORMLUCIFERINLIGHT
+  EVERY_N_SECONDS(15) {
+    // No updates since 15 seconds, turn off LEDs
+    if(millis() > lastLedUpdate + 10000){
+      setColor(0, 0, 0);
+    }
+  }
+  #endif
+
 }
 
 int serialRead() {
+
   return !breakLoop ? Serial.read() : -1;
+
 }
 
 /**
@@ -859,6 +866,11 @@ void loop() {
         }
       }
     }
+  #endif
+
+  #if defined(ESP32)
+    // delay some seconds to let ESP32 to do its business in the core, core panic without this pause
+    delay(4);
   #endif
 
 }
