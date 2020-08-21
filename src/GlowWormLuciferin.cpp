@@ -296,7 +296,7 @@ void sendStatus() {
     case Effect::sinelon: root["effect"] = "sinelon"; break;
   }
 
-  root["Whoami"] = WIFI_DEVICE_NAME;
+  root["Whoami"] = deviceName;
   root["IP"] = microcontrollerIP;
   root["MAC"] = MAC;
   root["ver"] = VERSION;
@@ -306,6 +306,10 @@ void sendStatus() {
 
   // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
   bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
+
+  #ifdef defined(ESP32)
+    delay(5);
+  #endif
 
   // Built in led triggered
   ledTriggered = true;
@@ -384,7 +388,7 @@ void checkConnection() {
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
-  EVERY_N_SECONDS(7) {
+  EVERY_N_SECONDS(10) {
     // No updates since 7 seconds, turn off LEDs
     if((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 5000)) ||
        (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 5000))){
@@ -392,8 +396,6 @@ void checkConnection() {
       effect = Effect::solid;
       stateOn = true;
     }
-  }
-  EVERY_N_SECONDS(10) {
     sendStatus();
   }
   #elif  TARGET_GLOWWORMLUCIFERINLIGHT
