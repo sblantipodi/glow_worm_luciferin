@@ -40,6 +40,7 @@ Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
+const char* KEEP_ALIVE_TOPIC = "lights/glowwormluciferin/keepalive";
 const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
 const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
 const char* TIME_TOPIC = "stat/time";
@@ -166,6 +167,7 @@ uint8_t gHue = 0;
 CRGB leds[NUM_LEDS];
 
 bool breakLoop = false;
+int dynamicLedNum = 0;
 
 /****************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) ******************/
 // Bootstrap functions
