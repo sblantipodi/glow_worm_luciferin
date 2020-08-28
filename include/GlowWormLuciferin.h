@@ -191,3 +191,5 @@ void showleds();
 void temp2rgb(unsigned int kelvin);
 int calculateStep(int prevValue, int endValue);
 int calculateVal(int step, int val, int i);
+void mainTask(void * parameter);
+void mainLoop();
