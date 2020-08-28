@@ -320,7 +320,7 @@ void sendStatus() {
   }
 
   #ifdef defined(ESP32)
-    delay(5);
+    delay(1);
     //Serial.print("Task is running on: ");
     //Serial.println(xPortGetCoreID());
   #endif
@@ -884,7 +884,7 @@ void mainLoop() {
 
 #if defined(ESP32)
   // delay some seconds to let ESP32 to do its business in the core, core panic without this pause
-  delay(4);
+  delay(1);
 #endif
 
 }
