@@ -87,6 +87,7 @@ void manageQueueSubscription() {
   bootstrapManager.subscribe(STREAM_TOPIC, 0);
   bootstrapManager.subscribe(TIME_TOPIC);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
+  bootstrapManager.subscribe(UPDATE_STATE_TOPIC);
 
 }
 
@@ -135,6 +136,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
       processGlowWormLuciferinRebootCmnd(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, LIGHT_SET_TOPIC) == 0) {
       processJson(bootstrapManager.jsonDoc);
+    } else if (strcmp(topic, UPDATE_STATE_TOPIC) == 0) {
+      processUpdate(bootstrapManager.jsonDoc);
     }
     if (stateOn) {
       realRed = map(red, 0, 255, 0, brightness);
@@ -350,6 +353,53 @@ bool processTimeJson(StaticJsonDocument<BUFFER_SIZE> json) {
 }
 
 /**
+ * Handle web server for the upgrade process
+ * @param json StaticJsonDocument
+ * @return true if message is correctly processed
+ */
+bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json) {
+
+  if (json.containsKey(F("update"))) {
+
+    Serial.println(F("Starting web server"));
+    server.on("/update", HTTP_POST, []() {
+        server.sendHeader("Connection", "close");
+        server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+        ESP.restart();
+    }, []() {
+        HTTPUpload& upload = server.upload();
+        if (upload.status == UPLOAD_FILE_START) {
+          Serial.printf("Update: %s\n", upload.filename.c_str());
+          #if defined(ESP32)
+            updateSize = UPDATE_SIZE_UNKNOWN;
+          #elif
+            updateSize = 480000;
+          #endif
+          if (!Update.begin(updateSize)) { //start with max available size
+            Update.printError(Serial);
+          }
+        } else if (upload.status == UPLOAD_FILE_WRITE) {
+          /* flashing firmware to ESP*/
+          if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+            Update.printError(Serial);
+          }
+        } else if (upload.status == UPLOAD_FILE_END) {
+          if (Update.end(true)) { //true to set the size to the current progress
+            Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+          } else {
+            Update.printError(Serial);
+          }
+        }
+    });
+    server.begin();
+    firmwareUpgrade = true;
+
+  }
+  return true;
+
+}
+
+/**
  * Reboot the microcontroller
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
@@ -402,6 +452,7 @@ void checkConnection() {
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
+
   EVERY_N_SECONDS(10) {
     // No updates since 7 seconds, turn off LEDs
     if((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 5000)) ||
@@ -906,9 +957,10 @@ void loop() {
 
   #if defined(ESP8266)
     mainLoop();
-  #elif defined(ESP32)
-    while(true) {}
   #endif
+  if (firmwareUpgrade) {
+    server.handleClient();
+  }
 
 }
 

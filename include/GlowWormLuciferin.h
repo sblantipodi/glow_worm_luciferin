@@ -40,6 +40,7 @@ Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
+const char* UPDATE_STATE_TOPIC = "lights/glowwormluciferin/update";
 const char* KEEP_ALIVE_TOPIC = "lights/glowwormluciferin/keepalive";
 const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
 const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
@@ -169,6 +170,10 @@ CRGB leds[NUM_LEDS];
 bool breakLoop = false;
 int dynamicLedNum = 0;
 
+// Upgrade firmware
+boolean firmwareUpgrade = false;
+size_t updateSize = 0;
+
 /****************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) ******************/
 // Bootstrap functions
 void callback(char* topic, byte* payload, unsigned int length);
@@ -179,6 +184,7 @@ void manageHardwareButton();
 void sendStatus();
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
 bool processTimeJson(StaticJsonDocument<BUFFER_SIZE> json);
+bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json);
 bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
 bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
 void setColor(int inR, int inG, int inB);
