@@ -316,6 +316,12 @@ void sendStatus() {
     if (timedate != OFF_CMD) {
       root["time"] = timedate;
     }
+    #if defined(ESP8266)
+      root["board"] = "ESP8266";
+    #elif defined(ESP32)
+      root["board"] = "ESP32";
+    #endif
+
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
     bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
   } else {
@@ -365,6 +371,8 @@ bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json) {
     server.on("/update", HTTP_POST, []() {
         server.sendHeader("Connection", "close");
         server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+        bootstrapManager.publish(UPDATE_RESULT_STATE_TOPIC, helper.string2char(deviceName), false);
+        delay(DELAY_500);
         ESP.restart();
     }, []() {
         HTTPUpload& upload = server.upload();
@@ -372,7 +380,7 @@ bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json) {
           Serial.printf("Update: %s\n", upload.filename.c_str());
           #if defined(ESP32)
             updateSize = UPDATE_SIZE_UNKNOWN;
-          #elif
+          #elif defined(ESP8266)
             updateSize = 480000;
           #endif
           if (!Update.begin(updateSize)) { //start with max available size
@@ -392,6 +400,7 @@ bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json) {
         }
     });
     server.begin();
+    Serial.println(F("Web server started"));
     firmwareUpgrade = true;
 
   }

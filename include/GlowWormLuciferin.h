@@ -41,6 +41,7 @@ Helpers helper;
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
 const char* UPDATE_STATE_TOPIC = "lights/glowwormluciferin/update";
+const char* UPDATE_RESULT_STATE_TOPIC = "lights/glowwormluciferin/update/result";
 const char* KEEP_ALIVE_TOPIC = "lights/glowwormluciferin/keepalive";
 const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
 const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
