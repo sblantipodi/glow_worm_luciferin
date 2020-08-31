@@ -464,8 +464,8 @@ void checkConnection() {
 
   EVERY_N_SECONDS(10) {
     // No updates since 7 seconds, turn off LEDs
-    if((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 5000)) ||
-       (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 5000))){
+    if((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 10000)) ||
+       (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 10000))){
       breakLoop = true;
       effect = Effect::solid;
       stateOn = true;
