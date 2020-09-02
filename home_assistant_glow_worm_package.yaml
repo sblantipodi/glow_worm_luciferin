@@ -117,6 +117,17 @@ automation:
         data_template:
           topic: lights/glowwormluciferin/set
           payload: '{"transition":{{ trigger.to_state.state | int }}}'
+  - id: '1595687236984'
+    alias: gw_time_publisher
+    trigger:
+      platform: time_pattern
+      seconds: '/10'
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: "stat/time"
+          retain: "false"
+          payload: '{"Time":"{{now()}}"}'
 switch:
   - platform: mqtt
     name: "rebootglowworm"

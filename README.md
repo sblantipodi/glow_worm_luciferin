@@ -1,10 +1,10 @@
 # Glow Worm Luciferin
 **Luciferin** is a generic term for the light-emitting compound found in organisms that generate bioluminescence like Fireflies and Glow Worms.
-`Glow Worm Luciferin is a firmware` for ESP8266/ESP32 boards designed for [Firefly Luciferin](https://github.com/sblantipodi/firefly_luciferin) software, those two software creates the perfect `Bias Lighting and Ambient Light system for PC`.  
+`Glow Worm Luciferin is a firmware` for ESP8266/ESP32 boards designed for [Firefly Luciferin](https://github.com/sblantipodi/firefly_luciferin) software, those two software create the perfect `Bias Lighting and Ambient Light system for PC`.  
 _Written for Arduino IDE and PlatformIO._  
   
   
-<img align="right" width="100" height="100" src="https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight_logo.png">
+<img align="right" width="100" height="100" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight_logo.png">
 
 
 [![GitHub Actions CI](https://github.com/sblantipodi/pc_ambilight/workflows/GitHub%20Actions%20CI/badge.svg)](https://github.com/sblantipodi/pc_ambilight/actions)
@@ -30,7 +30,7 @@ Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferi
 - Davide Perini
 
 ## Components:
-- Arduino C++ sketch running on an ESP8266EX D1 Mini from Lolin running @ 160MHz
+- Arduino C++ sketch running on an ESP8266EX/ESP32 D1 Mini from Lolin running @ 160MHz
 - WS2812B 5V LED Strip (95 LED)
 - 3.3V/5V Logic Level Converter 
 - 220Ω resistor
@@ -41,13 +41,13 @@ Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferi
 NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 
 ## Schematic
-![CIRCUITS](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/ambilight_bb.png)
+![CIRCUITS](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/ambilight_bb.png)
 
 ## Home Assistant Mobile Client Screenshots
-![SCREENSHOT](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/HA_mobile_client_screenshot.jpg)
+![SCREENSHOT](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/HA_mobile_client_screenshot.jpg)
 
 ## Glow Worm Luciferin + Firefly Luciferin (click to watch it on YouTube)
-[![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/pc_ambilight/blob/master/data/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
+[![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## License
 This program is licensed under MIT License

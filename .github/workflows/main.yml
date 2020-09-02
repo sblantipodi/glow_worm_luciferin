@@ -28,16 +28,16 @@ jobs:
     - name: Static code analysis
       run: platformio check --verbose --severity=high --skip-packages                
     - name: Run PlatformIO
-      run: platformio run -e glowwormluciferinfull
+      run: platformio run -e glowwormluciferinfull_esp8266
     - name: Creating artifact from BIN file
       uses: actions/upload-artifact@v1
       with:
-        name: firmware_build_artifact_glow_worm_luciferin_full.bin
-        path: .pio/build/glowwormluciferinfull/firmware.bin
+        name: firmware_build_artifact_glow_worm_luciferin_esp8266_full.bin
+        path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
     - name: Run PlatformIO
-      run: platformio run -e glowwormluciferinlight
+      run: platformio run -e glowwormluciferinlight_esp8266
     - name: Creating artifact from BIN file
       uses: actions/upload-artifact@v1
       with:
         name: firmware_build_artifact_glow_worm_luciferin_light.bin
-        path: .pio/build/glowwormluciferinlight/firmware.bin
+        path: .pio/build/glowwormluciferinlight_esp8266/firmware.bin

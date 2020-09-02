@@ -39,11 +39,13 @@ BootstrapManager bootstrapManager;
 Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
-const size_t streamCapacity = JSON_ARRAY_SIZE(300) + JSON_OBJECT_SIZE(2) + 20;
 const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
+const char* UPDATE_STATE_TOPIC = "lights/glowwormluciferin/update";
+const char* UPDATE_RESULT_STATE_TOPIC = "lights/glowwormluciferin/update/result";
+const char* KEEP_ALIVE_TOPIC = "lights/glowwormluciferin/keepalive";
 const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
 const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
-const char* SMARTOSTAT_CLIMATE_STATE_TOPIC = "stat/smartostat/CLIMATE";
+const char* TIME_TOPIC = "stat/time";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
 
 enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, candy_cane, confetti, cyclon_rainbow, dots,
@@ -167,6 +169,11 @@ uint8_t gHue = 0;
 CRGB leds[NUM_LEDS];
 
 bool breakLoop = false;
+int dynamicLedNum = 0;
+
+// Upgrade firmware
+boolean firmwareUpgrade = false;
+size_t updateSize = 0;
 
 /****************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) ******************/
 // Bootstrap functions
@@ -177,7 +184,8 @@ void manageHardwareButton();
 // Project specific functions
 void sendStatus();
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
-bool processSmartostatClimateJson(StaticJsonDocument<BUFFER_SIZE> json);
+bool processTimeJson(StaticJsonDocument<BUFFER_SIZE> json);
+bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json);
 bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
 bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
 void setColor(int inR, int inG, int inB);
@@ -190,3 +198,5 @@ void showleds();
 void temp2rgb(unsigned int kelvin);
 int calculateStep(int prevValue, int endValue);
 int calculateVal(int step, int val, int i);
+void mainTask(void * parameter);
+void mainLoop();
