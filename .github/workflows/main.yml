@@ -125,7 +125,7 @@ jobs:
           platformio platform install espressif32
           platformio check --verbose --severity=high --skip-packages
       - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinfull_esp32
+        run: platformio run -e glowwormluciferinlight_esp32
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v1
         with:
