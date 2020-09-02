@@ -32,14 +32,7 @@ jobs:
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v1
         with:
-          name: firmware_build_artifact_glow_worm_luciferin_esp8266_full.bin
-          path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
-      - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinfull_esp8266
-      - name: Creating artifact from BIN file
-        uses: actions/upload-artifact@v1
-        with:
-          name: firmware_ESP8266_glow_worm_luciferin_full.bin
+          name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
           path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
 
   build_esp8266_light:
@@ -66,18 +59,11 @@ jobs:
       - name: Static code analysis
         run: platformio check --verbose --severity=high --skip-packages
       - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinfull_esp8266
-      - name: Creating artifact from BIN file
-        uses: actions/upload-artifact@v1
-        with:
-          name: firmware_build_artifact_glow_worm_luciferin_esp8266_full.bin
-          path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
-      - name: Run PlatformIO
         run: platformio run -e glowwormluciferinlight_esp8266
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v1
         with:
-          name: firmware_ESP8266_glow_worm_luciferin_light.bin
+          name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_LIGHT.bin
           path: .pio/build/glowwormluciferinlight_esp8266/firmware.bin
 
   build_esp32_full:
@@ -110,14 +96,7 @@ jobs:
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v1
         with:
-          name: firmware_build_artifact_glow_worm_luciferin_esp32_full.bin
-          path: .pio/build/glowwormluciferinfull_esp32/firmware.bin
-      - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinfull_esp32
-      - name: Creating artifact from BIN file
-        uses: actions/upload-artifact@v1
-        with:
-          name: firmware_ESP32_glow_worm_luciferin_full.bin
+          name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_FULL.bin
           path: .pio/build/glowwormluciferinfull_esp32/firmware.bin
 
   build_esp32_light:
@@ -150,12 +129,5 @@ jobs:
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v1
         with:
-          name: firmware_build_artifact_glow_worm_luciferin_esp32_full.bin
+          name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_LIGHT.bin
           path: .pio/build/glowwormluciferinfull_esp32/firmware.bin
-      - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinlight_esp32
-      - name: Creating artifact from BIN file
-        uses: actions/upload-artifact@v1
-        with:
-          name: firmware_ESP32_glow_worm_luciferin_light.bin
-          path: .pio/build/glowwormluciferinlight_esp32/firmware.bin
