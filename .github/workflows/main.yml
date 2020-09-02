@@ -4,40 +4,80 @@ on: [push, pull_request]
 
 jobs:
 
-  build:
+  build_esp8266:
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2         
-    - name: Set up Python
-      uses: actions/setup-python@v1
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install platformio
-        python --version
-    - name: Install submodules 
-      run: |        
-        git submodule update --init
-    - name: Setup template config files
-      run: |      
-        cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
-    # - name: Setup tmate session
-    #   uses: mxschmitt/action-tmate@v2  
-    - name: Static code analysis
-      run: platformio check --verbose --severity=high --skip-packages                
-    - name: Run PlatformIO
-      run: platformio run -e glowwormluciferinfull_esp8266
-    - name: Creating artifact from BIN file
-      uses: actions/upload-artifact@v1
-      with:
-        name: firmware_build_artifact_glow_worm_luciferin_esp8266_full.bin
-        path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
-    - name: Run PlatformIO
-      run: platformio run -e glowwormluciferinlight_esp8266
-    - name: Creating artifact from BIN file
-      uses: actions/upload-artifact@v1
-      with:
-        name: firmware_build_artifact_glow_worm_luciferin_light.bin
-        path: .pio/build/glowwormluciferinlight_esp8266/firmware.bin
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+          python --version
+      - name: Install submodules
+        run: |
+          git submodule update --init
+      - name: Setup template config files
+        run: |
+          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v2
+      - name: Static code analysis
+        run: platformio check --verbose --severity=high --skip-packages
+      - name: Run PlatformIO
+        run: platformio run -e glowwormluciferinfull_esp8266
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v1
+        with:
+          name: firmware_build_artifact_glow_worm_luciferin_esp8266_full.bin
+          path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
+      - name: Run PlatformIO
+        run: platformio run -e glowwormluciferinlight_esp8266
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v1
+        with:
+          name: firmware_build_artifact_glow_worm_luciferin_light.bin
+          path: .pio/build/glowwormluciferinlight_esp8266/firmware.bin
+
+  build_esp32:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+          python --version
+      - name: Install submodules
+        run: |
+          git submodule update --init
+      - name: Setup template config files
+        run: |
+          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v2
+      - name: Static code analysis
+        run: |
+          platformio platform install espressif32
+          platformio check --verbose --severity=high --skip-packages
+      - name: Run PlatformIO
+        run: platformio run -e glowwormluciferinfull_esp32
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v1
+        with:
+          name: firmware_build_artifact_glow_worm_luciferin_esp32_full.bin
+          path: .pio/build/glowwormluciferinfull_esp32/firmware.bin
+      - name: Run PlatformIO
+        run: platformio run -e glowwormluciferinlight_esp32
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v1
+        with:
+          name: firmware_build_artifact_glow_worm_luciferin_light.bin
+          path: .pio/build/glowwormluciferinlight_esp32/firmware.bin
