@@ -130,4 +130,4 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_LIGHT.bin
-          path: .pio/build/glowwormluciferinglight_esp32/firmware.bin
+          path: .pio/build/glowwormluciferinlight_esp32/firmware.bin
