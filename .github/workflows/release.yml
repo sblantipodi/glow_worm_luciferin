@@ -34,6 +34,7 @@ jobs:
           prerelease: false
       
   build_esp8266_firmware:
+    needs: [ create_draft_release ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -80,7 +81,8 @@ jobs:
           cp .pio/build/glowwormluciferinlight_esp8266/firmware.bin ./GlowWormLuciferinLIGHT_ESP8266_firmware.bin
           hub release edit -a GlowWormLuciferinLIGHT_ESP8266_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
 
-  build_32_firmware:
+  build_esp32_firmware:
+    needs: [ create_draft_release ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
