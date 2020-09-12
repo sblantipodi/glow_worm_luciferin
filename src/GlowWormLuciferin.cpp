@@ -240,6 +240,7 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
     JsonVariant requestedEffect = json["effect"];
     if (requestedEffect == "GlowWorm") {
       effect = Effect::GlowWorm;
+      FastLED.setBrightness(brightness);
       lastLedUpdate = millis();
     }
     else if (requestedEffect == "GlowWormWifi") {
