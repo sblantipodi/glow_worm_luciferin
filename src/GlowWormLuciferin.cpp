@@ -522,6 +522,13 @@ void mainLoop() {
     lo = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
     chk = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
+    usbBrightness = serialRead();
+
+    if (usbBrightness != brightness) {
+      brightness = usbBrightness;
+      FastLED.setBrightness(usbBrightness);
+    }
 
     if (!breakLoop && (chk != (hi ^ lo ^ 0x55))) {
       i = 0;

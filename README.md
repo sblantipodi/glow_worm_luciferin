@@ -30,7 +30,7 @@ Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferi
 - Davide Perini
 
 ## Components:
-- Arduino C++ sketch running on an ESP8266EX/ESP32 D1 Mini from Lolin running @ 160MHz
+- Arduino C++ sketch running on an ESP8266EX/ESP32 D1 Mini from Lolin running @ 160MHz/240MHz (ESP8266 is the recommended device)
 - WS2812B 5V LED Strip (95 LED)
 - 3.3V/5V Logic Level Converter 
 - 220Ω resistor
