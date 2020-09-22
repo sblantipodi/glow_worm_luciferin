@@ -521,16 +521,16 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) checkConnection();
     lo = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
-    chk = serialRead();
-    while (!breakLoop && !Serial.available()) checkConnection();
     usbBrightness = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
+    chk = serialRead();
 
     if (usbBrightness != brightness) {
-      brightness = usbBrightness;
       FastLED.setBrightness(usbBrightness);
+      brightness = usbBrightness;
     }
 
-    if (!breakLoop && (chk != (hi ^ lo ^ 0x55))) {
+    if (!breakLoop && (chk != (hi ^ lo ^ usbBrightness ^ 0x55))) {
       i = 0;
       goto waitLoop;
     }
