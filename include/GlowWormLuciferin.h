@@ -63,7 +63,8 @@ Effect effect;
 int new_bright, new_bright_f;
 unsigned long bright_timer, off_timer;
 
-uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, usbBrightness, i;
+// DPsoftware Checksum
+uint8_t prefix[] = {'D', 'P', 's', 'o'}, hi, lo, chk, usbBrightness, i;
 bool led_state = true;
 int lastLedUpdate = 10000;
 int lastStream = 0;
