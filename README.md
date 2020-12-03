@@ -54,7 +54,7 @@ Glow Worm Luciferin firmware can be easily integrated in [Home Assistant](https:
 [![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## License
-This program is licensed under MIT License
+This program is licensed under GNU GENERAL PUBLIC LICENSE
 
 ## Thanks To 
 |  Thanks              |  For                           |
