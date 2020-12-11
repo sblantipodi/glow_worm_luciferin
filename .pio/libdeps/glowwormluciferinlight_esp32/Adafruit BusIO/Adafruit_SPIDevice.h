@@ -6,9 +6,8 @@
 // some modern SPI definitions don't have BitOrder enum
 #if (defined(__AVR__) && !defined(ARDUINO_ARCH_MEGAAVR)) ||                    \
     defined(ESP8266) || defined(TEENSYDUINO) || defined(SPARK) ||              \
-    defined(ARDUINO_ARCH_SPRESENSE) || defined(ARDUINO_attinyxy7) ||           \
-    defined(ARDUINO_attinyxy6) || defined(ARDUINO_attinyxy4) ||                \
-    defined(ARDUINO_attinyxy2) || defined(ARDUINO_AVR_ATmega4809) ||           \
+    defined(ARDUINO_ARCH_SPRESENSE) || defined(MEGATINYCORE) ||                \
+    defined(DXCORE) || defined(ARDUINO_AVR_ATmega4809) ||                      \
     defined(ARDUINO_AVR_ATmega4808) || defined(ARDUINO_AVR_ATmega3209) ||      \
     defined(ARDUINO_AVR_ATmega3208) || defined(ARDUINO_AVR_ATmega1609) ||      \
     defined(ARDUINO_AVR_ATmega1608) || defined(ARDUINO_AVR_ATmega809) ||       \
@@ -18,7 +17,7 @@ typedef enum _BitOrder {
   SPI_BITORDER_LSBFIRST = LSBFIRST,
 } BitOrder;
 
-#elif defined(ESP32)
+#elif defined(ESP32) || defined(__ASR6501__)
 
 // some modern SPI definitions don't have BitOrder enum and have different SPI
 // mode defines
@@ -48,7 +47,9 @@ typedef uint32_t BusIO_PortMask;
     !defined(ARDUINO_ARCH_MBED)
 typedef volatile uint32_t BusIO_PortReg;
 typedef uint32_t BusIO_PortMask;
+#if not defined(__ASR6501__)
 #define BUSIO_USE_FAST_PINIO
+#endif
 
 #else
 #undef BUSIO_USE_FAST_PINIO
