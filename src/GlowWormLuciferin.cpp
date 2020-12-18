@@ -32,6 +32,14 @@
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 #include "GlowWormLuciferin.h"
 
+// Dynamic Digital PIN template
+//struct PINUtil{
+//    template<uint8_t DYNAMIC_DATA_PIN = DATA_PIN> void init() {
+//      FastLED.addLeds<CHIPSET, DYNAMIC_DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+//    }
+//};
+//PINUtil pinUtil;
+
 /**
  * Setup function
  */
@@ -45,14 +53,27 @@ void setup() {
   #elif defined(ESP32)
   digitalWrite(LED_BUILTIN, HIGH);
   #endif
-  FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-  setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
-  gPal = HeatColors_p; //for FIRE
+
+  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+    FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  #endif
 
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
     // Bootsrap setup() with Wifi and MQTT functions
     bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
+//    Serial.print(F("GPIO IN USE="));
+//    Serial.println(additionalParam);
+//    switch (additionalParam.toInt()) {
+//        case 2: pinUtil.init<2>(); break;
+//        case 16: pinUtil.init<16>(); break;
+//        default: pinUtil.init<5>(); break;
+//    }
+  FastLED.addLeds<CHIPSET, 5, COLOR_ORDER>(leds, NUM_LEDS);
+
   #endif
+
+  setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
+  gPal = HeatColors_p; //for FIRE
 
   #if defined(ESP32)
   xTaskCreatePinnedToCore(

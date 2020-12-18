@@ -73,7 +73,7 @@ int lastStream = 0;
 #define NUM_LEDS    200 // Max Led support
 #define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
 //#define CLOCK_PIN 5
-#define CHIPSET     WS2812
+#define CHIPSET     WS2812B
 #define COLOR_ORDER GRB
 
 byte realRed = 0;
