@@ -63,6 +63,8 @@ void setup() {
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
     // Bootsrap setup() with Wifi and MQTT functions
     bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
+    Serial.print(F("SAVED GPIO="));
+    Serial.println(additionalParam);
     int gpioInUse;
     switch (additionalParam.toInt()) {
         case 2: gpioInUse = 2; pinUtil.init<2>(); break;
@@ -70,7 +72,7 @@ void setup() {
         default: gpioInUse = 5; pinUtil.init<5>(); break;
     }
     Serial.print(F("GPIO IN USE="));
-    Serial.println(additionalParam);
+    Serial.println(gpioInUse);
   #endif
 
   setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
