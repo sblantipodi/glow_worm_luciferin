@@ -70,7 +70,9 @@ int lastLedUpdate = 10000;
 int lastStream = 0;
 
 /****************** FastLED Defintions ******************/
-#define NUM_LEDS    200 // Max Led support
+#define NUM_LEDS    550 // Max Led support
+const int FIRST_CHUNK = 190;
+const int SECOND_CHUNK = 380;
 #define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
 //#define CLOCK_PIN 5
 #define CHIPSET     WS2812B
@@ -171,6 +173,7 @@ CRGB leds[NUM_LEDS];
 
 bool breakLoop = false;
 int dynamicLedNum = 0;
+int part = 1;
 
 // Upgrade firmware
 boolean firmwareUpgrade = false;

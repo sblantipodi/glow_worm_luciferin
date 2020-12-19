@@ -32,13 +32,15 @@
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 #include "GlowWormLuciferin.h"
 
-// Dynamic Digital PIN template
-//struct PINUtil{
-//    template<uint8_t DYNAMIC_DATA_PIN = DATA_PIN> void init() {
-//      FastLED.addLeds<CHIPSET, DYNAMIC_DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-//    }
-//};
-//PINUtil pinUtil;
+/**
+ * Dynamic PIN Template
+ */
+struct PINUtil{
+    template<uint8_t DYNAMIC_DATA_PIN = DATA_PIN> void init() {
+      FastLED.addLeds<CHIPSET, DYNAMIC_DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+    }
+};
+PINUtil pinUtil;
 
 /**
  * Setup function
@@ -61,15 +63,14 @@ void setup() {
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
     // Bootsrap setup() with Wifi and MQTT functions
     bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
-//    Serial.print(F("GPIO IN USE="));
-//    Serial.println(additionalParam);
-//    switch (additionalParam.toInt()) {
-//        case 2: pinUtil.init<2>(); break;
-//        case 16: pinUtil.init<16>(); break;
-//        default: pinUtil.init<5>(); break;
-//    }
-  FastLED.addLeds<CHIPSET, 5, COLOR_ORDER>(leds, NUM_LEDS);
-
+    int gpioInUse;
+    switch (additionalParam.toInt()) {
+        case 2: gpioInUse = 2; pinUtil.init<2>(); break;
+        case 16: gpioInUse = 16; pinUtil.init<16>(); break;
+        default: gpioInUse = 5; pinUtil.init<5>(); break;
+    }
+    Serial.print(F("GPIO IN USE="));
+    Serial.println(additionalParam);
   #endif
 
   setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
@@ -137,13 +138,49 @@ void callback(char* topic, byte* payload, unsigned int length) {
         memset(leds, 0, dynamicLedNum * sizeof(struct CRGB));
       }
       JsonArray stream = bootstrapManager.jsonDoc["stream"];
-      for (uint8_t i = 0; i < dynamicLedNum; i++) {
-        int rgb = stream[i];
-        leds[i].r = (rgb >> 16 & 0xFF);
-        leds[i].g = (rgb >> 8 & 0xFF);
-        leds[i].b = (rgb >> 0 & 0xFF);
+      if (dynamicLedNum < 190) {
+        for (uint8_t i = 0; i < dynamicLedNum; i++) {
+          int rgb = stream[i];
+          leds[i].r = (rgb >> 16 & 0xFF);
+          leds[i].g = (rgb >> 8 & 0xFF);
+          leds[i].b = (rgb >> 0 & 0xFF);
+        }
+        FastLED.show();
+      } else {
+        if (dynamicLedNum >= FIRST_CHUNK) {
+          part = bootstrapManager.jsonDoc["part"];
+        }
+        if (part == 1) {
+          for (uint8_t i = 0; i < FIRST_CHUNK; i++) {
+            int rgb = stream[i];
+            leds[i].r = (rgb >> 16 & 0xFF);
+            leds[i].g = (rgb >> 8 & 0xFF);
+            leds[i].b = (rgb >> 0 & 0xFF);
+          }
+        } else if (part == 2) {
+          int j = 0;
+          for (uint8_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
+            int rgb = stream[j];
+            leds[i].r = (rgb >> 16 & 0xFF);
+            leds[i].g = (rgb >> 8 & 0xFF);
+            leds[i].b = (rgb >> 0 & 0xFF);
+            j++;
+          }
+          if (dynamicLedNum < 380) {
+            FastLED.show();
+          }
+        } else {
+          int j = 0;
+          for (uint8_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < NUM_LEDS; i++) {
+            int rgb = stream[j];
+            leds[i].r = (rgb >> 16 & 0xFF);
+            leds[i].g = (rgb >> 8 & 0xFF);
+            leds[i].b = (rgb >> 0 & 0xFF);
+            j++;
+          }
+          FastLED.show();
+        }
       }
-      FastLED.show();
       lastStream = millis();
     }
 
