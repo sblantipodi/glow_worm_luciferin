@@ -138,7 +138,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
         memset(leds, 0, dynamicLedNum * sizeof(struct CRGB));
       }
       JsonArray stream = bootstrapManager.jsonDoc["stream"];
-      if (dynamicLedNum < 190) {
+      if (dynamicLedNum < FIRST_CHUNK) {
         for (uint8_t i = 0; i < dynamicLedNum; i++) {
           int rgb = stream[i];
           leds[i].r = (rgb >> 16 & 0xFF);
