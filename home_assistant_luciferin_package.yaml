@@ -60,6 +60,11 @@ sensor:
     name: 'GlowWorm Version'
     unit_of_measurement: ' '
     value_template: '{{ value_json.ver }}'
+  - platform: mqtt
+    state_topic: 'lights/glowwormluciferin'
+    name: 'Glow Worm Luciferin'
+    unit_of_measurement: 'FPS'
+    value_template: '{{ value_json.framerate }}'
 
 automation:
   - id: '1548456985521'
