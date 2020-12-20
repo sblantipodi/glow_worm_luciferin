@@ -183,6 +183,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
           FastLED.show();
         }
       }
+      #ifdef TARGET_GLOWWORMLUCIFERINFULL
+        framerateCounter++;
+      #endif
       lastStream = millis();
     }
 
@@ -341,7 +344,6 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
  */
 void sendStatus() {
 
-  if (effect != Effect::GlowWormWifi) {
     JsonObject root = bootstrapManager.getJsonObject();
     root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
     JsonObject color = root.createNestedObject("color");
@@ -376,6 +378,10 @@ void sendStatus() {
     root["IP"] = microcontrollerIP;
     root["MAC"] = MAC;
     root["ver"] = VERSION;
+    #ifdef TARGET_GLOWWORMLUCIFERINFULL
+      root["framerate"] = framerate;
+    #endif
+  
     if (timedate != OFF_CMD) {
       root["time"] = timedate;
     }
@@ -387,9 +393,6 @@ void sendStatus() {
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
     bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
-  } else {
-    bootstrapManager.publish(KEEP_ALIVE_TOPIC, helper.string2char(deviceName), false);
-  }
 
   #ifdef defined(ESP32)
     delay(1);
@@ -533,6 +536,8 @@ void checkConnection() {
       effect = Effect::solid;
       stateOn = false;
     }
+    framerate = framerateCounter > 0 ? framerateCounter/10 : 0;
+    framerateCounter = 0;
     sendStatus();
   }
   #elif  TARGET_GLOWWORMLUCIFERINLIGHT
@@ -609,6 +614,9 @@ void mainLoop() {
       leds[i].b = b;
     }
     lastLedUpdate = millis();
+    #ifdef TARGET_GLOWWORMLUCIFERINFULL
+      framerateCounter++;
+    #endif
     FastLED.show();
     // Flush serial buffer
     while (!breakLoop && Serial.available() > 0) {

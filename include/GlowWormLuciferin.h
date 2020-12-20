@@ -42,7 +42,6 @@ Helpers helper;
 const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
 const char* UPDATE_STATE_TOPIC = "lights/glowwormluciferin/update";
 const char* UPDATE_RESULT_STATE_TOPIC = "lights/glowwormluciferin/update/result";
-const char* KEEP_ALIVE_TOPIC = "lights/glowwormluciferin/keepalive";
 const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
 const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
 const char* TIME_TOPIC = "stat/time";
@@ -68,6 +67,8 @@ uint8_t prefix[] = {'D', 'P', 's', 'o'}, hi, lo, chk, usbBrightness, i;
 bool led_state = true;
 int lastLedUpdate = 10000;
 int lastStream = 0;
+float framerate = 0;
+float framerateCounter = 0;
 
 /****************** FastLED Defintions ******************/
 #define NUM_LEDS    550 // Max Led support
