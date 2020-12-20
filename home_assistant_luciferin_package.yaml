@@ -46,6 +46,16 @@ input_boolean:
 
 sensor:
   - platform: mqtt
+    state_topic: 'lights/firelyluciferin/framerate'
+    name: 'Luciferin Producing'
+    unit_of_measurement: 'FPS'
+    value_template: '{{ value_json.producing }}'
+  - platform: mqtt
+    state_topic: 'lights/firelyluciferin/framerate'
+    name: 'Luciferin Consuming'
+    unit_of_measurement: 'FPS'
+    value_template: '{{ value_json.consuming }}'
+  - platform: mqtt
     state_topic: 'lights/glowwormluciferin'
     name: 'GlowWorm Version'
     unit_of_measurement: ' '
