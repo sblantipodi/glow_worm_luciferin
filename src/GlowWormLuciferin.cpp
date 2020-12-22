@@ -33,6 +33,16 @@
 #include "GlowWormLuciferin.h"
 
 /**
+ * Dynamic PIN Template
+ */
+struct PINUtil{
+    template<uint8_t DYNAMIC_DATA_PIN = DATA_PIN> void init() {
+      FastLED.addLeds<CHIPSET, DYNAMIC_DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+    }
+};
+PINUtil pinUtil;
+
+/**
  * Setup function
  */
 void setup() {
@@ -45,14 +55,28 @@ void setup() {
   #elif defined(ESP32)
   digitalWrite(LED_BUILTIN, HIGH);
   #endif
-  FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-  setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
-  gPal = HeatColors_p; //for FIRE
+
+  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+    FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  #endif
 
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
     // Bootsrap setup() with Wifi and MQTT functions
     bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
+    Serial.print(F("SAVED GPIO="));
+    Serial.println(additionalParam);
+    int gpioInUse;
+    switch (additionalParam.toInt()) {
+        case 2: gpioInUse = 2; pinUtil.init<2>(); break;
+        case 16: gpioInUse = 16; pinUtil.init<16>(); break;
+        default: gpioInUse = 5; pinUtil.init<5>(); break;
+    }
+    Serial.print(F("GPIO IN USE="));
+    Serial.println(gpioInUse);
   #endif
+
+  setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
+  gPal = HeatColors_p; //for FIRE
 
   #if defined(ESP32)
   xTaskCreatePinnedToCore(
@@ -116,13 +140,52 @@ void callback(char* topic, byte* payload, unsigned int length) {
         memset(leds, 0, dynamicLedNum * sizeof(struct CRGB));
       }
       JsonArray stream = bootstrapManager.jsonDoc["stream"];
-      for (uint8_t i = 0; i < dynamicLedNum; i++) {
-        int rgb = stream[i];
-        leds[i].r = (rgb >> 16 & 0xFF);
-        leds[i].g = (rgb >> 8 & 0xFF);
-        leds[i].b = (rgb >> 0 & 0xFF);
+      if (dynamicLedNum < FIRST_CHUNK) {
+        for (uint8_t i = 0; i < dynamicLedNum; i++) {
+          int rgb = stream[i];
+          leds[i].r = (rgb >> 16 & 0xFF);
+          leds[i].g = (rgb >> 8 & 0xFF);
+          leds[i].b = (rgb >> 0 & 0xFF);
+        }
+        FastLED.show();
+      } else {
+        if (dynamicLedNum >= FIRST_CHUNK) {
+          part = bootstrapManager.jsonDoc["part"];
+        }
+        if (part == 1) {
+          for (uint8_t i = 0; i < FIRST_CHUNK; i++) {
+            int rgb = stream[i];
+            leds[i].r = (rgb >> 16 & 0xFF);
+            leds[i].g = (rgb >> 8 & 0xFF);
+            leds[i].b = (rgb >> 0 & 0xFF);
+          }
+        } else if (part == 2) {
+          int j = 0;
+          for (uint8_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
+            int rgb = stream[j];
+            leds[i].r = (rgb >> 16 & 0xFF);
+            leds[i].g = (rgb >> 8 & 0xFF);
+            leds[i].b = (rgb >> 0 & 0xFF);
+            j++;
+          }
+          if (dynamicLedNum < 380) {
+            FastLED.show();
+          }
+        } else {
+          int j = 0;
+          for (uint8_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < NUM_LEDS; i++) {
+            int rgb = stream[j];
+            leds[i].r = (rgb >> 16 & 0xFF);
+            leds[i].g = (rgb >> 8 & 0xFF);
+            leds[i].b = (rgb >> 0 & 0xFF);
+            j++;
+          }
+          FastLED.show();
+        }
       }
-      FastLED.show();
+      #ifdef TARGET_GLOWWORMLUCIFERINFULL
+        framerateCounter++;
+      #endif
       lastStream = millis();
     }
 
@@ -281,7 +344,6 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
  */
 void sendStatus() {
 
-  if (effect != Effect::GlowWormWifi) {
     JsonObject root = bootstrapManager.getJsonObject();
     root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
     JsonObject color = root.createNestedObject("color");
@@ -316,6 +378,10 @@ void sendStatus() {
     root["IP"] = microcontrollerIP;
     root["MAC"] = MAC;
     root["ver"] = VERSION;
+    #ifdef TARGET_GLOWWORMLUCIFERINFULL
+      root["framerate"] = framerate;
+    #endif
+  
     if (timedate != OFF_CMD) {
       root["time"] = timedate;
     }
@@ -327,9 +393,6 @@ void sendStatus() {
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
     bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
-  } else {
-    bootstrapManager.publish(KEEP_ALIVE_TOPIC, helper.string2char(deviceName), false);
-  }
 
   #ifdef defined(ESP32)
     delay(1);
@@ -473,6 +536,8 @@ void checkConnection() {
       effect = Effect::solid;
       stateOn = false;
     }
+    framerate = framerateCounter > 0 ? framerateCounter/10 : 0;
+    framerateCounter = 0;
     sendStatus();
   }
   #elif  TARGET_GLOWWORMLUCIFERINLIGHT
@@ -549,6 +614,9 @@ void mainLoop() {
       leds[i].b = b;
     }
     lastLedUpdate = millis();
+    #ifdef TARGET_GLOWWORMLUCIFERINFULL
+      framerateCounter++;
+    #endif
     FastLED.show();
     // Flush serial buffer
     while (!breakLoop && Serial.available() > 0) {

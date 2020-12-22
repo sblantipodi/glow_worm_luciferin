@@ -42,7 +42,6 @@ Helpers helper;
 const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
 const char* UPDATE_STATE_TOPIC = "lights/glowwormluciferin/update";
 const char* UPDATE_RESULT_STATE_TOPIC = "lights/glowwormluciferin/update/result";
-const char* KEEP_ALIVE_TOPIC = "lights/glowwormluciferin/keepalive";
 const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
 const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
 const char* TIME_TOPIC = "stat/time";
@@ -68,12 +67,16 @@ uint8_t prefix[] = {'D', 'P', 's', 'o'}, hi, lo, chk, usbBrightness, i;
 bool led_state = true;
 int lastLedUpdate = 10000;
 int lastStream = 0;
+float framerate = 0;
+float framerateCounter = 0;
 
 /****************** FastLED Defintions ******************/
-#define NUM_LEDS    200 // Max Led support
+#define NUM_LEDS    550 // Max Led support
+const int FIRST_CHUNK = 190;
+const int SECOND_CHUNK = 380;
 #define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
 //#define CLOCK_PIN 5
-#define CHIPSET     WS2812
+#define CHIPSET     WS2812B
 #define COLOR_ORDER GRB
 
 byte realRed = 0;
@@ -171,6 +174,7 @@ CRGB leds[NUM_LEDS];
 
 bool breakLoop = false;
 int dynamicLedNum = 0;
+int part = 1;
 
 // Upgrade firmware
 boolean firmwareUpgrade = false;
