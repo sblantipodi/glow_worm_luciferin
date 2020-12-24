@@ -54,8 +54,14 @@ void setup() {
   #if defined(ESP8266)
   pinMode(LED_BUILTIN, OUTPUT);
   #endif
+  #if defined(ESP32)
+  if (!SPIFFS.begin()) {
+    SPIFFS.format();
+  }
+  #endif
+
   String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
-  if (!ledNumToUse.isEmpty()) {
+  if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
     dynamicLedNum = ledNumToUse.toInt();
   }
   Serial.print("\nUsing LEDs=");
@@ -1111,6 +1117,16 @@ void mainLoop() {
  * Main task for ESP32, pinned to CORE0
  */
 #if defined(ESP32)
+
+#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+void feedTheDog(){
+  // feed dog
+  TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
+  TIMERG0.wdt_feed=1;                       // feed dog
+  TIMERG0.wdt_wprotect=0;                   // write protect
+}
+#endif
+
 void mainTask(void * parameter) {
 
   while(true) {
@@ -1118,6 +1134,11 @@ void mainTask(void * parameter) {
     // delay some seconds to let ESP32 to do its business in the core, core panic without this pause
     delay(1);
   }
+  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+  EVERY_N_MILLISECONDS(1000) {
+    feedTheDog();
+  }
+  #endif
 
 }
 #endif
@@ -1130,6 +1151,11 @@ void loop() {
   if (firmwareUpgrade) {
     server.handleClient();
   }
+  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+  EVERY_N_MILLISECONDS(1000) {
+    feedTheDog();
+  }
+  #endif
 
 }
 

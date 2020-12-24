@@ -32,7 +32,10 @@
 #include <FastLED.h>
 #include "Version.h"
 #include "BootstrapManager.h"
-
+#if defined(ESP32)
+#include "soc/timer_group_struct.h"
+#include "soc/timer_group_reg.h"
+#endif
 
 /****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;
