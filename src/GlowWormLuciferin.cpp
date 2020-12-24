@@ -153,7 +153,6 @@ void callback(char *topic, byte *payload, unsigned int length) {
       int numLedFromLuciferin = bootstrapManager.jsonDoc[LED_NUM_PARAM];
       if (dynamicLedNum == NUM_LEDS || dynamicLedNum != numLedFromLuciferin) {
         dynamicLedNum = bootstrapManager.jsonDoc[LED_NUM_PARAM];
-        Serial.println(dynamicLedNum);
         #if defined(ESP8266)
         DynamicJsonDocument numLedDoc(1024);
         numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
@@ -165,9 +164,10 @@ void callback(char *topic, byte *payload, unsigned int length) {
         bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
         #endif
       }
+      // (leds, 0, (dynamicLedNum) * sizeof(struct CRGB));
       JsonArray stream = bootstrapManager.jsonDoc["stream"];
       if (dynamicLedNum < FIRST_CHUNK) {
-        for (uint8_t i = 0; i < dynamicLedNum; i++) {
+        for (uint16_t i = 0; i < dynamicLedNum; i++) {
           int rgb = stream[i];
           leds[i].r = (rgb >> 16 & 0xFF);
           leds[i].g = (rgb >> 8 & 0xFF);
@@ -179,7 +179,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
           part = bootstrapManager.jsonDoc["part"];
         }
         if (part == 1) {
-          for (uint8_t i = 0; i < FIRST_CHUNK; i++) {
+          for (uint16_t i = 0; i < FIRST_CHUNK; i++) {
             int rgb = stream[i];
             leds[i].r = (rgb >> 16 & 0xFF);
             leds[i].g = (rgb >> 8 & 0xFF);
@@ -187,7 +187,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
           }
         } else if (part == 2) {
           int j = 0;
-          for (uint8_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
+          for (uint16_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
             int rgb = stream[j];
             leds[i].r = (rgb >> 16 & 0xFF);
             leds[i].g = (rgb >> 8 & 0xFF);
@@ -210,7 +210,9 @@ void callback(char *topic, byte *payload, unsigned int length) {
         }
       }
       #ifdef TARGET_GLOWWORMLUCIFERINFULL
-      framerateCounter++;
+      if ((dynamicLedNum < FIRST_CHUNK) || (dynamicLedNum < SECOND_CHUNK && part == 2) || (part == 3)) {
+        framerateCounter++;
+      }
       #endif
       lastStream = millis();
     }
@@ -639,6 +641,7 @@ void mainLoop() {
     if (!led_state) led_state = true;
     off_timer = millis();
 
+
     for (i = 0; i < sizeof prefix; ++i) {
       waitLoop:
       while (!breakLoop && !Serial.available()) checkConnection();
@@ -652,17 +655,15 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) checkConnection();
     lo = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
+    loSecondPart = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
     usbBrightness = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
     chk = serialRead();
 
-    if (dynamicLedNum == NUM_LEDS) {
-      dynamicLedNum = lo+1;
-      #if defined(ESP8266)
-      DynamicJsonDocument numLedDoc(128);
-      numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
-      bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
-      #endif
+    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ 0x55))) {
+      i = 0;
+      goto waitLoop;
     }
 
     if (usbBrightness != brightness) {
@@ -670,14 +671,22 @@ void mainLoop() {
       brightness = usbBrightness;
     }
 
-    if (!breakLoop && (chk != (hi ^ lo ^ usbBrightness ^ 0x55))) {
-      i = 0;
-      goto waitLoop;
+    int numLedFromLuciferin = lo + loSecondPart + 1;
+    if (dynamicLedNum == NUM_LEDS || dynamicLedNum != numLedFromLuciferin) {
+      dynamicLedNum = numLedFromLuciferin;
+      #if defined(ESP8266)
+      DynamicJsonDocument numLedDoc(1024);
+      numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+      bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
+      #endif
+      #if defined(ESP32)
+      DynamicJsonDocument numLedDoc(1024);
+      numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+      bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
+      #endif
     }
-
-    Serial.println(lo);
-    memset(leds, 0, (lo + 1) * sizeof(struct CRGB));
-    for (uint8_t i = 0; i < (lo + 1); i++) {
+    // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
+    for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
       byte r, g, b;
       while (!breakLoop && !Serial.available()) checkConnection();
       r = serialRead();

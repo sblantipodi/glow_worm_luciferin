@@ -63,7 +63,7 @@ int new_bright, new_bright_f;
 unsigned long bright_timer, off_timer;
 
 // DPsoftware Checksum
-uint16_t prefix[] = {'D', 'P', 's', 'o'}, hi, lo, chk, usbBrightness, i;
+uint8_t prefix[] = {'D', 'P', 's'}, hi, lo, chk, loSecondPart, usbBrightness, i;
 bool led_state = true;
 uint lastLedUpdate = 10000;
 uint lastStream = 0;
