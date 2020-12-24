@@ -126,7 +126,9 @@ CRGBPalette16 currentPalettestriped; //for Candy Cane
 CRGBPalette16 gPal; //for fire
 
 //NOISE
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
 static uint16_t dist;         // A random number for our noise generator.
+#endif
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
 uint16_t maxChanges = 48;      // Value for blending between palettes.
 CRGBPalette16 targetPalette(OceanColors_p);

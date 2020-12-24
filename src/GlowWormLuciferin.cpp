@@ -464,6 +464,7 @@ void sendStatus() {
   #elif defined(ESP32)
   root["board"] = "ESP32";
   #endif
+  root[LED_NUM_PARAM] = dynamicLedNum;
 
   // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
   bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
