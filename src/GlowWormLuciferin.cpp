@@ -928,14 +928,16 @@ void mainLoop() {
   }
 
   //EFFECT RAINBOW WITH GLITTER
-  if (effect == Effect::rainbow_with_glitter) {               // FastLED's built-in rainbow generator with Glitter
-    thishue++;
-    fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
-    addGlitter(80);
-    if (transitionTime == 0) {
-      transitionTime = 130;
+  if (effect == Effect::rainbow_with_glitter) {
+    for(int j = 0; j < 256; j++) {
+      for(int i = 0; i < dynamicLedNum; i++) {
+        leds[i] = Scroll((i * 256 / dynamicLedNum + j) % 256);
+        #ifdef TARGET_GLOWWORMLUCIFERINFULL
+        checkConnection();
+        #endif
+      }
+      FastLED.show();
     }
-    showleds();
   }
 
   //EFFECT SIENLON
@@ -1362,4 +1364,23 @@ void temp2rgb(unsigned int kelvin) {
     }
   }
 
+}
+
+// WS2812B LED Strip switches Red and Green
+CRGB Scroll(int pos) {
+  CRGB color (0,0,0);
+  if(pos < 85) {
+    color.g = 0;
+    color.r = ((float)pos / 85.0f) * 255.0f;
+    color.b = 255 - color.r;
+  } else if(pos < 170) {
+    color.g = ((float)(pos - 85) / 85.0f) * 255.0f;
+    color.r = 255 - color.g;
+    color.b = 0;
+  } else if(pos < 256) {
+    color.b = ((float)(pos - 170) / 85.0f) * 255.0f;
+    color.g = 255 - color.b;
+    color.r = 1;
+  }
+  return color;
 }
