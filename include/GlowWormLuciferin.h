@@ -63,15 +63,20 @@ int new_bright, new_bright_f;
 unsigned long bright_timer, off_timer;
 
 // DPsoftware Checksum
-uint8_t prefix[] = {'D', 'P', 's', 'o'}, hi, lo, chk, usbBrightness, i;
+uint16_t prefix[] = {'D', 'P', 's', 'o'}, hi, lo, chk, usbBrightness, i;
 bool led_state = true;
-int lastLedUpdate = 10000;
-int lastStream = 0;
+uint lastLedUpdate = 10000;
+uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
 
 /****************** FastLED Defintions ******************/
 #define NUM_LEDS    550 // Max Led support
+CRGB leds[NUM_LEDS];
+int dynamicLedNum = NUM_LEDS;
+const String LED_NUM_FILENAME = "led_number.json";
+const String LED_NUM_PARAM = "lednum";
+
 const int FIRST_CHUNK = 190;
 const int SECOND_CHUNK = 380;
 #define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
@@ -110,8 +115,8 @@ byte flashBlue = blue;
 byte flashBrightness = brightness;
 
 //RAINBOW
-uint8_t thishue = 0; // Starting hue value.
-uint8_t deltahue = 10;
+uint16_t thishue = 0; // Starting hue value.
+uint16_t deltahue = 10;
 
 //CANDYCANE
 CRGBPalette16 currentPalettestriped; //for Candy Cane
@@ -120,7 +125,7 @@ CRGBPalette16 gPal; //for fire
 //NOISE
 static uint16_t dist;         // A random number for our noise generator.
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
-uint8_t maxChanges = 48;      // Value for blending between palettes.
+uint16_t maxChanges = 48;      // Value for blending between palettes.
 CRGBPalette16 targetPalette(OceanColors_p);
 CRGBPalette16 currentPalette(CRGB::Black);
 
@@ -129,32 +134,32 @@ CRGBPalette16 currentPalette(CRGB::Black);
 int twinklecounter = 0;
 
 //RIPPLE
-uint8_t colour;                                               // Ripple colour is randomized.
+uint16_t colour;                                               // Ripple colour is randomized.
 int center = 0;                                               // Center of the current ripple.
 int step = -1;                                                // -1 is the initializing step.
-uint8_t myfade = 255;                                         // Starting brightness.
+uint16_t myfade = 255;                                         // Starting brightness.
 #define maxsteps 16                                           // Case statement wouldn't allow a variable.
-uint8_t bgcol = 0;                                            // Background colour rotates.
+uint16_t bgcol = 0;                                            // Background colour rotates.
 int thisdelay = 20;                                           // Standard delay value.
 
 //DOTS
-uint8_t   count =   0;                                        // Count up to 255 and then reverts to 0
-uint8_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
-uint8_t bpm = 30;
+uint16_t   count =   0;                                        // Count up to 255 and then reverts to 0
+uint16_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
+uint16_t bpm = 30;
 
 //LIGHTNING
-uint8_t frequency = 50;                                       // controls the interval between strikes
-uint8_t flashes = 8;                                          //the upper limit of flashes per strike
+uint16_t frequency = 50;                                       // controls the interval between strikes
+uint16_t flashes = 8;                                          //the upper limit of flashes per strike
 unsigned int dimmer = 1;
-uint8_t ledstart;                                             // Starting location of a flash
-uint8_t ledlen;
+uint16_t ledstart;                                             // Starting location of a flash
+uint16_t ledlen;
 int lightningcounter = 0;
 
 //FUNKBOX
 int idex = 0;                //-LED INDEX (0 to NUM_LEDS-1
 int TOP_INDEX = int(NUM_LEDS / 2);
 int thissat = 255;           //-FX LOOPS DELAY VAR
-uint8_t thishuepolice = 0;
+uint16_t thishuepolice = 0;
 int antipodal_index(int i) {
   int iN = i + TOP_INDEX;
   if (i >= TOP_INDEX) {
@@ -169,11 +174,9 @@ int antipodal_index(int i) {
 bool gReverseDirection = false;
 
 //BPM
-uint8_t gHue = 0;
-CRGB leds[NUM_LEDS];
+uint16_t gHue = 0;
 
 bool breakLoop = false;
-int dynamicLedNum = 0;
 int part = 1;
 
 // Upgrade firmware
