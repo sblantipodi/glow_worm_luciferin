@@ -1154,10 +1154,12 @@ void loop() {
   if (firmwareUpgrade) {
     server.handleClient();
   }
+  #if defined(ESP32)
   #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   EVERY_N_MILLISECONDS(1000) {
     feedTheDog();
   }
+  #endif
   #endif
 
 }
