@@ -82,6 +82,11 @@ sensor:
     name: 'Glow Worm Luciferin'
     unit_of_measurement: 'FPS'
     value_template: '{{ value_json.framerate }}'
+  - platform: mqtt
+    state_topic: 'lights/glowwormluciferin'
+    name: '# of LEDs'
+    unit_of_measurement: ''
+    value_template: '{{ value_json.lednum }}'
 
 automation:
   - id: '1548456985521'
