@@ -35,11 +35,13 @@
 /**
  * Dynamic PIN Template
  */
-struct PINUtil{
-    template<uint8_t DYNAMIC_DATA_PIN = DATA_PIN> void init() {
-      FastLED.addLeds<CHIPSET, DYNAMIC_DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+struct PINUtil {
+    template<uint8_t DYNAMIC_DATA_PIN = DATA_PIN>
+    void init(int ledToUse) {
+      FastLED.addLeds<CHIPSET, DYNAMIC_DATA_PIN, COLOR_ORDER>(leds, ledToUse);
     }
 };
+
 PINUtil pinUtil;
 
 /**
@@ -49,30 +51,49 @@ void setup() {
 
   Serial.begin(SERIAL_RATE);
 
-  // Pin configuration
   #if defined(ESP8266)
   pinMode(LED_BUILTIN, OUTPUT);
-  #elif defined(ESP32)
-  digitalWrite(LED_BUILTIN, HIGH);
+  #endif
+  #if defined(ESP32)
+  if (!SPIFFS.begin()) {
+    SPIFFS.format();
+  }
   #endif
 
+  String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
+  if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
+    dynamicLedNum = ledNumToUse.toInt();
+  }
+  Serial.print("\nUsing LEDs=");
+  Serial.println(dynamicLedNum);
+
   #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-    FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, dynamicLedNum);
   #endif
 
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
-    // Bootsrap setup() with Wifi and MQTT functions
-    bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
-    Serial.print(F("SAVED GPIO="));
-    Serial.println(additionalParam);
-    int gpioInUse;
-    switch (additionalParam.toInt()) {
-        case 2: gpioInUse = 2; pinUtil.init<2>(); break;
-        case 16: gpioInUse = 16; pinUtil.init<16>(); break;
-        default: gpioInUse = 5; pinUtil.init<5>(); break;
-    }
-    Serial.print(F("GPIO IN USE="));
-    Serial.println(gpioInUse);
+  // Bootsrap setup() with Wifi and MQTT functions
+  bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
+
+  Serial.print(F("SAVED GPIO="));
+  Serial.println(additionalParam);
+  int gpioInUse;
+  switch (additionalParam.toInt()) {
+    case 2:
+      gpioInUse = 2;
+      pinUtil.init<2>(dynamicLedNum);
+      break;
+    case 16:
+      gpioInUse = 16;
+      pinUtil.init<16>(dynamicLedNum);
+      break;
+    default:
+      gpioInUse = 5;
+      pinUtil.init<5>(dynamicLedNum);
+      break;
+  }
+  Serial.print(F("GPIO IN USE="));
+  Serial.println(gpioInUse);
   #endif
 
   setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
@@ -128,20 +149,31 @@ void manageHardwareButton() {
  * @param payload MQTT payload
  * @param length MQTT message length
  */
-void callback(char* topic, byte* payload, unsigned int length) {
+void callback(char *topic, byte *payload, unsigned int length) {
 
-  if(strcmp(topic, STREAM_TOPIC) == 0) {
+  if (strcmp(topic, STREAM_TOPIC) == 0) {
 
     if (effect == Effect::GlowWormWifi) {
       bootstrapManager.jsonDoc.clear();
       deserializeJson(bootstrapManager.jsonDoc, payload);
-      if (dynamicLedNum == 0) {
-        dynamicLedNum = bootstrapManager.jsonDoc["lednum"];
-        memset(leds, 0, dynamicLedNum * sizeof(struct CRGB));
+      int numLedFromLuciferin = bootstrapManager.jsonDoc[LED_NUM_PARAM];
+      if (dynamicLedNum == NUM_LEDS || dynamicLedNum != numLedFromLuciferin) {
+        dynamicLedNum = bootstrapManager.jsonDoc[LED_NUM_PARAM];
+        #if defined(ESP8266)
+        DynamicJsonDocument numLedDoc(1024);
+        numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+        bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
+        #endif
+        #if defined(ESP32)
+        DynamicJsonDocument numLedDoc(1024);
+        numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+        bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
+        #endif
       }
+      // (leds, 0, (dynamicLedNum) * sizeof(struct CRGB));
       JsonArray stream = bootstrapManager.jsonDoc["stream"];
       if (dynamicLedNum < FIRST_CHUNK) {
-        for (uint8_t i = 0; i < dynamicLedNum; i++) {
+        for (uint16_t i = 0; i < dynamicLedNum; i++) {
           int rgb = stream[i];
           leds[i].r = (rgb >> 16 & 0xFF);
           leds[i].g = (rgb >> 8 & 0xFF);
@@ -153,7 +185,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
           part = bootstrapManager.jsonDoc["part"];
         }
         if (part == 1) {
-          for (uint8_t i = 0; i < FIRST_CHUNK; i++) {
+          for (uint16_t i = 0; i < FIRST_CHUNK; i++) {
             int rgb = stream[i];
             leds[i].r = (rgb >> 16 & 0xFF);
             leds[i].g = (rgb >> 8 & 0xFF);
@@ -161,7 +193,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
           }
         } else if (part == 2) {
           int j = 0;
-          for (uint8_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
+          for (uint16_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
             int rgb = stream[j];
             leds[i].r = (rgb >> 16 & 0xFF);
             leds[i].g = (rgb >> 8 & 0xFF);
@@ -173,7 +205,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
           }
         } else {
           int j = 0;
-          for (uint8_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < NUM_LEDS; i++) {
+          for (int16_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < NUM_LEDS; i++) {
             int rgb = stream[j];
             leds[i].r = (rgb >> 16 & 0xFF);
             leds[i].g = (rgb >> 8 & 0xFF);
@@ -184,7 +216,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
         }
       }
       #ifdef TARGET_GLOWWORMLUCIFERINFULL
+      if ((dynamicLedNum < FIRST_CHUNK) || (dynamicLedNum < SECOND_CHUNK && part == 2) || (part == 3)) {
         framerateCounter++;
+      }
       #endif
       lastStream = millis();
     }
@@ -242,7 +276,7 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
 
   // If "flash" is included, treat RGB and brightness differently
   if (json.containsKey("flash")) {
-    flashLength = (int)json["flash"] * 1000;
+    flashLength = (int) json["flash"] * 1000;
 
 
     if (json.containsKey("brightness")) {
@@ -305,13 +339,11 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
       effect = Effect::GlowWorm;
       FastLED.setBrightness(brightness);
       lastLedUpdate = millis();
-    }
-    else if (requestedEffect == "GlowWormWifi") {
+    } else if (requestedEffect == "GlowWormWifi") {
       effect = Effect::GlowWormWifi;
       FastLED.setBrightness(brightness);
       lastStream = millis();
-    }
-    else if (requestedEffect == "bpm") effect = Effect::bpm;
+    } else if (requestedEffect == "bpm") effect = Effect::bpm;
     else if (requestedEffect == "candy cane") effect = Effect::candy_cane;
     else if (requestedEffect == "confetti") effect = Effect::confetti;
     else if (requestedEffect == "cyclon rainbow") effect = Effect::cyclon_rainbow;
@@ -344,60 +376,103 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
  */
 void sendStatus() {
 
-    JsonObject root = bootstrapManager.getJsonObject();
-    root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
-    JsonObject color = root.createNestedObject("color");
-    color["r"] = red;
-    color["g"] = green;
-    color["b"] = blue;
-    root["brightness"] = brightness;
-    switch (effect) {
-      case Effect::solid: root["effect"] = "solid"; break;
-      case Effect::GlowWorm: root["effect"] = "GlowWorm"; break;
-      case Effect::GlowWormWifi: root["effect"] = "GlowWormWifi"; break;
-      case Effect::bpm: root["effect"] = "bpm"; break;
-      case Effect::candy_cane: root["effect"] = "candy cane"; break;
-      case Effect::confetti: root["effect"] = "confetti"; break;
-      case Effect::cyclon_rainbow: root["effect"] = "cyclon rainbow"; break;
-      case Effect::dots: root["effect"] = "dots"; break;
-      case Effect::fire: root["effect"] = "fire"; break;
-      case Effect::glitter: root["effect"] = "glitter"; break;
-      case Effect::juggle: root["effect"] = "juggle"; break;
-      case Effect::lightning: root["effect"] = "lightning"; break;
-      case Effect::police_all: root["effect"] = "police all"; break;
-      case Effect::police_one: root["effect"] = "police one"; break;
-      case Effect::rainbow: root["effect"] = "rainbow"; break;
-      case Effect::solid_rainbow: root["effect"] = "solid rainbow"; break;
-      case Effect::rainbow_with_glitter: root["effect"] = "rainbow with glitter"; break;
-      case Effect::twinkle: root["effect"] = "twinkle"; break;
-      case Effect::noise: root["effect"] = "noise"; break;
-      case Effect::ripple: root["effect"] = "ripple"; break;
-      case Effect::sinelon: root["effect"] = "sinelon"; break;
-    }
-    root["Whoami"] = deviceName;
-    root["IP"] = microcontrollerIP;
-    root["MAC"] = MAC;
-    root["ver"] = VERSION;
-    #ifdef TARGET_GLOWWORMLUCIFERINFULL
-      root["framerate"] = framerate;
-    #endif
-  
-    if (timedate != OFF_CMD) {
-      root["time"] = timedate;
-    }
-    #if defined(ESP8266)
-      root["board"] = "ESP8266";
-    #elif defined(ESP32)
-      root["board"] = "ESP32";
-    #endif
+  JsonObject root = bootstrapManager.getJsonObject();
+  root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
+  JsonObject color = root.createNestedObject("color");
+  color["r"] = red;
+  color["g"] = green;
+  color["b"] = blue;
+  root["brightness"] = brightness;
+  switch (effect) {
+    case Effect::solid:
+      root["effect"] = "solid";
+      break;
+    case Effect::GlowWorm:
+      root["effect"] = "GlowWorm";
+      break;
+    case Effect::GlowWormWifi:
+      root["effect"] = "GlowWormWifi";
+      break;
+    case Effect::bpm:
+      root["effect"] = "bpm";
+      break;
+    case Effect::candy_cane:
+      root["effect"] = "candy cane";
+      break;
+    case Effect::confetti:
+      root["effect"] = "confetti";
+      break;
+    case Effect::cyclon_rainbow:
+      root["effect"] = "cyclon rainbow";
+      break;
+    case Effect::dots:
+      root["effect"] = "dots";
+      break;
+    case Effect::fire:
+      root["effect"] = "fire";
+      break;
+    case Effect::glitter:
+      root["effect"] = "glitter";
+      break;
+    case Effect::juggle:
+      root["effect"] = "juggle";
+      break;
+    case Effect::lightning:
+      root["effect"] = "lightning";
+      break;
+    case Effect::police_all:
+      root["effect"] = "police all";
+      break;
+    case Effect::police_one:
+      root["effect"] = "police one";
+      break;
+    case Effect::rainbow:
+      root["effect"] = "rainbow";
+      break;
+    case Effect::solid_rainbow:
+      root["effect"] = "solid rainbow";
+      break;
+    case Effect::rainbow_with_glitter:
+      root["effect"] = "rainbow with glitter";
+      break;
+    case Effect::twinkle:
+      root["effect"] = "twinkle";
+      break;
+    case Effect::noise:
+      root["effect"] = "noise";
+      break;
+    case Effect::ripple:
+      root["effect"] = "ripple";
+      break;
+    case Effect::sinelon:
+      root["effect"] = "sinelon";
+      break;
+  }
+  root["Whoami"] = deviceName;
+  root["IP"] = microcontrollerIP;
+  root["MAC"] = MAC;
+  root["ver"] = VERSION;
+  #ifdef TARGET_GLOWWORMLUCIFERINFULL
+  root["framerate"] = framerate;
+  #endif
 
-    // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
-    bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
+  if (timedate != OFF_CMD) {
+    root["time"] = timedate;
+  }
+  #if defined(ESP8266)
+  root["board"] = "ESP8266";
+  #elif defined(ESP32)
+  root["board"] = "ESP32";
+  #endif
+  root[LED_NUM_PARAM] = String(dynamicLedNum);
 
-  #ifdef defined(ESP32)
-    delay(1);
-    //Serial.print("Task is running on: ");
-    //Serial.println(xPortGetCoreID());
+  // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
+  bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
+
+  #if defined(ESP32)
+  delay(1);
+  //Serial.print("Task is running on: ");
+  //Serial.println(xPortGetCoreID());
   #endif
 
   // Built in led triggered
@@ -417,7 +492,7 @@ void sendStatus() {
 bool processTimeJson(StaticJsonDocument<BUFFER_SIZE> json) {
 
   if (json.containsKey("Time")) {
-    const char* timeConst = json["Time"];
+    const char *timeConst = json["Time"];
     timedate = timeConst;
   }
   return true;
@@ -441,13 +516,13 @@ bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json) {
         delay(DELAY_500);
         ESP.restart();
     }, []() {
-        HTTPUpload& upload = server.upload();
+        HTTPUpload &upload = server.upload();
         if (upload.status == UPLOAD_FILE_START) {
           Serial.printf("Update: %s\n", upload.filename.c_str());
           #if defined(ESP32)
-            updateSize = UPDATE_SIZE_UNKNOWN;
+          updateSize = UPDATE_SIZE_UNKNOWN;
           #elif defined(ESP8266)
-            updateSize = 480000;
+          updateSize = 480000;
           #endif
           if (!Update.begin(updateSize)) { //start with max available size
             Update.printError(Serial);
@@ -502,9 +577,9 @@ bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json) {
 void setColor(int inR, int inG, int inB) {
 
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i].red   = inR;
+    leds[i].red = inR;
     leds[i].green = inG;
-    leds[i].blue  = inB;
+    leds[i].blue = inB;
   }
 
   FastLED.show();
@@ -530,13 +605,13 @@ void checkConnection() {
 
   EVERY_N_SECONDS(10) {
     // No updates since 7 seconds, turn off LEDs
-    if((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 10000)) ||
-       (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 10000))){
+    if ((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 10000)) ||
+        (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 10000))) {
       breakLoop = true;
       effect = Effect::solid;
       stateOn = false;
     }
-    framerate = framerateCounter > 0 ? framerateCounter/10 : 0;
+    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;
     sendStatus();
   }
@@ -559,19 +634,20 @@ int serialRead() {
 
 void mainLoop() {
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  #ifdef TARGET_GLOWWORMLUCIFERINFULL
   checkConnection();
-#endif
-#if defined(ESP8266)
+  #endif
+  #if defined(ESP8266)
   bootstrapManager.nonBlokingBlink();
-#endif
+  #endif
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (effect == Effect::GlowWorm) {
-#endif
+  #endif
     if (!led_state) led_state = true;
     off_timer = millis();
+
 
     for (i = 0; i < sizeof prefix; ++i) {
       waitLoop:
@@ -586,22 +662,38 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) checkConnection();
     lo = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
+    loSecondPart = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
     usbBrightness = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
     chk = serialRead();
+
+    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ 0x55))) {
+      i = 0;
+      goto waitLoop;
+    }
 
     if (usbBrightness != brightness) {
       FastLED.setBrightness(usbBrightness);
       brightness = usbBrightness;
     }
 
-    if (!breakLoop && (chk != (hi ^ lo ^ usbBrightness ^ 0x55))) {
-      i = 0;
-      goto waitLoop;
+    int numLedFromLuciferin = lo + loSecondPart + 1;
+    if (dynamicLedNum == NUM_LEDS || dynamicLedNum != numLedFromLuciferin) {
+      dynamicLedNum = numLedFromLuciferin;
+      #if defined(ESP8266)
+      DynamicJsonDocument numLedDoc(1024);
+      numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+      bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
+      #endif
+      #if defined(ESP32)
+      DynamicJsonDocument numLedDoc(1024);
+      numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+      bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
+      #endif
     }
-
-    memset(leds, 0, (lo + 1) * sizeof(struct CRGB));
-    for (uint8_t i = 0; i < (lo + 1); i++) {
+    // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
+    for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
       byte r, g, b;
       while (!breakLoop && !Serial.available()) checkConnection();
       r = serialRead();
@@ -615,18 +707,18 @@ void mainLoop() {
     }
     lastLedUpdate = millis();
     #ifdef TARGET_GLOWWORMLUCIFERINFULL
-      framerateCounter++;
+    framerateCounter++;
     #endif
     FastLED.show();
     // Flush serial buffer
     while (!breakLoop && Serial.available() > 0) {
       serialRead();
     }
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  #ifdef TARGET_GLOWWORMLUCIFERINFULL
   }
-#endif
+  #endif
   breakLoop = false;
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  #ifdef TARGET_GLOWWORMLUCIFERINFULL
 
   //EFFECT BPM
   if (effect == Effect::bpm) {
@@ -659,7 +751,7 @@ void mainLoop() {
   if (effect == Effect::confetti) {
     fadeToBlackBy(leds, NUM_LEDS, 25);
     int pos = random16(NUM_LEDS);
-    leds[pos] += CRGB(realRed + random8(64), realGreen, realBlue);
+    leds[pos] += CRGB(realRed + random16(64), realGreen, realBlue);
     if (transitionTime == 0) {
       transitionTime = 30;
     }
@@ -696,9 +788,9 @@ void mainLoop() {
 
   //EFFECT DOTS
   if (effect == Effect::dots) {
-    uint8_t inner = beatsin8(bpm, NUM_LEDS / 4, NUM_LEDS / 4 * 3);
-    uint8_t outer = beatsin8(bpm, 0, NUM_LEDS - 1);
-    uint8_t middle = beatsin8(bpm, NUM_LEDS / 3, NUM_LEDS / 3 * 2);
+    int16_t inner = beatsin16(bpm, NUM_LEDS / 4, NUM_LEDS / 4 * 3);
+    int16_t outer = beatsin16(bpm, 0, NUM_LEDS - 1);
+    int16_t middle = beatsin16(bpm, NUM_LEDS / 3, NUM_LEDS / 3 * 2);
     leds[middle] = CRGB::Purple;
     leds[inner] = CRGB::Blue;
     leds[outer] = CRGB::Aqua;
@@ -718,7 +810,7 @@ void mainLoop() {
     }
     showleds();
   }
-  random16_add_entropy(random8());
+  random16_add_entropy(random16());
 
   //EFFECT Glitter
   if (effect == Effect::glitter) {
@@ -750,20 +842,20 @@ void mainLoop() {
       FastLED.clear();
       FastLED.show();
     }
-    ledstart = random8(NUM_LEDS);           // Determine starting location of flash
-    ledlen = random8(NUM_LEDS - ledstart);  // Determine length of flash (not to go beyond NUM_LEDS-1)
-    for (int flashCounter = 0; flashCounter < random8(3, flashes); flashCounter++) {
+    ledstart = random16(NUM_LEDS);           // Determine starting location of flash
+    ledlen = random16(NUM_LEDS - ledstart);  // Determine length of flash (not to go beyond NUM_LEDS-1)
+    for (int flashCounter = 0; flashCounter < random16(3, flashes); flashCounter++) {
       if (flashCounter == 0) dimmer = 5;    // the brightness of the leader is scaled down by a factor of 5
-      else dimmer = random8(1, 3);          // return strokes are brighter than the leader
+      else dimmer = random16(1, 3);          // return strokes are brighter than the leader
       fill_solid(leds + ledstart, ledlen, CHSV(255, 0, 255 / dimmer));
       showleds();    // Show a section of LED's
-      delay(random8(4, 10));                // each flash only lasts 4-10 milliseconds
+      delay(random16(4, 10));                // each flash only lasts 4-10 milliseconds
       fill_solid(leds + ledstart, ledlen, CHSV(255, 0, 0)); // Clear the section of LED's
       showleds();
       if (flashCounter == 0) delay(130);   // longer delay until next flash after the leader
-      delay(50 + random8(100));             // shorter delay between strokes
+      delay(50 + random16(100));             // shorter delay between strokes
     }
-    delay(random8(frequency) * 100);        // delay between strikes
+    delay(random16(frequency) * 100);        // delay between strikes
     if (transitionTime == 0) {
       transitionTime = 0;
     }
@@ -837,14 +929,16 @@ void mainLoop() {
   }
 
   //EFFECT RAINBOW WITH GLITTER
-  if (effect == Effect::rainbow_with_glitter) {               // FastLED's built-in rainbow generator with Glitter
-    thishue++;
-    fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
-    addGlitter(80);
-    if (transitionTime == 0) {
-      transitionTime = 130;
+  if (effect == Effect::rainbow_with_glitter) {
+    for(int j = 0; j < 256; j++) {
+      for(int i = 0; i < dynamicLedNum; i++) {
+        leds[i] = Scroll((i * 256 / dynamicLedNum + j) % 256);
+        #ifdef TARGET_GLOWWORMLUCIFERINFULL
+        checkConnection();
+        #endif
+      }
+      FastLED.show();
     }
-    showleds();
   }
 
   //EFFECT SIENLON
@@ -874,7 +968,7 @@ void mainLoop() {
         leds[i] += lightcolor; // brighten if red is even
       }
     }
-    if (random8() < DENSITY) {
+    if (random16() < DENSITY) {
       int j = random16(NUM_LEDS);
       if (!leds[j]) leds[j] = lightcolor;
     }
@@ -917,7 +1011,7 @@ void mainLoop() {
       switch (step) {
         case -1:                                                          // Initialize ripple variables.
           center = random(NUM_LEDS);
-          colour = random8();
+          colour = random16();
           step = 0;
           break;
         case 0:
@@ -945,8 +1039,8 @@ void mainLoop() {
   // EVERY 5 SECONDS
   EVERY_N_SECONDS(5) {
 
-    targetPalette = CRGBPalette16(CHSV(random8(), 255, random8(128, 255)), CHSV(random8(), 255, random8(128, 255)),
-                                  CHSV(random8(), 192, random8(128, 255)), CHSV(random8(), 255, random8(128, 255)));
+    targetPalette = CRGBPalette16(CHSV(random16(), 255, random16(128, 255)), CHSV(random16(), 255, random16(128, 255)),
+                                  CHSV(random16(), 192, random16(128, 255)), CHSV(random16(), 255, random16(128, 255)));
 
   }
 
@@ -1020,22 +1114,34 @@ void mainLoop() {
   }
 #endif
 
-#if defined(ESP32)
-  // delay some seconds to let ESP32 to do its business in the core, core panic without this pause
-  delay(1);
-#endif
-
 }
 
 /**
  * Main task for ESP32, pinned to CORE0
  */
 #if defined(ESP32)
+
+#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+void feedTheDog(){
+  // feed dog
+  TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
+  TIMERG0.wdt_feed=1;                       // feed dog
+  TIMERG0.wdt_wprotect=0;                   // write protect
+}
+#endif
+
 void mainTask(void * parameter) {
 
   while(true) {
     mainLoop();
+    // delay some seconds to let ESP32 to do its business in the core, core panic without this pause
+    delay(1);
   }
+  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+  EVERY_N_MILLISECONDS(1000) {
+    feedTheDog();
+  }
+  #endif
 
 }
 #endif
@@ -1043,11 +1149,18 @@ void mainTask(void * parameter) {
 void loop() {
 
   #if defined(ESP8266)
-    mainLoop();
+  mainLoop();
   #endif
   if (firmwareUpgrade) {
     server.handleClient();
   }
+  #if defined(ESP32)
+  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+  EVERY_N_MILLISECONDS(1000) {
+    feedTheDog();
+  }
+  #endif
+  #endif
 
 }
 
@@ -1096,8 +1209,7 @@ int calculateVal(int step, int val, int i) {
   if ((step) && i % step == 0) { // If step is non-zero and its time to change a value,
     if (step > 0) {              //   increment the value if step is positive...
       val += 1;
-    }
-    else if (step < 0) {         //   ...or decrement it if step is negative
+    } else if (step < 0) {         //   ...or decrement it if step is negative
       val -= 1;
     }
   }
@@ -1105,8 +1217,7 @@ int calculateVal(int step, int val, int i) {
   // Defensive driving: make sure val stays in the range 0-255
   if (val > 255) {
     val = 255;
-  }
-  else if (val < 0) {
+  } else if (val < 0) {
     val = 0;
   }
 
@@ -1114,10 +1225,10 @@ int calculateVal(int step, int val, int i) {
 
 }
 
-void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA) {
+void setupStripedPalette(CRGB A, CRGB AB, CRGB B, CRGB BA) {
 
   currentPalettestriped = CRGBPalette16(
-    A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
+          A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
   );
 
 }
@@ -1136,29 +1247,29 @@ void Fire2012WithPalette() {
   static byte heat[NUM_LEDS];
 
   // Step 1.  Cool down every cell a little
-  for ( int i = 0; i < NUM_LEDS; i++) {
-    heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / NUM_LEDS) + 2));
+  for (int i = 0; i < NUM_LEDS; i++) {
+    heat[i] = qsub8(heat[i], random16(0, ((COOLING * 10) / NUM_LEDS) + 2));
   }
 
   // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-  for ( int k = NUM_LEDS - 1; k >= 2; k--) {
-    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+  for (int k = NUM_LEDS - 1; k >= 2; k--) {
+    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
   }
 
   // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
-  if ( random8() < SPARKING ) {
-    int y = random8(7);
-    heat[y] = qadd8( heat[y], random8(160, 255) );
+  if (random16() < SPARKING) {
+    int y = random16(7);
+    heat[y] = qadd8(heat[y], random16(160, 255));
   }
 
   // Step 4.  Map from heat cells to LED colors
-  for ( int j = 0; j < NUM_LEDS; j++) {
+  for (int j = 0; j < NUM_LEDS; j++) {
     // Scale the heat value from 0-255 down to 0-240
     // for best results with color palettes.
-    byte colorindex = scale8( heat[j], 240);
-    CRGB color = ColorFromPalette( gPal, colorindex);
+    byte colorindex = scale8(heat[j], 240);
+    CRGB color = ColorFromPalette(gPal, colorindex);
     int pixelnumber;
-    if ( gReverseDirection ) {
+    if (gReverseDirection) {
       pixelnumber = (NUM_LEDS - 1) - j;
     } else {
       pixelnumber = j;
@@ -1170,16 +1281,16 @@ void Fire2012WithPalette() {
 
 void addGlitter(fract8 chanceOfGlitter) {
 
-  if ( random8() < chanceOfGlitter) {
-    leds[ random16(NUM_LEDS) ] += CRGB::White;
+  if (random16() < chanceOfGlitter) {
+    leds[random16(NUM_LEDS)] += CRGB::White;
   }
 
 }
 
-void addGlitterColor( fract8 chanceOfGlitter, int red, int green, int blue) {
+void addGlitterColor(fract8 chanceOfGlitter, int red, int green, int blue) {
 
-  if ( random8() < chanceOfGlitter) {
-    leds[ random16(NUM_LEDS) ] += CRGB(red, green, blue);
+  if (random16() < chanceOfGlitter) {
+    leds[random16(NUM_LEDS)] += CRGB(red, green, blue);
   }
 
 }
@@ -1194,8 +1305,7 @@ void showleds() {
       FastLED.delay(1000 / transitionTime);
       //delay(10*transitionTime);
     }
-  }
-  else if (startFade) {
+  } else if (startFade) {
     setColor(0, 0, 0);
     startFade = false;
   }
@@ -1257,4 +1367,23 @@ void temp2rgb(unsigned int kelvin) {
     }
   }
 
+}
+
+// WS2812B LED Strip switches Red and Green
+CRGB Scroll(int pos) {
+  CRGB color (0,0,0);
+  if(pos < 85) {
+    color.g = 0;
+    color.r = ((float)pos / 85.0f) * 255.0f;
+    color.b = 255 - color.r;
+  } else if(pos < 170) {
+    color.g = ((float)(pos - 85) / 85.0f) * 255.0f;
+    color.r = 255 - color.g;
+    color.b = 0;
+  } else if(pos < 256) {
+    color.b = ((float)(pos - 170) / 85.0f) * 255.0f;
+    color.g = 255 - color.b;
+    color.r = 1;
+  }
+  return color;
 }
