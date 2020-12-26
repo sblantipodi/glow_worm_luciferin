@@ -157,70 +157,74 @@ void callback(char *topic, byte *payload, unsigned int length) {
       bootstrapManager.jsonDoc.clear();
       deserializeJson(bootstrapManager.jsonDoc, payload);
       int numLedFromLuciferin = bootstrapManager.jsonDoc[LED_NUM_PARAM];
-      if (dynamicLedNum == NUM_LEDS || dynamicLedNum != numLedFromLuciferin) {
-        dynamicLedNum = bootstrapManager.jsonDoc[LED_NUM_PARAM];
-        #if defined(ESP8266)
-        DynamicJsonDocument numLedDoc(1024);
-        numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
-        bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
-        #endif
-        #if defined(ESP32)
-        DynamicJsonDocument numLedDoc(1024);
-        numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
-        bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
-        #endif
-      }
-      // (leds, 0, (dynamicLedNum) * sizeof(struct CRGB));
-      JsonArray stream = bootstrapManager.jsonDoc["stream"];
-      if (dynamicLedNum < FIRST_CHUNK) {
-        for (uint16_t i = 0; i < dynamicLedNum; i++) {
-          int rgb = stream[i];
-          leds[i].r = (rgb >> 16 & 0xFF);
-          leds[i].g = (rgb >> 8 & 0xFF);
-          leds[i].b = (rgb >> 0 & 0xFF);
-        }
-        FastLED.show();
+      if (numLedFromLuciferin == 0) {
+        effect = Effect::solid;
       } else {
-        if (dynamicLedNum >= FIRST_CHUNK) {
-          part = bootstrapManager.jsonDoc["part"];
+        if (dynamicLedNum == NUM_LEDS || dynamicLedNum != numLedFromLuciferin) {
+          dynamicLedNum = bootstrapManager.jsonDoc[LED_NUM_PARAM];
+          #if defined(ESP8266)
+          DynamicJsonDocument numLedDoc(1024);
+          numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+          bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
+          #endif
+          #if defined(ESP32)
+          DynamicJsonDocument numLedDoc(1024);
+          numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+          bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
+          #endif
         }
-        if (part == 1) {
-          for (uint16_t i = 0; i < FIRST_CHUNK; i++) {
+        // (leds, 0, (dynamicLedNum) * sizeof(struct CRGB));
+        JsonArray stream = bootstrapManager.jsonDoc["stream"];
+        if (dynamicLedNum < FIRST_CHUNK) {
+          for (uint16_t i = 0; i < dynamicLedNum; i++) {
             int rgb = stream[i];
             leds[i].r = (rgb >> 16 & 0xFF);
             leds[i].g = (rgb >> 8 & 0xFF);
             leds[i].b = (rgb >> 0 & 0xFF);
           }
-        } else if (part == 2) {
-          int j = 0;
-          for (uint16_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
-            int rgb = stream[j];
-            leds[i].r = (rgb >> 16 & 0xFF);
-            leds[i].g = (rgb >> 8 & 0xFF);
-            leds[i].b = (rgb >> 0 & 0xFF);
-            j++;
+          FastLED.show();
+        } else {
+          if (dynamicLedNum >= FIRST_CHUNK) {
+            part = bootstrapManager.jsonDoc["part"];
           }
-          if (dynamicLedNum < 380) {
+          if (part == 1) {
+            for (uint16_t i = 0; i < FIRST_CHUNK; i++) {
+              int rgb = stream[i];
+              leds[i].r = (rgb >> 16 & 0xFF);
+              leds[i].g = (rgb >> 8 & 0xFF);
+              leds[i].b = (rgb >> 0 & 0xFF);
+            }
+          } else if (part == 2) {
+            int j = 0;
+            for (uint16_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
+              int rgb = stream[j];
+              leds[i].r = (rgb >> 16 & 0xFF);
+              leds[i].g = (rgb >> 8 & 0xFF);
+              leds[i].b = (rgb >> 0 & 0xFF);
+              j++;
+            }
+            if (dynamicLedNum < 380) {
+              FastLED.show();
+            }
+          } else {
+            int j = 0;
+            for (int16_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < NUM_LEDS; i++) {
+              int rgb = stream[j];
+              leds[i].r = (rgb >> 16 & 0xFF);
+              leds[i].g = (rgb >> 8 & 0xFF);
+              leds[i].b = (rgb >> 0 & 0xFF);
+              j++;
+            }
             FastLED.show();
           }
-        } else {
-          int j = 0;
-          for (int16_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < NUM_LEDS; i++) {
-            int rgb = stream[j];
-            leds[i].r = (rgb >> 16 & 0xFF);
-            leds[i].g = (rgb >> 8 & 0xFF);
-            leds[i].b = (rgb >> 0 & 0xFF);
-            j++;
-          }
-          FastLED.show();
         }
+        #ifdef TARGET_GLOWWORMLUCIFERINFULL
+        if ((dynamicLedNum < FIRST_CHUNK) || (dynamicLedNum < SECOND_CHUNK && part == 2) || (part == 3)) {
+          framerateCounter++;
+        }
+        #endif
+        lastStream = millis();
       }
-      #ifdef TARGET_GLOWWORMLUCIFERINFULL
-      if ((dynamicLedNum < FIRST_CHUNK) || (dynamicLedNum < SECOND_CHUNK && part == 2) || (part == 3)) {
-        framerateCounter++;
-      }
-      #endif
-      lastStream = millis();
     }
 
   } else if (effect != Effect::GlowWormWifi) {
