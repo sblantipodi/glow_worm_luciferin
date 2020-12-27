@@ -69,6 +69,7 @@ void setup() {
 
   #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, dynamicLedNum);
+  MAC = WiFi.macAddress();
   #endif
 
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -456,9 +457,7 @@ void sendStatus() {
   root["IP"] = microcontrollerIP;
   root["MAC"] = MAC;
   root["ver"] = VERSION;
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
   root["framerate"] = framerate;
-  #endif
 
   if (timedate != OFF_CMD) {
     root["time"] = timedate;
@@ -483,6 +482,8 @@ void sendStatus() {
   ledTriggered = true;
 
 }
+
+
 
 /* Get Time Info from MQTT queue, you can remove this part if you don't need it. I use it for monitoring
    NOTE: This is specific of my home "ecosystem", I prefer to take time from my internal network and not from the internet, you can delete this if you don't need it.
@@ -642,6 +643,7 @@ void mainLoop() {
   checkConnection();
   #endif
   #if defined(ESP8266)
+
   bootstrapManager.nonBlokingBlink();
   #endif
 
@@ -651,7 +653,6 @@ void mainLoop() {
   #endif
     if (!led_state) led_state = true;
     off_timer = millis();
-
 
     for (i = 0; i < sizeof prefix; ++i) {
       waitLoop:
@@ -710,9 +711,7 @@ void mainLoop() {
       leds[i].b = b;
     }
     lastLedUpdate = millis();
-    #ifdef TARGET_GLOWWORMLUCIFERINFULL
     framerateCounter++;
-    #endif
     FastLED.show();
     // Flush serial buffer
     while (!breakLoop && Serial.available() > 0) {
@@ -1165,6 +1164,21 @@ void loop() {
   }
   #endif
   #endif
+  EVERY_N_SECONDS(10) {
+    #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
+    framerateCounter = 0;
+    #endif
+    Serial.printf("ver:%s\n", VERSION);
+    Serial.printf("lednum:%d\n", dynamicLedNum);
+    #if defined(ESP32)
+    Serial.printf("board:%s\n", "ESP32");
+    #elif defined(ESP8266)
+    Serial.printf("board:%s\n", "ESP8266");
+    #endif
+    Serial.printf("framerate:%s\n", helper.string2char(serialized(String((framerate > 0.5 ? framerate : 0),1))));
+    Serial.printf("MAC:%s\n", helper.string2char(MAC));
+  }
 
 }
 
