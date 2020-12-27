@@ -1168,6 +1168,7 @@ void loop() {
     #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
     framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;
+    Serial.printf("framerate:%s\n", helper.string2char(serialized(String((framerate > 0.5 ? framerate : 0),1))));
     #endif
     Serial.printf("ver:%s\n", VERSION);
     Serial.printf("lednum:%d\n", dynamicLedNum);
@@ -1176,7 +1177,6 @@ void loop() {
     #elif defined(ESP8266)
     Serial.printf("board:%s\n", "ESP8266");
     #endif
-    Serial.printf("framerate:%s\n", helper.string2char(serialized(String((framerate > 0.5 ? framerate : 0),1))));
     Serial.printf("MAC:%s\n", helper.string2char(MAC));
   }
 
