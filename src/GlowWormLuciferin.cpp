@@ -628,6 +628,9 @@ void checkConnection() {
     }
   }
   #endif
+  #if defined(ESP8266)
+  sendSerialInfo();
+  #endif
 
 }
 
@@ -1163,7 +1166,16 @@ void loop() {
     feedTheDog();
   }
   #endif
+  sendSerialInfo();
   #endif
+
+}
+
+/**
+ * Send serial info
+ */
+void sendSerialInfo() {
+
   EVERY_N_SECONDS(10) {
     #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
     framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
