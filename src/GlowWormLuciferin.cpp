@@ -161,8 +161,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
       if (numLedFromLuciferin == 0) {
         effect = Effect::solid;
       } else {
-        if (dynamicLedNum == NUM_LEDS || dynamicLedNum != numLedFromLuciferin) {
-          dynamicLedNum = bootstrapManager.jsonDoc[LED_NUM_PARAM];
+        if (dynamicLedNum != numLedFromLuciferin) {
+          dynamicLedNum = numLedFromLuciferin;
           #if defined(ESP8266)
           DynamicJsonDocument numLedDoc(1024);
           numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
@@ -686,7 +686,7 @@ void mainLoop() {
     }
 
     int numLedFromLuciferin = lo + loSecondPart + 1;
-    if (dynamicLedNum == NUM_LEDS || dynamicLedNum != numLedFromLuciferin) {
+    if (dynamicLedNum != numLedFromLuciferin) {
       dynamicLedNum = numLedFromLuciferin;
       #if defined(ESP8266)
       DynamicJsonDocument numLedDoc(1024);
