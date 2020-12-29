@@ -646,7 +646,6 @@ void mainLoop() {
   checkConnection();
   #endif
   #if defined(ESP8266)
-
   bootstrapManager.nonBlokingBlink();
   #endif
 
@@ -1127,27 +1126,21 @@ void mainLoop() {
  */
 #if defined(ESP32)
 
-#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
 void feedTheDog(){
   // feed dog
   TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
   TIMERG0.wdt_feed=1;                       // feed dog
   TIMERG0.wdt_wprotect=0;                   // write protect
 }
-#endif
 
 void mainTask(void * parameter) {
 
   while(true) {
     mainLoop();
-    // delay some seconds to let ESP32 to do its business in the core, core panic without this pause
-    delay(1);
+    EVERY_N_MILLISECONDS(1000) {
+      feedTheDog();
+    }
   }
-  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-  EVERY_N_MILLISECONDS(1000) {
-    feedTheDog();
-  }
-  #endif
 
 }
 #endif
@@ -1161,11 +1154,9 @@ void loop() {
     server.handleClient();
   }
   #if defined(ESP32)
-  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   EVERY_N_MILLISECONDS(1000) {
     feedTheDog();
   }
-  #endif
   sendSerialInfo();
   #endif
 
