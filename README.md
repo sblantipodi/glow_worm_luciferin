@@ -62,8 +62,12 @@ Glow Worm Luciferin firmware can be easily integrated in [Home Assistant](https:
 ## Glow Worm Luciferin + Firefly Luciferin (click to watch it on YouTube)
 [![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
-## License
-This program is licensed under GNU GENERAL PUBLIC LICENSE
+## Contribute
+You can contribute to Luciferin by:
+- Providing Pull Requests (Features, Proof of Concepts, Language files or Fixes)
+- Testing new released features and report issues
+- Contributing missing documentation for features and devices
+- With a donation [![PayPal](https://img.shields.io/badge/donate-PayPal-blue)](https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A)
 
 ## Thanks To 
 |  Thanks              |  For                           |
