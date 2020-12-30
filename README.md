@@ -44,8 +44,8 @@ NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recomme
 
 ## Schematic
 ![CIRCUITS](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/ambilight_bb.png)
-FULL firmware version adds support for remote control, if you flash FULL version you MUST configure WiFi and MQTT. With FULL firmware USB connection is optional. 
-If you flash LIGHT firmware you MUST use USB cable. 
+`FULL firmware` version adds support for remote control, **if you flash FULL version you MUST configure WiFi and MQTT**. With FULL firmware USB connection is optional. 
+**If you flash LIGHT firmware you MUST use USB cable**. 
 Note: If you want to use the FULL firmware without using a USB cable you need to connect the 5V microcontroller's PIN to the power supply.
 
 
