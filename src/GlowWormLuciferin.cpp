@@ -51,9 +51,6 @@ void setup() {
 
   Serial.begin(SERIAL_RATE);
 
-  #if defined(ESP8266)
-  pinMode(LED_BUILTIN, OUTPUT);
-  #endif
   #if defined(ESP32)
   if (!SPIFFS.begin()) {
     SPIFFS.format();
@@ -68,6 +65,7 @@ void setup() {
   Serial.println(dynamicLedNum);
 
   #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+  additionalParam = DATA_PIN;
   FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, dynamicLedNum);
   MAC = WiFi.macAddress();
   #endif
@@ -78,6 +76,11 @@ void setup() {
 
   Serial.print(F("SAVED GPIO="));
   Serial.println(additionalParam);
+
+  #if defined(ESP8266)
+  if (additionalParam == "5") pinMode(LED_BUILTIN, OUTPUT);
+  #endif
+
   int gpioInUse;
   switch (additionalParam.toInt()) {
     case 2:
@@ -468,6 +471,7 @@ void sendStatus() {
   root["board"] = "ESP32";
   #endif
   root[LED_NUM_PARAM] = String(dynamicLedNum);
+  root["gpio"] = additionalParam;
 
   // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
   bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
@@ -646,7 +650,7 @@ void mainLoop() {
   checkConnection();
   #endif
   #if defined(ESP8266)
-  bootstrapManager.nonBlokingBlink();
+  if (additionalParam == "5") bootstrapManager.nonBlokingBlink();
   #endif
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
@@ -1181,6 +1185,8 @@ void sendSerialInfo() {
     Serial.printf("board:%s\n", "ESP8266");
     #endif
     Serial.printf("MAC:%s\n", helper.string2char(MAC));
+    Serial.printf("gpio:%s\n", helper.string2char(additionalParam));
+
   }
 
 }
