@@ -77,10 +77,6 @@ void setup() {
   Serial.print(F("SAVED GPIO="));
   Serial.println(additionalParam);
 
-  #if defined(ESP8266)
-  if (additionalParam == "5") pinMode(LED_BUILTIN, OUTPUT);
-  #endif
-
   int gpioInUse;
   switch (additionalParam.toInt()) {
     case 2:
@@ -648,9 +644,6 @@ void mainLoop() {
 
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
   checkConnection();
-  #endif
-  #if defined(ESP8266)
-  if (additionalParam == "5") bootstrapManager.nonBlokingBlink();
   #endif
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
