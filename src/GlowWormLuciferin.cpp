@@ -57,6 +57,7 @@ void setup() {
   }
   #endif
 
+  // LED number from configuration storage
   String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
   if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
     dynamicLedNum = ledNumToUse.toInt();
@@ -65,19 +66,23 @@ void setup() {
   Serial.println(dynamicLedNum);
 
   #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-  additionalParam = DATA_PIN;
-  FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, dynamicLedNum);
   MAC = WiFi.macAddress();
   #endif
 
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Bootsrap setup() with Wifi and MQTT functions
   bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
+  #endif
+
+  // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
+  String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
+  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
+    additionalParam = gpioFromStorage.toInt();
+  }
 
   Serial.print(F("SAVED GPIO="));
   Serial.println(additionalParam);
 
-  int gpioInUse;
   switch (additionalParam.toInt()) {
     case 2:
       gpioInUse = 2;
@@ -89,12 +94,12 @@ void setup() {
       break;
     default:
       gpioInUse = 5;
+      additionalParam = gpioInUse;
       pinUtil.init<5>(dynamicLedNum);
       break;
   }
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
-  #endif
 
   setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
   gPal = HeatColors_p; //for FIRE
@@ -281,7 +286,6 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
   // If "flash" is included, treat RGB and brightness differently
   if (json.containsKey("flash")) {
     flashLength = (int) json["flash"] * 1000;
-
 
     if (json.containsKey("brightness")) {
       flashBrightness = json["brightness"];
@@ -639,9 +643,11 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) checkConnection();
     usbBrightness = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
+    gpio = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
     chk = serialRead();
 
-    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ 0x55))) {
+    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ 0x55))) {
       i = 0;
       goto waitLoop;
     }
@@ -649,6 +655,23 @@ void mainLoop() {
     if (usbBrightness != brightness) {
       FastLED.setBrightness(usbBrightness);
       brightness = usbBrightness;
+    }
+
+    if (gpio != 0 && gpioInUse != gpio) {
+      Serial.println("CHANCING GPIO");
+      gpioInUse = gpio;
+      #if defined(ESP8266)
+      DynamicJsonDocument gpioDoc(1024);
+      gpioDoc[GPIO_PARAM] = gpioInUse;
+      bootstrapManager.writeToLittleFS(gpioDoc, GPIO_FILENAME);
+      #endif
+      #if defined(ESP32)
+      DynamicJsonDocument gpioDoc(1024);
+      gpioDoc[LED_NUM_PARAM] = gpioInUse;
+      bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
+      #endif
+      delay(20);
+      ESP.restart();
     }
 
     int numLedFromLuciferin = lo + loSecondPart + 1;

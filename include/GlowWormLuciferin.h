@@ -69,19 +69,22 @@ int new_bright, new_bright_f;
 unsigned long bright_timer, off_timer;
 
 // DPsoftware Checksum
-uint8_t prefix[] = {'D', 'P', 's'}, hi, lo, chk, loSecondPart, usbBrightness, i;
+uint8_t prefix[] = {'D', 'P', 's'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, i;
 bool led_state = true;
 uint lastLedUpdate = 10000;
 uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
+int gpioInUse;
 
 /****************** FastLED Defintions ******************/
 #define NUM_LEDS    550 // Max Led support
 CRGB leds[NUM_LEDS];
 int dynamicLedNum = NUM_LEDS;
 const String LED_NUM_FILENAME = "led_number.json";
+const String GPIO_FILENAME = "gpio.json";
 const String LED_NUM_PARAM = "lednum";
+const String GPIO_PARAM = "gpio";
 
 const int FIRST_CHUNK = 190;
 const int SECOND_CHUNK = 380;
