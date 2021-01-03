@@ -79,9 +79,25 @@ sensor:
     value_template: '{{ value_json.ver }}'
   - platform: mqtt
     state_topic: 'lights/glowwormluciferin'
-    name: 'Glow Worm Luciferin'
+    name: 'Glow Worm Luciferin FPS idle'
     unit_of_measurement: 'FPS'
     value_template: '{{ value_json.framerate }}'
+  - platform: mqtt
+    state_topic: 'lights/glowwormluciferin/fps'
+    name: 'Glow Worm Luciferin FPS running'
+    unit_of_measurement: 'FPS'
+    value_template: '{{ value_json.framerate }}'
+  - platform: template
+    sensors:
+      gw_fps:
+        friendly_name: "Glow Worm Luciferin"
+        value_template: >-
+          {% if states.sensor.glow_worm_luciferin_fps_idle.last_changed > states.sensor.glow_worm_luciferin_fps_running.last_changed %}
+            {{ states.sensor.glow_worm_luciferin_fps_idle.state }}
+          {% else %}
+            {{ states.sensor.glow_worm_luciferin_fps_running.state }}
+          {% endif %}
+        unit_of_measurement: 'FPS'
   - platform: mqtt
     state_topic: 'lights/glowwormluciferin'
     name: '# of LEDs'

@@ -51,9 +51,6 @@ void setup() {
 
   Serial.begin(SERIAL_RATE);
 
-  #if defined(ESP8266)
-  pinMode(LED_BUILTIN, OUTPUT);
-  #endif
   #if defined(ESP32)
   if (!SPIFFS.begin()) {
     SPIFFS.format();
@@ -68,7 +65,9 @@ void setup() {
   Serial.println(dynamicLedNum);
 
   #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+  additionalParam = DATA_PIN;
   FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, dynamicLedNum);
+  MAC = WiFi.macAddress();
   #endif
 
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -77,6 +76,7 @@ void setup() {
 
   Serial.print(F("SAVED GPIO="));
   Serial.println(additionalParam);
+
   int gpioInUse;
   switch (additionalParam.toInt()) {
     case 2:
@@ -157,70 +157,74 @@ void callback(char *topic, byte *payload, unsigned int length) {
       bootstrapManager.jsonDoc.clear();
       deserializeJson(bootstrapManager.jsonDoc, payload);
       int numLedFromLuciferin = bootstrapManager.jsonDoc[LED_NUM_PARAM];
-      if (dynamicLedNum == NUM_LEDS || dynamicLedNum != numLedFromLuciferin) {
-        dynamicLedNum = bootstrapManager.jsonDoc[LED_NUM_PARAM];
-        #if defined(ESP8266)
-        DynamicJsonDocument numLedDoc(1024);
-        numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
-        bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
-        #endif
-        #if defined(ESP32)
-        DynamicJsonDocument numLedDoc(1024);
-        numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
-        bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
-        #endif
-      }
-      // (leds, 0, (dynamicLedNum) * sizeof(struct CRGB));
-      JsonArray stream = bootstrapManager.jsonDoc["stream"];
-      if (dynamicLedNum < FIRST_CHUNK) {
-        for (uint16_t i = 0; i < dynamicLedNum; i++) {
-          int rgb = stream[i];
-          leds[i].r = (rgb >> 16 & 0xFF);
-          leds[i].g = (rgb >> 8 & 0xFF);
-          leds[i].b = (rgb >> 0 & 0xFF);
-        }
-        FastLED.show();
+      if (numLedFromLuciferin == 0) {
+        effect = Effect::solid;
       } else {
-        if (dynamicLedNum >= FIRST_CHUNK) {
-          part = bootstrapManager.jsonDoc["part"];
+        if (dynamicLedNum != numLedFromLuciferin) {
+          dynamicLedNum = numLedFromLuciferin;
+          #if defined(ESP8266)
+          DynamicJsonDocument numLedDoc(1024);
+          numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+          bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
+          #endif
+          #if defined(ESP32)
+          DynamicJsonDocument numLedDoc(1024);
+          numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+          bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
+          #endif
         }
-        if (part == 1) {
-          for (uint16_t i = 0; i < FIRST_CHUNK; i++) {
+        // (leds, 0, (dynamicLedNum) * sizeof(struct CRGB));
+        JsonArray stream = bootstrapManager.jsonDoc["stream"];
+        if (dynamicLedNum < FIRST_CHUNK) {
+          for (uint16_t i = 0; i < dynamicLedNum; i++) {
             int rgb = stream[i];
             leds[i].r = (rgb >> 16 & 0xFF);
             leds[i].g = (rgb >> 8 & 0xFF);
             leds[i].b = (rgb >> 0 & 0xFF);
           }
-        } else if (part == 2) {
-          int j = 0;
-          for (uint16_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
-            int rgb = stream[j];
-            leds[i].r = (rgb >> 16 & 0xFF);
-            leds[i].g = (rgb >> 8 & 0xFF);
-            leds[i].b = (rgb >> 0 & 0xFF);
-            j++;
+          FastLED.show();
+        } else {
+          if (dynamicLedNum >= FIRST_CHUNK) {
+            part = bootstrapManager.jsonDoc["part"];
           }
-          if (dynamicLedNum < 380) {
+          if (part == 1) {
+            for (uint16_t i = 0; i < FIRST_CHUNK; i++) {
+              int rgb = stream[i];
+              leds[i].r = (rgb >> 16 & 0xFF);
+              leds[i].g = (rgb >> 8 & 0xFF);
+              leds[i].b = (rgb >> 0 & 0xFF);
+            }
+          } else if (part == 2) {
+            int j = 0;
+            for (uint16_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
+              int rgb = stream[j];
+              leds[i].r = (rgb >> 16 & 0xFF);
+              leds[i].g = (rgb >> 8 & 0xFF);
+              leds[i].b = (rgb >> 0 & 0xFF);
+              j++;
+            }
+            if (dynamicLedNum < 380) {
+              FastLED.show();
+            }
+          } else {
+            int j = 0;
+            for (int16_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < NUM_LEDS; i++) {
+              int rgb = stream[j];
+              leds[i].r = (rgb >> 16 & 0xFF);
+              leds[i].g = (rgb >> 8 & 0xFF);
+              leds[i].b = (rgb >> 0 & 0xFF);
+              j++;
+            }
             FastLED.show();
           }
-        } else {
-          int j = 0;
-          for (int16_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < NUM_LEDS; i++) {
-            int rgb = stream[j];
-            leds[i].r = (rgb >> 16 & 0xFF);
-            leds[i].g = (rgb >> 8 & 0xFF);
-            leds[i].b = (rgb >> 0 & 0xFF);
-            j++;
-          }
-          FastLED.show();
         }
+        #ifdef TARGET_GLOWWORMLUCIFERINFULL
+        if ((dynamicLedNum < FIRST_CHUNK) || (dynamicLedNum < SECOND_CHUNK && part == 2) || (part == 3)) {
+          framerateCounter++;
+        }
+        #endif
+        lastStream = millis();
       }
-      #ifdef TARGET_GLOWWORMLUCIFERINFULL
-      if ((dynamicLedNum < FIRST_CHUNK) || (dynamicLedNum < SECOND_CHUNK && part == 2) || (part == 3)) {
-        framerateCounter++;
-      }
-      #endif
-      lastStream = millis();
     }
 
   } else if (effect != Effect::GlowWormWifi) {
@@ -364,6 +368,7 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
     else {
       effect = Effect::solid;
     }
+    statusSent = false;
     twinklecounter = 0; //manage twinklecounter
   }
 
@@ -375,99 +380,66 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
  * Send microcontroller state
  */
 void sendStatus() {
+  // Skip JSON framework for lighter processing during the stream
+  if (statusSent && (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi)) {
+    bootstrapManager.publish(FPS_TOPIC, helper.string2char("{\"deviceName\":\""+deviceName+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
+  } else {
+    JsonObject root = bootstrapManager.getJsonObject();
+    JsonObject color = root.createNestedObject("color");
+    root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
+    color["r"] = red;
+    color["g"] = green;
+    color["b"] = blue;
+    root["brightness"] = brightness;
+    switch (effect) {
+      case Effect::GlowWormWifi:
+        root["effect"] = "GlowWormWifi";
+        statusSent = true;
+        break;
+      case Effect::GlowWorm:
+        root["effect"] = "GlowWorm";
+        statusSent = true;
+        break;
+      case Effect::solid: root["effect"] = "solid"; break;
+      case Effect::bpm: root["effect"] = "bpm"; break;
+      case Effect::candy_cane: root["effect"] = "candy cane"; break;
+      case Effect::confetti: root["effect"] = "confetti"; break;
+      case Effect::cyclon_rainbow: root["effect"] = "cyclon rainbow"; break;
+      case Effect::dots: root["effect"] = "dots"; break;
+      case Effect::fire: root["effect"] = "fire"; break;
+      case Effect::glitter: root["effect"] = "glitter"; break;
+      case Effect::juggle: root["effect"] = "juggle"; break;
+      case Effect::lightning: root["effect"] = "lightning"; break;
+      case Effect::police_all: root["effect"] = "police all"; break;
+      case Effect::police_one: root["effect"] = "police one"; break;
+      case Effect::rainbow: root["effect"] = "rainbow"; break;
+      case Effect::solid_rainbow: root["effect"] = "solid rainbow"; break;
+      case Effect::rainbow_with_glitter: root["effect"] = "rainbow with glitter"; break;
+      case Effect::twinkle: root["effect"] = "twinkle"; break;
+      case Effect::noise: root["effect"] = "noise"; break;
+      case Effect::ripple: root["effect"] = "ripple"; break;
+      case Effect::sinelon: root["effect"] = "sinelon"; break;
+    }
+    root["Whoami"] = deviceName;
+    root["IP"] = microcontrollerIP;
+    root["MAC"] = MAC;
+    root["ver"] = VERSION;
+    root["framerate"] = framerate;
 
-  JsonObject root = bootstrapManager.getJsonObject();
-  root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
-  JsonObject color = root.createNestedObject("color");
-  color["r"] = red;
-  color["g"] = green;
-  color["b"] = blue;
-  root["brightness"] = brightness;
-  switch (effect) {
-    case Effect::solid:
-      root["effect"] = "solid";
-      break;
-    case Effect::GlowWorm:
-      root["effect"] = "GlowWorm";
-      break;
-    case Effect::GlowWormWifi:
-      root["effect"] = "GlowWormWifi";
-      break;
-    case Effect::bpm:
-      root["effect"] = "bpm";
-      break;
-    case Effect::candy_cane:
-      root["effect"] = "candy cane";
-      break;
-    case Effect::confetti:
-      root["effect"] = "confetti";
-      break;
-    case Effect::cyclon_rainbow:
-      root["effect"] = "cyclon rainbow";
-      break;
-    case Effect::dots:
-      root["effect"] = "dots";
-      break;
-    case Effect::fire:
-      root["effect"] = "fire";
-      break;
-    case Effect::glitter:
-      root["effect"] = "glitter";
-      break;
-    case Effect::juggle:
-      root["effect"] = "juggle";
-      break;
-    case Effect::lightning:
-      root["effect"] = "lightning";
-      break;
-    case Effect::police_all:
-      root["effect"] = "police all";
-      break;
-    case Effect::police_one:
-      root["effect"] = "police one";
-      break;
-    case Effect::rainbow:
-      root["effect"] = "rainbow";
-      break;
-    case Effect::solid_rainbow:
-      root["effect"] = "solid rainbow";
-      break;
-    case Effect::rainbow_with_glitter:
-      root["effect"] = "rainbow with glitter";
-      break;
-    case Effect::twinkle:
-      root["effect"] = "twinkle";
-      break;
-    case Effect::noise:
-      root["effect"] = "noise";
-      break;
-    case Effect::ripple:
-      root["effect"] = "ripple";
-      break;
-    case Effect::sinelon:
-      root["effect"] = "sinelon";
-      break;
+    if (timedate != OFF_CMD) {
+      root["time"] = timedate;
+    }
+    #if defined(ESP8266)
+    root["board"] = "ESP8266";
+    #elif defined(ESP32)
+    root["board"] = "ESP32";
+    #endif
+    root[LED_NUM_PARAM] = String(dynamicLedNum);
+    root["gpio"] = additionalParam;
+
+    // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
+    bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
   }
-  root["Whoami"] = deviceName;
-  root["IP"] = microcontrollerIP;
-  root["MAC"] = MAC;
-  root["ver"] = VERSION;
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  root["framerate"] = framerate;
-  #endif
-
-  if (timedate != OFF_CMD) {
-    root["time"] = timedate;
-  }
-  #if defined(ESP8266)
-  root["board"] = "ESP8266";
-  #elif defined(ESP32)
-  root["board"] = "ESP32";
-  #endif
-  root[LED_NUM_PARAM] = String(dynamicLedNum);
-
-  // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
-  bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
 
   #if defined(ESP32)
   delay(1);
@@ -479,6 +451,8 @@ void sendStatus() {
   ledTriggered = true;
 
 }
+
+
 
 /* Get Time Info from MQTT queue, you can remove this part if you don't need it. I use it for monitoring
    NOTE: This is specific of my home "ecosystem", I prefer to take time from my internal network and not from the internet, you can delete this if you don't need it.
@@ -623,6 +597,9 @@ void checkConnection() {
     }
   }
   #endif
+  #if defined(ESP8266)
+  sendSerialInfo();
+  #endif
 
 }
 
@@ -637,9 +614,6 @@ void mainLoop() {
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
   checkConnection();
   #endif
-  #if defined(ESP8266)
-  bootstrapManager.nonBlokingBlink();
-  #endif
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -647,7 +621,6 @@ void mainLoop() {
   #endif
     if (!led_state) led_state = true;
     off_timer = millis();
-
 
     for (i = 0; i < sizeof prefix; ++i) {
       waitLoop:
@@ -679,7 +652,7 @@ void mainLoop() {
     }
 
     int numLedFromLuciferin = lo + loSecondPart + 1;
-    if (dynamicLedNum == NUM_LEDS || dynamicLedNum != numLedFromLuciferin) {
+    if (dynamicLedNum != numLedFromLuciferin) {
       dynamicLedNum = numLedFromLuciferin;
       #if defined(ESP8266)
       DynamicJsonDocument numLedDoc(1024);
@@ -706,10 +679,9 @@ void mainLoop() {
       leds[i].b = b;
     }
     lastLedUpdate = millis();
-    #ifdef TARGET_GLOWWORMLUCIFERINFULL
     framerateCounter++;
-    #endif
     FastLED.show();
+
     // Flush serial buffer
     while (!breakLoop && Serial.available() > 0) {
       serialRead();
@@ -1121,27 +1093,21 @@ void mainLoop() {
  */
 #if defined(ESP32)
 
-#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
 void feedTheDog(){
   // feed dog
   TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
   TIMERG0.wdt_feed=1;                       // feed dog
   TIMERG0.wdt_wprotect=0;                   // write protect
 }
-#endif
 
 void mainTask(void * parameter) {
 
   while(true) {
     mainLoop();
-    // delay some seconds to let ESP32 to do its business in the core, core panic without this pause
-    delay(1);
+    EVERY_N_MILLISECONDS(1000) {
+      feedTheDog();
+    }
   }
-  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-  EVERY_N_MILLISECONDS(1000) {
-    feedTheDog();
-  }
-  #endif
 
 }
 #endif
@@ -1155,12 +1121,36 @@ void loop() {
     server.handleClient();
   }
   #if defined(ESP32)
-  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   EVERY_N_MILLISECONDS(1000) {
     feedTheDog();
   }
+  sendSerialInfo();
   #endif
-  #endif
+
+}
+
+/**
+ * Send serial info
+ */
+void sendSerialInfo() {
+
+  EVERY_N_SECONDS(10) {
+    #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
+    framerateCounter = 0;
+    Serial.printf("framerate:%s\n", helper.string2char(serialized(String((framerate > 0.5 ? framerate : 0),1))));
+    #endif
+    Serial.printf("ver:%s\n", VERSION);
+    Serial.printf("lednum:%d\n", dynamicLedNum);
+    #if defined(ESP32)
+    Serial.printf("board:%s\n", "ESP32");
+    #elif defined(ESP8266)
+    Serial.printf("board:%s\n", "ESP8266");
+    #endif
+    Serial.printf("MAC:%s\n", helper.string2char(MAC));
+    Serial.printf("gpio:%s\n", helper.string2char(additionalParam));
+
+  }
 
 }
 
