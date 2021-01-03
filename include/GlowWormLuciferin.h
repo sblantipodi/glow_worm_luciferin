@@ -49,6 +49,9 @@ const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
 const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
 const char* TIME_TOPIC = "stat/time";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
+const char* FPS_TOPIC = "lights/glowwormluciferin/fps";
+
+boolean statusSent = false;
 
 enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, candy_cane, confetti, cyclon_rainbow, dots,
         fire, glitter, juggle, lightning, police_all, police_one, rainbow, solid_rainbow, rainbow_with_glitter,

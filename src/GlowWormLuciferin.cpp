@@ -368,6 +368,7 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
     else {
       effect = Effect::solid;
     }
+    statusSent = false;
     twinklecounter = 0; //manage twinklecounter
   }
 
@@ -379,98 +380,66 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
  * Send microcontroller state
  */
 void sendStatus() {
+  // Skip JSON framework for lighter processing during the stream
+  if (statusSent && (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi)) {
+    bootstrapManager.publish(FPS_TOPIC, helper.string2char("{\"deviceName\":\""+deviceName+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
+  } else {
+    JsonObject root = bootstrapManager.getJsonObject();
+    JsonObject color = root.createNestedObject("color");
+    root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
+    color["r"] = red;
+    color["g"] = green;
+    color["b"] = blue;
+    root["brightness"] = brightness;
+    switch (effect) {
+      case Effect::GlowWormWifi:
+        root["effect"] = "GlowWormWifi";
+        statusSent = true;
+        break;
+      case Effect::GlowWorm:
+        root["effect"] = "GlowWorm";
+        statusSent = true;
+        break;
+      case Effect::solid: root["effect"] = "solid"; break;
+      case Effect::bpm: root["effect"] = "bpm"; break;
+      case Effect::candy_cane: root["effect"] = "candy cane"; break;
+      case Effect::confetti: root["effect"] = "confetti"; break;
+      case Effect::cyclon_rainbow: root["effect"] = "cyclon rainbow"; break;
+      case Effect::dots: root["effect"] = "dots"; break;
+      case Effect::fire: root["effect"] = "fire"; break;
+      case Effect::glitter: root["effect"] = "glitter"; break;
+      case Effect::juggle: root["effect"] = "juggle"; break;
+      case Effect::lightning: root["effect"] = "lightning"; break;
+      case Effect::police_all: root["effect"] = "police all"; break;
+      case Effect::police_one: root["effect"] = "police one"; break;
+      case Effect::rainbow: root["effect"] = "rainbow"; break;
+      case Effect::solid_rainbow: root["effect"] = "solid rainbow"; break;
+      case Effect::rainbow_with_glitter: root["effect"] = "rainbow with glitter"; break;
+      case Effect::twinkle: root["effect"] = "twinkle"; break;
+      case Effect::noise: root["effect"] = "noise"; break;
+      case Effect::ripple: root["effect"] = "ripple"; break;
+      case Effect::sinelon: root["effect"] = "sinelon"; break;
+    }
+    root["Whoami"] = deviceName;
+    root["IP"] = microcontrollerIP;
+    root["MAC"] = MAC;
+    root["ver"] = VERSION;
+    root["framerate"] = framerate;
 
-  JsonObject root = bootstrapManager.getJsonObject();
-  root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
-  JsonObject color = root.createNestedObject("color");
-  color["r"] = red;
-  color["g"] = green;
-  color["b"] = blue;
-  root["brightness"] = brightness;
-  switch (effect) {
-    case Effect::solid:
-      root["effect"] = "solid";
-      break;
-    case Effect::GlowWorm:
-      root["effect"] = "GlowWorm";
-      break;
-    case Effect::GlowWormWifi:
-      root["effect"] = "GlowWormWifi";
-      break;
-    case Effect::bpm:
-      root["effect"] = "bpm";
-      break;
-    case Effect::candy_cane:
-      root["effect"] = "candy cane";
-      break;
-    case Effect::confetti:
-      root["effect"] = "confetti";
-      break;
-    case Effect::cyclon_rainbow:
-      root["effect"] = "cyclon rainbow";
-      break;
-    case Effect::dots:
-      root["effect"] = "dots";
-      break;
-    case Effect::fire:
-      root["effect"] = "fire";
-      break;
-    case Effect::glitter:
-      root["effect"] = "glitter";
-      break;
-    case Effect::juggle:
-      root["effect"] = "juggle";
-      break;
-    case Effect::lightning:
-      root["effect"] = "lightning";
-      break;
-    case Effect::police_all:
-      root["effect"] = "police all";
-      break;
-    case Effect::police_one:
-      root["effect"] = "police one";
-      break;
-    case Effect::rainbow:
-      root["effect"] = "rainbow";
-      break;
-    case Effect::solid_rainbow:
-      root["effect"] = "solid rainbow";
-      break;
-    case Effect::rainbow_with_glitter:
-      root["effect"] = "rainbow with glitter";
-      break;
-    case Effect::twinkle:
-      root["effect"] = "twinkle";
-      break;
-    case Effect::noise:
-      root["effect"] = "noise";
-      break;
-    case Effect::ripple:
-      root["effect"] = "ripple";
-      break;
-    case Effect::sinelon:
-      root["effect"] = "sinelon";
-      break;
+    if (timedate != OFF_CMD) {
+      root["time"] = timedate;
+    }
+    #if defined(ESP8266)
+    root["board"] = "ESP8266";
+    #elif defined(ESP32)
+    root["board"] = "ESP32";
+    #endif
+    root[LED_NUM_PARAM] = String(dynamicLedNum);
+    root["gpio"] = additionalParam;
+
+    // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
+    bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
   }
-  root["Whoami"] = deviceName;
-  root["IP"] = microcontrollerIP;
-  root["MAC"] = MAC;
-  root["ver"] = VERSION;
-  root["framerate"] = framerate;
-
-  if (timedate != OFF_CMD) {
-    root["time"] = timedate;
-  }
-  #if defined(ESP8266)
-  root["board"] = "ESP8266";
-  #elif defined(ESP32)
-  root["board"] = "ESP32";
-  #endif
-  root[LED_NUM_PARAM] = String(dynamicLedNum);
-  root["gpio"] = additionalParam;
-
-  // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
-  bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
 
   #if defined(ESP32)
   delay(1);
@@ -712,6 +681,7 @@ void mainLoop() {
     lastLedUpdate = millis();
     framerateCounter++;
     FastLED.show();
+
     // Flush serial buffer
     while (!breakLoop && Serial.available() > 0) {
       serialRead();
