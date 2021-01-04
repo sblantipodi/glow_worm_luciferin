@@ -138,6 +138,7 @@ void manageQueueSubscription() {
   bootstrapManager.subscribe(TIME_TOPIC);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
   bootstrapManager.subscribe(UPDATE_STATE_TOPIC);
+  bootstrapManager.subscribe(GPIO_TOPIC);
 
 }
 
@@ -244,6 +245,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
       processJson(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, UPDATE_STATE_TOPIC) == 0) {
       processUpdate(bootstrapManager.jsonDoc);
+    } else if (strcmp(topic, GPIO_TOPIC) == 0) {
+      processGPIO(bootstrapManager.jsonDoc);
     }
     if (stateOn) {
       realRed = map(red, 0, 255, 0, brightness);
@@ -261,6 +264,39 @@ void callback(char *topic, byte *payload, unsigned int length) {
     }
 
   }
+
+}
+
+/**
+ * Process GPIO message
+ * @param json StaticJsonDocument
+ * @return true if message is correctly processed
+ */
+bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json) {
+
+  if (json.containsKey(GPIO_PARAM)) {
+    int gpio = (int) json[GPIO_PARAM];
+    String macToUpdate = json["MAC"];
+    Serial.println(macToUpdate);
+    Serial.println(MAC);
+    if (gpio != 0 && gpioInUse != gpio && macToUpdate == MAC) {
+      Serial.println("CHANCING GPIO");
+      gpioInUse = gpio;
+      #if defined(ESP8266)
+      DynamicJsonDocument gpioDoc(1024);
+      gpioDoc[GPIO_PARAM] = gpioInUse;
+      bootstrapManager.writeToLittleFS(gpioDoc, GPIO_FILENAME);
+      #endif
+      #if defined(ESP32)
+      DynamicJsonDocument gpioDoc(1024);
+      gpioDoc[LED_NUM_PARAM] = gpioInUse;
+      bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
+      #endif
+      delay(20);
+      ESP.restart();
+    }
+  }
+  return true;
 
 }
 

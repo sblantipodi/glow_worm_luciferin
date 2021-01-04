@@ -50,6 +50,7 @@ const char* STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
 const char* TIME_TOPIC = "stat/time";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
 const char* FPS_TOPIC = "lights/glowwormluciferin/fps";
+const char* GPIO_TOPIC = "lights/glowwormluciferin/gpio";
 
 boolean statusSent = false;
 
@@ -206,6 +207,7 @@ void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
 bool processTimeJson(StaticJsonDocument<BUFFER_SIZE> json);
 bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json);
 bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
+bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json);
 bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
