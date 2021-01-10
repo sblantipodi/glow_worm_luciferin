@@ -134,11 +134,12 @@ void manageDisconnections() {
 void manageQueueSubscription() {
 
   bootstrapManager.subscribe(LIGHT_SET_TOPIC);
-  bootstrapManager.subscribe(STREAM_TOPIC, 0);
+  bootstrapManager.subscribe(helper.string2char(STREAM_TOPIC), 0);
   bootstrapManager.subscribe(TIME_TOPIC);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
   bootstrapManager.subscribe(UPDATE_STATE_TOPIC);
   bootstrapManager.subscribe(GPIO_TOPIC);
+  bootstrapManager.subscribe(UNSUBSCRIBE_TOPIC);
 
 }
 
@@ -157,7 +158,7 @@ void manageHardwareButton() {
  */
 void callback(char *topic, byte *payload, unsigned int length) {
 
-  if (strcmp(topic, STREAM_TOPIC) == 0) {
+  if (STREAM_TOPIC.equals(topic)) {
 
     if (effect == Effect::GlowWormWifi) {
       bootstrapManager.jsonDoc.clear();
@@ -247,6 +248,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
       processUpdate(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, GPIO_TOPIC) == 0) {
       processGPIO(bootstrapManager.jsonDoc);
+    } else if (strcmp(topic, UNSUBSCRIBE_TOPIC) == 0) {
+      processUnSubscribeStream(bootstrapManager.jsonDoc);
     }
     if (stateOn) {
       realRed = map(red, 0, 255, 0, brightness);
@@ -289,11 +292,32 @@ bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json) {
       #endif
       #if defined(ESP32)
       DynamicJsonDocument gpioDoc(1024);
-      gpioDoc[LED_NUM_PARAM] = gpioInUse;
+      gpioDoc[GPIO_PARAM] = gpioInUse;
       bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
       #endif
       delay(20);
       ESP.restart();
+    }
+  }
+  return true;
+
+}
+
+/**
+ * Unsubscribe from the stream topic, we will use a specific topic for this instance
+ * @param json StaticJsonDocument
+ * @return true if message is correctly processed
+ */
+bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json) {
+
+  if (json.containsKey("instance")) {
+    String instance = json["instance"];
+    String manager = json["manager"];
+    if (manager.equals(deviceName)) {
+      bootstrapManager.unsubscribe(helper.string2char(STREAM_TOPIC));
+      STREAM_TOPIC = BASE_STREAM_TOPIC + instance;
+      bootstrapManager.subscribe(helper.string2char(STREAM_TOPIC), 0);
+      effect = Effect::GlowWormWifi;
     }
   }
   return true;
@@ -703,7 +727,7 @@ void mainLoop() {
       #endif
       #if defined(ESP32)
       DynamicJsonDocument gpioDoc(1024);
-      gpioDoc[LED_NUM_PARAM] = gpioInUse;
+      gpioDoc[GPIO_PARAM] = gpioInUse;
       bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
       #endif
       delay(20);
