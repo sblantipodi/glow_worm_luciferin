@@ -53,6 +53,7 @@ const char* TIME_TOPIC = "stat/time";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
 const char* FPS_TOPIC = "lights/glowwormluciferin/fps";
 const char* GPIO_TOPIC = "lights/glowwormluciferin/gpio";
+const char* BAUDRATE_TOPIC = "lights/glowwormluciferin/baudrate";
 
 boolean statusSent = false;
 
@@ -72,13 +73,13 @@ int new_bright, new_bright_f;
 unsigned long bright_timer, off_timer;
 
 // DPsoftware Checksum
-uint8_t prefix[] = {'D', 'P', 's'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, i;
+uint8_t prefix[] = {'D', 'P', 's'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, fireflyEffect, i;
 bool led_state = true;
 uint lastLedUpdate = 10000;
 uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
-int gpioInUse;
+int gpioInUse, baudRateInUse = 3, fireflyEffectInUse;
 
 /****************** FastLED Defintions ******************/
 #define NUM_LEDS    550 // Max Led support
@@ -86,8 +87,12 @@ CRGB leds[NUM_LEDS];
 int dynamicLedNum = NUM_LEDS;
 const String LED_NUM_FILENAME = "led_number.json";
 const String GPIO_FILENAME = "gpio.json";
+const String BAUDRATE_FILENAME = "baudrate.json";
+const String EFFECT_FILENAME = "effect.json";
 const String LED_NUM_PARAM = "lednum";
 const String GPIO_PARAM = "gpio";
+const String BAUDRATE_PARAM = "baudrate";
+const String EFFECT_PARAM = "effect";
 
 const int FIRST_CHUNK = 190;
 const int SECOND_CHUNK = 380;
@@ -210,6 +215,7 @@ bool processTimeJson(StaticJsonDocument<BUFFER_SIZE> json);
 bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json);
 bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
 bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json);
+bool processBaudrate(StaticJsonDocument<BUFFER_SIZE> json);
 bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
 bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json);
 void setColor(int inR, int inG, int inB);
@@ -227,3 +233,7 @@ void mainLoop();
 CRGB Scroll(int pos);
 void sendSerialInfo();
 void feedTheDog();
+void setGpio(int gpio);
+void setBaudRate(int baudRate);
+void setNumLed(int numLedFromLuciferin);
+int setBaudRateInUse(int baudRate);

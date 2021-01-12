@@ -49,13 +49,21 @@ PINUtil pinUtil;
  */
 void setup() {
 
-  Serial.begin(SERIAL_RATE);
-
   #if defined(ESP32)
   if (!SPIFFS.begin()) {
     SPIFFS.format();
   }
   #endif
+
+  // BaudRate from configuration storage
+  String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
+  if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
+    baudRateInUse = baudRateFromStorage.toInt();
+  }
+  int baudRateToUse = setBaudRateInUse(baudRateInUse);
+  Serial.begin(baudRateToUse);
+  Serial.print(F("BAUDRATE IN USE="));
+  Serial.println(baudRateToUse);
 
   // LED number from configuration storage
   String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
@@ -79,7 +87,6 @@ void setup() {
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
     additionalParam = gpioFromStorage.toInt();
   }
-
   Serial.print(F("SAVED GPIO="));
   Serial.println(additionalParam);
 
@@ -117,6 +124,90 @@ void setup() {
 
 }
 
+
+/**
+ * Set gpio received by the Firefly Luciferin software
+ * @param gpio itn
+ */
+void setGpio(int gpio) {
+
+  Serial.println("CHANCING GPIO");
+  gpioInUse = gpio;
+  #if defined(ESP8266)
+  DynamicJsonDocument gpioDoc(1024);
+  gpioDoc[GPIO_PARAM] = gpioInUse;
+  bootstrapManager.writeToLittleFS(gpioDoc, GPIO_FILENAME);
+  #endif
+  #if defined(ESP32)
+  DynamicJsonDocument gpioDoc(1024);
+  gpioDoc[GPIO_PARAM] = gpioInUse;
+  bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
+  #endif
+  delay(20);
+  ESP.restart();
+
+}
+
+int setBaudRateInUse(int baudRate) {
+
+  baudRateInUse = baudRate;
+  int baudRateToUse = 0;
+  switch (baudRate) {
+    case 1: baudRateToUse = 230400; break;
+    case 2: baudRateToUse = 460800; break;
+    case 4: baudRateToUse = 921600; break;
+    case 5: baudRateToUse = 1000000; break;
+    case 6: baudRateToUse = 1500000; break;
+    case 7: baudRateToUse = 2000000; break;
+    default: baudRateToUse = 500000; break;
+  }
+  return baudRateToUse;
+
+}
+
+/**
+ * Set baudRate received by the Firefly Luciferin software
+ * @param baudRate int
+ */
+void setBaudRate(int baudRate) {
+
+  Serial.println("CHANCING BAUDRATE");
+  setBaudRateInUse(baudRate);
+  #if defined(ESP8266)
+  DynamicJsonDocument baudrateDoc(1024);
+  baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
+  bootstrapManager.writeToLittleFS(baudrateDoc, BAUDRATE_FILENAME);
+  #endif
+  #if defined(ESP32)
+  DynamicJsonDocument baudrateDoc(1024);
+  baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
+  bootstrapManager.writeToSPIFFS(baudrateDoc, BAUDRATE_FILENAME);
+  #endif
+  delay(20);
+  ESP.restart();
+
+}
+
+/**
+ * Set numled received by the Firefly Luciferin software
+ * @param numLedFromLuciferin int
+ */
+void setNumLed(int numLedFromLuciferin) {
+
+  dynamicLedNum = numLedFromLuciferin;
+  #if defined(ESP8266)
+  DynamicJsonDocument numLedDoc(1024);
+  numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+  bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
+  #endif
+  #if defined(ESP32)
+  DynamicJsonDocument numLedDoc(1024);
+  numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+  bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
+  #endif
+
+}
+
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 
 /**
@@ -140,6 +231,7 @@ void manageQueueSubscription() {
   bootstrapManager.subscribe(UPDATE_STATE_TOPIC);
   bootstrapManager.subscribe(GPIO_TOPIC);
   bootstrapManager.subscribe(UNSUBSCRIBE_TOPIC);
+  bootstrapManager.subscribe(BAUDRATE_TOPIC);
 
 }
 
@@ -168,17 +260,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
         effect = Effect::solid;
       } else {
         if (dynamicLedNum != numLedFromLuciferin) {
-          dynamicLedNum = numLedFromLuciferin;
-          #if defined(ESP8266)
-          DynamicJsonDocument numLedDoc(1024);
-          numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
-          bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
-          #endif
-          #if defined(ESP32)
-          DynamicJsonDocument numLedDoc(1024);
-          numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
-          bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
-          #endif
+          setNumLed(numLedFromLuciferin);
         }
         // (leds, 0, (dynamicLedNum) * sizeof(struct CRGB));
         JsonArray stream = bootstrapManager.jsonDoc["stream"];
@@ -248,6 +330,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
       processUpdate(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, GPIO_TOPIC) == 0) {
       processGPIO(bootstrapManager.jsonDoc);
+    } else if (strcmp(topic, BAUDRATE_TOPIC) == 0) {
+      processBaudrate(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, UNSUBSCRIBE_TOPIC) == 0) {
       processUnSubscribeStream(bootstrapManager.jsonDoc);
     }
@@ -283,20 +367,25 @@ bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json) {
     Serial.println(macToUpdate);
     Serial.println(MAC);
     if (gpio != 0 && gpioInUse != gpio && macToUpdate == MAC) {
-      Serial.println("CHANCING GPIO");
-      gpioInUse = gpio;
-      #if defined(ESP8266)
-      DynamicJsonDocument gpioDoc(1024);
-      gpioDoc[GPIO_PARAM] = gpioInUse;
-      bootstrapManager.writeToLittleFS(gpioDoc, GPIO_FILENAME);
-      #endif
-      #if defined(ESP32)
-      DynamicJsonDocument gpioDoc(1024);
-      gpioDoc[GPIO_PARAM] = gpioInUse;
-      bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
-      #endif
-      delay(20);
-      ESP.restart();
+      setGpio(gpio);
+    }
+  }
+  return true;
+
+}
+
+/**
+ * Process baudrate message
+ * @param json StaticJsonDocument
+ * @return true if message is correctly processed
+ */
+bool processBaudrate(StaticJsonDocument<BUFFER_SIZE> json) {
+
+  if (json.containsKey(BAUDRATE_PARAM)) {
+    int baudrate = (int) json[BAUDRATE_PARAM];
+    Serial.println(MAC);
+    if (baudrate != 0 && baudRateInUse != baudrate) {
+      setBaudRate(baudrate);
     }
   }
   return true;
@@ -484,12 +573,12 @@ void sendStatus() {
       case Effect::ripple: root["effect"] = "ripple"; break;
       case Effect::sinelon: root["effect"] = "sinelon"; break;
     }
-    root["Whoami"] = deviceName;
+    root["deviceName"] = deviceName;
     root["IP"] = microcontrollerIP;
     root["MAC"] = MAC;
     root["ver"] = VERSION;
     root["framerate"] = framerate;
-
+    root[BAUDRATE_PARAM] = baudRateInUse;
     if (timedate != OFF_CMD) {
       root["time"] = timedate;
     }
@@ -705,9 +794,13 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) checkConnection();
     gpio = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
+    baudRate = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
+    fireflyEffect = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
     chk = serialRead();
 
-    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ 0x55))) {
+    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ fireflyEffect ^ 0x55))) {
       i = 0;
       goto waitLoop;
     }
@@ -718,36 +811,22 @@ void mainLoop() {
     }
 
     if (gpio != 0 && gpioInUse != gpio) {
-      Serial.println("CHANCING GPIO");
-      gpioInUse = gpio;
-      #if defined(ESP8266)
-      DynamicJsonDocument gpioDoc(1024);
-      gpioDoc[GPIO_PARAM] = gpioInUse;
-      bootstrapManager.writeToLittleFS(gpioDoc, GPIO_FILENAME);
-      #endif
-      #if defined(ESP32)
-      DynamicJsonDocument gpioDoc(1024);
-      gpioDoc[GPIO_PARAM] = gpioInUse;
-      bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
-      #endif
-      delay(20);
-      ESP.restart();
+      setGpio(gpio);
     }
 
     int numLedFromLuciferin = lo + loSecondPart + 1;
     if (dynamicLedNum != numLedFromLuciferin) {
-      dynamicLedNum = numLedFromLuciferin;
-      #if defined(ESP8266)
-      DynamicJsonDocument numLedDoc(1024);
-      numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
-      bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
-      #endif
-      #if defined(ESP32)
-      DynamicJsonDocument numLedDoc(1024);
-      numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
-      bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
-      #endif
+      setNumLed(numLedFromLuciferin);
     }
+
+    if (baudRate != 0 && baudRateInUse != baudRate) {
+      setBaudRate(baudRate);
+    }
+
+    if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
+      fireflyEffectInUse = fireflyEffect;
+    }
+
     // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
     for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
       byte r, g, b;
@@ -1222,6 +1301,9 @@ void sendSerialInfo() {
     framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;
     Serial.printf("framerate:%s\n", helper.string2char(serialized(String((framerate > 0.5 ? framerate : 0),1))));
+    Serial.printf("firmware:%s\n", "LIGHT");
+    #else
+    Serial.printf("firmware:%s\n", "FULL");
     #endif
     Serial.printf("ver:%s\n", VERSION);
     Serial.printf("lednum:%d\n", dynamicLedNum);
@@ -1232,6 +1314,7 @@ void sendSerialInfo() {
     #endif
     Serial.printf("MAC:%s\n", helper.string2char(MAC));
     Serial.printf("gpio:%s\n", helper.string2char(additionalParam));
+    Serial.printf("baudrate:%d\n", baudRateInUse);
 
   }
 
