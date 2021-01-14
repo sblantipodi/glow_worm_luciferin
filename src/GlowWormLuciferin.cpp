@@ -131,7 +131,7 @@ void setup() {
  */
 void setGpio(int gpio) {
 
-  Serial.println("CHANCING GPIO");
+  Serial.println("CHANGING GPIO");
   gpioInUse = gpio;
   #if defined(ESP8266)
   DynamicJsonDocument gpioDoc(1024);
@@ -171,7 +171,7 @@ int setBaudRateInUse(int baudRate) {
  */
 void setBaudRate(int baudRate) {
 
-  Serial.println("CHANCING BAUDRATE");
+  Serial.println("CHANGING BAUDRATE");
   setBaudRateInUse(baudRate);
   #if defined(ESP8266)
   DynamicJsonDocument baudrateDoc(1024);
