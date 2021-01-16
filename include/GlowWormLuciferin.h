@@ -49,7 +49,6 @@ const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
 String BASE_STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
 String STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
 const char* UNSUBSCRIBE_TOPIC = "lights/glowwormluciferin/unsubscribe";
-const char* TIME_TOPIC = "stat/time";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
 const char* FPS_TOPIC = "lights/glowwormluciferin/fps";
 const char* GPIO_TOPIC = "lights/glowwormluciferin/gpio";
@@ -79,10 +78,10 @@ uint lastLedUpdate = 10000;
 uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
-int gpioInUse, baudRateInUse = 3, fireflyEffectInUse;
+int gpioInUse = 5, baudRateInUse = 3, fireflyEffectInUse;
 
 /****************** FastLED Defintions ******************/
-#define NUM_LEDS    550 // Max Led support
+#define NUM_LEDS    511 // Max Led support
 CRGB leds[NUM_LEDS];
 int dynamicLedNum = NUM_LEDS;
 const String LED_NUM_FILENAME = "led_number.json";
@@ -211,7 +210,6 @@ void manageHardwareButton();
 // Project specific functions
 void sendStatus();
 void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
-bool processTimeJson(StaticJsonDocument<BUFFER_SIZE> json);
 bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json);
 bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
 bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json);

@@ -226,7 +226,6 @@ void manageQueueSubscription() {
 
   bootstrapManager.subscribe(LIGHT_SET_TOPIC);
   bootstrapManager.subscribe(helper.string2char(STREAM_TOPIC), 0);
-  bootstrapManager.subscribe(TIME_TOPIC);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
   bootstrapManager.subscribe(UPDATE_STATE_TOPIC);
   bootstrapManager.subscribe(GPIO_TOPIC);
@@ -320,9 +319,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
 
     bootstrapManager.jsonDoc.clear();
     bootstrapManager.parseQueueMsg(topic, payload, length);
-    if (strcmp(topic, TIME_TOPIC) == 0) {
-      processTimeJson(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, CMND_AMBI_REBOOT) == 0) {
+    if (strcmp(topic, CMND_AMBI_REBOOT) == 0) {
       processGlowWormLuciferinRebootCmnd(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, LIGHT_SET_TOPIC) == 0) {
       processJson(bootstrapManager.jsonDoc);
@@ -346,9 +343,6 @@ void callback(char *topic, byte *payload, unsigned int length) {
     }
     startFade = true;
     inFade = false; // Kill the current fade
-    if (strcmp(topic, TIME_TOPIC) != 0) {
-      sendStatus();
-    }
 
   }
 
@@ -366,7 +360,7 @@ bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json) {
     String macToUpdate = json["MAC"];
     Serial.println(macToUpdate);
     Serial.println(MAC);
-    if (gpio != 0 && gpioInUse != gpio && macToUpdate == MAC) {
+    if (gpio != 0 && gpioInUse != gpio ) {
       setGpio(gpio);
     }
   }
@@ -383,8 +377,10 @@ bool processBaudrate(StaticJsonDocument<BUFFER_SIZE> json) {
 
   if (json.containsKey(BAUDRATE_PARAM)) {
     int baudrate = (int) json[BAUDRATE_PARAM];
+    String macToUpdate = json["MAC"];
+    Serial.println(macToUpdate);
     Serial.println(MAC);
-    if (baudrate != 0 && baudRateInUse != baudrate) {
+    if (baudrate != 0 && baudRateInUse != baudrate && macToUpdate == MAC) {
       setBaudRate(baudrate);
     }
   }
@@ -535,7 +531,7 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
 void sendStatus() {
   // Skip JSON framework for lighter processing during the stream
   if (statusSent && (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi)) {
-    bootstrapManager.publish(FPS_TOPIC, helper.string2char("{\"deviceName\":\""+deviceName+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
+    bootstrapManager.publish(FPS_TOPIC, helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
   } else {
     JsonObject root = bootstrapManager.getJsonObject();
     JsonObject color = root.createNestedObject("color");
@@ -579,9 +575,6 @@ void sendStatus() {
     root["ver"] = VERSION;
     root["framerate"] = framerate;
     root[BAUDRATE_PARAM] = baudRateInUse;
-    if (timedate != OFF_CMD) {
-      root["time"] = timedate;
-    }
     #if defined(ESP8266)
     root["board"] = "ESP8266";
     #elif defined(ESP32)
@@ -589,6 +582,10 @@ void sendStatus() {
     #endif
     root[LED_NUM_PARAM] = String(dynamicLedNum);
     root["gpio"] = additionalParam;
+
+    if (effect == Effect::solid && !stateOn) {
+      setColor(0, 0, 0);
+    }
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
     bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
@@ -602,27 +599,6 @@ void sendStatus() {
 
   // Built in led triggered
   ledTriggered = true;
-
-}
-
-
-
-/* Get Time Info from MQTT queue, you can remove this part if you don't need it. I use it for monitoring
-   NOTE: This is specific of my home "ecosystem", I prefer to take time from my internal network and not from the internet, you can delete this if you don't need it.
-   Or you can take your time in this function.
-*/
-/**
- * Process time if any
- * @param json StaticJsonDocument
- * @return true if message is correctly processed
- */
-bool processTimeJson(StaticJsonDocument<BUFFER_SIZE> json) {
-
-  if (json.containsKey("Time")) {
-    const char *timeConst = json["Time"];
-    timedate = timeConst;
-  }
-  return true;
 
 }
 
@@ -810,16 +786,16 @@ void mainLoop() {
       brightness = usbBrightness;
     }
 
-    if (gpio != 0 && gpioInUse != gpio) {
+    if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 5 || gpio == 16)) {
       setGpio(gpio);
     }
 
     int numLedFromLuciferin = lo + loSecondPart + 1;
-    if (dynamicLedNum != numLedFromLuciferin) {
+    if (dynamicLedNum != numLedFromLuciferin && numLedFromLuciferin < NUM_LEDS) {
       setNumLed(numLedFromLuciferin);
     }
 
-    if (baudRate != 0 && baudRateInUse != baudRate) {
+    if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
       setBaudRate(baudRate);
     }
 
