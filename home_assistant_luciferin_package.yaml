@@ -59,17 +59,21 @@ input_number:
 
 input_boolean:
   solideffect:
-    name: Luci effetto solido
+    name: Solid Effect
+    initial: true
+  solideffectautomation:
+    name: Solid Effect Automation
+    initial: false
 
 sensor:
   - platform: mqtt
     state_topic: 'lights/firelyluciferin/framerate'
-    name: 'Luciferin Producing'
+    name: 'Firefly Luciferin Producing'
     unit_of_measurement: 'FPS'
     value_template: '{{ value_json.producing }}'
   - platform: mqtt
     state_topic: 'lights/firelyluciferin/framerate'
-    name: 'Luciferin Consuming'
+    name: 'Firefly Luciferin Consuming'
     unit_of_measurement: 'FPS'
     value_template: '{{ value_json.consuming }}'
   - platform: mqtt
@@ -92,7 +96,7 @@ sensor:
       gw_fps:
         friendly_name: "Glow Worm Luciferin"
         value_template: >-
-          {% if states.sensor.glow_worm_luciferin_fps_idle.last_changed > states.sensor.glow_worm_luciferin_fps_running.last_changed %}
+          {% if as_timestamp(states.sensor.glow_worm_luciferin_fps_idle.last_changed) > as_timestamp(states.sensor.glow_worm_luciferin_fps_running.last_changed) %}
             {{ states.sensor.glow_worm_luciferin_fps_idle.state }}
           {% else %}
             {{ states.sensor.glow_worm_luciferin_fps_running.state }}
@@ -103,62 +107,73 @@ sensor:
     name: '# of LEDs'
     unit_of_measurement: ''
     value_template: '{{ value_json.lednum }}'
+  - platform: mqtt
+    state_topic: 'lights/glowwormluciferin'
+    name: 'Last Seen GlowWorm'
+    value_template: '{{ as_timestamp(now()) | timestamp_custom("%Y-%m-%d ~ %H:%M:%S") }}'
 
 automation:
   - id: '1548456985521'
-    alias: GlowWorm Solid Effect ON
+    alias: Solid Effect ON
     trigger:
       - entity_id: input_boolean.solideffect
         from: 'off'
         platform: state
         to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.solideffectautomation
+        state: 'off'
     action:
       - data:
-          payload: '{"JFSC": "STOP"}'
-          topic: lights/glowwormluciferin/set
+          payload: '{"state":"ON","startStopInstances":"STOP"}'
+          topic: lights/glowwormluciferin
         service: mqtt.publish
   - id: '1548456985522'
-    alias: GlowWorm Solid Effect OFF
+    alias: Solid effect OFF
     trigger:
       - entity_id: input_boolean.solideffect
         from: 'on'
         platform: state
         to: 'off'
+    condition:
+      - condition: state
+        entity_id: input_boolean.solideffectautomation
+        state: 'off'
     action:
       - data:
-          payload: '{"JFSC": "START"}'
-          topic: lights/glowwormluciferin/set
+          payload: '{"state":"ON","startStopInstances":"PLAY"}'
+          topic: lights/glowwormluciferin
         service: mqtt.publish
-  - id: '3845456985522'
-    alias: GlowWorm Solid Effect OFF JFSC
+
+  - id: '3810295685522'
+    alias: Solid Effect Auto
     trigger:
-      platform: mqtt
-      topic: lights/glowwormluciferin/set
-      payload: '{"state": "ON", "effect": "GlowWorm"}'
-    action:
-      - service: input_boolean.turn_off
-        data:
-          entity_id: input_boolean.solideffect
-  - id: '1345456985522'
-    alias: GlowWorm Solid Effect OFF JFSC Wifi
-    trigger:
-      platform: mqtt
-      topic: lights/glowwormluciferin/set
-      payload: '{"state": "ON", "effect": "GlowWormWifi"}'
-    action:
-      - service: input_boolean.turn_off
-        data:
-          entity_id: input_boolean.solideffect
-  - id: '3845456985521'
-    alias: LGlowWorm Solid Effect ON JFSC
-    trigger:
-      platform: mqtt
-      topic: lights/glowwormluciferin/set
-      payload: '{"state": "ON", "effect": "solid"}'
+      - platform: time_pattern
+        seconds: '/10'
     action:
       - service: input_boolean.turn_on
         data:
-          entity_id: input_boolean.solideffect
+          entity_id: input_boolean.solideffectautomation
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: >-
+                  {{ float(states.sensor.gw_fps.state) == 0 }}
+            sequence:
+              - service: input_boolean.turn_on
+                entity_id: input_boolean.solideffect
+          - conditions:
+              - condition: template
+                value_template: >-
+                  {{ float(states.sensor.gw_fps.state) > 0 }}
+            sequence:
+              - service: input_boolean.turn_off
+                entity_id: input_boolean.solideffect
+      - service: input_boolean.turn_off
+        data:
+          entity_id: input_boolean.solideffectautomation
+
   - id: '4321674486'
     alias: PC Animation Speed
     initial_state: true
@@ -170,17 +185,30 @@ automation:
         data_template:
           topic: lights/glowwormluciferin/set
           payload: '{"transition":{{ trigger.to_state.state | int }}}'
-  - id: '1595687236984'
-    alias: gw_time_publisher
+  - id: '1598969517535'
+    alias: Glowworm Alive
     trigger:
       platform: time_pattern
-      seconds: '/10'
+      minutes: '/5'
+    condition:
+      condition: template
+      value_template: "{{ (not (as_timestamp(now()) < (as_timestamp(states.sensor.gw_fps.last_changed) + 300))) and (states.input_boolean.solideffect.state == 'on') }}"
+    action:
+      - data:
+          message: "Glowworm stopped responding!"
+        service: notify.telegram_notifier
+  - id: '1598917385535'
+    alias: Firefly Luciferin sensor reset
+    trigger:
+      - entity_id: switch.wake_on_lan
+        from: 'on'
+        platform: state
+        to: 'off'
     action:
       - service: mqtt.publish
         data_template:
-          topic: "stat/time"
-          retain: "false"
-          payload: '{"Time":"{{now()}}"}'
+          topic: lights/firelyluciferin/framerate
+          payload: '{"producing":0,"consuming":0}'
   - alias: Set Luciferin Gamma
     trigger:
       - entity_id: input_select.gamma_select
