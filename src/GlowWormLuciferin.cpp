@@ -401,8 +401,9 @@ bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json) {
     if (manager.equals(deviceName)) {
       bootstrapManager.unsubscribe(helper.string2char(STREAM_TOPIC));
       STREAM_TOPIC = BASE_STREAM_TOPIC + instance;
-      bootstrapManager.subscribe(helper.string2char(STREAM_TOPIC), 0);
       effect = Effect::GlowWormWifi;
+      stateOn = true;
+      bootstrapManager.subscribe(helper.string2char(STREAM_TOPIC), 0);
     }
   }
   return true;
