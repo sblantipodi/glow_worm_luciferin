@@ -110,6 +110,10 @@ sensor:
   - platform: mqtt
     state_topic: 'lights/glowwormluciferin'
     name: 'Last Seen GlowWorm'
+    value_template: '{{ now() }}'
+  - platform: mqtt
+    state_topic: 'lights/glowwormluciferin'
+    name: 'Last Update GlowWorm'
     value_template: '{{ as_timestamp(now()) | timestamp_custom("%Y-%m-%d ~ %H:%M:%S") }}'
 
 automation:
