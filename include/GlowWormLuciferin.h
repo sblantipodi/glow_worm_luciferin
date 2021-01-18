@@ -60,8 +60,7 @@ enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, rainbow, solid_rainbow, 
 Effect effect;
 
 /****************** Glow Worm Luciferin ******************/
-int new_bright, new_bright_f;
-unsigned long bright_timer, off_timer;
+unsigned long off_timer;
 
 // DPsoftware Checksum
 uint8_t prefix[] = {'D', 'P', 's'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, fireflyEffect, i;
@@ -71,6 +70,10 @@ uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
 int gpioInUse = 5, baudRateInUse = 3, fireflyEffectInUse;
+
+// Upgrade firmware
+boolean firmwareUpgrade = false;
+size_t updateSize = 0;
 
 /****************** FastLED Defintions ******************/
 #define NUM_LEDS    511 // Max Led support
@@ -107,7 +110,6 @@ bool startFade = false;
 bool onbeforeflash = false;
 unsigned long lastLoop = 0;
 unsigned transitionTime = 0;
-int effectSpeed = 0;
 bool inFade = false;
 int loopCount = 0;
 int stepR, stepG, stepB;
@@ -120,78 +122,22 @@ unsigned long flashStartTime = 0;
 byte flashRed = red;
 byte flashGreen = green;
 byte flashBlue = blue;
-byte flashBrightness = brightness;
 
 //RAINBOW
 uint16_t thishue = 0; // Starting hue value.
 uint16_t deltahue = 10;
 
-//CANDYCANE
-CRGBPalette16 currentPalettestriped; //for Candy Cane
-CRGBPalette16 gPal; //for fire
-
 //NOISE
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-static uint16_t dist;         // A random number for our noise generator.
-#endif
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
 uint16_t maxChanges = 48;      // Value for blending between palettes.
 CRGBPalette16 targetPalette(OceanColors_p);
 CRGBPalette16 currentPalette(CRGB::Black);
-
-//TWINKLE
-#define DENSITY     80
-int twinklecounter = 0;
-
-//RIPPLE
-uint16_t colour;                                               // Ripple colour is randomized.
-int center = 0;                                               // Center of the current ripple.
-int step = -1;                                                // -1 is the initializing step.
-uint16_t myfade = 255;                                         // Starting brightness.
-#define maxsteps 16                                           // Case statement wouldn't allow a variable.
-uint16_t bgcol = 0;                                            // Background colour rotates.
-int thisdelay = 20;                                           // Standard delay value.
-
-//DOTS
-uint16_t   count =   0;                                        // Count up to 255 and then reverts to 0
-uint16_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
-uint16_t bpm = 30;
-
-//LIGHTNING
-uint16_t frequency = 50;                                       // controls the interval between strikes
-uint16_t flashes = 8;                                          //the upper limit of flashes per strike
-unsigned int dimmer = 1;
-uint16_t ledstart;                                             // Starting location of a flash
-uint16_t ledlen;
-int lightningcounter = 0;
-
-//FUNKBOX
-int idex = 0;                //-LED INDEX (0 to NUM_LEDS-1
-int TOP_INDEX = int(NUM_LEDS / 2);
-int thissat = 255;           //-FX LOOPS DELAY VAR
-uint16_t thishuepolice = 0;
-int antipodal_index(int i) {
-  int iN = i + TOP_INDEX;
-  if (i >= TOP_INDEX) {
-    iN = ( i + TOP_INDEX ) % NUM_LEDS;
-  }
-  return iN;
-}
-
-//FIRE
-#define COOLING  55
-#define SPARKING 120
-bool gReverseDirection = false;
 
 //BPM
 uint16_t gHue = 0;
 
 bool breakLoop = false;
 int part = 1;
-
-// Upgrade firmware
-boolean firmwareUpgrade = false;
-size_t updateSize = 0;
 
 /****************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) ******************/
 // Bootstrap functions
@@ -201,7 +147,6 @@ void manageQueueSubscription();
 void manageHardwareButton();
 // Project specific functions
 void sendStatus();
-void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA);
 bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json);
 bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
 bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json);

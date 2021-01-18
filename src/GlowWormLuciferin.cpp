@@ -814,6 +814,7 @@ void mainLoop() {
       FastLED.show();
     }
   }
+
   //BPM
   if (effect == Effect::bpm) {
     EVERY_N_MILLISECONDS(10) {
@@ -862,18 +863,15 @@ void mainLoop() {
     // If we don't want to fade, skip it.
     if (transitionTime == 0) {
       setColor(realRed, realGreen, realBlue);
-
       redVal = realRed;
       grnVal = realGreen;
       bluVal = realBlue;
-
       startFade = false;
     } else {
       loopCount = 0;
       stepR = calculateStep(redVal, realRed);
       stepG = calculateStep(grnVal, realGreen);
       stepB = calculateStep(bluVal, realBlue);
-
       inFade = true;
     }
   }
@@ -884,11 +882,9 @@ void mainLoop() {
     if (now - lastLoop > transitionTime) {
       if (loopCount <= 1020) {
         lastLoop = now;
-
         redVal = calculateVal(stepR, redVal, loopCount);
         grnVal = calculateVal(stepG, grnVal, loopCount);
         bluVal = calculateVal(stepB, bluVal, loopCount);
-
         if (effect == Effect::solid) {
           setColor(redVal, grnVal, bluVal); // Write current values to LED pins
         }
@@ -1030,14 +1026,6 @@ int calculateVal(int step, int val, int i) {
   }
 
   return val;
-
-}
-
-void fadeall() {
-
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i].nscale8(250);  //for CYCLon
-  }
 
 }
 
