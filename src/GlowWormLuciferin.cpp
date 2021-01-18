@@ -108,9 +108,6 @@ void setup() {
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
 
-  setupStripedPalette(CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
-  gPal = HeatColors_p; //for FIRE
-
   #if defined(ESP32)
   xTaskCreatePinnedToCore(
           mainTask,           /* Task function. */
@@ -1078,72 +1075,10 @@ int calculateVal(int step, int val, int i) {
 
 }
 
-void setupStripedPalette(CRGB A, CRGB AB, CRGB B, CRGB BA) {
-
-  currentPalettestriped = CRGBPalette16(
-          A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-  );
-
-}
-
 void fadeall() {
 
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i].nscale8(250);  //for CYCLon
-  }
-
-}
-
-void Fire2012WithPalette() {
-
-  // Array of temperature readings at each simulation cell
-  static byte heat[NUM_LEDS];
-
-  // Step 1.  Cool down every cell a little
-  for (int i = 0; i < NUM_LEDS; i++) {
-    heat[i] = qsub8(heat[i], random16(0, ((COOLING * 10) / NUM_LEDS) + 2));
-  }
-
-  // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-  for (int k = NUM_LEDS - 1; k >= 2; k--) {
-    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
-  }
-
-  // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
-  if (random16() < SPARKING) {
-    int y = random16(7);
-    heat[y] = qadd8(heat[y], random16(160, 255));
-  }
-
-  // Step 4.  Map from heat cells to LED colors
-  for (int j = 0; j < NUM_LEDS; j++) {
-    // Scale the heat value from 0-255 down to 0-240
-    // for best results with color palettes.
-    byte colorindex = scale8(heat[j], 240);
-    CRGB color = ColorFromPalette(gPal, colorindex);
-    int pixelnumber;
-    if (gReverseDirection) {
-      pixelnumber = (NUM_LEDS - 1) - j;
-    } else {
-      pixelnumber = j;
-    }
-    leds[pixelnumber] = color;
-  }
-
-}
-
-void addGlitter(fract8 chanceOfGlitter) {
-
-  if (random16() < chanceOfGlitter) {
-    leds[random16(NUM_LEDS)] += CRGB::White;
-  }
-
-}
-
-void addGlitterColor(fract8 chanceOfGlitter, int red, int green, int blue) {
-
-  if (random16() < chanceOfGlitter) {
-    leds[random16(NUM_LEDS)] += CRGB(red, green, blue);
   }
 
 }
@@ -1161,63 +1096,6 @@ void showleds() {
   } else if (startFade) {
     setColor(0, 0, 0);
     startFade = false;
-  }
-
-}
-
-void temp2rgb(unsigned int kelvin) {
-
-  int tmp_internal = kelvin / 100.0;
-
-  // red
-  if (tmp_internal <= 66) {
-    red = 255;
-  } else {
-    float tmp_red = 329.698727446 * pow(tmp_internal - 60, -0.1332047592);
-    if (tmp_red < 0) {
-      red = 0;
-    } else if (tmp_red > 255) {
-      red = 255;
-    } else {
-      red = tmp_red;
-    }
-  }
-
-  // green
-  if (tmp_internal <= 66) {
-    float tmp_green = 99.4708025861 * log(tmp_internal) - 161.1195681661;
-    if (tmp_green < 0) {
-      green = 0;
-    } else if (tmp_green > 255) {
-      green = 255;
-    } else {
-      green = tmp_green;
-    }
-  } else {
-    float tmp_green = 288.1221695283 * pow(tmp_internal - 60, -0.0755148492);
-    if (tmp_green < 0) {
-      green = 0;
-    } else if (tmp_green > 255) {
-      green = 255;
-    } else {
-      green = tmp_green;
-    }
-  }
-
-  // blue
-  if (tmp_internal >= 66) {
-    blue = 255;
-  } else if (tmp_internal <= 19) {
-    blue = 0;
-  } else {
-    float tmp_blue = 138.5177312231 * log(tmp_internal - 10) - 305.0447927307;
-    if (tmp_blue < 0) {
-      blue = 0;
-    } else if (tmp_blue > 255) {
-      blue = 255;
-    } else {
-      blue = tmp_blue;
-    }
   }
 
 }
