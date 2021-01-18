@@ -426,62 +426,26 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
     }
   }
 
-  // If "flash" is included, treat RGB and brightness differently
-  if (json.containsKey("flash")) {
-    flashLength = (int) json["flash"] * 1000;
+  flash = false;
+  if (stateOn) {   //if the light is turned on and the light isn't flashing
+    onbeforeflash = true;
+  }
 
-    if (json.containsKey("brightness")) {
-      flashBrightness = json["brightness"];
-    } else {
-      flashBrightness = brightness;
-    }
+  if (json.containsKey("color")) {
+    red = json["color"]["r"];
+    green = json["color"]["g"];
+    blue = json["color"]["b"];
+  }
 
-    if (json.containsKey("color")) {
-      flashRed = json["color"]["r"];
-      flashGreen = json["color"]["g"];
-      flashBlue = json["color"]["b"];
-    } else {
-      flashRed = red;
-      flashGreen = green;
-      flashBlue = blue;
-    }
+  if (json.containsKey("brightness")) {
+    brightness = json["brightness"];
+    FastLED.setBrightness(brightness);
+  }
 
-    if (json.containsKey("transition")) {
-      transitionTime = json["transition"];
-    } else if (effect == Effect::solid) {
-      transitionTime = 0;
-    }
-
-    flashRed = map(flashRed, 0, 255, 0, flashBrightness);
-    flashGreen = map(flashGreen, 0, 255, 0, flashBrightness);
-    flashBlue = map(flashBlue, 0, 255, 0, flashBrightness);
-    flash = true;
-    startFlash = true;
-
-  } else { // Not flashing
-
-    flash = false;
-    if (stateOn) {   //if the light is turned on and the light isn't flashing
-      onbeforeflash = true;
-    }
-
-    if (json.containsKey("color")) {
-      red = json["color"]["r"];
-      green = json["color"]["g"];
-      blue = json["color"]["b"];
-    }
-
-    if (json.containsKey("brightness")) {
-      brightness = json["brightness"];
-      FastLED.setBrightness(brightness);
-    }
-
-    if (json.containsKey("transition")) {
-      transitionTime = json["transition"];
-    } else if (effect == Effect::solid) {
-      transitionTime = 0;
-    }
-
+  if (json.containsKey("transition")) {
+    transitionTime = json["transition"];
+  } else if (effect == Effect::solid) {
+    transitionTime = 0;
   }
 
   if (json.containsKey("effect")) {
@@ -502,7 +466,6 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
       effect = Effect::solid;
     }
     statusSent = false;
-    twinklecounter = 0; //manage twinklecounter
   }
 
   return true;
@@ -839,7 +802,7 @@ void mainLoop() {
     showleds();
   }
 
-  //EFFECT mixed rainbow
+  //MIXED RAINBOW
   if (effect == Effect::mixed_rainbow) {
     for(int j = 0; j < 256; j++) {
       for(int i = 0; i < dynamicLedNum; i++) {
@@ -851,25 +814,20 @@ void mainLoop() {
       FastLED.show();
     }
   }
-
-  //EVERY 10 MILLISECONDS
-  EVERY_N_MILLISECONDS(10) {
-
-    nblendPaletteTowardPalette(currentPalette, targetPalette, maxChanges);  // FOR NOISE ANIMATIon
-    {
-      gHue++;
+  //BPM
+  if (effect == Effect::bpm) {
+    EVERY_N_MILLISECONDS(10) {
+      nblendPaletteTowardPalette(currentPalette, targetPalette, maxChanges);  // FOR NOISE ANIMATIon
+      {
+        gHue++;
+      }
     }
-
-
-
-  }
-
-  // EVERY 5 SECONDS
-  EVERY_N_SECONDS(5) {
-
-    targetPalette = CRGBPalette16(CHSV(random16(), 255, random16(128, 255)), CHSV(random16(), 255, random16(128, 255)),
-                                  CHSV(random16(), 192, random16(128, 255)), CHSV(random16(), 255, random16(128, 255)));
-
+    EVERY_N_SECONDS(5) {
+      targetPalette = CRGBPalette16(CHSV(random16(), 255, random16(128, 255)),
+                                    CHSV(random16(), 255, random16(128, 255)),
+                                    CHSV(random16(), 192, random16(128, 255)),
+                                    CHSV(random16(), 255, random16(128, 255)));
+    }
   }
 
   //FLASH AND FADE SUPPORT
