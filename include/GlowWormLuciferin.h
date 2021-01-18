@@ -56,18 +56,10 @@ const char* BAUDRATE_TOPIC = "lights/glowwormluciferin/baudrate";
 
 boolean statusSent = false;
 
-enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, candy_cane, confetti, cyclon_rainbow, dots,
-        fire, glitter, juggle, lightning, police_all, police_one, rainbow, solid_rainbow, rainbow_with_glitter,
-        sinelon, twinkle, noise, ripple };
+enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
 
 /****************** Glow Worm Luciferin ******************/
-#define max_bright 255       // maximum brightness (0 - 255)
-#define min_bright 50        // the minimum brightness (0 - 255)
-#define bright_constant 500  // the gain constant from external light (0 - 1023)
-// than the LESS constant, the "sharper" the brightness will be added
-#define coef 0.9             // the filter coefficient (0.0 - 1.0), the more - the more slowly the brightness changes
-
 int new_bright, new_bright_f;
 unsigned long bright_timer, off_timer;
 
@@ -219,11 +211,7 @@ bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
 void fadeall();
-void Fire2012WithPalette();
-void addGlitter(fract8 chanceOfGlitter);
-void addGlitterColor( fract8 chanceOfGlitter, int red, int green, int blue);
 void showleds();
-void temp2rgb(unsigned int kelvin);
 int calculateStep(int prevValue, int endValue);
 int calculateVal(int step, int val, int i);
 void mainTask(void * parameter);

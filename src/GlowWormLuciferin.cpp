@@ -498,23 +498,9 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
       FastLED.setBrightness(brightness);
       lastStream = millis();
     } else if (requestedEffect == "bpm") effect = Effect::bpm;
-    else if (requestedEffect == "candy cane") effect = Effect::candy_cane;
-    else if (requestedEffect == "confetti") effect = Effect::confetti;
-    else if (requestedEffect == "cyclon rainbow") effect = Effect::cyclon_rainbow;
-    else if (requestedEffect == "dots") effect = Effect::dots;
-    else if (requestedEffect == "fire") effect = Effect::fire;
-    else if (requestedEffect == "glitter") effect = Effect::glitter;
-    else if (requestedEffect == "juggle") effect = Effect::juggle;
-    else if (requestedEffect == "lightning") effect = Effect::lightning;
-    else if (requestedEffect == "police all") effect = Effect::police_all;
-    else if (requestedEffect == "police one") effect = Effect::police_one;
     else if (requestedEffect == "rainbow") effect = Effect::rainbow;
     else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
-    else if (requestedEffect == "rainbow with glitter") effect = Effect::rainbow_with_glitter;
-    else if (requestedEffect == "sinelon") effect = Effect::sinelon;
-    else if (requestedEffect == "twinkle") effect = Effect::twinkle;
-    else if (requestedEffect == "noise") effect = Effect::noise;
-    else if (requestedEffect == "ripple") effect = Effect::ripple;
+    else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
     else {
       effect = Effect::solid;
     }
@@ -552,23 +538,9 @@ void sendStatus() {
         break;
       case Effect::solid: root["effect"] = "solid"; break;
       case Effect::bpm: root["effect"] = "bpm"; break;
-      case Effect::candy_cane: root["effect"] = "candy cane"; break;
-      case Effect::confetti: root["effect"] = "confetti"; break;
-      case Effect::cyclon_rainbow: root["effect"] = "cyclon rainbow"; break;
-      case Effect::dots: root["effect"] = "dots"; break;
-      case Effect::fire: root["effect"] = "fire"; break;
-      case Effect::glitter: root["effect"] = "glitter"; break;
-      case Effect::juggle: root["effect"] = "juggle"; break;
-      case Effect::lightning: root["effect"] = "lightning"; break;
-      case Effect::police_all: root["effect"] = "police all"; break;
-      case Effect::police_one: root["effect"] = "police one"; break;
       case Effect::rainbow: root["effect"] = "rainbow"; break;
       case Effect::solid_rainbow: root["effect"] = "solid rainbow"; break;
-      case Effect::rainbow_with_glitter: root["effect"] = "rainbow with glitter"; break;
-      case Effect::twinkle: root["effect"] = "twinkle"; break;
-      case Effect::noise: root["effect"] = "noise"; break;
-      case Effect::ripple: root["effect"] = "ripple"; break;
-      case Effect::sinelon: root["effect"] = "sinelon"; break;
+      case Effect::mixed_rainbow: root["effect"] = "mixed rainbow"; break;
     }
     root["deviceName"] = deviceName;
     root["IP"] = microcontrollerIP;
@@ -845,175 +817,6 @@ void mainLoop() {
     showleds();
   }
 
-  //EFFECT Candy Cane
-  if (effect == Effect::candy_cane) {
-    static uint8_t startIndex = 0;
-    startIndex = startIndex + 1; /* higher = faster motion */
-    fill_palette(leds, NUM_LEDS,
-                 startIndex, 16, /* higher = narrower stripes */
-                 currentPalettestriped, 255, LINEARBLEND);
-    if (transitionTime == 0) {
-      transitionTime = 0;
-    }
-    showleds();
-  }
-
-  //EFFECT CONFETTI
-  if (effect == Effect::confetti) {
-    fadeToBlackBy(leds, NUM_LEDS, 25);
-    int pos = random16(NUM_LEDS);
-    leds[pos] += CRGB(realRed + random16(64), realGreen, realBlue);
-    if (transitionTime == 0) {
-      transitionTime = 30;
-    }
-    showleds();
-  }
-
-  //EFFECT CYCLON RAINBOW
-  if (effect == Effect::cyclon_rainbow) {                    //Single Dot Down
-    static uint8_t hue = 0;
-    // First slide the led in one direction
-    for (int i = 0; i < NUM_LEDS; i++) {
-      // Set the i'th led to red
-      leds[i] = CHSV(hue++, 255, 255);
-      // Show the leds
-      showleds();
-      // now that we've shown the leds, reset the i'th led to black
-      // leds[i] = CRGB::Black;
-      fadeall();
-      // Wait a little bit before we loop around and do it again
-      delay(10);
-    }
-    for (int i = (NUM_LEDS) - 1; i >= 0; i--) {
-      // Set the i'th led to red
-      leds[i] = CHSV(hue++, 255, 255);
-      // Show the leds
-      showleds();
-      // now that we've shown the leds, reset the i'th led to black
-      // leds[i] = CRGB::Black;
-      fadeall();
-      // Wait a little bit before we loop around and do it again
-      delay(10);
-    }
-  }
-
-  //EFFECT DOTS
-  if (effect == Effect::dots) {
-    int16_t inner = beatsin16(bpm, NUM_LEDS / 4, NUM_LEDS / 4 * 3);
-    int16_t outer = beatsin16(bpm, 0, NUM_LEDS - 1);
-    int16_t middle = beatsin16(bpm, NUM_LEDS / 3, NUM_LEDS / 3 * 2);
-    leds[middle] = CRGB::Purple;
-    leds[inner] = CRGB::Blue;
-    leds[outer] = CRGB::Aqua;
-    nscale8(leds, NUM_LEDS, fadeval);
-
-    if (transitionTime == 0) {
-      transitionTime = 30;
-    }
-    showleds();
-  }
-
-  //EFFECT FIRE
-  if (effect == Effect::fire) {
-    Fire2012WithPalette();
-    if (transitionTime == 0) {
-      transitionTime = 150;
-    }
-    showleds();
-  }
-  random16_add_entropy(random16());
-
-  //EFFECT Glitter
-  if (effect == Effect::glitter) {
-    fadeToBlackBy(leds, NUM_LEDS, 20);
-    addGlitterColor(80, realRed, realGreen, realBlue);
-    if (transitionTime == 0) {
-      transitionTime = 30;
-    }
-    showleds();
-  }
-
-  //EFFECT JUGGLE
-  if (effect ==
-      Effect::juggle) {                           // eight colored dots, weaving in and out of sync with each other
-    fadeToBlackBy(leds, NUM_LEDS, 20);
-    for (int i = 0; i < 8; i++) {
-      leds[beatsin16(i + 7, 0, NUM_LEDS - 1)] |= CRGB(realRed, realGreen, realBlue);
-    }
-    if (transitionTime == 0) {
-      transitionTime = 130;
-    }
-    showleds();
-  }
-
-  //EFFECT LIGHTNING
-  if (effect == Effect::lightning) {
-    twinklecounter = twinklecounter + 1;                     //Resets strip if previous animation was running
-    if (twinklecounter < 2) {
-      FastLED.clear();
-      FastLED.show();
-    }
-    ledstart = random16(NUM_LEDS);           // Determine starting location of flash
-    ledlen = random16(NUM_LEDS - ledstart);  // Determine length of flash (not to go beyond NUM_LEDS-1)
-    for (int flashCounter = 0; flashCounter < random16(3, flashes); flashCounter++) {
-      if (flashCounter == 0) dimmer = 5;    // the brightness of the leader is scaled down by a factor of 5
-      else dimmer = random16(1, 3);          // return strokes are brighter than the leader
-      fill_solid(leds + ledstart, ledlen, CHSV(255, 0, 255 / dimmer));
-      showleds();    // Show a section of LED's
-      delay(random16(4, 10));                // each flash only lasts 4-10 milliseconds
-      fill_solid(leds + ledstart, ledlen, CHSV(255, 0, 0)); // Clear the section of LED's
-      showleds();
-      if (flashCounter == 0) delay(130);   // longer delay until next flash after the leader
-      delay(50 + random16(100));             // shorter delay between strokes
-    }
-    delay(random16(frequency) * 100);        // delay between strikes
-    if (transitionTime == 0) {
-      transitionTime = 0;
-    }
-    showleds();
-  }
-
-  //EFFECT POLICE ALL
-  if (effect == Effect::police_all) {                 //POLICE LIGHTS (TWO COLOR SOLID)
-    idex++;
-    if (idex >= NUM_LEDS) {
-      idex = 0;
-    }
-    int idexR = idex;
-    int idexB = antipodal_index(idexR);
-    int thathue = (thishuepolice + 160) % 255;
-    leds[idexR] = CHSV(thishuepolice, thissat, 255);
-    leds[idexB] = CHSV(thathue, thissat, 255);
-    if (transitionTime == 0) {
-      transitionTime = 30;
-    }
-    showleds();
-  }
-
-  //EFFECT POLICE ONE
-  if (effect == Effect::police_one) {
-    idex++;
-    if (idex >= NUM_LEDS) {
-      idex = 0;
-    }
-    int idexR = idex;
-    int idexB = antipodal_index(idexR);
-    int thathue = (thishuepolice + 160) % 255;
-    for (int i = 0; i < NUM_LEDS; i++) {
-      if (i == idexR) {
-        leds[i] = CHSV(thishuepolice, thissat, 255);
-      } else if (i == idexB) {
-        leds[i] = CHSV(thathue, thissat, 255);
-      } else {
-        leds[i] = CHSV(0, 0, 0);
-      }
-    }
-    if (transitionTime == 0) {
-      transitionTime = 30;
-    }
-    showleds();
-  }
-
   //EFFECT RAINBOW
   if (effect == Effect::rainbow) {
     // FastLED's built-in rainbow generator
@@ -1039,8 +842,8 @@ void mainLoop() {
     showleds();
   }
 
-  //EFFECT RAINBOW WITH GLITTER
-  if (effect == Effect::rainbow_with_glitter) {
+  //EFFECT mixed rainbow
+  if (effect == Effect::mixed_rainbow) {
     for(int j = 0; j < 256; j++) {
       for(int i = 0; i < dynamicLedNum; i++) {
         leds[i] = Scroll((i * 256 / dynamicLedNum + j) % 256);
@@ -1052,44 +855,6 @@ void mainLoop() {
     }
   }
 
-  //EFFECT SIENLON
-  if (effect == Effect::sinelon) {
-    fadeToBlackBy(leds, NUM_LEDS, 20);
-    int pos = beatsin16(13, 0, NUM_LEDS - 1);
-    leds[pos] += CRGB(realRed, realGreen, realBlue);
-    if (transitionTime == 0) {
-      transitionTime = 150;
-    }
-    showleds();
-  }
-
-  //EFFECT TWINKLE
-  if (effect == Effect::twinkle) {
-    twinklecounter = twinklecounter + 1;
-    if (twinklecounter < 2) {                               //Resets strip if previous animation was running
-      FastLED.clear();
-      FastLED.show();
-    }
-    const CRGB lightcolor(8, 7, 1);
-    for (int i = 0; i < NUM_LEDS; i++) {
-      if (!leds[i]) continue; // skip black pixels
-      if (leds[i].r & 1) { // is red odd?
-        leds[i] -= lightcolor; // darken if red is odd
-      } else {
-        leds[i] += lightcolor; // brighten if red is even
-      }
-    }
-    if (random16() < DENSITY) {
-      int j = random16(NUM_LEDS);
-      if (!leds[j]) leds[j] = lightcolor;
-    }
-
-    if (transitionTime == 0) {
-      transitionTime = 0;
-    }
-    showleds();
-  }
-
   //EVERY 10 MILLISECONDS
   EVERY_N_MILLISECONDS(10) {
 
@@ -1098,52 +863,7 @@ void mainLoop() {
       gHue++;
     }
 
-    //EFFECT NOISE
-    if (effect == Effect::noise) {
-      for (int i = 0; i <
-                      NUM_LEDS; i++) {                                     // Just onE loop to fill up the LED array as all of the pixels change.
-        uint8_t index = inoise8(i * scale, dist + i * scale) %
-                        255;            // Get a value from the noise function. I'm using both x and y axis.
-        leds[i] = ColorFromPalette(currentPalette, index, 255,
-                                   LINEARBLEND);   // With that value, look up the 8 bit colour palette value and assign it to the current LED.
-      }
-      dist += beatsin8(10, 1,
-                       4);                                              // Moving along the distance (that random number we started out with). Vary it a bit with a sine wave.
-      // In some sketches, I've used millis() instead of an incremented counter. Works a treat.
-      if (transitionTime == 0) {
-        transitionTime = 0;
-      }
-      showleds();
-    }
 
-    //EFFECT RIPPLE
-    if (effect == Effect::ripple) {
-      for (int i = 0; i < NUM_LEDS; i++) leds[i] = CHSV(bgcol++, 255, 15);  // Rotate background colour.
-      switch (step) {
-        case -1:                                                          // Initialize ripple variables.
-          center = random(NUM_LEDS);
-          colour = random16();
-          step = 0;
-          break;
-        case 0:
-          leds[center] = CHSV(colour, 255, 255);                          // Display the first pixel of the ripple.
-          step++;
-          break;
-        case maxsteps:                                                    // At the end of the ripples.
-          step = -1;
-          break;
-        default:                                                             // Middle of the ripples.
-          leds[(center + step + NUM_LEDS) % NUM_LEDS] += CHSV(colour, 255,
-                                                              myfade / step * 2);   // Simple wrap from Marc Miller
-          leds[(center - step + NUM_LEDS) % NUM_LEDS] += CHSV(colour, 255, myfade / step * 2);
-          step++;                                                         // Next step.
-          break;
-      }
-      if (transitionTime == 0) {
-        transitionTime = 30;
-      }
-      showleds();
-    }
 
   }
 
