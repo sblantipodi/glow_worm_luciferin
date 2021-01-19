@@ -66,6 +66,7 @@ sensor:
     name: 'GlowWorm Version'
     unit_of_measurement: ' '
     value_template: '{{ value_json.ver }}'
+    force_update: true
   - platform: mqtt
     state_topic: 'lights/glowwormluciferin'
     name: 'Glow Worm Luciferin FPS idle'
@@ -92,10 +93,6 @@ sensor:
     name: '# of LEDs'
     unit_of_measurement: ''
     value_template: '{{ value_json.lednum }}'
-  - platform: mqtt
-    state_topic: 'lights/glowwormluciferin'
-    name: 'Last Seen GlowWorm'
-    value_template: '{{ now() }}'
   - platform: mqtt
     state_topic: 'lights/glowwormluciferin'
     name: 'Last Update GlowWorm'
@@ -181,7 +178,7 @@ automation:
       minutes: '/5'
     condition:
       condition: template
-      value_template: "{{ (not (as_timestamp(now()) < (as_timestamp(states.sensor.gw_fps.last_changed) + 300))) and (states.input_boolean.solideffect.state == 'on') }}"
+      value_template: "{{ (not (as_timestamp(now()) < (as_timestamp(states.sensor.glowworm_version.last_updated) + 300))) and (states.input_boolean.solideffect.state == 'on') }}"
     action:
       - data:
           message: "Glowworm stopped responding!"
