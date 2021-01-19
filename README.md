@@ -55,6 +55,8 @@ If you don't want to build your own board, you can use a pre-build board like th
 NOTE: QuinLED-Dig-Uno must be used with Glow Worm FULL Firmware because it can't be connected to your PC via USB.
 
 ## Home Assistant Mobile Client Screenshots
+<img align="center" width="1000" src="https://github.com/sblantipodi/firefly_luciferin/blob/master/data/img/ha_luciferin.jpg?raw=true">  
+
 Glow Worm Luciferin firmware can be easily integrated in [Home Assistant](https://github.com/sblantipodi/firefly_luciferin/wiki/Home-Automation-configs).  
   
 ![SCREENSHOT](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/HA_mobile_client_screenshot.jpg)
