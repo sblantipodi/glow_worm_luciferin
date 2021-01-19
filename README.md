@@ -29,8 +29,8 @@ Project is bootstrapped with my [Arduino Bootstrapper](https://github.com/sblant
 Why don't you build your own `Luciferin`?  
 Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferin/wiki/Quick-start)  
 
-## Credits
-- Davide Perini
+## Glow Worm Luciferin + Firefly Luciferin (click to watch it on YouTube)
+[![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## Components:
 - Arduino C++ sketch running on an ESP8266EX/ESP32 D1 Mini from Lolin running @ 160MHz/240MHz (ESP8266 is the recommended device)
@@ -49,19 +49,15 @@ NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recomme
 **If you flash LIGHT firmware you MUST use USB cable**.  
 Note: If you want to use the FULL firmware without using a USB cable you need to connect the 5V microcontroller's PIN to the power supply.
 
-
 ## Pre-build boards support
 If you don't want to build your own board, you can use a pre-build board like the [QuinLED-Dig-Uno](https://quinled.info/2018/09/15/quinled-dig-uno).  
 NOTE: QuinLED-Dig-Uno must be used with Glow Worm FULL Firmware because it can't be connected to your PC via USB.
 
-## Home Assistant Mobile Client Screenshots
-Glow Worm Luciferin firmware can be easily integrated in [Home Assistant](https://github.com/sblantipodi/firefly_luciferin/wiki/Home-Automation-configs).  
+## Home Assistant Mobile Client Screenshots  
+
 <img align="center" width="1000" src="https://github.com/sblantipodi/firefly_luciferin/blob/master/data/img/ha_luciferin.jpg?raw=true">  
 ---  
 ![SCREENSHOT](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/HA_mobile_client_screenshot.jpg)
-
-## Glow Worm Luciferin + Firefly Luciferin (click to watch it on YouTube)
-[![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## Contribute
 You can contribute to Luciferin by:
