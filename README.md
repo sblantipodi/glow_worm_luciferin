@@ -38,7 +38,7 @@ Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferi
 - 3.3V/5V Logic Level Converter 
 - 220Ω resistor
 - 1000uf capacitor for 5V power stabilization
-- Raspberry + Home Assistant for Web GUI, automations and MQTT server (HA is optional but an MQTT server is needed)
+- Raspberry + Home Assistant for Web GUI, automations and MQTT server (optional)
 - Google Home Mini for Voice Recognition (optional)
 
 NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
