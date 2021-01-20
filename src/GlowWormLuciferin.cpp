@@ -312,7 +312,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
       }
     }
 
-  } else if (effect != Effect::GlowWormWifi) {
+  } else {
 
     bootstrapManager.jsonDoc.clear();
     bootstrapManager.parseQueueMsg(topic, payload, length);
