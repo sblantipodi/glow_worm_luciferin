@@ -55,6 +55,7 @@ String gpioTopic = "lights/glowwormluciferin/gpio";
 String baudrateTopic = "lights/glowwormluciferin/baudrate";
 const char* SWAP_TOPIC = "lights/glowwormluciferin/swaptopic";
 const char* BASE_TOPIC = "glowwormluciferin";
+String topicInUse = "glowwormluciferin";
 
 boolean statusSent = false;
 

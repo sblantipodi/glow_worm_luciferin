@@ -518,6 +518,7 @@ void sendStatus() {
     #endif
     root[LED_NUM_PARAM] = String(dynamicLedNum);
     root["gpio"] = additionalParam;
+    root["mqttopic"] = topicInUse;
 
     if (effect == Effect::solid && !stateOn) {
       setColor(0, 0, 0);
@@ -614,6 +615,7 @@ bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json) {
 
   if (json.containsKey(F("basetopic"))) {
     String customtopic = json["basetopic"];
+    topicInUse = customtopic;
     Serial.println("Swapping topic=" + customtopic);
     swapTopicUnsubscribe();
     swapTopicReplace(customtopic);
@@ -1030,6 +1032,7 @@ void sendSerialInfo() {
     Serial.printf("firmware:%s\n", "LIGHT");
     #else
     Serial.printf("firmware:%s\n", "FULL");
+    Serial.printf("mqttopic:%s\n", helper.string2char(topicInUse));
     #endif
     Serial.printf("ver:%s\n", VERSION);
     Serial.printf("lednum:%d\n", dynamicLedNum);
