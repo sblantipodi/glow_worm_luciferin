@@ -221,13 +221,14 @@ void manageDisconnections() {
  */
 void manageQueueSubscription() {
 
-  bootstrapManager.subscribe(LIGHT_SET_TOPIC);
-  bootstrapManager.subscribe(helper.string2char(STREAM_TOPIC), 0);
+  bootstrapManager.subscribe(helper.string2char(lightSetTopic));
+  bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
   bootstrapManager.subscribe(UPDATE_STATE_TOPIC);
   bootstrapManager.subscribe(GPIO_TOPIC);
   bootstrapManager.subscribe(UNSUBSCRIBE_TOPIC);
   bootstrapManager.subscribe(BAUDRATE_TOPIC);
+  bootstrapManager.subscribe(SWAP_TOPIC);
 
 }
 
@@ -246,7 +247,7 @@ void manageHardwareButton() {
  */
 void callback(char *topic, byte *payload, unsigned int length) {
 
-  if (STREAM_TOPIC.equals(topic)) {
+  if (streamTopic.equals(topic)) {
 
     if (effect == Effect::GlowWormWifi) {
       bootstrapManager.jsonDoc.clear();
@@ -318,7 +319,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
     bootstrapManager.parseQueueMsg(topic, payload, length);
     if (strcmp(topic, CMND_AMBI_REBOOT) == 0) {
       processGlowWormLuciferinRebootCmnd(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, LIGHT_SET_TOPIC) == 0) {
+    } else if (lightSetTopic.equals(topic)) {
       processJson(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, UPDATE_STATE_TOPIC) == 0) {
       processUpdate(bootstrapManager.jsonDoc);
@@ -328,6 +329,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
       processBaudrate(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, UNSUBSCRIBE_TOPIC) == 0) {
       processUnSubscribeStream(bootstrapManager.jsonDoc);
+    } else if (strcmp(topic, SWAP_TOPIC) == 0) {
+      swapMqttTopic(bootstrapManager.jsonDoc);
     }
     if (stateOn) {
       realRed = map(red, 0, 255, 0, brightness);
@@ -396,11 +399,11 @@ bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json) {
     String instance = json["instance"];
     String manager = json["manager"];
     if (manager.equals(deviceName)) {
-      bootstrapManager.unsubscribe(helper.string2char(STREAM_TOPIC));
-      STREAM_TOPIC = BASE_STREAM_TOPIC + instance;
+      bootstrapManager.unsubscribe(helper.string2char(streamTopic));
+      streamTopic = BASE_STREAM_TOPIC + instance;
       effect = Effect::GlowWormWifi;
       stateOn = true;
-      bootstrapManager.subscribe(helper.string2char(STREAM_TOPIC), 0);
+      bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
     }
   }
   return true;
@@ -521,7 +524,7 @@ void sendStatus() {
     }
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
-    bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
+    bootstrapManager.publish(helper.string2char(lightStateTopic), root, true);
   }
 
   #if defined(ESP32)
@@ -599,6 +602,38 @@ bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json) {
     ESP.restart();
   }
   return true;
+
+}
+
+/**
+ * Swap MQTT topic with a custom one received from Firefly Luciferin
+ * @param json StaticJsonDocument
+ * @return true if message is correctly processed
+ */
+bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json) {
+
+  if (json.containsKey(F("basetopic"))) {
+    String customtopic = json["basetopic"];
+    Serial.println(customtopic);
+
+    bootstrapManager.unsubscribe(helper.string2char(lightStateTopic));
+    lightStateTopic.replace(BASE_TOPIC, customtopic);
+    bootstrapManager.subscribe(helper.string2char(lightStateTopic));
+
+
+
+    Serial.println(lightSetTopic);
+
+  }
+  return true;
+
+}
+
+void swapTopicSubscription(String customtopic) {
+
+  bootstrapManager.unsubscribe(helper.string2char(lightSetTopic));
+  lightSetTopic.replace(BASE_TOPIC, customtopic);
+  bootstrapManager.subscribe(helper.string2char(lightSetTopic));
 
 }
 

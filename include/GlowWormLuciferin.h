@@ -42,17 +42,19 @@ BootstrapManager bootstrapManager;
 Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
-const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
+String lightStateTopic = "lights/glowwormluciferin";
 const char* UPDATE_STATE_TOPIC = "lights/glowwormluciferin/update";
 const char* UPDATE_RESULT_STATE_TOPIC = "lights/glowwormluciferin/update/result";
-const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
+String lightSetTopic = "lights/glowwormluciferin/set";
 String BASE_STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
-String STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
+String streamTopic = "lights/glowwormluciferin/set/stream";
 const char* UNSUBSCRIBE_TOPIC = "lights/glowwormluciferin/unsubscribe";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
 const char* FPS_TOPIC = "lights/glowwormluciferin/fps";
 const char* GPIO_TOPIC = "lights/glowwormluciferin/gpio";
 const char* BAUDRATE_TOPIC = "lights/glowwormluciferin/baudrate";
+const char* SWAP_TOPIC = "lights/glowwormluciferin/swaptopic";
+const char* BASE_TOPIC = "glowwormluciferin";
 
 boolean statusSent = false;
 
@@ -153,6 +155,7 @@ bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json);
 bool processBaudrate(StaticJsonDocument<BUFFER_SIZE> json);
 bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
 bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json);
+bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
 void fadeall();
