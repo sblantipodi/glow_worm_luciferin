@@ -224,10 +224,10 @@ void manageQueueSubscription() {
   bootstrapManager.subscribe(helper.string2char(lightSetTopic));
   bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
-  bootstrapManager.subscribe(UPDATE_STATE_TOPIC);
-  bootstrapManager.subscribe(GPIO_TOPIC);
-  bootstrapManager.subscribe(UNSUBSCRIBE_TOPIC);
-  bootstrapManager.subscribe(BAUDRATE_TOPIC);
+  bootstrapManager.subscribe(helper.string2char(updateStateTopic));
+  bootstrapManager.subscribe(helper.string2char(gpioTopic));
+  bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
+  bootstrapManager.subscribe(helper.string2char(baudrateTopic));
   bootstrapManager.subscribe(SWAP_TOPIC);
 
 }
@@ -321,13 +321,13 @@ void callback(char *topic, byte *payload, unsigned int length) {
       processGlowWormLuciferinRebootCmnd(bootstrapManager.jsonDoc);
     } else if (lightSetTopic.equals(topic)) {
       processJson(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, UPDATE_STATE_TOPIC) == 0) {
+    } else if (updateStateTopic.equals(topic)) {
       processUpdate(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, GPIO_TOPIC) == 0) {
+    } else if (gpioTopic.equals(topic)) {
       processGPIO(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, BAUDRATE_TOPIC) == 0) {
+    } else if (baudrateTopic.equals(topic)) {
       processBaudrate(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, UNSUBSCRIBE_TOPIC) == 0) {
+    } else if (unsubscribeTopic.equals(topic)) {
       processUnSubscribeStream(bootstrapManager.jsonDoc);
     } else if (strcmp(topic, SWAP_TOPIC) == 0) {
       swapMqttTopic(bootstrapManager.jsonDoc);
@@ -400,7 +400,7 @@ bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json) {
     String manager = json["manager"];
     if (manager.equals(deviceName)) {
       bootstrapManager.unsubscribe(helper.string2char(streamTopic));
-      streamTopic = BASE_STREAM_TOPIC + instance;
+      streamTopic = baseStreamTopic + instance;
       effect = Effect::GlowWormWifi;
       stateOn = true;
       bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
@@ -481,7 +481,7 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
 void sendStatus() {
   // Skip JSON framework for lighter processing during the stream
   if (statusSent && (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi)) {
-    bootstrapManager.publish(FPS_TOPIC, helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
+    bootstrapManager.publish(helper.string2char(fpsTopic), helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
   } else {
     JsonObject root = bootstrapManager.getJsonObject();
     JsonObject color = root.createNestedObject("color");
@@ -551,7 +551,7 @@ bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json) {
     server.on("/update", HTTP_POST, []() {
         server.sendHeader("Connection", "close");
         server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
-        bootstrapManager.publish(UPDATE_RESULT_STATE_TOPIC, helper.string2char(deviceName), false);
+        bootstrapManager.publish(helper.string2char(updateResultStateTopic), helper.string2char(deviceName), false);
         delay(DELAY_500);
         ESP.restart();
     }, []() {
@@ -614,26 +614,69 @@ bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json) {
 
   if (json.containsKey(F("basetopic"))) {
     String customtopic = json["basetopic"];
-    Serial.println(customtopic);
-
-    bootstrapManager.unsubscribe(helper.string2char(lightStateTopic));
-    lightStateTopic.replace(BASE_TOPIC, customtopic);
-    bootstrapManager.subscribe(helper.string2char(lightStateTopic));
-
-
-
+    Serial.println("Swapping topic=" + customtopic);
+    swapTopicUnsubscribe();
+    swapTopicReplace(customtopic);
+    swapTopicSubscribe(customtopic);
     Serial.println(lightSetTopic);
-
   }
   return true;
 
 }
 
-void swapTopicSubscription(String customtopic) {
+/**
+ * Unsubscribe from the default MQTT topic
+ */
+void swapTopicUnsubscribe() {
 
+  bootstrapManager.unsubscribe(helper.string2char(lightStateTopic));
+  bootstrapManager.unsubscribe(helper.string2char(updateStateTopic));
+  bootstrapManager.unsubscribe(helper.string2char(updateResultStateTopic));
   bootstrapManager.unsubscribe(helper.string2char(lightSetTopic));
+  bootstrapManager.unsubscribe(helper.string2char(baseStreamTopic));
+  bootstrapManager.unsubscribe(helper.string2char(streamTopic));
+  bootstrapManager.unsubscribe(helper.string2char(unsubscribeTopic));
+  bootstrapManager.unsubscribe(helper.string2char(fpsTopic));
+  bootstrapManager.unsubscribe(helper.string2char(gpioTopic));
+  bootstrapManager.unsubscribe(helper.string2char(baudrateTopic));
+
+}
+
+/**
+ * Swap MQTT topi with the custom one
+ * @param customtopic custom MQTT topic to use, received by Firefly Luciferin
+ */
+void swapTopicReplace(String customtopic) {
+
+  lightStateTopic.replace(BASE_TOPIC, customtopic);
+  updateStateTopic.replace(BASE_TOPIC, customtopic);
+  updateResultStateTopic.replace(BASE_TOPIC, customtopic);
   lightSetTopic.replace(BASE_TOPIC, customtopic);
+  baseStreamTopic.replace(BASE_TOPIC, customtopic);
+  streamTopic.replace(BASE_TOPIC, customtopic);
+  unsubscribeTopic.replace(BASE_TOPIC, customtopic);
+  fpsTopic.replace(BASE_TOPIC, customtopic);
+  gpioTopic.replace(BASE_TOPIC, customtopic);
+  baudrateTopic.replace(BASE_TOPIC, customtopic);
+
+}
+
+/**
+ * Subscribe to custom MQTT topic
+ * @param customtopic custom MQTT topic to use, received by Firefly Luciferin
+ */
+void swapTopicSubscribe(String customtopic) {
+
+  bootstrapManager.subscribe(helper.string2char(lightStateTopic));
+  bootstrapManager.subscribe(helper.string2char(updateStateTopic));
+  bootstrapManager.subscribe(helper.string2char(updateResultStateTopic));
   bootstrapManager.subscribe(helper.string2char(lightSetTopic));
+  bootstrapManager.subscribe(helper.string2char(baseStreamTopic));
+  bootstrapManager.subscribe(helper.string2char(streamTopic));
+  bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
+  bootstrapManager.subscribe(helper.string2char(fpsTopic));
+  bootstrapManager.subscribe(helper.string2char(gpioTopic));
+  bootstrapManager.subscribe(helper.string2char(baudrateTopic));
 
 }
 

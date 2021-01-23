@@ -43,16 +43,16 @@ Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 String lightStateTopic = "lights/glowwormluciferin";
-const char* UPDATE_STATE_TOPIC = "lights/glowwormluciferin/update";
-const char* UPDATE_RESULT_STATE_TOPIC = "lights/glowwormluciferin/update/result";
+String updateStateTopic = "lights/glowwormluciferin/update";
+String updateResultStateTopic = "lights/glowwormluciferin/update/result";
 String lightSetTopic = "lights/glowwormluciferin/set";
-String BASE_STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
+String baseStreamTopic = "lights/glowwormluciferin/set/stream";
 String streamTopic = "lights/glowwormluciferin/set/stream";
-const char* UNSUBSCRIBE_TOPIC = "lights/glowwormluciferin/unsubscribe";
+String unsubscribeTopic = "lights/glowwormluciferin/unsubscribe";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
-const char* FPS_TOPIC = "lights/glowwormluciferin/fps";
-const char* GPIO_TOPIC = "lights/glowwormluciferin/gpio";
-const char* BAUDRATE_TOPIC = "lights/glowwormluciferin/baudrate";
+String fpsTopic = "lights/glowwormluciferin/fps";
+String gpioTopic = "lights/glowwormluciferin/gpio";
+String baudrateTopic = "lights/glowwormluciferin/baudrate";
 const char* SWAP_TOPIC = "lights/glowwormluciferin/swaptopic";
 const char* BASE_TOPIC = "glowwormluciferin";
 
@@ -171,3 +171,6 @@ void setGpio(int gpio);
 void setBaudRate(int baudRate);
 void setNumLed(int numLedFromLuciferin);
 int setBaudRateInUse(int baudRate);
+void swapTopicUnsubscribe();
+void swapTopicReplace(String customtopic);
+void swapTopicSubscribe(String customtopic);
