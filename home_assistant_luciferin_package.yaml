@@ -73,17 +73,19 @@ sensor:
     name: 'Glow Worm Luciferin FPS idle'
     unit_of_measurement: 'FPS'
     value_template: '{{ value_json.framerate }}'
+    force_update: true
   - platform: mqtt
     state_topic: 'lights/glowwormluciferin/fps'
     name: 'Glow Worm Luciferin FPS running'
     unit_of_measurement: 'FPS'
     value_template: '{{ value_json.framerate }}'
+    force_update: true
   - platform: template
     sensors:
       gw_fps:
         friendly_name: "Glow Worm Luciferin"
         value_template: >-
-          {% if as_timestamp(states.sensor.glow_worm_luciferin_fps_idle.last_changed) > as_timestamp(states.sensor.glow_worm_luciferin_fps_running.last_changed) %}
+          {% if as_timestamp(states.sensor.glow_worm_luciferin_fps_idle.last_updated) > as_timestamp(states.sensor.glow_worm_luciferin_fps_running.last_updated) %}
             {{ states.sensor.glow_worm_luciferin_fps_idle.state }}
           {% else %}
             {{ states.sensor.glow_worm_luciferin_fps_running.state }}
@@ -150,6 +152,10 @@ automation:
             sequence:
               - service: input_boolean.turn_on
                 entity_id: input_boolean.solideffect
+              - service: mqtt.publish
+                data_template:
+                  topic: lights/firelyluciferin/framerate
+                  payload: '{"producing":0,"consuming":0}'                
           - conditions:
               - condition: template
                 value_template: >-
@@ -184,18 +190,6 @@ automation:
       - data:
           message: "Glowworm stopped responding!"
         service: notify.telegram_notifier
-  - id: '1598917385535'
-    alias: Firefly Luciferin sensor reset
-    trigger:
-      - entity_id: switch.wake_on_lan
-        from: 'on'
-        platform: state
-        to: 'off'
-    action:
-      - service: mqtt.publish
-        data_template:
-          topic: lights/firelyluciferin/framerate
-          payload: '{"producing":0,"consuming":0}'
   - alias: Set Luciferin Gamma
     trigger:
       - entity_id: input_select.gamma_select
