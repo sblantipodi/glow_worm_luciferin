@@ -12,6 +12,7 @@ light:
       - rainbow
       - solid rainbow
       - mixed rainbow
+      - solid
     brightness: true
     rgb: true
     optimistic: true
