@@ -78,6 +78,15 @@ void setup() {
   #endif
 
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
+  // LED number from configuration storage
+  String topicToUse = bootstrapManager.readValueFromFile(TOPIC_FILENAME, MQTT_PARAM);
+  if (!topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != topicInUse) {
+    topicInUse = topicToUse;
+    executeMqttSwap(topicInUse);
+  }
+  Serial.print(F("\nMQTT topic in use="));
+  Serial.println(topicInUse);
+
   // Bootsrap setup() with Wifi and MQTT functions
   bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
   #endif
@@ -141,7 +150,6 @@ void setGpio(int gpio) {
   bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
   #endif
   delay(20);
-  ESP.restart();
 
 }
 
@@ -181,7 +189,6 @@ void setBaudRate(int baudRate) {
   bootstrapManager.writeToSPIFFS(baudrateDoc, BAUDRATE_FILENAME);
   #endif
   delay(20);
-  ESP.restart();
 
 }
 
@@ -225,10 +232,8 @@ void manageQueueSubscription() {
   bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
   bootstrapManager.subscribe(helper.string2char(updateStateTopic));
-  bootstrapManager.subscribe(helper.string2char(gpioTopic));
   bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
-  bootstrapManager.subscribe(helper.string2char(baudrateTopic));
-  bootstrapManager.subscribe(SWAP_TOPIC);
+  bootstrapManager.subscribe(helper.string2char(firmwareConfigTopic));
 
 }
 
@@ -323,14 +328,10 @@ void callback(char *topic, byte *payload, unsigned int length) {
       processJson(bootstrapManager.jsonDoc);
     } else if (updateStateTopic.equals(topic)) {
       processUpdate(bootstrapManager.jsonDoc);
-    } else if (gpioTopic.equals(topic)) {
-      processGPIO(bootstrapManager.jsonDoc);
-    } else if (baudrateTopic.equals(topic)) {
-      processBaudrate(bootstrapManager.jsonDoc);
+    } else if (firmwareConfigTopic.equals(topic)) {
+      processFirmwareConfig(bootstrapManager.jsonDoc);
     } else if (unsubscribeTopic.equals(topic)) {
       processUnSubscribeStream(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, SWAP_TOPIC) == 0) {
-      swapMqttTopic(bootstrapManager.jsonDoc);
     }
     if (stateOn) {
       realRed = map(red, 0, 255, 0, brightness);
@@ -349,39 +350,40 @@ void callback(char *topic, byte *payload, unsigned int length) {
 }
 
 /**
- * Process GPIO message
+ * Process Firmware Configuration sent from Firefly Luciferin
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json) {
+bool processFirmwareConfig(StaticJsonDocument<BUFFER_SIZE> json) {
 
-  if (json.containsKey(GPIO_PARAM)) {
-    int gpio = (int) json[GPIO_PARAM];
+  boolean espRestart = false;
+  if (json.containsKey("MAC")) {
     String macToUpdate = json["MAC"];
     Serial.println(macToUpdate);
-    Serial.println(MAC);
-    if (gpio != 0 && gpioInUse != gpio ) {
-      setGpio(gpio);
-    }
-  }
-  return true;
-
-}
-
-/**
- * Process baudrate message
- * @param json StaticJsonDocument
- * @return true if message is correctly processed
- */
-bool processBaudrate(StaticJsonDocument<BUFFER_SIZE> json) {
-
-  if (json.containsKey(BAUDRATE_PARAM)) {
-    int baudrate = (int) json[BAUDRATE_PARAM];
-    String macToUpdate = json["MAC"];
-    Serial.println(macToUpdate);
-    Serial.println(MAC);
-    if (baudrate != 0 && baudRateInUse != baudrate && macToUpdate == MAC) {
-      setBaudRate(baudrate);
+    if (macToUpdate == MAC) {
+      // GPIO
+      if (json.containsKey(GPIO_PARAM)) {
+        int gpio = (int) json[GPIO_PARAM];
+        if (gpio != 0 && gpioInUse != gpio) {
+          setGpio(gpio);
+          espRestart = true;
+        }
+      }
+      // BAUDRATE
+      if (json.containsKey(BAUDRATE_PARAM)) {
+        int baudrate = (int) json[BAUDRATE_PARAM];
+        if (baudrate != 0 && baudRateInUse != baudrate) {
+          setBaudRate(baudrate);
+          espRestart = true;
+        }
+      }
+      // SWAP TOPIC
+      boolean topicRestart = swapMqttTopic(json);
+      if (topicRestart) espRestart = true;
+      // Restart if needed
+      if (espRestart) {
+        ESP.restart();
+      }
     }
   }
   return true;
@@ -468,7 +470,7 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
     else {
       effect = Effect::solid;
     }
-    statusSent = false;
+    statusSent = true; // TODO FALSE?
   }
 
   return true;
@@ -609,20 +611,46 @@ bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json) {
 /**
  * Swap MQTT topic with a custom one received from Firefly Luciferin
  * @param json StaticJsonDocument
- * @return true if message is correctly processed
+ * @return true if mqtt has been swapper and need reboot
  */
 bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json) {
 
-  if (json.containsKey(F("basetopic"))) {
-    String customtopic = json["basetopic"];
-    topicInUse = customtopic;
-    Serial.println("Swapping topic=" + customtopic);
-    swapTopicUnsubscribe();
-    swapTopicReplace(customtopic);
-    swapTopicSubscribe(customtopic);
-    Serial.println(lightSetTopic);
+  boolean reboot = false;
+  if (json.containsKey(MQTT_PARAM)) {
+    String customtopic = json[MQTT_PARAM];
+    if (customtopic != topicInUse) {
+      // Write to storage
+      Serial.println("SWAPPING MQTT_TOPIC");
+      topicInUse = customtopic;
+      DynamicJsonDocument topicDoc(1024);
+      #if defined(ESP8266)
+      topicDoc[MQTT_PARAM] = topicInUse;
+      bootstrapManager.writeToLittleFS(topicDoc, TOPIC_FILENAME);
+      #endif
+      #if defined(ESP32)
+      gpioDoc[MQTT_PARAM] = gpioInUse;
+      bootstrapManager.writeToSPIFFS(topicDoc, TOPIC_FILENAME);
+      #endif
+      delay(20);
+      executeMqttSwap(customtopic);
+      reboot = true;
+    }
   }
-  return true;
+  return reboot;
+
+}
+
+/**
+ * Execute the MQTT topic swap
+ * @param customtopic new topic to use
+ */
+void executeMqttSwap(String customtopic) {
+
+  Serial.println("Swapping topic=" + customtopic);
+  topicInUse = customtopic;
+  swapTopicUnsubscribe();
+  swapTopicReplace(customtopic);
+  swapTopicSubscribe();
 
 }
 
@@ -639,8 +667,6 @@ void swapTopicUnsubscribe() {
   bootstrapManager.unsubscribe(helper.string2char(streamTopic));
   bootstrapManager.unsubscribe(helper.string2char(unsubscribeTopic));
   bootstrapManager.unsubscribe(helper.string2char(fpsTopic));
-  bootstrapManager.unsubscribe(helper.string2char(gpioTopic));
-  bootstrapManager.unsubscribe(helper.string2char(baudrateTopic));
 
 }
 
@@ -658,16 +684,13 @@ void swapTopicReplace(String customtopic) {
   streamTopic.replace(BASE_TOPIC, customtopic);
   unsubscribeTopic.replace(BASE_TOPIC, customtopic);
   fpsTopic.replace(BASE_TOPIC, customtopic);
-  gpioTopic.replace(BASE_TOPIC, customtopic);
-  baudrateTopic.replace(BASE_TOPIC, customtopic);
 
 }
 
 /**
  * Subscribe to custom MQTT topic
- * @param customtopic custom MQTT topic to use, received by Firefly Luciferin
  */
-void swapTopicSubscribe(String customtopic) {
+void swapTopicSubscribe() {
 
   bootstrapManager.subscribe(helper.string2char(lightStateTopic));
   bootstrapManager.subscribe(helper.string2char(updateStateTopic));
@@ -677,8 +700,6 @@ void swapTopicSubscribe(String customtopic) {
   bootstrapManager.subscribe(helper.string2char(streamTopic));
   bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
   bootstrapManager.subscribe(helper.string2char(fpsTopic));
-  bootstrapManager.subscribe(helper.string2char(gpioTopic));
-  bootstrapManager.subscribe(helper.string2char(baudrateTopic));
 
 }
 
@@ -801,6 +822,7 @@ void mainLoop() {
 
     if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 5 || gpio == 16)) {
       setGpio(gpio);
+      ESP.restart();
     }
 
     int numLedFromLuciferin = lo + loSecondPart + 1;
@@ -810,6 +832,7 @@ void mainLoop() {
 
     if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
       setBaudRate(baudRate);
+      ESP.restart();
     }
 
     if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
