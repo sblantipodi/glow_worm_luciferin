@@ -80,7 +80,7 @@ void setup() {
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // LED number from configuration storage
   String topicToUse = bootstrapManager.readValueFromFile(TOPIC_FILENAME, MQTT_PARAM);
-  if (!topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != topicInUse) {
+  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != topicInUse) {
     topicInUse = topicToUse;
     executeMqttSwap(topicInUse);
   }
@@ -178,14 +178,12 @@ void setBaudRate(int baudRate) {
 
   Serial.println("CHANGING BAUDRATE");
   setBaudRateInUse(baudRate);
-  #if defined(ESP8266)
   DynamicJsonDocument baudrateDoc(1024);
   baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
+  #if defined(ESP8266)
   bootstrapManager.writeToLittleFS(baudrateDoc, BAUDRATE_FILENAME);
   #endif
   #if defined(ESP32)
-  DynamicJsonDocument baudrateDoc(1024);
-  baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
   bootstrapManager.writeToSPIFFS(baudrateDoc, BAUDRATE_FILENAME);
   #endif
   delay(20);
@@ -455,22 +453,30 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
 
   if (json.containsKey("effect")) {
     JsonVariant requestedEffect = json["effect"];
-    if (requestedEffect == "GlowWorm") {
-      effect = Effect::GlowWorm;
-      FastLED.setBrightness(brightness);
-      lastLedUpdate = millis();
-    } else if (requestedEffect == "GlowWormWifi") {
-      effect = Effect::GlowWormWifi;
-      FastLED.setBrightness(brightness);
-      lastStream = millis();
-    } else if (requestedEffect == "bpm") effect = Effect::bpm;
-    else if (requestedEffect == "rainbow") effect = Effect::rainbow;
-    else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
-    else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
-    else {
-      effect = Effect::solid;
+    if (json.containsKey("MAC")) {
+      if (json["MAC"] == MAC) {
+        if (requestedEffect == "GlowWorm") {
+          effect = Effect::GlowWorm;
+          FastLED.setBrightness(brightness);
+          lastLedUpdate = millis();
+        } else if (requestedEffect == "GlowWormWifi") {
+          effect = Effect::GlowWormWifi;
+          FastLED.setBrightness(brightness);
+          lastStream = millis();
+        }
+      }
     }
-    statusSent = true; // TODO FALSE?
+    else {
+      if (requestedEffect == "bpm") effect = Effect::bpm;
+      else if (requestedEffect == "rainbow") effect = Effect::rainbow;
+      else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
+      else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
+      else {
+        effect = Effect::solid;
+        breakLoop = true;
+      }
+    }
+
   }
 
   return true;
@@ -482,7 +488,7 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
  */
 void sendStatus() {
   // Skip JSON framework for lighter processing during the stream
-  if (statusSent && (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi)) {
+  if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
     bootstrapManager.publish(helper.string2char(fpsTopic), helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
   } else {
     JsonObject root = bootstrapManager.getJsonObject();
@@ -495,11 +501,9 @@ void sendStatus() {
     switch (effect) {
       case Effect::GlowWormWifi:
         root["effect"] = "GlowWormWifi";
-        statusSent = true;
         break;
       case Effect::GlowWorm:
         root["effect"] = "GlowWorm";
-        statusSent = true;
         break;
       case Effect::solid: root["effect"] = "solid"; break;
       case Effect::bpm: root["effect"] = "bpm"; break;
@@ -623,12 +627,11 @@ bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json) {
       Serial.println("SWAPPING MQTT_TOPIC");
       topicInUse = customtopic;
       DynamicJsonDocument topicDoc(1024);
-      #if defined(ESP8266)
       topicDoc[MQTT_PARAM] = topicInUse;
+      #if defined(ESP8266)
       bootstrapManager.writeToLittleFS(topicDoc, TOPIC_FILENAME);
       #endif
       #if defined(ESP32)
-      gpioDoc[MQTT_PARAM] = gpioInUse;
       bootstrapManager.writeToSPIFFS(topicDoc, TOPIC_FILENAME);
       #endif
       delay(20);
@@ -1067,6 +1070,7 @@ void sendSerialInfo() {
     Serial.printf("MAC:%s\n", helper.string2char(MAC));
     Serial.printf("gpio:%s\n", helper.string2char(additionalParam));
     Serial.printf("baudrate:%d\n", baudRateInUse);
+    Serial.printf("effect:%d\n", effect);
 
   }
 

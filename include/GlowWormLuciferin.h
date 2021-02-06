@@ -55,8 +55,6 @@ String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
 const char* BASE_TOPIC = "glowwormluciferin";
 String topicInUse = "glowwormluciferin";
 
-boolean statusSent = false;
-
 enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
 
