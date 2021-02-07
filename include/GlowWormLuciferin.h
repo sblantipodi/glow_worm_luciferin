@@ -42,19 +42,18 @@ BootstrapManager bootstrapManager;
 Helpers helper;
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
-const char* LIGHT_STATE_TOPIC = "lights/glowwormluciferin";
-const char* UPDATE_STATE_TOPIC = "lights/glowwormluciferin/update";
-const char* UPDATE_RESULT_STATE_TOPIC = "lights/glowwormluciferin/update/result";
-const char* LIGHT_SET_TOPIC = "lights/glowwormluciferin/set";
-String BASE_STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
-String STREAM_TOPIC = "lights/glowwormluciferin/set/stream";
-const char* UNSUBSCRIBE_TOPIC = "lights/glowwormluciferin/unsubscribe";
+String lightStateTopic = "lights/glowwormluciferin";
+String updateStateTopic = "lights/glowwormluciferin/update";
+String updateResultStateTopic = "lights/glowwormluciferin/update/result";
+String lightSetTopic = "lights/glowwormluciferin/set";
+String baseStreamTopic = "lights/glowwormluciferin/set/stream";
+String streamTopic = "lights/glowwormluciferin/set/stream";
+String unsubscribeTopic = "lights/glowwormluciferin/unsubscribe";
 const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
-const char* FPS_TOPIC = "lights/glowwormluciferin/fps";
-const char* GPIO_TOPIC = "lights/glowwormluciferin/gpio";
-const char* BAUDRATE_TOPIC = "lights/glowwormluciferin/baudrate";
-
-boolean statusSent = false;
+String fpsTopic = "lights/glowwormluciferin/fps";
+String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
+const char* BASE_TOPIC = "glowwormluciferin";
+String topicInUse = "glowwormluciferin";
 
 enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
@@ -70,7 +69,6 @@ uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
 int gpioInUse = 5, baudRateInUse = 3, fireflyEffectInUse;
-
 // Upgrade firmware
 boolean firmwareUpgrade = false;
 size_t updateSize = 0;
@@ -81,10 +79,12 @@ CRGB leds[NUM_LEDS];
 int dynamicLedNum = NUM_LEDS;
 const String LED_NUM_FILENAME = "led_number.json";
 const String GPIO_FILENAME = "gpio.json";
+const String TOPIC_FILENAME = "topic.json";
 const String BAUDRATE_FILENAME = "baudrate.json";
 const String EFFECT_FILENAME = "effect.json";
 const String LED_NUM_PARAM = "lednum";
 const String GPIO_PARAM = "gpio";
+const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
 const String EFFECT_PARAM = "effect";
 
@@ -149,10 +149,11 @@ void manageHardwareButton();
 void sendStatus();
 bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json);
 bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
-bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json);
-bool processBaudrate(StaticJsonDocument<BUFFER_SIZE> json);
+bool processFirmwareConfig(StaticJsonDocument<BUFFER_SIZE> json);
 bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
 bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json);
+bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json);
+void executeMqttSwap(String customtopic);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
 void fadeall();
@@ -168,3 +169,6 @@ void setGpio(int gpio);
 void setBaudRate(int baudRate);
 void setNumLed(int numLedFromLuciferin);
 int setBaudRateInUse(int baudRate);
+void swapTopicUnsubscribe();
+void swapTopicReplace(String customtopic);
+void swapTopicSubscribe();

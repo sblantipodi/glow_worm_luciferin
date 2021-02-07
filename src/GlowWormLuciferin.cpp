@@ -78,6 +78,15 @@ void setup() {
   #endif
 
   #ifdef TARGET_GLOWWORMLUCIFERINFULL
+  // LED number from configuration storage
+  String topicToUse = bootstrapManager.readValueFromFile(TOPIC_FILENAME, MQTT_PARAM);
+  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != topicInUse) {
+    topicInUse = topicToUse;
+    executeMqttSwap(topicInUse);
+  }
+  Serial.print(F("\nMQTT topic in use="));
+  Serial.println(topicInUse);
+
   // Bootsrap setup() with Wifi and MQTT functions
   bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
   #endif
@@ -141,7 +150,6 @@ void setGpio(int gpio) {
   bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
   #endif
   delay(20);
-  ESP.restart();
 
 }
 
@@ -170,18 +178,15 @@ void setBaudRate(int baudRate) {
 
   Serial.println("CHANGING BAUDRATE");
   setBaudRateInUse(baudRate);
-  #if defined(ESP8266)
   DynamicJsonDocument baudrateDoc(1024);
   baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
+  #if defined(ESP8266)
   bootstrapManager.writeToLittleFS(baudrateDoc, BAUDRATE_FILENAME);
   #endif
   #if defined(ESP32)
-  DynamicJsonDocument baudrateDoc(1024);
-  baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
   bootstrapManager.writeToSPIFFS(baudrateDoc, BAUDRATE_FILENAME);
   #endif
   delay(20);
-  ESP.restart();
 
 }
 
@@ -221,13 +226,12 @@ void manageDisconnections() {
  */
 void manageQueueSubscription() {
 
-  bootstrapManager.subscribe(LIGHT_SET_TOPIC);
-  bootstrapManager.subscribe(helper.string2char(STREAM_TOPIC), 0);
+  bootstrapManager.subscribe(helper.string2char(lightSetTopic));
+  bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
-  bootstrapManager.subscribe(UPDATE_STATE_TOPIC);
-  bootstrapManager.subscribe(GPIO_TOPIC);
-  bootstrapManager.subscribe(UNSUBSCRIBE_TOPIC);
-  bootstrapManager.subscribe(BAUDRATE_TOPIC);
+  bootstrapManager.subscribe(helper.string2char(updateStateTopic));
+  bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
+  bootstrapManager.subscribe(helper.string2char(firmwareConfigTopic));
 
 }
 
@@ -246,7 +250,7 @@ void manageHardwareButton() {
  */
 void callback(char *topic, byte *payload, unsigned int length) {
 
-  if (STREAM_TOPIC.equals(topic)) {
+  if (streamTopic.equals(topic)) {
 
     if (effect == Effect::GlowWormWifi) {
       bootstrapManager.jsonDoc.clear();
@@ -318,15 +322,13 @@ void callback(char *topic, byte *payload, unsigned int length) {
     bootstrapManager.parseQueueMsg(topic, payload, length);
     if (strcmp(topic, CMND_AMBI_REBOOT) == 0) {
       processGlowWormLuciferinRebootCmnd(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, LIGHT_SET_TOPIC) == 0) {
+    } else if (lightSetTopic.equals(topic)) {
       processJson(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, UPDATE_STATE_TOPIC) == 0) {
+    } else if (updateStateTopic.equals(topic)) {
       processUpdate(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, GPIO_TOPIC) == 0) {
-      processGPIO(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, BAUDRATE_TOPIC) == 0) {
-      processBaudrate(bootstrapManager.jsonDoc);
-    } else if (strcmp(topic, UNSUBSCRIBE_TOPIC) == 0) {
+    } else if (firmwareConfigTopic.equals(topic)) {
+      processFirmwareConfig(bootstrapManager.jsonDoc);
+    } else if (unsubscribeTopic.equals(topic)) {
       processUnSubscribeStream(bootstrapManager.jsonDoc);
     }
     if (stateOn) {
@@ -346,39 +348,40 @@ void callback(char *topic, byte *payload, unsigned int length) {
 }
 
 /**
- * Process GPIO message
+ * Process Firmware Configuration sent from Firefly Luciferin
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool processGPIO(StaticJsonDocument<BUFFER_SIZE> json) {
+bool processFirmwareConfig(StaticJsonDocument<BUFFER_SIZE> json) {
 
-  if (json.containsKey(GPIO_PARAM)) {
-    int gpio = (int) json[GPIO_PARAM];
+  boolean espRestart = false;
+  if (json.containsKey("MAC")) {
     String macToUpdate = json["MAC"];
     Serial.println(macToUpdate);
-    Serial.println(MAC);
-    if (gpio != 0 && gpioInUse != gpio ) {
-      setGpio(gpio);
-    }
-  }
-  return true;
-
-}
-
-/**
- * Process baudrate message
- * @param json StaticJsonDocument
- * @return true if message is correctly processed
- */
-bool processBaudrate(StaticJsonDocument<BUFFER_SIZE> json) {
-
-  if (json.containsKey(BAUDRATE_PARAM)) {
-    int baudrate = (int) json[BAUDRATE_PARAM];
-    String macToUpdate = json["MAC"];
-    Serial.println(macToUpdate);
-    Serial.println(MAC);
-    if (baudrate != 0 && baudRateInUse != baudrate && macToUpdate == MAC) {
-      setBaudRate(baudrate);
+    if (macToUpdate == MAC) {
+      // GPIO
+      if (json.containsKey(GPIO_PARAM)) {
+        int gpio = (int) json[GPIO_PARAM];
+        if (gpio != 0 && gpioInUse != gpio) {
+          setGpio(gpio);
+          espRestart = true;
+        }
+      }
+      // BAUDRATE
+      if (json.containsKey(BAUDRATE_PARAM)) {
+        int baudrate = (int) json[BAUDRATE_PARAM];
+        if (baudrate != 0 && baudRateInUse != baudrate) {
+          setBaudRate(baudrate);
+          espRestart = true;
+        }
+      }
+      // SWAP TOPIC
+      boolean topicRestart = swapMqttTopic(json);
+      if (topicRestart) espRestart = true;
+      // Restart if needed
+      if (espRestart) {
+        ESP.restart();
+      }
     }
   }
   return true;
@@ -396,11 +399,11 @@ bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json) {
     String instance = json["instance"];
     String manager = json["manager"];
     if (manager.equals(deviceName)) {
-      bootstrapManager.unsubscribe(helper.string2char(STREAM_TOPIC));
-      STREAM_TOPIC = BASE_STREAM_TOPIC + instance;
+      bootstrapManager.unsubscribe(helper.string2char(streamTopic));
+      streamTopic = baseStreamTopic + instance;
       effect = Effect::GlowWormWifi;
       stateOn = true;
-      bootstrapManager.subscribe(helper.string2char(STREAM_TOPIC), 0);
+      bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
     }
   }
   return true;
@@ -450,22 +453,30 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
 
   if (json.containsKey("effect")) {
     JsonVariant requestedEffect = json["effect"];
-    if (requestedEffect == "GlowWorm") {
-      effect = Effect::GlowWorm;
-      FastLED.setBrightness(brightness);
-      lastLedUpdate = millis();
-    } else if (requestedEffect == "GlowWormWifi") {
-      effect = Effect::GlowWormWifi;
-      FastLED.setBrightness(brightness);
-      lastStream = millis();
-    } else if (requestedEffect == "bpm") effect = Effect::bpm;
-    else if (requestedEffect == "rainbow") effect = Effect::rainbow;
-    else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
-    else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
-    else {
-      effect = Effect::solid;
+    if (json.containsKey("MAC")) {
+      if (json["MAC"] == MAC) {
+        if (requestedEffect == "GlowWorm") {
+          effect = Effect::GlowWorm;
+          FastLED.setBrightness(brightness);
+          lastLedUpdate = millis();
+        } else if (requestedEffect == "GlowWormWifi") {
+          effect = Effect::GlowWormWifi;
+          FastLED.setBrightness(brightness);
+          lastStream = millis();
+        }
+      }
     }
-    statusSent = false;
+    else {
+      if (requestedEffect == "bpm") effect = Effect::bpm;
+      else if (requestedEffect == "rainbow") effect = Effect::rainbow;
+      else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
+      else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
+      else {
+        effect = Effect::solid;
+        breakLoop = true;
+      }
+    }
+
   }
 
   return true;
@@ -477,8 +488,8 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
  */
 void sendStatus() {
   // Skip JSON framework for lighter processing during the stream
-  if (statusSent && (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi)) {
-    bootstrapManager.publish(FPS_TOPIC, helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
+  if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
+    bootstrapManager.publish(helper.string2char(fpsTopic), helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
   } else {
     JsonObject root = bootstrapManager.getJsonObject();
     JsonObject color = root.createNestedObject("color");
@@ -490,11 +501,9 @@ void sendStatus() {
     switch (effect) {
       case Effect::GlowWormWifi:
         root["effect"] = "GlowWormWifi";
-        statusSent = true;
         break;
       case Effect::GlowWorm:
         root["effect"] = "GlowWorm";
-        statusSent = true;
         break;
       case Effect::solid: root["effect"] = "solid"; break;
       case Effect::bpm: root["effect"] = "bpm"; break;
@@ -515,13 +524,14 @@ void sendStatus() {
     #endif
     root[LED_NUM_PARAM] = String(dynamicLedNum);
     root["gpio"] = additionalParam;
+    root["mqttopic"] = topicInUse;
 
     if (effect == Effect::solid && !stateOn) {
       setColor(0, 0, 0);
     }
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
-    bootstrapManager.publish(LIGHT_STATE_TOPIC, root, true);
+    bootstrapManager.publish(helper.string2char(lightStateTopic), root, true);
   }
 
   #if defined(ESP32)
@@ -548,7 +558,7 @@ bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json) {
     server.on("/update", HTTP_POST, []() {
         server.sendHeader("Connection", "close");
         server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
-        bootstrapManager.publish(UPDATE_RESULT_STATE_TOPIC, helper.string2char(deviceName), false);
+        bootstrapManager.publish(helper.string2char(updateResultStateTopic), helper.string2char(deviceName), false);
         delay(DELAY_500);
         ESP.restart();
     }, []() {
@@ -599,6 +609,100 @@ bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json) {
     ESP.restart();
   }
   return true;
+
+}
+
+/**
+ * Swap MQTT topic with a custom one received from Firefly Luciferin
+ * @param json StaticJsonDocument
+ * @return true if mqtt has been swapper and need reboot
+ */
+bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json) {
+
+  boolean reboot = false;
+  if (json.containsKey(MQTT_PARAM)) {
+    String customtopic = json[MQTT_PARAM];
+    if (customtopic != topicInUse) {
+      // Write to storage
+      Serial.println("SWAPPING MQTT_TOPIC");
+      topicInUse = customtopic;
+      DynamicJsonDocument topicDoc(1024);
+      topicDoc[MQTT_PARAM] = topicInUse;
+      #if defined(ESP8266)
+      bootstrapManager.writeToLittleFS(topicDoc, TOPIC_FILENAME);
+      #endif
+      #if defined(ESP32)
+      bootstrapManager.writeToSPIFFS(topicDoc, TOPIC_FILENAME);
+      #endif
+      delay(20);
+      executeMqttSwap(customtopic);
+      reboot = true;
+    }
+  }
+  return reboot;
+
+}
+
+/**
+ * Execute the MQTT topic swap
+ * @param customtopic new topic to use
+ */
+void executeMqttSwap(String customtopic) {
+
+  Serial.println("Swapping topic=" + customtopic);
+  topicInUse = customtopic;
+  swapTopicUnsubscribe();
+  swapTopicReplace(customtopic);
+  swapTopicSubscribe();
+
+}
+
+/**
+ * Unsubscribe from the default MQTT topic
+ */
+void swapTopicUnsubscribe() {
+
+  bootstrapManager.unsubscribe(helper.string2char(lightStateTopic));
+  bootstrapManager.unsubscribe(helper.string2char(updateStateTopic));
+  bootstrapManager.unsubscribe(helper.string2char(updateResultStateTopic));
+  bootstrapManager.unsubscribe(helper.string2char(lightSetTopic));
+  bootstrapManager.unsubscribe(helper.string2char(baseStreamTopic));
+  bootstrapManager.unsubscribe(helper.string2char(streamTopic));
+  bootstrapManager.unsubscribe(helper.string2char(unsubscribeTopic));
+  bootstrapManager.unsubscribe(helper.string2char(fpsTopic));
+
+}
+
+/**
+ * Swap MQTT topi with the custom one
+ * @param customtopic custom MQTT topic to use, received by Firefly Luciferin
+ */
+void swapTopicReplace(String customtopic) {
+
+  lightStateTopic.replace(BASE_TOPIC, customtopic);
+  updateStateTopic.replace(BASE_TOPIC, customtopic);
+  updateResultStateTopic.replace(BASE_TOPIC, customtopic);
+  lightSetTopic.replace(BASE_TOPIC, customtopic);
+  baseStreamTopic.replace(BASE_TOPIC, customtopic);
+  streamTopic.replace(BASE_TOPIC, customtopic);
+  unsubscribeTopic.replace(BASE_TOPIC, customtopic);
+  fpsTopic.replace(BASE_TOPIC, customtopic);
+
+}
+
+/**
+ * Subscribe to custom MQTT topic
+ */
+void swapTopicSubscribe() {
+
+  bootstrapManager.subscribe(helper.string2char(lightStateTopic));
+  bootstrapManager.subscribe(helper.string2char(updateStateTopic));
+  bootstrapManager.subscribe(helper.string2char(updateResultStateTopic));
+  bootstrapManager.subscribe(helper.string2char(lightSetTopic));
+  bootstrapManager.subscribe(helper.string2char(baseStreamTopic));
+  bootstrapManager.subscribe(helper.string2char(streamTopic));
+  bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
+  bootstrapManager.subscribe(helper.string2char(fpsTopic));
 
 }
 
@@ -721,6 +825,7 @@ void mainLoop() {
 
     if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 5 || gpio == 16)) {
       setGpio(gpio);
+      ESP.restart();
     }
 
     int numLedFromLuciferin = lo + loSecondPart + 1;
@@ -730,6 +835,7 @@ void mainLoop() {
 
     if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
       setBaudRate(baudRate);
+      ESP.restart();
     }
 
     if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
@@ -952,6 +1058,7 @@ void sendSerialInfo() {
     Serial.printf("firmware:%s\n", "LIGHT");
     #else
     Serial.printf("firmware:%s\n", "FULL");
+    Serial.printf("mqttopic:%s\n", helper.string2char(topicInUse));
     #endif
     Serial.printf("ver:%s\n", VERSION);
     Serial.printf("lednum:%d\n", dynamicLedNum);
@@ -963,6 +1070,7 @@ void sendSerialInfo() {
     Serial.printf("MAC:%s\n", helper.string2char(MAC));
     Serial.printf("gpio:%s\n", helper.string2char(additionalParam));
     Serial.printf("baudrate:%d\n", baudRateInUse);
+    Serial.printf("effect:%d\n", effect);
 
   }
 
