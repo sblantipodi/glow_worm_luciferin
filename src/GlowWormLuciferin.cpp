@@ -49,11 +49,11 @@ PINUtil pinUtil;
  */
 void setup() {
 
-  #if defined(ESP32)
+#if defined(ESP32)
   if (!SPIFFS.begin()) {
     SPIFFS.format();
   }
-  #endif
+#endif
 
   // BaudRate from configuration storage
   String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
@@ -73,11 +73,11 @@ void setup() {
   Serial.print("\nUsing LEDs=");
   Serial.println(dynamicLedNum);
 
-  #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   MAC = WiFi.macAddress();
-  #endif
+#endif
 
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
   // LED number from configuration storage
   String topicToUse = bootstrapManager.readValueFromFile(TOPIC_FILENAME, MQTT_PARAM);
   if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != topicInUse) {
@@ -89,7 +89,7 @@ void setup() {
 
   // Bootsrap setup() with Wifi and MQTT functions
   bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
-  #endif
+#endif
 
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
@@ -117,7 +117,7 @@ void setup() {
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
 
-  #if defined(ESP32)
+#if defined(ESP32)
   xTaskCreatePinnedToCore(
           mainTask,           /* Task function. */
           "mainTask",        /* name of task. */
@@ -126,7 +126,7 @@ void setup() {
           1,                        /* priority of the task */
           NULL,                /* Task handle to keep track of created task */
           0);
-  #endif
+#endif
 
 }
 
@@ -139,16 +139,16 @@ void setGpio(int gpio) {
 
   Serial.println("CHANGING GPIO");
   gpioInUse = gpio;
-  #if defined(ESP8266)
+#if defined(ESP8266)
   DynamicJsonDocument gpioDoc(1024);
   gpioDoc[GPIO_PARAM] = gpioInUse;
   bootstrapManager.writeToLittleFS(gpioDoc, GPIO_FILENAME);
-  #endif
-  #if defined(ESP32)
+#endif
+#if defined(ESP32)
   DynamicJsonDocument gpioDoc(1024);
   gpioDoc[GPIO_PARAM] = gpioInUse;
   bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
-  #endif
+#endif
   delay(20);
 
 }
@@ -180,12 +180,12 @@ void setBaudRate(int baudRate) {
   setBaudRateInUse(baudRate);
   DynamicJsonDocument baudrateDoc(1024);
   baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
-  #if defined(ESP8266)
+#if defined(ESP8266)
   bootstrapManager.writeToLittleFS(baudrateDoc, BAUDRATE_FILENAME);
-  #endif
-  #if defined(ESP32)
+#endif
+#if defined(ESP32)
   bootstrapManager.writeToSPIFFS(baudrateDoc, BAUDRATE_FILENAME);
-  #endif
+#endif
   delay(20);
 
 }
@@ -197,16 +197,16 @@ void setBaudRate(int baudRate) {
 void setNumLed(int numLedFromLuciferin) {
 
   dynamicLedNum = numLedFromLuciferin;
-  #if defined(ESP8266)
+#if defined(ESP8266)
   DynamicJsonDocument numLedDoc(1024);
   numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
   bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
-  #endif
-  #if defined(ESP32)
+#endif
+#if defined(ESP32)
   DynamicJsonDocument numLedDoc(1024);
   numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
   bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
-  #endif
+#endif
 
 }
 
@@ -307,11 +307,11 @@ void callback(char *topic, byte *payload, unsigned int length) {
             FastLED.show();
           }
         }
-        #ifdef TARGET_GLOWWORMLUCIFERINFULL
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
         if ((dynamicLedNum < FIRST_CHUNK) || (dynamicLedNum < SECOND_CHUNK && part == 2) || (part == 3)) {
           framerateCounter++;
         }
-        #endif
+#endif
         lastStream = millis();
       }
     }
@@ -517,11 +517,11 @@ void sendStatus() {
     root["ver"] = VERSION;
     root["framerate"] = framerate;
     root[BAUDRATE_PARAM] = baudRateInUse;
-    #if defined(ESP8266)
+#if defined(ESP8266)
     root["board"] = "ESP8266";
-    #elif defined(ESP32)
+#elif defined(ESP32)
     root["board"] = "ESP32";
-    #endif
+#endif
     root[LED_NUM_PARAM] = String(dynamicLedNum);
     root["gpio"] = additionalParam;
     root["mqttopic"] = topicInUse;
@@ -534,11 +534,11 @@ void sendStatus() {
     bootstrapManager.publish(helper.string2char(lightStateTopic), root, true);
   }
 
-  #if defined(ESP32)
+#if defined(ESP32)
   delay(1);
   //Serial.print("Task is running on: ");
   //Serial.println(xPortGetCoreID());
-  #endif
+#endif
 
   // Built in led triggered
   ledTriggered = true;
@@ -565,11 +565,11 @@ bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json) {
         HTTPUpload &upload = server.upload();
         if (upload.status == UPLOAD_FILE_START) {
           Serial.printf("Update: %s\n", upload.filename.c_str());
-          #if defined(ESP32)
+#if defined(ESP32)
           updateSize = UPDATE_SIZE_UNKNOWN;
-          #elif defined(ESP8266)
+#elif defined(ESP8266)
           updateSize = 480000;
-          #endif
+#endif
           if (!Update.begin(updateSize)) { //start with max available size
             Update.printError(Serial);
           }
@@ -628,12 +628,12 @@ bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json) {
       topicInUse = customtopic;
       DynamicJsonDocument topicDoc(1024);
       topicDoc[MQTT_PARAM] = topicInUse;
-      #if defined(ESP8266)
+#if defined(ESP8266)
       bootstrapManager.writeToLittleFS(topicDoc, TOPIC_FILENAME);
-      #endif
-      #if defined(ESP32)
+#endif
+#if defined(ESP32)
       bootstrapManager.writeToSPIFFS(topicDoc, TOPIC_FILENAME);
-      #endif
+#endif
       delay(20);
       executeMqttSwap(customtopic);
       reboot = true;
@@ -739,7 +739,7 @@ void setColor(int inR, int inG, int inB) {
  */
 void checkConnection() {
 
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
 
@@ -755,17 +755,17 @@ void checkConnection() {
     framerateCounter = 0;
     sendStatus();
   }
-  #elif  TARGET_GLOWWORMLUCIFERINLIGHT
+#elif  TARGET_GLOWWORMLUCIFERINLIGHT
   EVERY_N_SECONDS(15) {
     // No updates since 15 seconds, turn off LEDs
     if(millis() > lastLedUpdate + 10000){
       setColor(0, 0, 0);
     }
   }
-  #endif
-  #if defined(ESP8266)
+#endif
+#if defined(ESP8266)
   sendSerialInfo();
-  #endif
+#endif
 
 }
 
@@ -777,14 +777,14 @@ int serialRead() {
 
 void mainLoop() {
 
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
   checkConnection();
-  #endif
+#endif
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (effect == Effect::GlowWorm) {
-  #endif
+#endif
     if (!led_state) led_state = true;
     off_timer = millis();
 
@@ -863,11 +863,11 @@ void mainLoop() {
     while (!breakLoop && Serial.available() > 0) {
       serialRead();
     }
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
   }
-  #endif
+#endif
   breakLoop = false;
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
 
   //EFFECT BPM
   if (effect == Effect::bpm) {
@@ -913,9 +913,9 @@ void mainLoop() {
     for(int j = 0; j < 256; j++) {
       for(int i = 0; i < dynamicLedNum; i++) {
         leds[i] = Scroll((i * 256 / dynamicLedNum + j) % 256);
-        #ifdef TARGET_GLOWWORMLUCIFERINFULL
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
         checkConnection();
-        #endif
+#endif
       }
       FastLED.show();
     }
@@ -1030,18 +1030,18 @@ void mainTask(void * parameter) {
 
 void loop() {
 
-  #if defined(ESP8266)
+#if defined(ESP8266)
   mainLoop();
-  #endif
+#endif
   if (firmwareUpgrade) {
     server.handleClient();
   }
-  #if defined(ESP32)
+#if defined(ESP32)
   EVERY_N_MILLISECONDS(1000) {
     feedTheDog();
   }
   sendSerialInfo();
-  #endif
+#endif
 
 }
 
@@ -1051,22 +1051,22 @@ void loop() {
 void sendSerialInfo() {
 
   EVERY_N_SECONDS(10) {
-    #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
     framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;
     Serial.printf("framerate:%s\n", helper.string2char(serialized(String((framerate > 0.5 ? framerate : 0),1))));
     Serial.printf("firmware:%s\n", "LIGHT");
-    #else
+#else
     Serial.printf("firmware:%s\n", "FULL");
     Serial.printf("mqttopic:%s\n", helper.string2char(topicInUse));
-    #endif
+#endif
     Serial.printf("ver:%s\n", VERSION);
     Serial.printf("lednum:%d\n", dynamicLedNum);
-    #if defined(ESP32)
+#if defined(ESP32)
     Serial.printf("board:%s\n", "ESP32");
-    #elif defined(ESP8266)
+#elif defined(ESP8266)
     Serial.printf("board:%s\n", "ESP8266");
-    #endif
+#endif
     Serial.printf("MAC:%s\n", helper.string2char(MAC));
     Serial.printf("gpio:%s\n", helper.string2char(additionalParam));
     Serial.printf("baudrate:%d\n", baudRateInUse);
