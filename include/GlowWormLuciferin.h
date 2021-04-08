@@ -19,7 +19,7 @@
 
   * Components:
    - Arduino C++ sketch running on an ESP8266EX D1 Mini from Lolin running @ 160MHz
-   - WS2812B 5V LED Strip (95 LED)
+   - WS2812B 5V LED Strip
    - 3.3V/5V Logic Level Converter
    - 220Ω resistor
    - 1000uf capacitor for 5V power stabilization
