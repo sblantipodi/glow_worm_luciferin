@@ -2,7 +2,7 @@
   GlowWormLuciferin.h - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
   
-  Copyright (C) 2020  Davide Perini
+  Copyright (C) 2020 - 2021  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -36,6 +36,18 @@
 #include "soc/timer_group_struct.h"
 #include "soc/timer_group_reg.h"
 #endif
+
+// White temp
+#define TEMPERATURE_1 Candle
+#define TEMPERATURE_2 Tungsten40W
+#define TEMPERATURE_3 Tungsten100W
+#define TEMPERATURE_4 Halogen
+#define TEMPERATURE_5 CarbonArc
+#define TEMPERATURE_6 HighNoonSun
+#define TEMPERATURE_7 DirectSunlight
+#define TEMPERATURE_8 OvercastSky
+#define TEMPERATURE_9 ClearBlueSky
+#define TEMPERATURE_10 UncorrectedTemperature
 
 /****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;
@@ -74,7 +86,7 @@ boolean firmwareUpgrade = false;
 size_t updateSize = 0;
 
 /****************** FastLED Defintions ******************/
-#define NUM_LEDS    511 // Max Led support
+#define NUM_LEDS 600 // Max Led support
 CRGB leds[NUM_LEDS];
 int dynamicLedNum = NUM_LEDS;
 const String LED_NUM_FILENAME = "led_number.json";
@@ -90,6 +102,7 @@ const String EFFECT_PARAM = "effect";
 
 const int FIRST_CHUNK = 190;
 const int SECOND_CHUNK = 380;
+const int THIRD_CHUNK = 570;
 #define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
 //#define CLOCK_PIN 5
 #define CHIPSET     WS2812B
@@ -172,3 +185,4 @@ int setBaudRateInUse(int baudRate);
 void swapTopicUnsubscribe();
 void swapTopicReplace(String customtopic);
 void swapTopicSubscribe();
+void setTemperature(int whitetemp);
