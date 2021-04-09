@@ -849,11 +849,13 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) checkConnection();
     baudRate = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
+    whiteTemp = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
     fireflyEffect = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
     chk = serialRead();
 
-    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ fireflyEffect ^ 0x55))) {
+    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect ^ 0x55))) {
       i = 0;
       goto waitLoop;
     }
@@ -876,6 +878,11 @@ void mainLoop() {
     if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
       setBaudRate(baudRate);
       ESP.restart();
+    }
+
+    if (whiteTemp != 0 && whiteTempInUse != whiteTemp) {
+      whiteTempInUse = whiteTemp;
+      setTemperature(whiteTempInUse);
     }
 
     if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {

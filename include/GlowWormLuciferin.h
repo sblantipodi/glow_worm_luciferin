@@ -74,13 +74,13 @@ Effect effect;
 unsigned long off_timer;
 
 // DPsoftware Checksum
-uint8_t prefix[] = {'D', 'P', 's'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, fireflyEffect, i;
+uint8_t prefix[] = {'D', 'P', 's'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, i;
 bool led_state = true;
 uint lastLedUpdate = 10000;
 uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
-int gpioInUse = 5, baudRateInUse = 3, fireflyEffectInUse;
+int gpioInUse = 5, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
 // Upgrade firmware
 boolean firmwareUpgrade = false;
 size_t updateSize = 0;
