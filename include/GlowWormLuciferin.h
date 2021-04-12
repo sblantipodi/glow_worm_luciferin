@@ -38,16 +38,26 @@
 #endif
 
 // White temp
-#define TEMPERATURE_1 Candle
-#define TEMPERATURE_2 Tungsten40W
-#define TEMPERATURE_3 Tungsten100W
-#define TEMPERATURE_4 Halogen
-#define TEMPERATURE_5 CarbonArc
-#define TEMPERATURE_6 HighNoonSun
-#define TEMPERATURE_7 DirectSunlight
-#define TEMPERATURE_8 OvercastSky
-#define TEMPERATURE_9 ClearBlueSky
-#define TEMPERATURE_10 UncorrectedTemperature
+#define TEMPERATURE_1 UncorrectedTemperature
+#define TEMPERATURE_2 Candle
+#define TEMPERATURE_3 Tungsten40W
+#define TEMPERATURE_4 Tungsten100W
+#define TEMPERATURE_5 Halogen
+#define TEMPERATURE_6 CarbonArc
+#define TEMPERATURE_7 HighNoonSun
+#define TEMPERATURE_8 DirectSunlight
+#define TEMPERATURE_9 OvercastSky
+#define TEMPERATURE_10 ClearBlueSky
+#define TEMPERATURE_11 WarmFluorescent
+#define TEMPERATURE_12 StandardFluorescent
+#define TEMPERATURE_13 CoolWhiteFluorescent
+#define TEMPERATURE_14 FullSpectrumFluorescent
+#define TEMPERATURE_15 GrowLightFluorescent
+#define TEMPERATURE_16 BlackLightFluorescent
+#define TEMPERATURE_17 MercuryVapor
+#define TEMPERATURE_18 SodiumVapor
+#define TEMPERATURE_19 MetalHalide
+#define TEMPERATURE_20 HighPressureSodium
 
 /****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;

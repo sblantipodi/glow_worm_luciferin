@@ -744,6 +744,16 @@ void setTemperature(int whitetemp) {
     case 8: FastLED.setTemperature(TEMPERATURE_8); break;
     case 9: FastLED.setTemperature(TEMPERATURE_9); break;
     case 10: FastLED.setTemperature(TEMPERATURE_10); break;
+    case 11: FastLED.setTemperature(TEMPERATURE_11); break;
+    case 12: FastLED.setTemperature(TEMPERATURE_12); break;
+    case 13: FastLED.setTemperature(TEMPERATURE_13); break;
+    case 14: FastLED.setTemperature(TEMPERATURE_14); break;
+    case 15: FastLED.setTemperature(TEMPERATURE_15); break;
+    case 16: FastLED.setTemperature(TEMPERATURE_16); break;
+    case 17: FastLED.setTemperature(TEMPERATURE_17); break;
+    case 18: FastLED.setTemperature(TEMPERATURE_18); break;
+    case 19: FastLED.setTemperature(TEMPERATURE_19); break;
+    case 20: FastLED.setTemperature(TEMPERATURE_20); break;
   }
 
 }
