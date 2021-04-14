@@ -897,7 +897,6 @@ void mainLoop() {
 
     if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
       fireflyEffectInUse = fireflyEffect;
-      setTemperature(fireflyEffectInUse);
     }
 
     // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
