@@ -76,6 +76,8 @@ String fpsTopic = "lights/glowwormluciferin/fps";
 String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
 const char* BASE_TOPIC = "glowwormluciferin";
 String topicInUse = "glowwormluciferin";
+bool JSON_STREAM = false; // DEPRECATED
+boolean espMultiCoreSemaphore = false;
 
 enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
@@ -96,7 +98,7 @@ boolean firmwareUpgrade = false;
 size_t updateSize = 0;
 
 /****************** FastLED Defintions ******************/
-#define NUM_LEDS 600 // Max Led support
+#define NUM_LEDS 511 // Max Led support
 CRGB leds[NUM_LEDS];
 int dynamicLedNum = NUM_LEDS;
 const String LED_NUM_FILENAME = "led_number.json";
@@ -110,9 +112,9 @@ const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
 const String EFFECT_PARAM = "effect";
 
-const int FIRST_CHUNK = 190;
-const int SECOND_CHUNK = 380;
-const int THIRD_CHUNK = 570;
+const int FIRST_CHUNK = 170;
+const int SECOND_CHUNK = 340;
+const int THIRD_CHUNK = 510;
 #define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
 //#define CLOCK_PIN 5
 #define CHIPSET     WS2812B
@@ -170,12 +172,12 @@ void manageQueueSubscription();
 void manageHardwareButton();
 // Project specific functions
 void sendStatus();
-bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json);
-bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
-bool processFirmwareConfig(StaticJsonDocument<BUFFER_SIZE> json);
-bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
-bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json);
-bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json);
+bool processUpdate();
+bool processJson();
+bool processFirmwareConfig();
+bool processGlowWormLuciferinRebootCmnd();
+bool processUnSubscribeStream();
+bool swapMqttTopic();
 void executeMqttSwap(String customtopic);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
@@ -183,7 +185,8 @@ void fadeall();
 void showleds();
 int calculateStep(int prevValue, int endValue);
 int calculateVal(int step, int val, int i);
-void mainTask(void * parameter);
+void tcpTask(void * parameter);
+void serialTask(void * parameter);
 void mainLoop();
 CRGB Scroll(int pos);
 void sendSerialInfo();
@@ -196,3 +199,4 @@ void swapTopicUnsubscribe();
 void swapTopicReplace(String customtopic);
 void swapTopicSubscribe();
 void setTemperature(int whitetemp);
+void jsonStream(byte *payload, unsigned int length);
