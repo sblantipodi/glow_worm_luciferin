@@ -28,7 +28,8 @@
   NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, 
   some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 */
-
+#define FASTLED_INTERRUPT_RETRY_COUNT 0
+#define FASTLED_ALLOW_INTERRUPTS 0
 #include <FastLED.h>
 #include "Version.h"
 #include "BootstrapManager.h"

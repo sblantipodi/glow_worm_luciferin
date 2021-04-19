@@ -121,7 +121,7 @@ void setup() {
   xTaskCreatePinnedToCore(
           tcpTask,           /* Task function. */
           "tcpTask",        /* name of task. */
-          30000,                    /* Stack size of task */
+          4096,                    /* Stack size of task */
           NULL,                     /* parameter of the task */
           5,                        /* priority of the task */
           NULL,                /* Task handle to keep track of created task */
@@ -129,7 +129,7 @@ void setup() {
   xTaskCreatePinnedToCore(
           serialTask,           /* Task function. */
           "serialTask",        /* name of task. */
-          30000,                    /* Stack size of task */
+          4096,                    /* Stack size of task */
           NULL,                     /* parameter of the task */
           5 ,                        /* priority of the task */
           NULL,                /* Task handle to keep track of created task */
@@ -467,6 +467,8 @@ bool processUnSubscribeStream() {
     if (manager.equals(deviceName)) {
       bootstrapManager.unsubscribe(helper.string2char(streamTopic));
       streamTopic = baseStreamTopic + instance;
+      sendStatus();
+      delay(5);
       effect = Effect::GlowWormWifi;
       stateOn = true;
       bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
@@ -527,10 +529,14 @@ bool processJson() {
     if (bootstrapManager.jsonDoc.containsKey("MAC")) {
       if (bootstrapManager.jsonDoc["MAC"] == MAC) {
         if (requestedEffect == "GlowWorm") {
+          sendStatus();
+          delay(5);
           effect = Effect::GlowWorm;
           FastLED.setBrightness(brightness);
           lastLedUpdate = millis();
         } else if (requestedEffect == "GlowWormWifi") {
+          sendStatus();
+          delay(5);
           effect = Effect::GlowWormWifi;
           FastLED.setBrightness(brightness);
           lastStream = millis();
@@ -628,8 +634,11 @@ bool processUpdate() {
     Serial.println(F("Starting web server"));
     server.on("/update", HTTP_POST, []() {
         server.sendHeader("Connection", "close");
-        server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
-        bootstrapManager.publish(helper.string2char(updateResultStateTopic), helper.string2char(deviceName), false);
+        bool error = Update.hasError();
+        server.send(200, "text/plain", error ? "KO" : "OK");
+        if (!error) {
+          bootstrapManager.publish(helper.string2char(updateResultStateTopic), helper.string2char(deviceName), false);
+        }
         delay(DELAY_500);
         ESP.restart();
     }, []() {
@@ -1131,13 +1140,13 @@ void feedTheDog(){
  */
 void tcpTask(void * parameter) {
   while(true) {
+    EVERY_N_MILLISECONDS(500) {
+      feedTheDog();
+    }
     if (effect == Effect::GlowWormWifi) {
       mainLoop();
     } else {
       sendSerialInfo();
-    }
-    EVERY_N_MILLISECONDS(500) {
-      feedTheDog();
     }
     delay(1);
   }
@@ -1149,6 +1158,9 @@ void tcpTask(void * parameter) {
  */
 void serialTask(void * parameter) {
   while(true) {
+    EVERY_N_MILLISECONDS(500) {
+      feedTheDog();
+    }
     if (effect != Effect::GlowWormWifi) {
       mainLoop();
     } else {
@@ -1160,9 +1172,6 @@ void serialTask(void * parameter) {
     }
     if (firmwareUpgrade) {
       server.handleClient();
-    }
-    EVERY_N_MILLISECONDS(500) {
-      feedTheDog();
     }
     delay(1);
   }
@@ -1179,6 +1188,9 @@ void loop() {
   #endif
   #if defined(ESP32)
   delay(1);
+  EVERY_N_MILLISECONDS(500) {
+    feedTheDog();
+  }
   #endif
 
 }
