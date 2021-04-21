@@ -121,7 +121,7 @@ void setup() {
   xTaskCreatePinnedToCore(
           tcpTask,           /* Task function. */
           "tcpTask",        /* name of task. */
-          4096,                    /* Stack size of task */
+          8048,                    /* Stack size of task */
           NULL,                     /* parameter of the task */
           5,                        /* priority of the task */
           NULL,                /* Task handle to keep track of created task */
@@ -129,7 +129,7 @@ void setup() {
   xTaskCreatePinnedToCore(
           serialTask,           /* Task function. */
           "serialTask",        /* name of task. */
-          4096,                    /* Stack size of task */
+          8048,                    /* Stack size of task */
           NULL,                     /* parameter of the task */
           5 ,                        /* priority of the task */
           NULL,                /* Task handle to keep track of created task */
@@ -259,7 +259,6 @@ void manageHardwareButton() {
 void callback(char *topic, byte *payload, unsigned int length) {
 
   if (streamTopic.equals(topic)) {
-
     if (effect == Effect::GlowWormWifi) {
       if (JSON_STREAM) {
         jsonStream(payload, length);
