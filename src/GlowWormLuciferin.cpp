@@ -466,8 +466,6 @@ bool processUnSubscribeStream() {
     if (manager.equals(deviceName)) {
       bootstrapManager.unsubscribe(helper.string2char(streamTopic));
       streamTopic = baseStreamTopic + instance;
-      sendStatus();
-      delay(5);
       effect = Effect::GlowWormWifi;
       stateOn = true;
       bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
@@ -528,14 +526,10 @@ bool processJson() {
     if (bootstrapManager.jsonDoc.containsKey("MAC")) {
       if (bootstrapManager.jsonDoc["MAC"] == MAC) {
         if (requestedEffect == "GlowWorm") {
-          sendStatus();
-          delay(5);
           effect = Effect::GlowWorm;
           FastLED.setBrightness(brightness);
           lastLedUpdate = millis();
         } else if (requestedEffect == "GlowWormWifi") {
-          sendStatus();
-          delay(5);
           effect = Effect::GlowWormWifi;
           FastLED.setBrightness(brightness);
           lastStream = millis();
