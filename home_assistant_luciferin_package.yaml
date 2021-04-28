@@ -77,7 +77,7 @@ input_select:
 
 input_number:
   pc_animation_speed:
-    name: PC Animation Speed
+    name: LED Speed
     initial: 40
     min: 1
     max: 150
@@ -140,6 +140,9 @@ sensor:
     state_topic: 'lights/glowwormluciferin'
     name: 'Last Update GlowWorm'
     value_template: '{{ as_timestamp(now()) | timestamp_custom("%Y-%m-%d ~ %H:%M:%S") }}'
+  - platform: mqtt
+    state_topic: 'lights/firelyluciferin/aspectratio'
+    name: 'Aspect Ratio'
 
 automation:
   - id: '1548456985521'
@@ -380,3 +383,14 @@ switch:
     retain: false
     payload_on: "ON"
     payload_off: "OFF"
+
+homeassistant:
+  customize:
+    input_number.pc_animation_speed:
+      icon: mdi:speedometer
+    input_boolean.solideffect:
+      icon: mdi:television-ambient-light
+    sensor.aspect_ratio:
+      icon: mdi:monitor-screenshot
+    light.glowworm:
+      icon: mdi:google-circles-communities
