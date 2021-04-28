@@ -263,7 +263,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
       if (JSON_STREAM) {
         jsonStream(payload, length);
       } else {
-        int myLeds[NUM_LEDS] = {};
+        int myLeds;
         char delimiters[] = ",";
         char *ptr;
         int index = 0;
@@ -277,10 +277,10 @@ void callback(char *topic, byte *payload, unsigned int length) {
             setNumLed(numLedFromLuciferin);
           }
           while (ptr != NULL) {
-            myLeds[index] = atoi(ptr);
-            leds[index].r = (myLeds[index] >> 16 & 0xFF);
-            leds[index].g = (myLeds[index] >> 8 & 0xFF);
-            leds[index].b = (myLeds[index] >> 0 & 0xFF);
+            myLeds = atoi(ptr);
+            leds[index].r = (myLeds >> 16 & 0xFF);
+            leds[index].g = (myLeds >> 8 & 0xFF);
+            leds[index].b = (myLeds >> 0 & 0xFF);
             index++;
             ptr = strtok(NULL, delimiters);
           }
@@ -292,7 +292,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
         FastLED.show();
         #endif
         #if defined(ESP32)
-        delay(1);
+        //vTaskDelay(1);
         #endif
       }
     }
@@ -559,9 +559,18 @@ bool processJson() {
 void sendStatus() {
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
+//    bootstrapManager.jsonDoc.clear();
+//    JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
+//    root["deviceName"] = deviceName;
+//    root["MAC"] = MAC;
+//    root["lednum"] = dynamicLedNum;
+//    root["framerate"] = framerate;
+//    bootstrapManager.publish(helper.string2char(fpsTopic), root, false);
+
     bootstrapManager.publish(helper.string2char(fpsTopic), helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
   } else {
-    JsonObject root = bootstrapManager.getJsonObject();
+    bootstrapManager.jsonDoc.clear();
+    JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
     JsonObject color = root.createNestedObject("color");
     root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
     color["r"] = red;
@@ -605,7 +614,7 @@ void sendStatus() {
   }
 
   #if defined(ESP32)
-  delay(1);
+  vTaskDelay(1);
   //Serial.print("Task is running on: ");
   //Serial.println(xPortGetCoreID());
   #endif
@@ -1125,6 +1134,7 @@ void feedTheDog(){
   TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
   TIMERG0.wdt_feed=1;                       // feed dog
   TIMERG0.wdt_wprotect=0;                   // write protect
+
 }
 
 /**
@@ -1141,7 +1151,7 @@ void tcpTask(void * parameter) {
     } else {
       sendSerialInfo();
     }
-    delay(1);
+    vTaskDelay(1);
   }
 }
 
@@ -1166,7 +1176,7 @@ void serialTask(void * parameter) {
     if (firmwareUpgrade) {
       server.handleClient();
     }
-    delay(1);
+    vTaskDelay(1);
   }
 }
 #endif
@@ -1180,7 +1190,7 @@ void loop() {
   }
   #endif
   #if defined(ESP32)
-  delay(1);
+  vTaskDelay(1);
   EVERY_N_MILLISECONDS(500) {
     feedTheDog();
   }
@@ -1282,7 +1292,12 @@ int calculateVal(int step, int val, int i) {
 
 void showleds() {
 
+  #if defined(ESP8266)
   delay(1);
+  #endif
+  #if defined(ESP32)
+  vTaskDelay(1);
+  #endif
   if (stateOn) {
     FastLED.setBrightness(brightness);  //EXECUTE EFFECT COLOR
     FastLED.show();
