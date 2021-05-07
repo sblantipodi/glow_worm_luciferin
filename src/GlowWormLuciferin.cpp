@@ -121,19 +121,11 @@ void setup() {
   xTaskCreatePinnedToCore(
           tcpTask,           /* Task function. */
           "tcpTask",        /* name of task. */
-          8048,                    /* Stack size of task */
+          32192,                    /* Stack size of task */
           NULL,                     /* parameter of the task */
-          5,                        /* priority of the task */
+          2,                        /* priority of the task */
           NULL,                /* Task handle to keep track of created task */
           0);
-  xTaskCreatePinnedToCore(
-          serialTask,           /* Task function. */
-          "serialTask",        /* name of task. */
-          8048,                    /* Stack size of task */
-          NULL,                     /* parameter of the task */
-          5 ,                        /* priority of the task */
-          NULL,                /* Task handle to keep track of created task */
-          1);
   #endif
 
 }
@@ -287,13 +279,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
         }
         framerateCounter++;
         lastStream = millis();
-        espMultiCoreSemaphore = true;
-        #if defined(ESP8266)
         FastLED.show();
-        #endif
-        #if defined(ESP32)
-        //vTaskDelay(1);
-        #endif
       }
     }
   } else {
@@ -329,9 +315,9 @@ void callback(char *topic, byte *payload, unsigned int length) {
 /**
  * [DEPRECATED] Stream RGB in JSON format
  * NOT: JSON stream requires:
- *  - '-D MAX_JSON_OBJECT_SIZE=50'
+ *  - '-D MAX_JSON_OBJECT_SIZE=200'
  *  - '-D SMALL_JSON_OBJECT_SIZE=50'
- *  - '-D MQTT_MAX_PACKET_SIZE=6144'
+ *  - '-D MQTT_MAX_PACKET_SIZE=2048'
  */
 void jsonStream(byte *payload, unsigned int length) {
 
@@ -559,14 +545,6 @@ bool processJson() {
 void sendStatus() {
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
-//    bootstrapManager.jsonDoc.clear();
-//    JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
-//    root["deviceName"] = deviceName;
-//    root["MAC"] = MAC;
-//    root["lednum"] = dynamicLedNum;
-//    root["framerate"] = framerate;
-//    bootstrapManager.publish(helper.string2char(fpsTopic), root, false);
-
     bootstrapManager.publish(helper.string2char(fpsTopic), helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
   } else {
     bootstrapManager.jsonDoc.clear();
@@ -751,7 +729,6 @@ void swapTopicUnsubscribe() {
   bootstrapManager.unsubscribe(helper.string2char(baseStreamTopic));
   bootstrapManager.unsubscribe(helper.string2char(streamTopic));
   bootstrapManager.unsubscribe(helper.string2char(unsubscribeTopic));
-  bootstrapManager.unsubscribe(helper.string2char(fpsTopic));
 
 }
 
@@ -782,9 +759,8 @@ void swapTopicSubscribe() {
   bootstrapManager.subscribe(helper.string2char(updateResultStateTopic));
   bootstrapManager.subscribe(helper.string2char(lightSetTopic));
   bootstrapManager.subscribe(helper.string2char(baseStreamTopic));
-  bootstrapManager.subscribe(helper.string2char(streamTopic));
+  bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
   bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
-  bootstrapManager.subscribe(helper.string2char(fpsTopic));
 
 }
 
@@ -890,7 +866,7 @@ int serialRead() {
 
 void mainLoop() {
 
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
   checkConnection();
   #endif
 
@@ -1086,6 +1062,7 @@ void mainLoop() {
   }
 
   if (startFade && effect == Effect::solid) {
+
     // If we don't want to fade, skip it.
     if (transitionTime == 0) {
       setColor(realRed, realGreen, realBlue);
@@ -1120,7 +1097,7 @@ void mainLoop() {
       }
     }
   }
-#endif
+  #endif
 
 }
 
@@ -1134,7 +1111,9 @@ void feedTheDog(){
   TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
   TIMERG0.wdt_feed=1;                       // feed dog
   TIMERG0.wdt_wprotect=0;                   // write protect
-
+  TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
+  TIMERG0.wdt_feed=1;                       // feed dog
+  TIMERG0.wdt_wprotect=0;                   // write protect
 }
 
 /**
@@ -1143,40 +1122,17 @@ void feedTheDog(){
  */
 void tcpTask(void * parameter) {
   while(true) {
-    EVERY_N_MILLISECONDS(500) {
-      feedTheDog();
-    }
-    if (effect == Effect::GlowWormWifi) {
-      mainLoop();
-    } else {
-      sendSerialInfo();
-    }
     vTaskDelay(1);
-  }
-}
-
-/**
- * Pinned on CORE1, max performance for Serial
- * @param parameter
- */
-void serialTask(void * parameter) {
-  while(true) {
-    EVERY_N_MILLISECONDS(500) {
+    EVERY_N_MILLISECONDS(100) {
       feedTheDog();
     }
-    if (effect != Effect::GlowWormWifi) {
-      mainLoop();
-    } else {
-      if (espMultiCoreSemaphore) {
-        espMultiCoreSemaphore = false;
-        FastLED.show();
-      }
-      sendSerialInfo();
-    }
+    mainLoop();
+    vTaskDelay(1);
+    sendSerialInfo();
+    vTaskDelay(1);
     if (firmwareUpgrade) {
       server.handleClient();
     }
-    vTaskDelay(1);
   }
 }
 #endif
@@ -1190,10 +1146,7 @@ void loop() {
   }
   #endif
   #if defined(ESP32)
-  vTaskDelay(1);
-  EVERY_N_MILLISECONDS(500) {
-    feedTheDog();
-  }
+  delay(1000);
   #endif
 
 }
