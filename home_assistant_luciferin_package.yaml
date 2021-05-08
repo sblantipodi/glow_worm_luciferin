@@ -34,10 +34,50 @@ input_select:
       - 10.0
     initial: 2.2
     icon: mdi:gamma
+  whitetemp_select:
+    name: "Kelvin"
+    options:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+    initial: 10
+    icon: mdi:thermometer
+  whitetemp_label_select:
+    name: "White temperature"
+    options:
+      - Uncorrected temperature
+      - 1900 Kelvin
+      - 2600 Kelvin
+      - 2850 Kelvin
+      - 3200 Kelvin
+      - 5200 Kelvin
+      - 5400 Kelvin
+      - 6000 Kelvin
+      - 7000 Kelvin
+      - 20000 Kelvin
+      - Warm Fluorescent
+      - Standard Fluorescent
+      - Cool White Fluorescent
+      - Full Spectrum Fluorescent
+      - Grow Light Fluorescent
+      - Black Light Fluorescent
+      - Mercury Vapor
+      - Sodium Vapor
+      - Metal Halide
+      - High Pressure Sodium
+    initial: Uncorrected temperature
+    icon: mdi:thermometer
 
 input_number:
   pc_animation_speed:
-    name: PC Animation Speed
+    name: LED Speed
     initial: 40
     min: 1
     max: 150
@@ -100,6 +140,9 @@ sensor:
     state_topic: 'lights/glowwormluciferin'
     name: 'Last Update GlowWorm'
     value_template: '{{ as_timestamp(now()) | timestamp_custom("%Y-%m-%d ~ %H:%M:%S") }}'
+  - platform: mqtt
+    state_topic: 'lights/firelyluciferin/aspectratio'
+    name: 'Aspect Ratio'
 
 automation:
   - id: '1548456985521'
@@ -134,7 +177,6 @@ automation:
           payload: '{"state":"ON","startStopInstances":"PLAY"}'
           topic: lights/glowwormluciferin
         service: mqtt.publish
-
   - id: '3810295685522'
     alias: Solid Effect Auto
     trigger:
@@ -155,7 +197,7 @@ automation:
               - service: mqtt.publish
                 data_template:
                   topic: lights/firelyluciferin/framerate
-                  payload: '{"producing":0,"consuming":0}'                
+                  payload: '{"producing":0,"consuming":0}'
           - conditions:
               - condition: template
                 value_template: >-
@@ -166,7 +208,6 @@ automation:
       - service: input_boolean.turn_off
         data:
           entity_id: input_boolean.solideffectautomation
-
   - id: '4321674486'
     alias: PC Animation Speed
     initial_state: true
@@ -209,6 +250,129 @@ automation:
       data:
         entity_id: input_select.gamma_select
         option: "{{ trigger.payload_json.gamma }}"
+  - alias: Set Luciferin White Temp
+    trigger:
+      - entity_id: input_select.whitetemp_select
+        platform: state
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: "lights/glowwormluciferin/set"
+          retain: "false"
+          payload: '{"state":"ON","whitetemp":{{states.input_select.whitetemp_select.state}}}}'
+  - alias: Set HA WhiteTemp
+    trigger:
+      platform: mqtt
+      topic: "lights/glowwormluciferin/set"
+    condition:
+      condition: template
+      value_template: "{{ trigger.payload_json != null and trigger.payload_json['whitetemp'] != null }}"
+    action:
+      - service: input_select.select_option
+        data:
+          entity_id: input_select.whitetemp_select
+          option: "{{ trigger.payload_json.whitetemp }}"
+  - alias: White Temperature from Luciferin
+    trigger:
+      - entity_id: input_select.whitetemp_select
+        platform: state
+    action:
+      - service: input_select.select_option
+        data_template:
+          entity_id: input_select.whitetemp_label_select
+          option: >
+            {% if states('input_select.whitetemp_select') == "2" %}
+              1900 Kelvin
+            {% elif states('input_select.whitetemp_select') == "3" %}
+              2600 Kelvin
+            {% elif states('input_select.whitetemp_select') == "4" %}
+              2850 Kelvin
+            {% elif states('input_select.whitetemp_select') == "5" %}
+              3200 Kelvin
+            {% elif states('input_select.whitetemp_select') == "6" %}
+              5200 Kelvin
+            {% elif states('input_select.whitetemp_select') == "7" %}
+              5400 Kelvin
+            {% elif states('input_select.whitetemp_select') == "8" %}
+              6000 Kelvin
+            {% elif states('input_select.whitetemp_select') == "9" %}
+              7000 Kelvin
+            {% elif states('input_select.whitetemp_select') == "10" %}
+              20000 Kelvin
+            {% elif states('input_select.whitetemp_select') == "11" %}
+              Warm Fluorescent
+            {% elif states('input_select.whitetemp_select') == "12" %}
+              Standard Fluorescent
+            {% elif states('input_select.whitetemp_select') == "13" %}
+              Cool White Fluorescent
+            {% elif states('input_select.whitetemp_select') == "14" %}
+              Full Spectrum Fluorescent
+            {% elif states('input_select.whitetemp_select') == "15" %}
+              Grow Light Fluorescent
+            {% elif states('input_select.whitetemp_select') == "16" %}
+              Black Light Fluorescent
+            {% elif states('input_select.whitetemp_select') == "17" %}
+              Mercury Vapor
+            {% elif states('input_select.whitetemp_select') == "18" %}
+              Sodium Vapor
+            {% elif states('input_select.whitetemp_select') == "19" %}
+              Metal Halide
+            {% elif states('input_select.whitetemp_select') == "20" %}
+              High Pressure Sodium
+            {% else %}
+              Uncorrected temperature
+            {% endif %}
+  - alias: White Temperature
+    trigger:
+      - entity_id: input_select.whitetemp_label_select
+        platform: state
+    action:
+      - service: mqtt.publish
+        data:
+          topic: "lights/glowwormluciferin/set"
+          retain: "false"
+          payload_template: >-
+            {% if states('input_select.whitetemp_label_select') == "1900 Kelvin"  %}
+              {"state":"ON","whitetemp":2}
+            {% elif states('input_select.whitetemp_label_select') == "2600 Kelvin" %}
+              {"state":"ON","whitetemp":3}
+            {% elif states('input_select.whitetemp_label_select') == "2850 Kelvin" %}
+              {"state":"ON","whitetemp":4}
+            {% elif states('input_select.whitetemp_label_select') == "3200 Kelvin" %}
+              {"state":"ON","whitetemp":5}
+            {% elif states('input_select.whitetemp_label_select') == "5200 Kelvin" %}
+              {"state":"ON","whitetemp":6}
+            {% elif states('input_select.whitetemp_label_select') == "5400 Kelvin" %}
+              {"state":"ON","whitetemp":7}
+            {% elif states('input_select.whitetemp_label_select') == "6000 Kelvin" %}
+              {"state":"ON","whitetemp":8}
+            {% elif states('input_select.whitetemp_label_select') == "7000 Kelvin" %}
+              {"state":"ON","whitetemp":9}
+            {% elif states('input_select.whitetemp_label_select') == "20000 Kelvin" %}
+              {"state":"ON","whitetemp":10}
+            {% elif states('input_select.whitetemp_label_select') == "Warm Fluorescent" %}
+              {"state":"ON","whitetemp":11}
+            {% elif states('input_select.whitetemp_label_select') == "Standard Fluorescent" %}
+              {"state":"ON","whitetemp":12}
+            {% elif states('input_select.whitetemp_label_select') == "Cool White Fluorescent" %}
+              {"state":"ON","whitetemp":13}
+            {% elif states('input_select.whitetemp_label_select') == "Full Spectrum Fluorescent" %}
+              {"state":"ON","whitetemp":14}
+            {% elif states('input_select.whitetemp_label_select') == "Grow Light Fluorescent" %}
+              {"state":"ON","whitetemp":15}
+            {% elif states('input_select.whitetemp_label_select') == "Black Light Fluorescent" %}
+              {"state":"ON","whitetemp":16}
+            {% elif states('input_select.whitetemp_label_select') == "Mercury Vapor" %}
+              {"state":"ON","whitetemp":17}
+            {% elif states('input_select.whitetemp_label_select') == "Sodium Vapor" %}
+              {"state":"ON","whitetemp":18}
+            {% elif states('input_select.whitetemp_label_select') == "Metal Halide" %}
+              {"state":"ON","whitetemp":19}
+            {% elif states('input_select.whitetemp_label_select') == "High Pressure Sodium" %}
+              {"state":"ON","whitetemp":20}
+            {% else %}
+              {"state":"ON","whitetemp":1}
+            {% endif %}
 
 switch:
   - platform: mqtt
@@ -219,3 +383,14 @@ switch:
     retain: false
     payload_on: "ON"
     payload_off: "OFF"
+
+homeassistant:
+  customize:
+    input_number.pc_animation_speed:
+      icon: mdi:speedometer
+    input_boolean.solideffect:
+      icon: mdi:television-ambient-light
+    sensor.aspect_ratio:
+      icon: mdi:monitor-screenshot
+    light.glowworm:
+      icon: mdi:google-circles-communities

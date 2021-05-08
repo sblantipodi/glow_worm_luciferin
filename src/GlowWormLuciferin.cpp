@@ -2,7 +2,7 @@
   GlowWormLuciferin.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright (C) 2020  Davide Perini
+  Copyright (C) 2020 - 2021  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
   * Components:
    - Arduino C++ sketch running on an ESP8266EX D1 Mini from Lolin running @ 160MHz
-   - WS2812B 5V LED Strip (95 LED)
+   - WS2812B 5V LED Strip
    - 3.3V/5V Logic Level Converter
    - 220Ω resistor
    - 1000uf capacitor for 5V power stabilization
@@ -119,13 +119,21 @@ void setup() {
 
   #if defined(ESP32)
   xTaskCreatePinnedToCore(
-          mainTask,           /* Task function. */
-          "mainTask",        /* name of task. */
-          30000,                    /* Stack size of task */
+          tcpTask,           /* Task function. */
+          "tcpTask",        /* name of task. */
+          32192,                    /* Stack size of task */
           NULL,                     /* parameter of the task */
-          1,                        /* priority of the task */
+          2,                        /* priority of the task */
           NULL,                /* Task handle to keep track of created task */
           0);
+  xTaskCreatePinnedToCore(
+          serialTask,           /* Task function. */
+          "serialTask",        /* name of task. */
+          32192,                    /* Stack size of task */
+          NULL,                     /* parameter of the task */
+          2,                        /* priority of the task */
+          NULL,                /* Task handle to keep track of created task */
+          1);
   #endif
 
 }
@@ -251,85 +259,50 @@ void manageHardwareButton() {
 void callback(char *topic, byte *payload, unsigned int length) {
 
   if (streamTopic.equals(topic)) {
-
     if (effect == Effect::GlowWormWifi) {
-      bootstrapManager.jsonDoc.clear();
-      deserializeJson(bootstrapManager.jsonDoc, payload);
-      int numLedFromLuciferin = bootstrapManager.jsonDoc[LED_NUM_PARAM];
-      if (numLedFromLuciferin == 0) {
-        effect = Effect::solid;
+      if (JSON_STREAM) {
+        jsonStream(payload, length);
       } else {
-        if (dynamicLedNum != numLedFromLuciferin) {
-          setNumLed(numLedFromLuciferin);
-        }
-        // (leds, 0, (dynamicLedNum) * sizeof(struct CRGB));
-        JsonArray stream = bootstrapManager.jsonDoc["stream"];
-        if (dynamicLedNum < FIRST_CHUNK) {
-          for (uint16_t i = 0; i < dynamicLedNum; i++) {
-            int rgb = stream[i];
-            leds[i].r = (rgb >> 16 & 0xFF);
-            leds[i].g = (rgb >> 8 & 0xFF);
-            leds[i].b = (rgb >> 0 & 0xFF);
-          }
-          FastLED.show();
+        int myLeds;
+        char delimiters[] = ",";
+        char *ptr;
+        int index = 0;
+        ptr = strtok(reinterpret_cast<char *>(payload), delimiters);
+        int numLedFromLuciferin = atoi(ptr);
+        ptr = strtok(NULL, delimiters);
+        if (numLedFromLuciferin == 0) {
+          effect = Effect::solid;
         } else {
-          if (dynamicLedNum >= FIRST_CHUNK) {
-            part = bootstrapManager.jsonDoc["part"];
+          if (dynamicLedNum != numLedFromLuciferin) {
+            setNumLed(numLedFromLuciferin);
           }
-          if (part == 1) {
-            for (uint16_t i = 0; i < FIRST_CHUNK; i++) {
-              int rgb = stream[i];
-              leds[i].r = (rgb >> 16 & 0xFF);
-              leds[i].g = (rgb >> 8 & 0xFF);
-              leds[i].b = (rgb >> 0 & 0xFF);
-            }
-          } else if (part == 2) {
-            int j = 0;
-            for (uint16_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
-              int rgb = stream[j];
-              leds[i].r = (rgb >> 16 & 0xFF);
-              leds[i].g = (rgb >> 8 & 0xFF);
-              leds[i].b = (rgb >> 0 & 0xFF);
-              j++;
-            }
-            if (dynamicLedNum < 380) {
-              FastLED.show();
-            }
-          } else {
-            int j = 0;
-            for (int16_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < NUM_LEDS; i++) {
-              int rgb = stream[j];
-              leds[i].r = (rgb >> 16 & 0xFF);
-              leds[i].g = (rgb >> 8 & 0xFF);
-              leds[i].b = (rgb >> 0 & 0xFF);
-              j++;
-            }
-            FastLED.show();
+          while (ptr != NULL) {
+            myLeds = atoi(ptr);
+            leds[index].r = (myLeds >> 16 & 0xFF);
+            leds[index].g = (myLeds >> 8 & 0xFF);
+            leds[index].b = (myLeds >> 0 & 0xFF);
+            index++;
+            ptr = strtok(NULL, delimiters);
           }
         }
-        #ifdef TARGET_GLOWWORMLUCIFERINFULL
-        if ((dynamicLedNum < FIRST_CHUNK) || (dynamicLedNum < SECOND_CHUNK && part == 2) || (part == 3)) {
-          framerateCounter++;
-        }
-        #endif
+        framerateCounter++;
         lastStream = millis();
+        FastLED.show();
       }
     }
-
   } else {
-
     bootstrapManager.jsonDoc.clear();
     bootstrapManager.parseQueueMsg(topic, payload, length);
     if (strcmp(topic, CMND_AMBI_REBOOT) == 0) {
-      processGlowWormLuciferinRebootCmnd(bootstrapManager.jsonDoc);
+      processGlowWormLuciferinRebootCmnd();
     } else if (lightSetTopic.equals(topic)) {
-      processJson(bootstrapManager.jsonDoc);
+      processJson();
     } else if (updateStateTopic.equals(topic)) {
-      processUpdate(bootstrapManager.jsonDoc);
+      processUpdate();
     } else if (firmwareConfigTopic.equals(topic)) {
-      processFirmwareConfig(bootstrapManager.jsonDoc);
+      processFirmwareConfig();
     } else if (unsubscribeTopic.equals(topic)) {
-      processUnSubscribeStream(bootstrapManager.jsonDoc);
+      processUnSubscribeStream();
     }
     if (stateOn) {
       realRed = map(red, 0, 255, 0, brightness);
@@ -348,35 +321,121 @@ void callback(char *topic, byte *payload, unsigned int length) {
 }
 
 /**
+ * [DEPRECATED] Stream RGB in JSON format
+ * NOT: JSON stream requires:
+ *  - '-D MAX_JSON_OBJECT_SIZE=200'
+ *  - '-D SMALL_JSON_OBJECT_SIZE=50'
+ *  - '-D MQTT_MAX_PACKET_SIZE=2048'
+ */
+void jsonStream(byte *payload, unsigned int length) {
+
+  bootstrapManager.jsonDocBigSize.clear();
+  deserializeJson(bootstrapManager.jsonDocBigSize, (const byte*) payload, length);
+  int numLedFromLuciferin = bootstrapManager.jsonDocBigSize[LED_NUM_PARAM];
+  if (numLedFromLuciferin == 0) {
+    effect = Effect::solid;
+  } else {
+    if (dynamicLedNum != numLedFromLuciferin) {
+      setNumLed(numLedFromLuciferin);
+    }
+    // (leds, 0, (dynamicLedNum) * sizeof(struct CRGB));
+    JsonArray stream = bootstrapManager.jsonDocBigSize["stream"];
+    if (dynamicLedNum < FIRST_CHUNK) {
+      for (uint16_t i = 0; i < dynamicLedNum; i++) {
+        int rgb = stream[i];
+        leds[i].r = (rgb >> 16 & 0xFF);
+        leds[i].g = (rgb >> 8 & 0xFF);
+        leds[i].b = (rgb >> 0 & 0xFF);
+      }
+      FastLED.show();
+    } else {
+      if (dynamicLedNum >= FIRST_CHUNK) {
+        part = bootstrapManager.jsonDocBigSize["part"];
+      }
+      if (part == 1) {
+        for (uint16_t i = 0; i < FIRST_CHUNK; i++) {
+          int rgb = stream[i];
+          leds[i].r = (rgb >> 16 & 0xFF);
+          leds[i].g = (rgb >> 8 & 0xFF);
+          leds[i].b = (rgb >> 0 & 0xFF);
+        }
+      } else if (part == 2) {
+        int j = 0;
+        for (uint16_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
+          int rgb = stream[j];
+          leds[i].r = (rgb >> 16 & 0xFF);
+          leds[i].g = (rgb >> 8 & 0xFF);
+          leds[i].b = (rgb >> 0 & 0xFF);
+          j++;
+        }
+        if (dynamicLedNum < SECOND_CHUNK) {
+          FastLED.show();
+        }
+      } else if (part == 3) {
+        int j = 0;
+        for (uint16_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < THIRD_CHUNK; i++) {
+          int rgb = stream[j];
+          leds[i].r = (rgb >> 16 & 0xFF);
+          leds[i].g = (rgb >> 8 & 0xFF);
+          leds[i].b = (rgb >> 0 & 0xFF);
+          j++;
+        }
+        if (dynamicLedNum < THIRD_CHUNK) {
+          FastLED.show();
+        }
+      } else if (part == 4) {
+        int j = 0;
+        for (int16_t i = THIRD_CHUNK; i >= THIRD_CHUNK && i < NUM_LEDS; i++) {
+          int rgb = stream[j];
+          leds[i].r = (rgb >> 16 & 0xFF);
+          leds[i].g = (rgb >> 8 & 0xFF);
+          leds[i].b = (rgb >> 0 & 0xFF);
+          j++;
+        }
+        FastLED.show();
+      }
+    }
+    #ifdef TARGET_GLOWWORMLUCIFERINFULL
+    if ((dynamicLedNum < FIRST_CHUNK) || (dynamicLedNum < SECOND_CHUNK && part == 2)
+        || (dynamicLedNum < THIRD_CHUNK && part == 3) || (part == 4)) {
+      framerateCounter++;
+    }
+    #endif
+    lastStream = millis();
+  }
+
+}
+
+/**
  * Process Firmware Configuration sent from Firefly Luciferin
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool processFirmwareConfig(StaticJsonDocument<BUFFER_SIZE> json) {
+bool processFirmwareConfig() {
 
   boolean espRestart = false;
-  if (json.containsKey("MAC")) {
-    String macToUpdate = json["MAC"];
+  if (bootstrapManager.jsonDoc.containsKey("MAC")) {
+    String macToUpdate = bootstrapManager.jsonDoc["MAC"];
     Serial.println(macToUpdate);
     if (macToUpdate == MAC) {
       // GPIO
-      if (json.containsKey(GPIO_PARAM)) {
-        int gpio = (int) json[GPIO_PARAM];
+      if (bootstrapManager.jsonDoc.containsKey(GPIO_PARAM)) {
+        int gpio = (int) bootstrapManager.jsonDoc[GPIO_PARAM];
         if (gpio != 0 && gpioInUse != gpio) {
           setGpio(gpio);
           espRestart = true;
         }
       }
       // BAUDRATE
-      if (json.containsKey(BAUDRATE_PARAM)) {
-        int baudrate = (int) json[BAUDRATE_PARAM];
+      if (bootstrapManager.jsonDoc.containsKey(BAUDRATE_PARAM)) {
+        int baudrate = (int) bootstrapManager.jsonDoc[BAUDRATE_PARAM];
         if (baudrate != 0 && baudRateInUse != baudrate) {
           setBaudRate(baudrate);
           espRestart = true;
         }
       }
       // SWAP TOPIC
-      boolean topicRestart = swapMqttTopic(json);
+      boolean topicRestart = swapMqttTopic();
       if (topicRestart) espRestart = true;
       // Restart if needed
       if (espRestart) {
@@ -393,11 +452,11 @@ bool processFirmwareConfig(StaticJsonDocument<BUFFER_SIZE> json) {
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json) {
+bool processUnSubscribeStream() {
 
-  if (json.containsKey("instance")) {
-    String instance = json["instance"];
-    String manager = json["manager"];
+  if (bootstrapManager.jsonDoc.containsKey("instance")) {
+    String instance = bootstrapManager.jsonDoc["instance"];
+    String manager = bootstrapManager.jsonDoc["manager"];
     if (manager.equals(deviceName)) {
       bootstrapManager.unsubscribe(helper.string2char(streamTopic));
       streamTopic = baseStreamTopic + instance;
@@ -415,12 +474,12 @@ bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json) {
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
+bool processJson() {
 
   lastLedUpdate = millis();
 
-  if (json.containsKey("state")) {
-    String state = json["state"];
+  if (bootstrapManager.jsonDoc.containsKey("state")) {
+    String state = bootstrapManager.jsonDoc["state"];
     if (state == ON_CMD) {
       stateOn = true;
     } else if (state == OFF_CMD) {
@@ -434,27 +493,32 @@ bool processJson(StaticJsonDocument<BUFFER_SIZE> json) {
     onbeforeflash = true;
   }
 
-  if (json.containsKey("color")) {
-    red = json["color"]["r"];
-    green = json["color"]["g"];
-    blue = json["color"]["b"];
+  if (bootstrapManager.jsonDoc.containsKey("color")) {
+    red = bootstrapManager.jsonDoc["color"]["r"];
+    green = bootstrapManager.jsonDoc["color"]["g"];
+    blue = bootstrapManager.jsonDoc["color"]["b"];
   }
 
-  if (json.containsKey("brightness")) {
-    brightness = json["brightness"];
+  if (bootstrapManager.jsonDoc.containsKey("brightness")) {
+    brightness = bootstrapManager.jsonDoc["brightness"];
     FastLED.setBrightness(brightness);
   }
 
-  if (json.containsKey("transition")) {
-    transitionTime = json["transition"];
+  if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
+    int whitetemp = bootstrapManager.jsonDoc["whitetemp"];
+    setTemperature(whitetemp);
+  }
+
+  if (bootstrapManager.jsonDoc.containsKey("transition")) {
+    transitionTime = bootstrapManager.jsonDoc["transition"];
   } else if (effect == Effect::solid) {
     transitionTime = 0;
   }
 
-  if (json.containsKey("effect")) {
-    JsonVariant requestedEffect = json["effect"];
-    if (json.containsKey("MAC")) {
-      if (json["MAC"] == MAC) {
+  if (bootstrapManager.jsonDoc.containsKey("effect")) {
+    JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
+    if (bootstrapManager.jsonDoc.containsKey("MAC")) {
+      if (bootstrapManager.jsonDoc["MAC"] == MAC) {
         if (requestedEffect == "GlowWorm") {
           effect = Effect::GlowWorm;
           FastLED.setBrightness(brightness);
@@ -491,7 +555,8 @@ void sendStatus() {
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
     bootstrapManager.publish(helper.string2char(fpsTopic), helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
   } else {
-    JsonObject root = bootstrapManager.getJsonObject();
+    bootstrapManager.jsonDoc.clear();
+    JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
     JsonObject color = root.createNestedObject("color");
     root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
     color["r"] = red;
@@ -535,7 +600,7 @@ void sendStatus() {
   }
 
   #if defined(ESP32)
-  delay(1);
+  vTaskDelay(1);
   //Serial.print("Task is running on: ");
   //Serial.println(xPortGetCoreID());
   #endif
@@ -550,15 +615,18 @@ void sendStatus() {
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json) {
+bool processUpdate() {
 
-  if (json.containsKey(F("update"))) {
+  if (bootstrapManager.jsonDoc.containsKey(F("update"))) {
 
     Serial.println(F("Starting web server"));
     server.on("/update", HTTP_POST, []() {
         server.sendHeader("Connection", "close");
-        server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
-        bootstrapManager.publish(helper.string2char(updateResultStateTopic), helper.string2char(deviceName), false);
+        bool error = Update.hasError();
+        server.send(200, "text/plain", error ? "KO" : "OK");
+        if (!error) {
+          bootstrapManager.publish(helper.string2char(updateResultStateTopic), helper.string2char(deviceName), false);
+        }
         delay(DELAY_500);
         ESP.restart();
     }, []() {
@@ -600,9 +668,9 @@ bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json) {
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json) {
+bool processGlowWormLuciferinRebootCmnd() {
 
-  if (json[VALUE] == OFF_CMD) {
+  if (bootstrapManager.jsonDoc[VALUE] == OFF_CMD) {
     stateOn = false;
     sendStatus();
     delay(1500);
@@ -617,11 +685,11 @@ bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json) {
  * @param json StaticJsonDocument
  * @return true if mqtt has been swapper and need reboot
  */
-bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json) {
+bool swapMqttTopic() {
 
   boolean reboot = false;
-  if (json.containsKey(MQTT_PARAM)) {
-    String customtopic = json[MQTT_PARAM];
+  if (bootstrapManager.jsonDoc.containsKey(MQTT_PARAM)) {
+    String customtopic = bootstrapManager.jsonDoc[MQTT_PARAM];
     if (customtopic != topicInUse) {
       // Write to storage
       Serial.println("SWAPPING MQTT_TOPIC");
@@ -669,7 +737,6 @@ void swapTopicUnsubscribe() {
   bootstrapManager.unsubscribe(helper.string2char(baseStreamTopic));
   bootstrapManager.unsubscribe(helper.string2char(streamTopic));
   bootstrapManager.unsubscribe(helper.string2char(unsubscribeTopic));
-  bootstrapManager.unsubscribe(helper.string2char(fpsTopic));
 
 }
 
@@ -700,13 +767,43 @@ void swapTopicSubscribe() {
   bootstrapManager.subscribe(helper.string2char(updateResultStateTopic));
   bootstrapManager.subscribe(helper.string2char(lightSetTopic));
   bootstrapManager.subscribe(helper.string2char(baseStreamTopic));
-  bootstrapManager.subscribe(helper.string2char(streamTopic));
+  bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
   bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
-  bootstrapManager.subscribe(helper.string2char(fpsTopic));
 
 }
 
 #endif
+
+/**
+ * Set White Temperature for Color Correction
+ * @param whitetemp kelvin
+ */
+void setTemperature(int whitetemp) {
+
+  switch (whitetemp) {
+    case 1: FastLED.setTemperature(TEMPERATURE_1); break;
+    case 2: FastLED.setTemperature(TEMPERATURE_2); break;
+    case 3: FastLED.setTemperature(TEMPERATURE_3); break;
+    case 4: FastLED.setTemperature(TEMPERATURE_4); break;
+    case 5: FastLED.setTemperature(TEMPERATURE_5); break;
+    case 6: FastLED.setTemperature(TEMPERATURE_6); break;
+    case 7: FastLED.setTemperature(TEMPERATURE_7); break;
+    case 8: FastLED.setTemperature(TEMPERATURE_8); break;
+    case 9: FastLED.setTemperature(TEMPERATURE_9); break;
+    case 10: FastLED.setTemperature(TEMPERATURE_10); break;
+    case 11: FastLED.setTemperature(TEMPERATURE_11); break;
+    case 12: FastLED.setTemperature(TEMPERATURE_12); break;
+    case 13: FastLED.setTemperature(TEMPERATURE_13); break;
+    case 14: FastLED.setTemperature(TEMPERATURE_14); break;
+    case 15: FastLED.setTemperature(TEMPERATURE_15); break;
+    case 16: FastLED.setTemperature(TEMPERATURE_16); break;
+    case 17: FastLED.setTemperature(TEMPERATURE_17); break;
+    case 18: FastLED.setTemperature(TEMPERATURE_18); break;
+    case 19: FastLED.setTemperature(TEMPERATURE_19); break;
+    case 20: FastLED.setTemperature(TEMPERATURE_20); break;
+  }
+
+}
 
 /**
  * Set led strip color
@@ -809,11 +906,13 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) checkConnection();
     baudRate = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
+    whiteTemp = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
     fireflyEffect = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
     chk = serialRead();
 
-    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ fireflyEffect ^ 0x55))) {
+    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect ^ 0x55))) {
       i = 0;
       goto waitLoop;
     }
@@ -836,6 +935,11 @@ void mainLoop() {
     if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
       setBaudRate(baudRate);
       ESP.restart();
+    }
+
+    if (whiteTemp != 0 && whiteTempInUse != whiteTemp) {
+      whiteTempInUse = whiteTemp;
+      setTemperature(whiteTempInUse);
     }
 
     if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
@@ -966,6 +1070,7 @@ void mainLoop() {
   }
 
   if (startFade && effect == Effect::solid) {
+
     // If we don't want to fade, skip it.
     if (transitionTime == 0) {
       setColor(realRed, realGreen, realBlue);
@@ -1000,7 +1105,7 @@ void mainLoop() {
       }
     }
   }
-#endif
+  #endif
 
 }
 
@@ -1014,20 +1119,49 @@ void feedTheDog(){
   TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
   TIMERG0.wdt_feed=1;                       // feed dog
   TIMERG0.wdt_wprotect=0;                   // write protect
+  TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
+  TIMERG0.wdt_feed=1;                       // feed dog
+  TIMERG0.wdt_wprotect=0;                   // write protect
 }
 
-void mainTask(void * parameter) {
-
+/**
+ * Pinned on CORE0, max performance with TCP
+ * @param parameter
+ */
+void tcpTask(void * parameter) {
   while(true) {
-    mainLoop();
-    EVERY_N_MILLISECONDS(1000) {
+    vTaskDelay(1);
+    EVERY_N_MILLISECONDS(100) {
       feedTheDog();
     }
+    if (effect == Effect::GlowWormWifi) {
+      mainLoop();
+      vTaskDelay(1);
+    }
+    sendSerialInfo();
+    vTaskDelay(1);
   }
-
 }
+
+/**
+ * Pinned on CORE1, max performance with Serial
+ * @param parameter
+ */
+void serialTask(void * parameter) {
+  while(true) {
+    if (effect != Effect::GlowWormWifi) {
+      mainLoop();
+    } else {
+      delay(1000);
+    }
+  }
+}
+
 #endif
 
+/**
+ * Pinned on CORE1 on ESP32, max performance with Serial
+ */
 void loop() {
 
   #if defined(ESP8266)
@@ -1037,10 +1171,7 @@ void loop() {
     server.handleClient();
   }
   #if defined(ESP32)
-  EVERY_N_MILLISECONDS(1000) {
-    feedTheDog();
-  }
-  sendSerialInfo();
+  delay(1000);
   #endif
 
 }
@@ -1139,7 +1270,12 @@ int calculateVal(int step, int val, int i) {
 
 void showleds() {
 
+  #if defined(ESP8266)
   delay(1);
+  #endif
+  #if defined(ESP32)
+  vTaskDelay(1);
+  #endif
   if (stateOn) {
     FastLED.setBrightness(brightness);  //EXECUTE EFFECT COLOR
     FastLED.show();

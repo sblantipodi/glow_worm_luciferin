@@ -25,6 +25,18 @@ If you like **Glow Worm Luciferin**, give it a star, or fork it and contribute!
 
 Project is bootstrapped with my [Arduino Bootstrapper](https://github.com/sblantipodi/arduino_bootstrapper) library and my [PlatformIO version increment](https://github.com/sblantipodi/platformio_version_increment) script.
 
+## Key features
+- **Best in class performance** combined with ultra low CPU/GPU usage.  
+- Advanced algorithms for [**smooth colors transitions and color correction**](https://github.com/sblantipodi/firefly_luciferin/wiki/Color-correction-(White-Balance-and-Gamma-Correction)). Seeing is believing.
+- [**Wireless or cabled, local or remote**](https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access)? Choose your flavour with **MQTT** support and  [**Home Assistant integration**](https://github.com/sblantipodi/firefly_luciferin/wiki/Home-Automation-configs).
+- [**Multi monitor**](https://github.com/sblantipodi/firefly_luciferin/wiki/Multi-monitor-support) support with **multiple instances**.
+- [**Programmable firmware**](https://github.com/sblantipodi/firefly_luciferin/wiki/Supported-GPIO-and-Baud-Rate), change your microcontroller's settings on the fly.
+- Frequent updates, [**upgrade**](https://github.com/sblantipodi/firefly_luciferin/wiki/Luciferin-update-management) your PC software and your firmware **in one click**.
+- Automatic [**switching between aspect ratios**](https://github.com/sblantipodi/firefly_luciferin/wiki/Aspect-ratio) based on your video content.
+- **Made from a gamer, for gamers**. No added lag, stutter free.
+- Multi platform, [**Windows and Linux ready**](https://github.com/sblantipodi/firefly_luciferin/wiki/Linux-support). macOS is coming when it's ready.
+- Have a question? [**Get answered on the community**](https://discord.gg/aXf9jeN).
+
 ## Quick start
 Why don't you build your own `Luciferin`?  
 Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferin/wiki/Quick-start)  

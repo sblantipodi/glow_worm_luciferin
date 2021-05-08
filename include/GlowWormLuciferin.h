@@ -2,7 +2,7 @@
   GlowWormLuciferin.h - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
   
-  Copyright (C) 2020  Davide Perini
+  Copyright (C) 2020 - 2021  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
   * Components:
    - Arduino C++ sketch running on an ESP8266EX D1 Mini from Lolin running @ 160MHz
-   - WS2812B 5V LED Strip (95 LED)
+   - WS2812B 5V LED Strip
    - 3.3V/5V Logic Level Converter
    - 220Ω resistor
    - 1000uf capacitor for 5V power stabilization
@@ -28,7 +28,11 @@
   NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, 
   some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 */
-
+#if defined(ESP32)
+//#define FASTLED_INTERRUPT_RETRY_COUNT 0
+//#define FASTLED_ALLOW_INTERRUPTS 0
+#define FASTLED_ESP32_I2S true
+#endif
 #include <FastLED.h>
 #include "Version.h"
 #include "BootstrapManager.h"
@@ -36,6 +40,28 @@
 #include "soc/timer_group_struct.h"
 #include "soc/timer_group_reg.h"
 #endif
+
+// White temp
+#define TEMPERATURE_1 UncorrectedTemperature
+#define TEMPERATURE_2 Candle
+#define TEMPERATURE_3 Tungsten40W
+#define TEMPERATURE_4 Tungsten100W
+#define TEMPERATURE_5 Halogen
+#define TEMPERATURE_6 CarbonArc
+#define TEMPERATURE_7 HighNoonSun
+#define TEMPERATURE_8 DirectSunlight
+#define TEMPERATURE_9 OvercastSky
+#define TEMPERATURE_10 ClearBlueSky
+#define TEMPERATURE_11 WarmFluorescent
+#define TEMPERATURE_12 StandardFluorescent
+#define TEMPERATURE_13 CoolWhiteFluorescent
+#define TEMPERATURE_14 FullSpectrumFluorescent
+#define TEMPERATURE_15 GrowLightFluorescent
+#define TEMPERATURE_16 BlackLightFluorescent
+#define TEMPERATURE_17 MercuryVapor
+#define TEMPERATURE_18 SodiumVapor
+#define TEMPERATURE_19 MetalHalide
+#define TEMPERATURE_20 HighPressureSodium
 
 /****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;
@@ -54,6 +80,8 @@ String fpsTopic = "lights/glowwormluciferin/fps";
 String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
 const char* BASE_TOPIC = "glowwormluciferin";
 String topicInUse = "glowwormluciferin";
+bool JSON_STREAM = false; // DEPRECATED
+boolean espMultiCoreSemaphore = false;
 
 enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
@@ -62,19 +90,19 @@ Effect effect;
 unsigned long off_timer;
 
 // DPsoftware Checksum
-uint8_t prefix[] = {'D', 'P', 's'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, fireflyEffect, i;
+uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, i;
 bool led_state = true;
 uint lastLedUpdate = 10000;
 uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
-int gpioInUse = 5, baudRateInUse = 3, fireflyEffectInUse;
+int gpioInUse = 5, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
 // Upgrade firmware
 boolean firmwareUpgrade = false;
 size_t updateSize = 0;
 
 /****************** FastLED Defintions ******************/
-#define NUM_LEDS    511 // Max Led support
+#define NUM_LEDS 511 // Max Led support
 CRGB leds[NUM_LEDS];
 int dynamicLedNum = NUM_LEDS;
 const String LED_NUM_FILENAME = "led_number.json";
@@ -88,8 +116,9 @@ const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
 const String EFFECT_PARAM = "effect";
 
-const int FIRST_CHUNK = 190;
-const int SECOND_CHUNK = 380;
+const int FIRST_CHUNK = 170;
+const int SECOND_CHUNK = 340;
+const int THIRD_CHUNK = 510;
 #define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
 //#define CLOCK_PIN 5
 #define CHIPSET     WS2812B
@@ -147,12 +176,12 @@ void manageQueueSubscription();
 void manageHardwareButton();
 // Project specific functions
 void sendStatus();
-bool processUpdate(StaticJsonDocument<BUFFER_SIZE> json);
-bool processJson(StaticJsonDocument<BUFFER_SIZE> json);
-bool processFirmwareConfig(StaticJsonDocument<BUFFER_SIZE> json);
-bool processGlowWormLuciferinRebootCmnd(StaticJsonDocument<BUFFER_SIZE> json);
-bool processUnSubscribeStream(StaticJsonDocument<BUFFER_SIZE> json);
-bool swapMqttTopic(StaticJsonDocument<BUFFER_SIZE> json);
+bool processUpdate();
+bool processJson();
+bool processFirmwareConfig();
+bool processGlowWormLuciferinRebootCmnd();
+bool processUnSubscribeStream();
+bool swapMqttTopic();
 void executeMqttSwap(String customtopic);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
@@ -160,7 +189,8 @@ void fadeall();
 void showleds();
 int calculateStep(int prevValue, int endValue);
 int calculateVal(int step, int val, int i);
-void mainTask(void * parameter);
+void tcpTask(void * parameter);
+void serialTask(void * parameter);
 void mainLoop();
 CRGB Scroll(int pos);
 void sendSerialInfo();
@@ -172,3 +202,5 @@ int setBaudRateInUse(int baudRate);
 void swapTopicUnsubscribe();
 void swapTopicReplace(String customtopic);
 void swapTopicSubscribe();
+void setTemperature(int whitetemp);
+void jsonStream(byte *payload, unsigned int length);

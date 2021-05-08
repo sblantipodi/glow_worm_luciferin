@@ -71,7 +71,8 @@ typedef volatile ADAGFX_PORT_t *PORTreg_t; ///< PORT register type
 #define DEFAULT_SPI_FREQ 16000000L ///< Hardware SPI default speed
 #endif
 
-#if defined(ADAFRUIT_PYPORTAL) || defined(ADAFRUIT_PYBADGE_M4_EXPRESS) ||      \
+#if defined(ADAFRUIT_PYPORTAL) || defined(ADAFRUIT_PYPORTAL_M4_TITANO) ||      \
+    defined(ADAFRUIT_PYBADGE_M4_EXPRESS) ||                                    \
     defined(ADAFRUIT_PYGAMER_M4_EXPRESS) ||                                    \
     defined(ADAFRUIT_MONSTER_M4SK_EXPRESS) || defined(NRF52_SERIES) ||         \
     defined(ADAFRUIT_CIRCUITPLAYGROUND_M0)
@@ -153,6 +154,10 @@ public:
   Adafruit_SPITFT(uint16_t w, uint16_t h, tftBusWidth busWidth, int8_t d0,
                   int8_t wr, int8_t dc, int8_t cs = -1, int8_t rst = -1,
                   int8_t rd = -1);
+
+  // DESTRUCTOR ----------------------------------------------------------
+
+  ~Adafruit_SPITFT(){};
 
   // CLASS MEMBER FUNCTIONS ----------------------------------------------
 
