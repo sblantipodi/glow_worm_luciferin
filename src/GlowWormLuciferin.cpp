@@ -126,6 +126,14 @@ void setup() {
           2,                        /* priority of the task */
           NULL,                /* Task handle to keep track of created task */
           0);
+  xTaskCreatePinnedToCore(
+          serialTask,           /* Task function. */
+          "serialTask",        /* name of task. */
+          32192,                    /* Stack size of task */
+          NULL,                     /* parameter of the task */
+          2,                        /* priority of the task */
+          NULL,                /* Task handle to keep track of created task */
+          1);
   #endif
 
 }
@@ -866,7 +874,7 @@ int serialRead() {
 
 void mainLoop() {
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  #ifdef TARGET_GLOWWORMLUCIFERINFULL
   checkConnection();
   #endif
 
@@ -1126,25 +1134,42 @@ void tcpTask(void * parameter) {
     EVERY_N_MILLISECONDS(100) {
       feedTheDog();
     }
-    mainLoop();
-    vTaskDelay(1);
+    if (effect == Effect::GlowWormWifi) {
+      mainLoop();
+      vTaskDelay(1);
+    }
     sendSerialInfo();
     vTaskDelay(1);
-    if (firmwareUpgrade) {
-      server.handleClient();
+  }
+}
+
+/**
+ * Pinned on CORE1, max performance with Serial
+ * @param parameter
+ */
+void serialTask(void * parameter) {
+  while(true) {
+    if (effect != Effect::GlowWormWifi) {
+      mainLoop();
+    } else {
+      delay(1000);
     }
   }
 }
+
 #endif
 
+/**
+ * Pinned on CORE1 on ESP32, max performance with Serial
+ */
 void loop() {
 
   #if defined(ESP8266)
   mainLoop();
+  #endif
   if (firmwareUpgrade) {
     server.handleClient();
   }
-  #endif
   #if defined(ESP32)
   delay(1000);
   #endif

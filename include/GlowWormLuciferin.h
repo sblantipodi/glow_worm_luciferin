@@ -29,8 +29,8 @@
   some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 */
 #if defined(ESP32)
-//#define FASTLED_INTERRUPT_RETRY_COUNT 1
-//#define FASTLED_ALLOW_INTERRUPTS 1
+//#define FASTLED_INTERRUPT_RETRY_COUNT 0
+//#define FASTLED_ALLOW_INTERRUPTS 0
 #define FASTLED_ESP32_I2S true
 #endif
 #include <FastLED.h>
@@ -90,7 +90,7 @@ Effect effect;
 unsigned long off_timer;
 
 // DPsoftware Checksum
-uint8_t prefix[] = {'D', 'P', 's'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, i;
+uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, i;
 bool led_state = true;
 uint lastLedUpdate = 10000;
 uint lastStream = 0;
