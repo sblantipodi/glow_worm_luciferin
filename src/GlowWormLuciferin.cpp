@@ -119,20 +119,20 @@ void setup() {
 
   #if defined(ESP32)
   xTaskCreatePinnedToCore(
-          tcpTask,           /* Task function. */
-          "tcpTask",        /* name of task. */
-          32192,                    /* Stack size of task */
-          NULL,                     /* parameter of the task */
-          2,                        /* priority of the task */
-          NULL,                /* Task handle to keep track of created task */
+          tcpTask, /* Task function. */
+          "tcpTask", /* name of task. */
+          32192, /* Stack size of task */
+          NULL, /* parameter of the task */
+          2, /* priority of the task */
+          &handleTcpTask, /* Task handle to keep track of created task */
           0);
   xTaskCreatePinnedToCore(
-          serialTask,           /* Task function. */
-          "serialTask",        /* name of task. */
-          32192,                    /* Stack size of task */
-          NULL,                     /* parameter of the task */
-          2,                        /* priority of the task */
-          NULL,                /* Task handle to keep track of created task */
+          serialTask, /* Task function. */
+          "serialTask", /* name of task. */
+          32192, /* Stack size of task */
+          NULL, /* parameter of the task */
+          2, /* priority of the task */
+          &handleSerialTask, /* Task handle to keep track of created task */
           1);
   #endif
 
@@ -1166,12 +1166,21 @@ void loop() {
 
   #if defined(ESP8266)
   mainLoop();
-  #endif
   if (firmwareUpgrade) {
     server.handleClient();
   }
+  #endif
   #if defined(ESP32)
-  delay(1000);
+  // Upgrade is managed in single core mode, delete tasks pinned to CORE0 and CORE1
+  if (firmwareUpgrade) {
+    vTaskDelete(handleSerialTask);
+    vTaskDelete(handleTcpTask);
+    mainLoop();
+    vTaskDelay(1);
+    server.handleClient();
+  } else {
+    delay(1000);
+  }
   #endif
 
 }

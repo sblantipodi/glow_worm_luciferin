@@ -66,6 +66,10 @@
 /****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;
 Helpers helper;
+#if defined(ESP32)
+TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
+TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
+#endif
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 String lightStateTopic = "lights/glowwormluciferin";
