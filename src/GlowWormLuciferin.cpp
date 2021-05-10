@@ -1140,6 +1140,9 @@ void tcpTask(void * parameter) {
     }
     sendSerialInfo();
     vTaskDelay(1);
+    if (firmwareUpgrade) {
+      vTaskDelete(handleTcpTask);
+    }
   }
 }
 
@@ -1153,6 +1156,9 @@ void serialTask(void * parameter) {
       mainLoop();
     } else {
       delay(1000);
+    }
+    if (firmwareUpgrade) {
+      vTaskDelete(handleSerialTask);
     }
   }
 }
@@ -1173,8 +1179,6 @@ void loop() {
   #if defined(ESP32)
   // Upgrade is managed in single core mode, delete tasks pinned to CORE0 and CORE1
   if (firmwareUpgrade) {
-    vTaskDelete(handleSerialTask);
-    vTaskDelete(handleTcpTask);
     mainLoop();
     vTaskDelay(1);
     server.handleClient();
