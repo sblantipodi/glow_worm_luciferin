@@ -944,6 +944,13 @@ void mainLoop() {
 
     if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
       fireflyEffectInUse = fireflyEffect;
+      switch (fireflyEffectInUse) {
+        case 2: effect = Effect::solid; break;
+        case 3: effect = Effect::bpm; break;
+        case 4: effect = Effect::mixed_rainbow; break;
+        case 5: effect = Effect::rainbow; break;
+        case 6: effect = Effect::solid_rainbow; break;
+      }
     }
 
     // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
@@ -955,9 +962,11 @@ void mainLoop() {
       g = serialRead();
       while (!breakLoop && !Serial.available()) checkConnection();
       b = serialRead();
-      leds[i].r = r;
-      leds[i].g = g;
-      leds[i].b = b;
+      if (fireflyEffectInUse < 2) {
+        leds[i].r = r;
+        leds[i].g = g;
+        leds[i].b = b;
+      }
     }
     lastLedUpdate = millis();
     framerateCounter++;
@@ -971,7 +980,6 @@ void mainLoop() {
   }
   #endif
   breakLoop = false;
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
 
   //EFFECT BPM
   if (effect == Effect::bpm) {
@@ -1064,7 +1072,9 @@ void mainLoop() {
       } else {
         stateOn = false;
         setColor(0, 0, 0);
+        #ifdef TARGET_GLOWWORMLUCIFERINFULL
         sendStatus();
+        #endif
       }
     }
   }
@@ -1105,7 +1115,6 @@ void mainLoop() {
       }
     }
   }
-  #endif
 
 }
 

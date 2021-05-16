@@ -142,7 +142,7 @@ bool stateOn = false;
 bool startFade = false;
 bool onbeforeflash = false;
 unsigned long lastLoop = 0;
-unsigned transitionTime = 0;
+unsigned transitionTime = 40;
 bool inFade = false;
 int loopCount = 0;
 int stepR, stepG, stepB;
