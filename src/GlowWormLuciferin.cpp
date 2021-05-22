@@ -94,7 +94,7 @@ void setup() {
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
-    additionalParam = gpioFromStorage.toInt();
+    additionalParam = gpioFromStorage;
   }
   Serial.print(F("SAVED GPIO="));
   Serial.println(additionalParam);
@@ -942,14 +942,16 @@ void mainLoop() {
       setTemperature(whiteTempInUse);
     }
 
+    // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
     if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
       fireflyEffectInUse = fireflyEffect;
       switch (fireflyEffectInUse) {
-        case 2: effect = Effect::solid; break;
-        case 3: effect = Effect::bpm; break;
-        case 4: effect = Effect::mixed_rainbow; break;
-        case 5: effect = Effect::rainbow; break;
-        case 6: effect = Effect::solid_rainbow; break;
+        case 3: effect = Effect::solid; break;
+        case 4: effect = Effect::bpm; break;
+        case 5: effect = Effect::mixed_rainbow; break;
+        case 6: effect = Effect::rainbow; break;
+        case 7: effect = Effect::solid_rainbow; break;
+        case 100: fireflyEffectInUse = 0;
       }
     }
 
@@ -962,7 +964,7 @@ void mainLoop() {
       g = serialRead();
       while (!breakLoop && !Serial.available()) checkConnection();
       b = serialRead();
-      if (fireflyEffectInUse < 2) {
+      if (fireflyEffectInUse <= 3) {
         leds[i].r = r;
         leds[i].g = g;
         leds[i].b = b;
@@ -1022,14 +1024,24 @@ void mainLoop() {
 
   //MIXED RAINBOW
   if (effect == Effect::mixed_rainbow) {
-    for(int j = 0; j < 256; j++) {
+    #ifdef TARGET_GLOWWORMLUCIFERINFULL
+    if (millis()-lastAnim >= 10) {
+      lastAnim = millis();
+      mixedRainboxIndex++;
+    }
+    #elif TARGET_GLOWWORMLUCIFERINLIGHT
+    mixedRainboxIndex++;
+    #endif
+    if(mixedRainboxIndex < 256) {
       for(int i = 0; i < dynamicLedNum; i++) {
-        leds[i] = Scroll((i * 256 / dynamicLedNum + j) % 256);
+        leds[i] = Scroll((i * 256 / dynamicLedNum + mixedRainboxIndex) % 256);
         #ifdef TARGET_GLOWWORMLUCIFERINFULL
         checkConnection();
         #endif
       }
       FastLED.show();
+    } else {
+      mixedRainboxIndex = 0;
     }
   }
 

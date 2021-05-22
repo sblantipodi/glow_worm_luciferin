@@ -24,13 +24,13 @@ jobs:
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
       # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v2
+      #   uses: mxschmitt/action-tmate@v3
       - name: Static code analysis
         run: platformio check --verbose --severity=high --skip-packages
       - name: Run PlatformIO
         run: platformio run -e glowwormluciferinfull_esp8266
       - name: Creating artifact from BIN file
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
           path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
@@ -55,13 +55,13 @@ jobs:
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
       # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v2
+      #   uses: mxschmitt/action-tmate@v3
       - name: Static code analysis
         run: platformio check --verbose --severity=high --skip-packages
       - name: Run PlatformIO
         run: platformio run -e glowwormluciferinlight_esp8266
       - name: Creating artifact from BIN file
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_LIGHT.bin
           path: .pio/build/glowwormluciferinlight_esp8266/firmware.bin
@@ -86,7 +86,7 @@ jobs:
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
       # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v2
+      #   uses: mxschmitt/action-tmate@v3
       - name: Static code analysis
         run: |
           platformio platform install espressif32
@@ -94,7 +94,7 @@ jobs:
       - name: Run PlatformIO
         run: platformio run -e glowwormluciferinfull_esp32
       - name: Creating artifact from BIN file
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_FULL.bin
           path: .pio/build/glowwormluciferinfull_esp32/firmware.bin
@@ -119,7 +119,7 @@ jobs:
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
       # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v2
+      #   uses: mxschmitt/action-tmate@v3
       - name: Static code analysis
         run: |
           platformio platform install espressif32
@@ -127,7 +127,7 @@ jobs:
       - name: Run PlatformIO
         run: platformio run -e glowwormluciferinlight_esp32
       - name: Creating artifact from BIN file
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_LIGHT.bin
           path: .pio/build/glowwormluciferinlight_esp32/firmware.bin
