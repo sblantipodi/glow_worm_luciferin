@@ -270,6 +270,12 @@ void callback(char *topic, byte *payload, unsigned int length) {
         ptr = strtok(reinterpret_cast<char *>(payload), delimiters);
         int numLedFromLuciferin = atoi(ptr);
         ptr = strtok(NULL, delimiters);
+        int audioBrightness = atoi(ptr);
+        ptr = strtok(NULL, delimiters);
+        if (brightness != audioBrightness) {
+          brightness = audioBrightness;
+          FastLED.setBrightness(brightness);
+        }
         if (numLedFromLuciferin == 0) {
           effect = Effect::solid;
         } else {
