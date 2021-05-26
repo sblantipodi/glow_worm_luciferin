@@ -952,12 +952,12 @@ void mainLoop() {
     if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
       fireflyEffectInUse = fireflyEffect;
       switch (fireflyEffectInUse) {
-        case 3: effect = Effect::solid; break;
-        case 4: effect = Effect::bpm; break;
-        case 5: effect = Effect::mixed_rainbow; break;
-        case 6: effect = Effect::rainbow; break;
-        case 7: effect = Effect::solid_rainbow; break;
-        case 100: fireflyEffectInUse = 0;
+        case 5: effect = Effect::solid; break;
+        case 6: effect = Effect::bpm; break;
+        case 7: effect = Effect::mixed_rainbow; break;
+        case 8: effect = Effect::rainbow; break;
+        case 9: effect = Effect::solid_rainbow; break;
+        case 100: fireflyEffectInUse = 0; break;
       }
     }
 
@@ -970,7 +970,7 @@ void mainLoop() {
       g = serialRead();
       while (!breakLoop && !Serial.available()) checkConnection();
       b = serialRead();
-      if (fireflyEffectInUse <= 3) {
+      if (fireflyEffectInUse <= 5) {
         leds[i].r = r;
         leds[i].g = g;
         leds[i].b = b;
@@ -1017,13 +1017,13 @@ void mainLoop() {
   //SOLID RAINBOW
   if (effect == Effect::solid_rainbow) {
     // FastLED's built-in rainbow generator
-    thishue++;
     fill_solid(leds, NUM_LEDS, CHSV(thishue, 255, 255));
     if (transitionTime == 0) {
       transitionTime = 40;
     }
-    if (transitionTime < 130) {
-      delay(130 - transitionTime);
+    if (millis()-lastAnimSolidRainbow >= 90) {
+      lastAnimSolidRainbow = millis();
+      thishue++;
     }
     showleds();
   }

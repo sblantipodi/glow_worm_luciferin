@@ -173,6 +173,9 @@ uint16_t gHue = 0;
 long lastAnim = 0;
 int mixedRainboxIndex = 0;
 
+// AUDIO RAINBOW, SOLID RAINBOW
+long lastAnimSolidRainbow = 0;
+
 bool breakLoop = false;
 int part = 1;
 
