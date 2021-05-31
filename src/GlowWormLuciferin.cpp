@@ -94,7 +94,7 @@ void setup() {
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
-    additionalParam = gpioFromStorage.toInt();
+    additionalParam = gpioFromStorage;
   }
   Serial.print(F("SAVED GPIO="));
   Serial.println(additionalParam);
@@ -270,6 +270,12 @@ void callback(char *topic, byte *payload, unsigned int length) {
         ptr = strtok(reinterpret_cast<char *>(payload), delimiters);
         int numLedFromLuciferin = atoi(ptr);
         ptr = strtok(NULL, delimiters);
+        int audioBrightness = atoi(ptr);
+        ptr = strtok(NULL, delimiters);
+        if (brightness != audioBrightness) {
+          brightness = audioBrightness;
+          FastLED.setBrightness(brightness);
+        }
         if (numLedFromLuciferin == 0) {
           effect = Effect::solid;
         } else {
@@ -942,8 +948,17 @@ void mainLoop() {
       setTemperature(whiteTempInUse);
     }
 
+    // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
     if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
       fireflyEffectInUse = fireflyEffect;
+      switch (fireflyEffectInUse) {
+        case 5: effect = Effect::solid; break;
+        case 6: effect = Effect::bpm; break;
+        case 7: effect = Effect::mixed_rainbow; break;
+        case 8: effect = Effect::rainbow; break;
+        case 9: effect = Effect::solid_rainbow; break;
+        case 100: fireflyEffectInUse = 0; break;
+      }
     }
 
     // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
@@ -955,9 +970,11 @@ void mainLoop() {
       g = serialRead();
       while (!breakLoop && !Serial.available()) checkConnection();
       b = serialRead();
-      leds[i].r = r;
-      leds[i].g = g;
-      leds[i].b = b;
+      if (fireflyEffectInUse <= 5) {
+        leds[i].r = r;
+        leds[i].g = g;
+        leds[i].b = b;
+      }
     }
     lastLedUpdate = millis();
     framerateCounter++;
@@ -971,7 +988,6 @@ void mainLoop() {
   }
   #endif
   breakLoop = false;
-  #ifdef TARGET_GLOWWORMLUCIFERINFULL
 
   //EFFECT BPM
   if (effect == Effect::bpm) {
@@ -1001,27 +1017,37 @@ void mainLoop() {
   //SOLID RAINBOW
   if (effect == Effect::solid_rainbow) {
     // FastLED's built-in rainbow generator
-    thishue++;
     fill_solid(leds, NUM_LEDS, CHSV(thishue, 255, 255));
     if (transitionTime == 0) {
       transitionTime = 40;
     }
-    if (transitionTime < 130) {
-      delay(130 - transitionTime);
+    if (millis()-lastAnimSolidRainbow >= 90) {
+      lastAnimSolidRainbow = millis();
+      thishue++;
     }
     showleds();
   }
 
   //MIXED RAINBOW
   if (effect == Effect::mixed_rainbow) {
-    for(int j = 0; j < 256; j++) {
+    #ifdef TARGET_GLOWWORMLUCIFERINFULL
+    if (millis()-lastAnim >= 10) {
+      lastAnim = millis();
+      mixedRainboxIndex++;
+    }
+    #elif TARGET_GLOWWORMLUCIFERINLIGHT
+    mixedRainboxIndex++;
+    #endif
+    if(mixedRainboxIndex < 256) {
       for(int i = 0; i < dynamicLedNum; i++) {
-        leds[i] = Scroll((i * 256 / dynamicLedNum + j) % 256);
+        leds[i] = Scroll((i * 256 / dynamicLedNum + mixedRainboxIndex) % 256);
         #ifdef TARGET_GLOWWORMLUCIFERINFULL
         checkConnection();
         #endif
       }
       FastLED.show();
+    } else {
+      mixedRainboxIndex = 0;
     }
   }
 
@@ -1064,7 +1090,9 @@ void mainLoop() {
       } else {
         stateOn = false;
         setColor(0, 0, 0);
+        #ifdef TARGET_GLOWWORMLUCIFERINFULL
         sendStatus();
+        #endif
       }
     }
   }
@@ -1105,7 +1133,6 @@ void mainLoop() {
       }
     }
   }
-  #endif
 
 }
 

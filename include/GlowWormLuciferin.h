@@ -87,7 +87,7 @@ String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
 boolean espMultiCoreSemaphore = false;
 
-enum class Effect { solid, GlowWorm, GlowWormWifi, bpm, rainbow, solid_rainbow, mixed_rainbow };
+enum class Effect { GlowWormWifi, GlowWorm, solid, bpm, rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
 
 /****************** Glow Worm Luciferin ******************/
@@ -142,7 +142,7 @@ bool stateOn = false;
 bool startFade = false;
 bool onbeforeflash = false;
 unsigned long lastLoop = 0;
-unsigned transitionTime = 0;
+unsigned transitionTime = 40;
 bool inFade = false;
 int loopCount = 0;
 int stepR, stepG, stepB;
@@ -168,6 +168,13 @@ CRGBPalette16 currentPalette(CRGB::Black);
 
 //BPM
 uint16_t gHue = 0;
+
+// MIXED RAINBOW
+long lastAnim = 0;
+int mixedRainboxIndex = 0;
+
+// AUDIO RAINBOW, SOLID RAINBOW
+long lastAnimSolidRainbow = 0;
 
 bool breakLoop = false;
 int part = 1;
