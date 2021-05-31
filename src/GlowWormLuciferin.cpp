@@ -94,7 +94,7 @@ void setup() {
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
-    additionalParam = gpioFromStorage;
+    additionalParam = gpioFromStorage.toInt();
   }
   Serial.print(F("SAVED GPIO="));
   Serial.println(additionalParam);
