@@ -1156,6 +1156,10 @@ void feedTheDog(){
  */
 void tcpTask(void * parameter) {
   while(true) {
+#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+    sendSerialInfo();
+    vTaskDelay(1);
+#elif TARGET_GLOWWORMLUCIFERINFULL
     vTaskDelay(1);
     EVERY_N_MILLISECONDS(100) {
       feedTheDog();
@@ -1169,6 +1173,7 @@ void tcpTask(void * parameter) {
     if (firmwareUpgrade) {
       vTaskDelete(handleTcpTask);
     }
+#endif
   }
 }
 
@@ -1178,6 +1183,9 @@ void tcpTask(void * parameter) {
  */
 void serialTask(void * parameter) {
   while(true) {
+#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+    mainLoop();
+#elif TARGET_GLOWWORMLUCIFERINFULL
     if (effect != Effect::GlowWormWifi) {
       mainLoop();
     } else {
@@ -1186,6 +1194,7 @@ void serialTask(void * parameter) {
     if (firmwareUpgrade) {
       vTaskDelete(handleSerialTask);
     }
+#endif
   }
 }
 
