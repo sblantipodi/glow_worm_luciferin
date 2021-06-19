@@ -3,6 +3,7 @@
 .pio/build
 secrets.ini
 .version_no_increment
+.version_no_increment_update_date
 cmake-build-*
 CMakeLists.txt
 CMakeListsPrivate.txt
