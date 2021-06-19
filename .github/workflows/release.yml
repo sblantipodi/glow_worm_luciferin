@@ -65,6 +65,7 @@ jobs:
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
           touch .version_no_increment;
+          echo ${{steps.get-id.outputs.id}} > version
       - name: Static code analysis
         run: platformio check --verbose --severity=high --skip-packages
       - name: Run PlatformIO
@@ -128,6 +129,7 @@ jobs:
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
           touch .version_no_increment;
+          echo ${{steps.get-id.outputs.id}} > version
       - name: Static code analysis
         run: platformio check --verbose --severity=high --skip-packages
       - name: Run PlatformIO
@@ -159,25 +161,25 @@ jobs:
           git commit -m "CI release for firmware web installer";
           git push;
 
-  create_release:
-    needs: [build_esp8266_firmware, build_esp32_firmware]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set env
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Release version
-        run: |
-          echo $RELEASE_VERSION
-          echo ${{ env.RELEASE_VERSION }}
-      - id: get-id
-        run: |
-          id=$(echo $RELEASE_VERSION | cut -dv -f2)
-          echo "::set-output name=id::$id"
-      - name: Publish release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          hub release edit --draft=false -m "Release ${{ env.RELEASE_VERSION }}" "${{ env.RELEASE_VERSION }}"
+#  create_release:
+#    needs: [build_esp8266_firmware, build_esp32_firmware]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - name: Set env
+#        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+#      - name: Release version
+#        run: |
+#          echo $RELEASE_VERSION
+#          echo ${{ env.RELEASE_VERSION }}
+#      - id: get-id
+#        run: |
+#          id=$(echo $RELEASE_VERSION | cut -dv -f2)
+#          echo "::set-output name=id::$id"
+#      - name: Publish release
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          hub release edit --draft=false -m "Release ${{ env.RELEASE_VERSION }}" "${{ env.RELEASE_VERSION }}"
 
 
