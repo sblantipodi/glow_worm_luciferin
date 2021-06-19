@@ -64,7 +64,7 @@ jobs:
       - name: Setup template config files
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
-          touch .version_no_increment;
+          touch .version_no_increment_update_date;
           echo ${{steps.get-id.outputs.id}} > version
       - name: Static code analysis
         run: platformio check --verbose --severity=high --skip-packages
@@ -128,7 +128,7 @@ jobs:
       - name: Setup template config files
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
-          touch .version_no_increment;
+          touch .version_no_increment_update_date;
           echo ${{steps.get-id.outputs.id}} > version
       - name: Static code analysis
         run: platformio check --verbose --severity=high --skip-packages
