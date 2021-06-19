@@ -2,37 +2,22 @@
 <head>
     <meta charset="utf-8"/>
     <title>Luciferin</title>
-    <meta
-            name="description"
-            content="Bias Lighting and Ambient Light firmware, designed for Firefly Luciferin"
-    />
+    <meta name="description" content="Bias Lighting and Ambient Light firmware, designed for Firefly Luciferin"/>
     <meta name="viewport" content="width=device-width"/>
 
     <meta property="og:title" content="Luciferin"/>
     <meta property="og:site_name" content="Luciferin"/>
-    <meta
-            property="og:url"
-            content="https://sblantipodi.github.io/glow_worm_luciferin/"
-    />
+    <meta property="og:url" content="https://sblantipodi.github.io/glow_worm_luciferin/"/>
     <meta property="og:type" content="website"/>
-    <meta
-            property="og:description"
-            content="Easily allow users to flash Luciferin firmware for their ESP-devices on the web."
-    />
-    <meta
-            property="og:image"
-            content="https://esphome.github.io/esp-web-tools/static/social.png"
-    />
+    <meta property="og:description"
+          content="Easily allow users to flash Luciferin firmware for their ESP-devices on the web."/>
+    <meta property="og:image" content="https://esphome.github.io/esp-web-tools/static/social.png"/>
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" content="Luciferin"/>
-    <meta
-            name="twitter:description"
-            content="Easily allow users to flash Luciferin firmware for their ESP-devices on the web."
-    />
-    <meta
-            name="twitter:image"
-            content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"
-    />
+    <meta name="twitter:description"
+          content="Easily allow users to flash Luciferin firmware for their ESP-devices on the web."/>
+    <meta name="twitter:image"
+          content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
     <style>
         body {
             font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
@@ -59,22 +44,6 @@
 
         a {
             color: orange;
-        }
-
-        .videoWrapper {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 */
-            height: 0;
-            margin-bottom: 25px;
-            background: #000;
-        }
-
-        .videoWrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
         }
 
         .content pre {
@@ -177,8 +146,8 @@
             height: 14px;
             width: 14px;
             border-radius: 1px;
-            border: 2px solid #767676;
-            background-color: lightgrey;
+            border: 2px solid orange;
+            background-color: #ffdca7;
         }
 
         input[type="checkbox"]:hover::before {
@@ -242,6 +211,7 @@
         import(
             "https://unpkg.com/esp-web-tools@3.3.0/dist/web/install-button.js?module"
             );
+
         function toggleErase() {
             if (document.getElementById('erase').checked) {
                 document.getElementById('inst_full').setAttribute('erase-first', '');
@@ -255,9 +225,8 @@
 </head>
 <body>
 <div class="content">
-    <h1>Glow Worm Luciferin</h1><a href="https://github.com/sblantipodi/firefly_luciferin"
-                                                class="logo"><img src="static/logos/luciferin_logo.png"
-                                                                  alt="Luciferin"/></a>
+    <h1>Glow Worm Luciferin</h1><a href="https://github.com/sblantipodi/firefly_luciferin" class="logo"><img
+        src="static/logos/luciferin_logo.png" alt="Luciferin"/></a>
 
     <p>
         <b>Luciferin</b> is a generic term for the light-emitting compound found in organisms that generate
@@ -269,6 +238,7 @@
         these software create the perfect
         Bias Lighting and Ambient Light system for PC.
     </p>
+
     <p><b>FULL firmware</b> version adds support for remote control, if you flash FULL version you MUST configure WiFi
         and MQTT. With FULL firmware USB connection is optional.
         If you flash <b>LIGHT firmware</b> you MUST use USB cable.</p>
@@ -278,9 +248,7 @@
     </p>
     <p>
         <esp-web-install-button id="inst_full"
-                                manifest="static/firmware_build/manifest_full.json"
-                                erase-first
-        >
+                                manifest="static/firmware_build/manifest_full.json">
             <button slot="activate">INSTALL FULL</button>
             <span slot="unsupported"><b>Your browser is not supported!</b></span>
             <span slot="not-allowed">Ah snap, you are not allowed to use this on HTTP!</span>
@@ -288,14 +256,12 @@
     </p>
     <p>
         <esp-web-install-button id="inst_light"
-                                manifest="static/firmware_build/manifest_light.json"
-                                erase-first
-        >
+                                manifest="static/firmware_build/manifest_light.json">
             <button slot="activate">INSTALL LIGHT</button>
         </esp-web-install-button>
     </p>
     <p>
-        <input type="checkbox" id="erase" name="erase" onchange="toggleErase()" checked="">
+        <input type="checkbox" id="erase" name="erase" onchange="toggleErase()">
         <label for="erase"> Clean install (deletes presets and settings)</label>
     </p>
     <p>
