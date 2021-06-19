@@ -158,6 +158,8 @@ jobs:
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware.bin;
+          git add ./version;
+          git add ./include/Version.h;
           git commit -m "CI release for firmware web installer";
           git push;
 
