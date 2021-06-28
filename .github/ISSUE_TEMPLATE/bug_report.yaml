@@ -1,0 +1,68 @@
+name: Bug Report
+description: Report an issue with Luciferin.
+title: "[Bug]: "
+labels: [bug, triage]
+assignees:
+  - sblantipodi
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: input
+    id: firefly-version
+    attributes:
+      label:  Firefly Luciferin version  
+      description: Right click the tray icon and select info.
+      placeholder: Tell us what you see!
+    validations:
+      required: true
+  - type: input
+    id: gw-version
+    attributes:
+      label:  Glow Worm Luciferin version  
+      description: Right click the tray icon of Firefly Luciferin -> Settings -> Devices tab -> you can see the firmware version
+      placeholder: Tell us what you see!
+    validations:
+      required: true      
+  - type: dropdown
+    id: firmware-type
+    attributes:
+      label: Firmware type
+      description: What firmwareare you running?
+      options:
+        - FULL
+        - LIGHT
+    validations:
+      required: true
+  - type: dropdown
+    id: usb-mqtt
+    attributes:
+      label: What is the stream method?
+      options:
+        - MQTT Stream
+        - USB         
+    validations:
+      required: true     
+  - type: textarea
+    id: config
+    attributes:
+      label: Fiefly Luciferin config file
+      description: Please copy and paste your Firefly Luciferin config file. 
+      placeholder: You can find your config file in ~Documents\FireflyLuciferin\FireflyLuciferin.yaml file. Please remove your MQTT password if you don't want to share it
+      render: shell      
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks
+      placeholder: You can find your logs in your ~Documents\FireflyLuciferin\logs folder. 
+      render: shell
+  - type: textarea
+    id: steps-reproduce
+    attributes:
+      label: How to reproduce
+      description: How can we reproduce the problem? Please give steps by steps instruction and drag n drop images (screenshots) if needed
+    validations:
+      required: true      
+
