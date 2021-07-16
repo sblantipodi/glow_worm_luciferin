@@ -967,22 +967,23 @@ void mainLoop() {
         case 100: fireflyEffectInUse = 0; break;
       }
     }
-
-    // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
-    for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
-      byte r, g, b;
-      while (!breakLoop && !Serial.available()) checkConnection();
-      r = serialRead();
-      while (!breakLoop && !Serial.available()) checkConnection();
-      g = serialRead();
-      while (!breakLoop && !Serial.available()) checkConnection();
-      b = serialRead();
-      if (fireflyEffectInUse <= 5) {
-        leds[i].r = r;
-        leds[i].g = g;
-        leds[i].b = b;
-      }
-    }
+    memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
+    Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
+//    // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
+//    for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
+//      byte r, g, b;
+//      while (!breakLoop && !Serial.available()) checkConnection();
+//      r = serialRead();
+//      while (!breakLoop && !Serial.available()) checkConnection();
+//      g = serialRead();
+//      while (!breakLoop && !Serial.available()) checkConnection();
+//      b = serialRead();
+//      if (fireflyEffectInUse <= 5) {
+//        leds[i].r = r;
+//        leds[i].g = g;
+//        leds[i].b = b;
+//      }
+//    }
     lastLedUpdate = millis();
     framerateCounter++;
     FastLED.show();
