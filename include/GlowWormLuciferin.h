@@ -69,7 +69,11 @@ Helpers helper;
 #if defined(ESP32)
 TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
 TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
+#define RELAY_PIN 23
+#else
+#define RELAY_PIN 5
 #endif
+
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 String lightStateTopic = "lights/glowwormluciferin";
@@ -139,6 +143,7 @@ byte brightness = 255;
 
 /****************** GLOBALS for fade/flash ******************/
 bool stateOn = false;
+bool relayState = false;
 bool startFade = false;
 bool onbeforeflash = false;
 unsigned long lastLoop = 0;
@@ -215,3 +220,5 @@ void swapTopicReplace(String customtopic);
 void swapTopicSubscribe();
 void setTemperature(int whitetemp);
 void jsonStream(byte *payload, unsigned int length);
+void turnOffRelay();
+void turnOnRelay();

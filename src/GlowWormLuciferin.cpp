@@ -117,6 +117,9 @@ void setup() {
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
 
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW);
+
 #if defined(ESP32)
   xTaskCreatePinnedToCore(
           tcpTask, /* Task function. */
@@ -467,6 +470,7 @@ bool processUnSubscribeStream() {
       bootstrapManager.unsubscribe(helper.string2char(streamTopic));
       streamTopic = baseStreamTopic + instance;
       effect = Effect::GlowWormWifi;
+      turnOnRelay();
       stateOn = true;
       bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
     }
@@ -487,6 +491,7 @@ bool processJson() {
   if (bootstrapManager.jsonDoc.containsKey("state")) {
     String state = bootstrapManager.jsonDoc["state"];
     if (state == ON_CMD) {
+      turnOnRelay();
       stateOn = true;
     } else if (state == OFF_CMD) {
       stateOn = false;
@@ -853,6 +858,7 @@ void checkConnection() {
       breakLoop = true;
       effect = Effect::solid;
       stateOn = false;
+      turnOffRelay();
     }
     framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;
@@ -863,6 +869,7 @@ void checkConnection() {
     // No updates since 15 seconds, turn off LEDs
     if(millis() > lastLedUpdate + 10000){
       setColor(0, 0, 0);
+      turnOffRelay();
     }
   }
 #endif
@@ -922,6 +929,12 @@ void mainLoop() {
       i = 0;
       goto waitLoop;
     }
+
+#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+    if (!relayState) {
+      turnOnRelay();
+    }
+#endif
 
     if (usbBrightness != brightness) {
       FastLED.setBrightness(usbBrightness);
@@ -1092,6 +1105,7 @@ void mainLoop() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
         sendStatus();
 #endif
+        turnOffRelay();
       }
     }
   }
@@ -1222,6 +1236,38 @@ void loop() {
     delay(1000);
   }
 #endif
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  if (relayState && !stateOn) {
+    turnOffRelay();
+  }
+#endif
+
+}
+
+/**
+ * Turn ON the relay
+ */
+void turnOnRelay() {
+
+  if (!relayState) {
+    relayState = true;
+    digitalWrite(RELAY_PIN, HIGH);
+    delay(500);
+  }
+
+}
+
+/**
+ * Turn OFF the relay
+ */
+void turnOffRelay() {
+
+  if (relayState) {
+    relayState = false;
+    delay(2000);
+    digitalWrite(RELAY_PIN, LOW);
+  }
 
 }
 
