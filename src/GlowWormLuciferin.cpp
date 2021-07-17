@@ -895,40 +895,40 @@ void mainLoop() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (effect == Effect::GlowWorm) {
 #endif
-    if (!led_state) led_state = true;
-    off_timer = millis();
+  if (!led_state) led_state = true;
+  off_timer = millis();
 
-    for (i = 0; i < sizeof prefix; ++i) {
-      waitLoop:
-      while (!breakLoop && !Serial.available()) checkConnection();
-      if (breakLoop || prefix[i] == serialRead()) continue;
-      i = 0;
-      goto waitLoop;
-    }
+  for (i = 0; i < sizeof prefix; ++i) {
+    waitLoop:
+    while (!breakLoop && !Serial.available()) checkConnection();
+    if (breakLoop || prefix[i] == serialRead()) continue;
+    i = 0;
+    goto waitLoop;
+  }
 
-    while (!breakLoop && !Serial.available()) checkConnection();
-    hi = serialRead();
-    while (!breakLoop && !Serial.available()) checkConnection();
-    lo = serialRead();
-    while (!breakLoop && !Serial.available()) checkConnection();
-    loSecondPart = serialRead();
-    while (!breakLoop && !Serial.available()) checkConnection();
-    usbBrightness = serialRead();
-    while (!breakLoop && !Serial.available()) checkConnection();
-    gpio = serialRead();
-    while (!breakLoop && !Serial.available()) checkConnection();
-    baudRate = serialRead();
-    while (!breakLoop && !Serial.available()) checkConnection();
-    whiteTemp = serialRead();
-    while (!breakLoop && !Serial.available()) checkConnection();
-    fireflyEffect = serialRead();
-    while (!breakLoop && !Serial.available()) checkConnection();
-    chk = serialRead();
+  while (!breakLoop && !Serial.available()) checkConnection();
+  hi = serialRead();
+  while (!breakLoop && !Serial.available()) checkConnection();
+  lo = serialRead();
+  while (!breakLoop && !Serial.available()) checkConnection();
+  loSecondPart = serialRead();
+  while (!breakLoop && !Serial.available()) checkConnection();
+  usbBrightness = serialRead();
+  while (!breakLoop && !Serial.available()) checkConnection();
+  gpio = serialRead();
+  while (!breakLoop && !Serial.available()) checkConnection();
+  baudRate = serialRead();
+  while (!breakLoop && !Serial.available()) checkConnection();
+  whiteTemp = serialRead();
+  while (!breakLoop && !Serial.available()) checkConnection();
+  fireflyEffect = serialRead();
+  while (!breakLoop && !Serial.available()) checkConnection();
+  chk = serialRead();
 
-    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect ^ 0x55))) {
-      i = 0;
-      goto waitLoop;
-    }
+  if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect ^ 0x55))) {
+    i = 0;
+    goto waitLoop;
+  }
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
     if (!relayState) {
@@ -936,75 +936,74 @@ void mainLoop() {
     }
 #endif
 
-    if (usbBrightness != brightness) {
-      FastLED.setBrightness(usbBrightness);
-      brightness = usbBrightness;
-    }
+  if (usbBrightness != brightness) {
+    FastLED.setBrightness(usbBrightness);
+    brightness = usbBrightness;
+  }
 
-    if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 5 || gpio == 16)) {
-      setGpio(gpio);
-      ESP.restart();
-    }
+  if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 5 || gpio == 16)) {
+    setGpio(gpio);
+    ESP.restart();
+  }
 
-    int numLedFromLuciferin = lo + loSecondPart + 1;
-    if (dynamicLedNum != numLedFromLuciferin && numLedFromLuciferin < NUM_LEDS) {
-      setNumLed(numLedFromLuciferin);
-    }
+  int numLedFromLuciferin = lo + loSecondPart + 1;
+  if (dynamicLedNum != numLedFromLuciferin && numLedFromLuciferin < NUM_LEDS) {
+    setNumLed(numLedFromLuciferin);
+  }
 
-    if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
-      setBaudRate(baudRate);
-      ESP.restart();
-    }
+  if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
+    setBaudRate(baudRate);
+    ESP.restart();
+  }
 
-    if (whiteTemp != 0 && whiteTempInUse != whiteTemp) {
-      whiteTempInUse = whiteTemp;
-      setTemperature(whiteTempInUse);
-    }
+  if (whiteTemp != 0 && whiteTempInUse != whiteTemp) {
+    whiteTempInUse = whiteTemp;
+    setTemperature(whiteTempInUse);
+  }
 
-    // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
-    if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
-      fireflyEffectInUse = fireflyEffect;
-      switch (fireflyEffectInUse) {
+  // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
+  if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
+    fireflyEffectInUse = fireflyEffect;
+    switch (fireflyEffectInUse) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-          effect = Effect::GlowWorm; break;
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+        effect = Effect::GlowWorm; break;
 #endif
-        case 5: effect = Effect::solid; break;
-        case 6: effect = Effect::bpm; break;
-        case 7: effect = Effect::mixed_rainbow; break;
-        case 8: effect = Effect::rainbow; break;
-        case 9: effect = Effect::solid_rainbow; break;
-        case 100: fireflyEffectInUse = 0; break;
-      }
+      case 5: effect = Effect::solid; break;
+      case 6: effect = Effect::bpm; break;
+      case 7: effect = Effect::mixed_rainbow; break;
+      case 8: effect = Effect::rainbow; break;
+      case 9: effect = Effect::solid_rainbow; break;
+      case 100: fireflyEffectInUse = 0; break;
     }
-    memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
-    Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
-//    // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
-//    for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
-//      byte r, g, b;
-//      while (!breakLoop && !Serial.available()) checkConnection();
-//      r = serialRead();
-//      while (!breakLoop && !Serial.available()) checkConnection();
-//      g = serialRead();
-//      while (!breakLoop && !Serial.available()) checkConnection();
-//      b = serialRead();
-//      if (fireflyEffectInUse <= 5) {
-//        leds[i].r = r;
-//        leds[i].g = g;
-//        leds[i].b = b;
-//      }
-//    }
-    lastLedUpdate = millis();
-    framerateCounter++;
-    FastLED.show();
+  }
+  // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
+  // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
+  for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
+    byte r, g, b;
+    while (!breakLoop && !Serial.available()) checkConnection();
+    r = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
+    g = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
+    b = serialRead();
+    if (fireflyEffectInUse <= 5) {
+      leds[i].r = r;
+      leds[i].g = g;
+      leds[i].b = b;
+    }
+  }
+  lastLedUpdate = millis();
+  framerateCounter++;
+  FastLED.show();
 
-    // Flush serial buffer
-    while (!breakLoop && Serial.available() > 0) {
-      serialRead();
-    }
+  // Flush serial buffer
+  while (!breakLoop && Serial.available() > 0) {
+    serialRead();
+  }
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   }
 #endif
