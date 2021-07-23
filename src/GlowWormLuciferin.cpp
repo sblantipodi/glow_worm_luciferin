@@ -218,6 +218,7 @@ void setNumLed(int numLedFromLuciferin) {
   numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
   bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
 #endif
+  delay(20);
 
 }
 
@@ -943,16 +944,21 @@ void mainLoop() {
 
   if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 5 || gpio == 16)) {
     setGpio(gpio);
-    ESP.restart();
+    espRestartTriggered = true;
   }
 
   int numLedFromLuciferin = lo + loSecondPart + 1;
   if (dynamicLedNum != numLedFromLuciferin && numLedFromLuciferin < NUM_LEDS) {
     setNumLed(numLedFromLuciferin);
+    espRestartTriggered = true;
   }
 
   if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
     setBaudRate(baudRate);
+    espRestartTriggered = true;
+  }
+
+  if (espRestartTriggered) {
     ESP.restart();
   }
 
@@ -980,6 +986,7 @@ void mainLoop() {
       case 100: fireflyEffectInUse = 0; break;
     }
   }
+
   // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
   // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
   for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
@@ -1241,7 +1248,6 @@ void loop() {
     turnOffRelay();
   }
 #endif
-
 }
 
 /**
@@ -1252,7 +1258,7 @@ void turnOnRelay() {
   if (!relayState) {
     relayState = true;
     digitalWrite(RELAY_PIN, HIGH);
-    delay(500);
+    delay(100);
   }
 
 }
@@ -1264,7 +1270,7 @@ void turnOffRelay() {
 
   if (relayState) {
     relayState = false;
-    delay(2000);
+    delay(100);
     digitalWrite(RELAY_PIN, LOW);
   }
 
@@ -1276,6 +1282,7 @@ void turnOffRelay() {
 void sendSerialInfo() {
 
   EVERY_N_SECONDS(10) {
+
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
     framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;

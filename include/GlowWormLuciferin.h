@@ -71,7 +71,7 @@ TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
 TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
 #define RELAY_PIN 23
 #else
-#define RELAY_PIN 5
+#define RELAY_PIN 12
 #endif
 
 
@@ -90,6 +90,7 @@ const char* BASE_TOPIC = "glowwormluciferin";
 String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
 boolean espMultiCoreSemaphore = false;
+boolean espRestartTriggered = false;
 
 enum class Effect { GlowWormWifi, GlowWorm, solid, bpm, rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
