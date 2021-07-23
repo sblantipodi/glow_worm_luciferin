@@ -161,6 +161,12 @@ class ArrayRef : public ArrayRefBase<CollectionData>,
     _data->removeElement(index);
   }
 
+  void clear() const {
+    if (!_data)
+      return;
+    _data->clear();
+  }
+
  private:
   MemoryPool* _pool;
 };
@@ -192,6 +198,8 @@ struct Converter<ArrayRef> {
     MemoryPool* pool = getPool(src);
     return ArrayRef(pool, data != 0 ? data->asArray() : 0);
   }
+
+  static InvalidConversion<VariantConstRef, ArrayRef> fromJson(VariantConstRef);
 
   static bool checkJson(VariantConstRef) {
     return false;
