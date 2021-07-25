@@ -285,6 +285,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
         } else {
           if (dynamicLedNum != numLedFromLuciferin) {
             setNumLed(numLedFromLuciferin);
+            ESP.restart();
           }
           while (ptr != NULL) {
             myLeds = atoi(ptr);
