@@ -94,12 +94,11 @@ void setup() {
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
-    additionalParam = gpioFromStorage.toInt();
+    gpioInUse = gpioFromStorage.toInt();
   }
   Serial.print(F("SAVED GPIO="));
-  Serial.println(additionalParam);
-
-  switch (additionalParam.toInt()) {
+  Serial.println(gpioFromStorage);
+  switch (gpioInUse) {
     case 2:
       gpioInUse = 2;
       pinUtil.init<2>(dynamicLedNum);
@@ -110,7 +109,6 @@ void setup() {
       break;
     default:
       gpioInUse = 5;
-      additionalParam = gpioInUse;
       pinUtil.init<5>(dynamicLedNum);
       break;
   }
@@ -601,7 +599,7 @@ void sendStatus() {
     root["board"] = "ESP32";
 #endif
     root[LED_NUM_PARAM] = String(dynamicLedNum);
-    root["gpio"] = additionalParam;
+    root["gpio"] = gpioInUse;
     root["mqttopic"] = topicInUse;
 
     if (effect == Effect::solid && !stateOn) {
@@ -1301,7 +1299,7 @@ void sendSerialInfo() {
     Serial.printf("board:%s\n", "ESP8266");
 #endif
     Serial.printf("MAC:%s\n", helper.string2char(MAC));
-    Serial.printf("gpio:%s\n", helper.string2char(additionalParam));
+    Serial.printf("gpio:%d\n", gpioInUse);
     Serial.printf("baudrate:%d\n", baudRateInUse);
     Serial.printf("effect:%d\n", effect);
 
