@@ -34,34 +34,14 @@
 #define FASTLED_ESP32_I2S true
 #endif
 #include <FastLED.h>
+#include <NeoPixelBus.h>
+#include <NeoPixelAnimator.h>
 #include "Version.h"
 #include "BootstrapManager.h"
 #if defined(ESP32)
 #include "soc/timer_group_struct.h"
 #include "soc/timer_group_reg.h"
 #endif
-
-// White temp
-#define TEMPERATURE_1 UncorrectedTemperature
-#define TEMPERATURE_2 Candle
-#define TEMPERATURE_3 Tungsten40W
-#define TEMPERATURE_4 Tungsten100W
-#define TEMPERATURE_5 Halogen
-#define TEMPERATURE_6 CarbonArc
-#define TEMPERATURE_7 HighNoonSun
-#define TEMPERATURE_8 DirectSunlight
-#define TEMPERATURE_9 OvercastSky
-#define TEMPERATURE_10 ClearBlueSky
-#define TEMPERATURE_11 WarmFluorescent
-#define TEMPERATURE_12 StandardFluorescent
-#define TEMPERATURE_13 CoolWhiteFluorescent
-#define TEMPERATURE_14 FullSpectrumFluorescent
-#define TEMPERATURE_15 GrowLightFluorescent
-#define TEMPERATURE_16 BlackLightFluorescent
-#define TEMPERATURE_17 MercuryVapor
-#define TEMPERATURE_18 SodiumVapor
-#define TEMPERATURE_19 MetalHalide
-#define TEMPERATURE_20 HighPressureSodium
 
 /****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;
@@ -91,6 +71,7 @@ String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
 boolean espMultiCoreSemaphore = false;
 boolean espRestartTriggered = false;
+uint8_t whiteTempCorrection[] = {255, 255, 255};
 
 enum class Effect { GlowWormWifi, GlowWorm, solid, bpm, rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
@@ -223,3 +204,10 @@ void setTemperature(int whitetemp);
 void jsonStream(byte *payload, unsigned int length);
 void turnOffRelay();
 void turnOnRelay();
+uint8_t applyWhiteTempRed(uint8_t r);
+uint8_t applyWhiteTempGreen(uint8_t g);
+uint8_t applyWhiteTempBlue(uint8_t b);
+uint8_t applyBrightnessCorrection(uint8_t c);
+void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b);
+void ledShow();
+void initLeds();
