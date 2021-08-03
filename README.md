@@ -26,7 +26,7 @@ If you like **Glow Worm Luciferin**, give it a star, or fork it and contribute!
 Project is bootstrapped with my [Arduino Bootstrapper](https://github.com/sblantipodi/arduino_bootstrapper) library and my [PlatformIO version increment](https://github.com/sblantipodi/platformio_version_increment) script.
 
 ## Key features
-- **Best in class performance** combined with ultra low CPU/GPU usage.  
+- **Best in class performance** combined with ultra low CPU/GPU usage.
 - Advanced algorithms for [**smooth colors transitions and color correction**](https://github.com/sblantipodi/firefly_luciferin/wiki/Color-correction-(White-Balance-and-Gamma-Correction)). Seeing is believing.
 - [**Wireless or cabled, local or remote**](https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access)? Choose your flavour with **MQTT** support and  [**Home Assistant integration**](https://github.com/sblantipodi/firefly_luciferin/wiki/Home-Automation-configs).
 - [**Multi monitor**](https://github.com/sblantipodi/firefly_luciferin/wiki/Multi-monitor-support) support with **single or multiple instances**.  
@@ -36,6 +36,7 @@ Project is bootstrapped with my [Arduino Bootstrapper](https://github.com/sblant
 - Automatic [**switching between aspect ratios**](https://github.com/sblantipodi/firefly_luciferin/wiki/Aspect-ratio) based on your video content.
 - **Made from a gamer, for gamers**. No added lag, stutter free.
 - Multi platform, [**Windows and Linux ready**](https://github.com/sblantipodi/firefly_luciferin/wiki/Linux-support). macOS is coming when it's ready.
+- If you don't want to design your own PCB and you have a soldering iron, there is [**Luciferin's official PCB**](https://github.com/sblantipodi/firefly_luciferin/wiki/Ready-to-print-PCB).
 - Have a question? [**Get answered on the community**](https://discord.gg/aXf9jeN).
 
 ## Quick start
@@ -62,8 +63,15 @@ NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recomme
 **If you flash LIGHT firmware you MUST use USB cable**.  
 Note: If you want to use the FULL firmware without using a USB cable you need to connect the 5V microcontroller's PIN to the power supply.
 
+## Luciferin Official PCB
+
+<img align="center" width="700" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/power_saving/assets/CAD_schematics/PCB_ESP8266/img/PCB_front.jpg?raw=true">
+<img align="center" width="700" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/power_saving/assets/CAD_schematics/PCB_ESP8266/img/pre_after.jpg?raw=true">
+
+If you don't want to design your own PCB and you have a soldering iron, you might find [Luciferin's official PCB](https://github.com/sblantipodi/firefly_luciferin/wiki/Ready-to-print-PCB) interesting.
+
 ## Pre-build boards support
-If you don't want to build your own board, you can use a pre-build board like the [QuinLED-Dig-Uno](https://quinled.info/2018/09/15/quinled-dig-uno).  
+Luciferin supports pre-build board like the [QuinLED-Dig-Uno](https://quinled.info/2018/09/15/quinled-dig-uno).  
 NOTE: QuinLED-Dig-Uno must be used with Glow Worm FULL Firmware because it can't be connected to your PC via USB.
 
 ## Home Assistant Mobile Client Screenshots  
