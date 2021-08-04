@@ -336,6 +336,8 @@ void fromStreamToStrip(char *payload, boolean isUdpStream) {
     chunkNum = atoi(ptr);
     ptr = strtok(NULL, delimiters);
     index = UDP_CHUNK_SIZE * chunkNum;
+    //Serial.println(chunkTot);
+    //Serial.println(chunkNum);
   }
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
@@ -351,16 +353,18 @@ void fromStreamToStrip(char *payload, boolean isUdpStream) {
       ptr = strtok(NULL, delimiters);
     }
   }
-  if (isUdpStream) {
-    if (chunkNum == chunkTot - 1) {
+  if (effect != Effect::solid) {
+    if (isUdpStream) {
+      if (chunkNum == chunkTot - 1) {
+        framerateCounter++;
+        lastStream = millis();
+        ledShow();
+      }
+    } else {
       framerateCounter++;
       lastStream = millis();
       ledShow();
     }
-  } else {
-    framerateCounter++;
-    lastStream = millis();
-    ledShow();
   }
 
 }
