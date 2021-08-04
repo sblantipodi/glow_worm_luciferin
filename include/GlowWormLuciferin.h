@@ -105,6 +105,8 @@ const String GPIO_PARAM = "gpio";
 const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
 const String EFFECT_PARAM = "effect";
+const int UDP_CHUNK_SIZE = 100;
+const int UDP_PACKET_SIZE = 1024;
 
 const int FIRST_CHUNK = 170;
 const int SECOND_CHUNK = 340;
@@ -142,6 +144,9 @@ unsigned long flashStartTime = 0;
 byte flashRed = red;
 byte flashGreen = green;
 byte flashBlue = blue;
+#define UDP_PORT 4210
+WiFiUDP UDP;
+char packet[UDP_PACKET_SIZE];
 
 //RAINBOW
 uint16_t thishue = 0; // Starting hue value.
@@ -211,3 +216,4 @@ uint8_t applyBrightnessCorrection(uint8_t c);
 void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b);
 void ledShow();
 void initLeds();
+void fromStreamToStrip(char *payload, boolean isUdpStream);

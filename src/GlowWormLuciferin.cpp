@@ -142,6 +142,13 @@ void setup() {
           1);
 #endif
 
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  // Begin listening to UDP port
+  UDP.begin(UDP_PORT);
+  Serial.print("Listening on UDP port ");
+  Serial.println(UDP_PORT);
+#endif
+
 }
 
 
@@ -270,35 +277,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
       if (JSON_STREAM) {
         jsonStream(payload, length);
       } else {
-        int myLeds;
-        char delimiters[] = ",";
-        char *ptr;
-        int index = 0;
-        ptr = strtok(reinterpret_cast<char *>(payload), delimiters);
-        int numLedFromLuciferin = atoi(ptr);
-        ptr = strtok(NULL, delimiters);
-        int audioBrightness = atoi(ptr);
-        ptr = strtok(NULL, delimiters);
-        if (brightness != audioBrightness) {
-          brightness = audioBrightness;
-        }
-        if (numLedFromLuciferin == 0) {
-          effect = Effect::solid;
-        } else {
-          if (dynamicLedNum != numLedFromLuciferin) {
-            setNumLed(numLedFromLuciferin);
-            ESP.restart();
-          }
-          while (ptr != NULL) {
-            myLeds = atoi(ptr);
-            setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
-            index++;
-            ptr = strtok(NULL, delimiters);
-          }
-        }
-        framerateCounter++;
-        lastStream = millis();
-        ledShow();
+        fromStreamToStrip(reinterpret_cast<char *>(payload), false);
       }
     }
   } else {
@@ -327,6 +306,61 @@ void callback(char *topic, byte *payload, unsigned int length) {
     startFade = true;
     inFade = false; // Kill the current fade
 
+  }
+
+}
+
+/**
+ * Get data from the stream and send to the strip
+ * @param payload stream data
+ * @param isUdpStream UDP stream or MQTT stream
+ */
+void fromStreamToStrip(char *payload, boolean isUdpStream) {
+
+  int myLeds;
+  char delimiters[] = ",";
+  char *ptr;
+  int index = 0;
+  ptr = strtok(payload, delimiters);
+  int numLedFromLuciferin = atoi(ptr);
+  ptr = strtok(NULL, delimiters);
+  int audioBrightness = atoi(ptr);
+  ptr = strtok(NULL, delimiters);
+  if (brightness != audioBrightness) {
+    brightness = audioBrightness;
+  }
+  int chunkTot, chunkNum;
+  if (isUdpStream) {
+    chunkTot = atoi(ptr);
+    ptr = strtok(NULL, delimiters);
+    chunkNum = atoi(ptr);
+    ptr = strtok(NULL, delimiters);
+    index = UDP_CHUNK_SIZE * chunkNum;
+  }
+  if (numLedFromLuciferin == 0) {
+    effect = Effect::solid;
+  } else {
+    if (dynamicLedNum != numLedFromLuciferin) {
+      setNumLed(numLedFromLuciferin);
+      ESP.restart();
+    }
+    while (ptr != NULL) {
+      myLeds = atoi(ptr);
+      setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+      index++;
+      ptr = strtok(NULL, delimiters);
+    }
+  }
+  if (isUdpStream) {
+    if (chunkNum == chunkTot - 1) {
+      framerateCounter++;
+      lastStream = millis();
+      ledShow();
+    }
+  } else {
+    framerateCounter++;
+    lastStream = millis();
+    ledShow();
   }
 
 }
@@ -1180,8 +1214,19 @@ void tcpTask(void * parameter) {
     sendSerialInfo();
     vTaskDelay(1);
 #elif TARGET_GLOWWORMLUCIFERINFULL
+    // If packet received...
+    int packetSize = UDP.parsePacket();
+    if (packetSize) {
+      int len = UDP.read(packet, UDP_PACKET_SIZE);
+      if (len > 0) {
+        packet[len] = '\0';
+        if (packetSize > 3) {
+            fromStreamToStrip(packet, true);
+        }
+      }
+    }
     vTaskDelay(1);
-    EVERY_N_MILLISECONDS(100) {
+    EVERY_N_MILLISECONDS(50) {
       feedTheDog();
     }
     if (effect == Effect::GlowWormWifi) {
@@ -1247,6 +1292,20 @@ void loop() {
     turnOffRelay();
   }
 #endif
+#if defined(ESP8266)
+  // If packet received...
+  int packetSize = UDP.parsePacket();
+  if (packetSize) {
+    int len = UDP.read(packet, UDP_PACKET_SIZE);
+    if (len > 0) {
+      packet[len] = '\0';
+      if (packetSize > 3) {
+        fromStreamToStrip(packet, true);
+      }
+    }
+  }
+#endif
+
 }
 
 /**
