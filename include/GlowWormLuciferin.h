@@ -16,17 +16,6 @@
 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-  * Components:
-   - Arduino C++ sketch running on an ESP8266EX D1 Mini from Lolin running @ 160MHz
-   - WS2812B 5V LED Strip
-   - 3.3V/5V Logic Level Converter
-   - 220Ω resistor
-   - 1000uf capacitor for 5V power stabilization
-   - Raspberry + Home Assistant for Web GUI, automations and MQTT server (HA is optional but an MQTT server is needed)
-   - Google Home Mini for Voice Recognition (optional)
-  NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, 
-  some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 */
 #if defined(ESP32)
 //#define FASTLED_INTERRUPT_RETRY_COUNT 0
@@ -38,6 +27,7 @@
 #include <NeoPixelAnimator.h>
 #include "Version.h"
 #include "BootstrapManager.h"
+#include "EffectsManager.h"
 #if defined(ESP32)
 #include "soc/timer_group_struct.h"
 #include "soc/timer_group_reg.h"
@@ -45,6 +35,7 @@
 
 /****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;
+EffectsManager effectsManager;
 Helpers helper;
 #if defined(ESP32)
 TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
@@ -74,7 +65,7 @@ boolean espRestartTriggered = false;
 boolean reinitLEDTriggered = false;
 uint8_t whiteTempCorrection[] = {255, 255, 255};
 
-enum class Effect { GlowWormWifi, GlowWorm, solid, bpm, rainbow, solid_rainbow, mixed_rainbow };
+enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
 
 /****************** Glow Worm Luciferin ******************/
@@ -219,3 +210,8 @@ void ledShow();
 void initLeds();
 void fromStreamToStrip(char *payload, boolean isUdpStream);
 void cleanLEDs();
+//void setPixelHeatColor(int pixel, byte temperature);
+//void fire(int cooling, int sparking, int speedDelay);
+void twinkleRandom(int count, int speedDelay, boolean onlyOne);
+byte * wheel(byte wheelPos);
+void theaterChaseRainbow();

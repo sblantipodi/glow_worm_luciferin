@@ -16,17 +16,6 @@
 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-  * Components:
-   - Arduino C++ sketch running on an ESP8266EX D1 Mini from Lolin running @ 160MHz
-   - WS2812B 5V LED Strip
-   - 3.3V/5V Logic Level Converter
-   - 220Ω resistor
-   - 1000uf capacitor for 5V power stabilization
-   - Raspberry + Home Assistant for Web GUI, automations and MQTT server (HA is optional but an MQTT server is needed)
-   - Google Home Mini for Voice Recognition (optional)
-  NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it,
-  some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 */
 
 #include <FS.h> //this needs to be first, or it all crashes and burns...
@@ -584,7 +573,10 @@ bool processJson() {
     }
     else {
       if (requestedEffect == "bpm") effect = Effect::bpm;
+      else if (requestedEffect == "fire") effect = Effect::fire;
+      else if (requestedEffect == "twinkle") effect = Effect::twinkle;
       else if (requestedEffect == "rainbow") effect = Effect::rainbow;
+      else if (requestedEffect == "chase rainbow") effect = Effect::chase_rainbow;
       else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
       else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
       else {
@@ -624,7 +616,10 @@ void sendStatus() {
         break;
       case Effect::solid: root["effect"] = "solid"; break;
       case Effect::bpm: root["effect"] = "bpm"; break;
+      case Effect::fire: root["effect"] = "fire"; break;
+      case Effect::twinkle: root["effect"] = "twinkle"; break;
       case Effect::rainbow: root["effect"] = "rainbow"; break;
+      case Effect::chase_rainbow: root["effect"] = "chase rainbow"; break;
       case Effect::solid_rainbow: root["effect"] = "solid rainbow"; break;
       case Effect::mixed_rainbow: root["effect"] = "mixed rainbow"; break;
     }
@@ -1020,10 +1015,13 @@ void mainLoop() {
         effect = Effect::GlowWorm; break;
 #endif
         case 5: effect = Effect::solid; break;
-        case 6: effect = Effect::bpm; break;
-        case 7: effect = Effect::mixed_rainbow; break;
-        case 8: effect = Effect::rainbow; break;
-        case 9: effect = Effect::solid_rainbow; break;
+        case 6: effect = Effect::fire; break;
+        case 7: effect = Effect::twinkle; break;
+        case 8: effect = Effect::bpm; break;
+        case 9: effect = Effect::mixed_rainbow; break;
+        case 10: effect = Effect::rainbow; break;
+        case 11: effect = Effect::chase_rainbow; break;
+        case 12: effect = Effect::solid_rainbow; break;
         case 100: fireflyEffectInUse = 0; break;
       }
     }
@@ -1080,16 +1078,31 @@ void mainLoop() {
 
   //SOLID RAINBOW
   if (effect == Effect::solid_rainbow) {
-    // FastLED's built-in rainbow generator
-    fill_solid(leds, NUM_LEDS, CHSV(thishue, 255, 255));
-    for (int i = 0; i < NUM_LEDS; i++) {
-      setPixelColor(i, leds[i].r, leds[i].g, leds[i].b);
-    }
-    if (millis()-lastAnimSolidRainbow >= 90) {
-      lastAnimSolidRainbow = millis();
-      thishue++;
-    }
-    showleds();
+        // FastLED's built-in rainbow generator
+        fill_solid(leds, NUM_LEDS, CHSV(thishue, 255, 255));
+        for (int i = 0; i < NUM_LEDS; i++) {
+          setPixelColor(i, leds[i].r, leds[i].g, leds[i].b);
+        }
+        if (millis()-lastAnimSolidRainbow >= 90) {
+          lastAnimSolidRainbow = millis();
+          thishue++;
+        }
+        showleds();
+  }
+
+  //FIRE
+  if (effect == Effect::fire) {
+    effectsManager.fire(ledShow, setPixelColor, 55, 120, 15, dynamicLedNum);
+  }
+
+  //TWINKLE
+  if (effect == Effect::twinkle) {
+    twinkleRandom(20, 100, false);
+  }
+
+  //TWINKLE
+  if (effect == Effect::chase_rainbow) {
+    theaterChaseRainbow();
   }
 
   //MIXED RAINBOW
@@ -1475,6 +1488,102 @@ CRGB Scroll(int pos) {
     color.r = 1;
   }
   return color;
+}
+
+//void fire(int cooling, int sparking, int speedDelay) {
+//  static byte heat[NUM_LEDS];
+//  int cooldown;
+//  // Step 1.  Cool down every cell a little
+//  for( int i = 0; i < dynamicLedNum; i++) {
+//    cooldown = random(0, ((cooling * 10) / dynamicLedNum) + 2);
+//    if(cooldown>heat[i]) {
+//      heat[i]=0;
+//    } else {
+//      heat[i]=heat[i]-cooldown;
+//    }
+//  }
+//  // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+//  for( int k= dynamicLedNum - 1; k >= 2; k--) {
+//    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
+//  }
+//  // Step 3.  Randomly ignite new 'sparks' near the bottom
+//  if( random(255) < sparking ) {
+//    int y = random(7);
+//    heat[y] = heat[y] + random(160,255);
+//    //heat[y] = random(160,255);
+//  }
+//  // Step 4.  Convert heat to LED colors
+//  for( int j = 0; j < dynamicLedNum; j++) {
+//    setPixelHeatColor(j, heat[j] );
+//  }
+//  ledShow();
+//  delay(speedDelay);
+//}
+//
+//void setPixelHeatColor(int pixel, byte temperature) {
+//  // Scale 'heat' down from 0-255 to 0-191
+//  byte t192 = round((temperature/255.0)*191);
+//  // calculate ramp up from
+//  byte heatramp = t192 & 0x3F; // 0..63
+//  heatramp <<= 2; // scale up to 0..252
+//  // figure out which third of the spectrum we're in:
+//  if( t192 > 0x80) {                     // hottest
+//    setPixelColor(pixel, 255, 255, heatramp);
+//  } else if( t192 > 0x40 ) {             // middle
+//    setPixelColor(pixel, 255, heatramp, 0);
+//  } else {                               // coolest
+//    setPixelColor(pixel, heatramp, 0, 0);
+//  }
+//}
+
+void twinkleRandom(int count, int speedDelay, boolean onlyOne) {
+  setColor(0,0,0);
+  for (int i=0; i<count; i++) {
+    setPixelColor(random(dynamicLedNum),random(0,255),random(0,255),random(0,255));
+    ledShow();
+    delay(speedDelay);
+    if(onlyOne) {
+      setColor(0,0,0);
+    }
+  }
+  delay(speedDelay);
+}
+
+void theaterChaseRainbow() {
+  byte *c;
+  for (int j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
+    for (int q=0; q < 3; q++) {
+      for (int i=0; i < dynamicLedNum; i=i+3) {
+        c = wheel( (i+j) % 255);
+        setPixelColor(i+q, *c, *(c+1), *(c+2));    //turn every third pixel on
+      }
+      ledShow();
+      delay(1);
+      for (int i=0; i < dynamicLedNum; i=i+3) {
+        setPixelColor(i+q, 0,0,0);        //turn every third pixel off
+      }
+    }
+  }
+}
+
+byte * wheel(byte wheelPos) {
+  static byte c[3];
+  if(wheelPos < 85) {
+    c[0]=wheelPos * 3;
+    c[1]=255 - wheelPos * 3;
+    c[2]=0;
+  } else if(wheelPos < 170) {
+    wheelPos -= 85;
+    c[0]=255 - wheelPos * 3;
+    c[1]=0;
+    c[2]=wheelPos * 3;
+  } else {
+    wheelPos -= 170;
+    c[0]=0;
+    c[1]=wheelPos * 3;
+    c[2]=255 - wheelPos * 3;
+  }
+  return c;
 }
 
 /**
