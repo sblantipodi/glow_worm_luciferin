@@ -57,7 +57,7 @@ Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferi
 
 NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 
-## Schematic
+## Simple schematic
 ![CIRCUITS](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/ambilight_bb.png)
 **FULL firmware version adds support for remote control, if you flash FULL version you MUST configure** [WiFi and MQTT](https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access). With FULL firmware USB connection is optional.  
 **If you flash LIGHT firmware you MUST use USB cable**.  

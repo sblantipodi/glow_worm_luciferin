@@ -71,6 +71,7 @@ String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
 boolean espMultiCoreSemaphore = false;
 boolean espRestartTriggered = false;
+boolean reinitLEDTriggered = false;
 uint8_t whiteTempCorrection[] = {255, 255, 255};
 
 enum class Effect { GlowWormWifi, GlowWorm, solid, bpm, rainbow, solid_rainbow, mixed_rainbow };
@@ -86,7 +87,7 @@ uint lastLedUpdate = 10000;
 uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
-int gpioInUse = 5, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
+int gpioInUse = 2, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
 // Upgrade firmware
 boolean firmwareUpgrade = false;
 size_t updateSize = 0;
@@ -217,3 +218,4 @@ void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b);
 void ledShow();
 void initLeds();
 void fromStreamToStrip(char *payload, boolean isUdpStream);
+void cleanLEDs();

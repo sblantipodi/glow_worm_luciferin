@@ -102,8 +102,8 @@ void setup() {
   Serial.print(F("SAVED GPIO="));
   Serial.println(gpioToUse);
   switch (gpioToUse) {
-    case 2:
-      gpioInUse = 2;
+    case 5:
+      gpioInUse = 5;
       break;
     case 3:
       gpioInUse = 3;
@@ -112,7 +112,7 @@ void setup() {
       gpioInUse = 16;
       break;
     default:
-      gpioInUse = 5;
+      gpioInUse = 2;
       break;
   }
   Serial.print(F("GPIO IN USE="));
@@ -344,7 +344,7 @@ void fromStreamToStrip(char *payload, boolean isUdpStream) {
   } else {
     if (dynamicLedNum != numLedFromLuciferin) {
       setNumLed(numLedFromLuciferin);
-      ESP.restart();
+      initLeds();
     }
     while (ptr != NULL) {
       myLeds = atoi(ptr);
@@ -472,7 +472,7 @@ bool processFirmwareConfig() {
         int gpio = (int) bootstrapManager.jsonDoc[GPIO_PARAM];
         if (gpio != 0 && gpioInUse != gpio) {
           setGpio(gpio);
-          espRestart = true;
+          reinitLEDTriggered = true;
         }
       }
       // BAUDRATE
@@ -487,6 +487,10 @@ bool processFirmwareConfig() {
       boolean topicRestart = swapMqttTopic();
       if (topicRestart) espRestart = true;
       // Restart if needed
+      if (reinitLEDTriggered) {
+        reinitLEDTriggered = false;
+        initLeds();
+      }
       if (espRestart) {
         ESP.restart();
       }
@@ -914,6 +918,11 @@ void checkConnection() {
 
 int serialRead() {
 
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+#if defined(ESP32)
+  delayMicroseconds(10);
+#endif
+#endif
   return !breakLoop ? Serial.read() : -1;
 
 }
@@ -975,21 +984,22 @@ void mainLoop() {
 
     if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 3 || gpio == 5 || gpio == 16)) {
       setGpio(gpio);
-      espRestartTriggered = true;
+      reinitLEDTriggered = true;
     }
 
     int numLedFromLuciferin = lo + loSecondPart + 1;
     if (dynamicLedNum != numLedFromLuciferin && numLedFromLuciferin < NUM_LEDS) {
       setNumLed(numLedFromLuciferin);
-      espRestartTriggered = true;
+      reinitLEDTriggered = true;
+    }
+
+    if (reinitLEDTriggered) {
+      reinitLEDTriggered = false;
+      initLeds();
     }
 
     if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
       setBaudRate(baudRate);
-      espRestartTriggered = true;
-    }
-
-    if (espRestartTriggered) {
       ESP.restart();
     }
 
@@ -1003,7 +1013,7 @@ void mainLoop() {
       fireflyEffectInUse = fireflyEffect;
       switch (fireflyEffectInUse) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-        case 1:
+      case 1:
       case 2:
       case 3:
       case 4:
@@ -1295,7 +1305,6 @@ void loop() {
   if (relayState && !stateOn) {
     turnOffRelay();
   }
-#endif
 #if defined(ESP8266)
   // If packet received...
   int packetSize = UDP.parsePacket();
@@ -1308,6 +1317,7 @@ void loop() {
       }
     }
   }
+#endif
 #endif
 
 }
@@ -1506,10 +1516,8 @@ void initLeds() {
 
 #if defined(ESP32)
   Serial.println("Using DMA");
-  if (ledsESP32 != NULL) {
-    delete ledsESP32; // delete the previous dynamically created strip
-  }
-  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod >(dynamicLedNum, gpioInUse); // and recreate with new count
+  cleanLEDs();
+  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
   if (ledsESP32 == NULL) {
     Serial.println("OUT OF MEMORY");
   }
@@ -1522,9 +1530,7 @@ void initLeds() {
 #else
   if (gpioInUse == 3) {
     Serial.println("Using DMA");
-    if (ledsDMA != NULL) {
-      delete ledsDMA; // delete the previous dynamically created strip
-    }
+    cleanLEDs();
     ledsDMA = new NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
     if (ledsDMA == NULL) {
       Serial.println("OUT OF MEMORY");
@@ -1537,9 +1543,7 @@ void initLeds() {
     ledsDMA->Show();
   } else if (gpioInUse == 2) {
     Serial.println("Using UART");
-    if (ledsUART != NULL) {
-      delete ledsUART; // delete the previous dynamically created strip
-    }
+    cleanLEDs();
     ledsUART = new NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
     if (ledsUART == NULL) {
       Serial.println("OUT OF MEMORY");
@@ -1552,9 +1556,7 @@ void initLeds() {
     ledsUART->Show();
   } else {
     Serial.println("Using Standard");
-    if (ledsStandard != NULL) {
-      delete ledsStandard; // delete the previous dynamically created strip
-    }
+    cleanLEDs();
     ledsStandard = new NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, 5); // and recreate with new count
     if (ledsStandard == NULL) {
       Serial.println("OUT OF MEMORY");
@@ -1565,6 +1567,30 @@ void initLeds() {
     Serial.flush();
     ledsStandard->Begin();
     ledsStandard->Show();
+  }
+#endif
+
+}
+
+/**
+ * Clean the LEDs before reinit
+ */
+void cleanLEDs() {
+
+#if defined(ESP32)
+  if (ledsESP32 != NULL) {
+    delete ledsESP32; // delete the previous dynamically created strip
+  }
+#endif
+#if defined(ESP8266)
+  if (ledsDMA != NULL) {
+    delete ledsDMA; // delete the previous dynamically created strip
+  }
+  if (ledsUART != NULL) {
+    delete ledsUART; // delete the previous dynamically created strip
+  }
+  if (ledsStandard != NULL) {
+    delete ledsStandard; // delete the previous dynamically created strip
   }
 #endif
 
