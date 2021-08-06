@@ -141,24 +141,12 @@ WiFiUDP UDP;
 char packet[UDP_PACKET_SIZE];
 
 //RAINBOW
-uint16_t thishue = 0; // Starting hue value.
-uint16_t deltahue = 10;
+
 
 //NOISE
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
-uint16_t maxChanges = 48;      // Value for blending between palettes.
 CRGBPalette16 targetPalette(OceanColors_p);
 CRGBPalette16 currentPalette(CRGB::Black);
-
-//BPM
-uint16_t gHue = 0;
-
-// MIXED RAINBOW
-long lastAnim = 0;
-int mixedRainboxIndex = 0;
-
-// AUDIO RAINBOW, SOLID RAINBOW
-long lastAnimSolidRainbow = 0;
 
 bool breakLoop = false;
 int part = 1;
@@ -187,7 +175,6 @@ int calculateVal(int step, int val, int i);
 void tcpTask(void * parameter);
 void serialTask(void * parameter);
 void mainLoop();
-CRGB Scroll(int pos);
 void sendSerialInfo();
 void feedTheDog();
 void setGpio(int gpio);
@@ -210,8 +197,3 @@ void ledShow();
 void initLeds();
 void fromStreamToStrip(char *payload, boolean isUdpStream);
 void cleanLEDs();
-//void setPixelHeatColor(int pixel, byte temperature);
-//void fire(int cooling, int sparking, int speedDelay);
-void twinkleRandom(int count, int speedDelay, boolean onlyOne);
-byte * wheel(byte wheelPos);
-void theaterChaseRainbow();

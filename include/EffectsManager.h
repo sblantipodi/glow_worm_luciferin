@@ -22,15 +22,47 @@
 #define GLOW_WORM_LUCIFERIN_EFFECTSMANAGER_H
 
 #include <Arduino.h>
-
+#include <FastLED.h>
 
 class EffectsManager {
 
-  public:
+#define NUM_LEDS 511 // Max Led support
+private:
+    CRGB scroll(int pos);
+
+public:
+    long lastAnim = 0;
+    int mixedRainboxIndex = 0;
+    uint16_t maxChanges = 48;
+    uint16_t gHue = 0;
+    uint16_t thishue = 0;
+    uint16_t deltahue = 10;
+    long lastAnimSolidRainbow = 0;
+
     void fire(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
               int cooling, int sparking, int speedDelay, int dynamicLedNum);
 
-};
+    void twinkleRandom(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+                       void (*setColor)(int r, int g, int b), int count, int speedDelay, boolean onlyOne,
+                       int dynamicLedNum);
 
+    void
+    theaterChaseRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+                        int dynamicLedNum);
+
+    void mixedRainbow(void (*ledShowCallback)(), void (*checkConnectionCallback)(),
+                      void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b), CRGB leds[NUM_LEDS],
+                      int dynamicLedNum);
+
+    void bpm(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+             CRGB leds[NUM_LEDS], CRGBPalette16 currentPalette, CRGBPalette16 targetPalette);
+
+    void rainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+                 CRGB leds[NUM_LEDS], int dynamicLedNum);
+
+    void solidRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+                      CRGB leds[NUM_LEDS], int dynamicLedNum);
+
+};
 
 #endif //GLOW_WORM_LUCIFERIN_EFFECTSMANAGER_H

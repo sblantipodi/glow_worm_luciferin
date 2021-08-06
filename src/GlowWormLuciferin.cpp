@@ -1055,39 +1055,17 @@ void mainLoop() {
 
   //EFFECT BPM
   if (effect == Effect::bpm) {
-    uint8_t BeatsPerMinute = 62;
-    CRGBPalette16 palette = PartyColors_p;
-    uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
-    for (int i = 0; i < NUM_LEDS; i++) { //9948
-      leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-      setPixelColor(i, leds[i].r, leds[i].g, leds[i].b);
-    }
-    showleds();
+    effectsManager.bpm(ledShow, setPixelColor, leds, currentPalette, targetPalette);
   }
 
   //EFFECT RAINBOW
   if (effect == Effect::rainbow) {
-    // FastLED's built-in rainbow generator
-    thishue++;
-    fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
-    for (int i = 0; i < NUM_LEDS; i++) {
-      setPixelColor(i, leds[i].r, leds[i].g, leds[i].b);
-    }
-    showleds();
+    effectsManager.rainbow(ledShow, setPixelColor, leds, dynamicLedNum);
   }
 
   //SOLID RAINBOW
   if (effect == Effect::solid_rainbow) {
-        // FastLED's built-in rainbow generator
-        fill_solid(leds, NUM_LEDS, CHSV(thishue, 255, 255));
-        for (int i = 0; i < NUM_LEDS; i++) {
-          setPixelColor(i, leds[i].r, leds[i].g, leds[i].b);
-        }
-        if (millis()-lastAnimSolidRainbow >= 90) {
-          lastAnimSolidRainbow = millis();
-          thishue++;
-        }
-        showleds();
+    effectsManager.solidRainbow(ledShow, setPixelColor, leds, dynamicLedNum);
   }
 
   //FIRE
@@ -1097,52 +1075,17 @@ void mainLoop() {
 
   //TWINKLE
   if (effect == Effect::twinkle) {
-    twinkleRandom(20, 100, false);
+    effectsManager.twinkleRandom(ledShow, setPixelColor, setColor, 20, 100, false, dynamicLedNum);
   }
 
-  //TWINKLE
+  //CHASE RAINBOW
   if (effect == Effect::chase_rainbow) {
-    theaterChaseRainbow();
+    effectsManager.theaterChaseRainbow(ledShow, setPixelColor, dynamicLedNum);
   }
 
   //MIXED RAINBOW
   if (effect == Effect::mixed_rainbow) {
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-    if (millis()-lastAnim >= 10) {
-      lastAnim = millis();
-      mixedRainboxIndex++;
-    }
-#elif TARGET_GLOWWORMLUCIFERINLIGHT
-    mixedRainboxIndex++;
-#endif
-    if(mixedRainboxIndex < 256) {
-      for(int i = 0; i < dynamicLedNum; i++) {
-        leds[i] = Scroll((i * 256 / dynamicLedNum + mixedRainboxIndex) % 256);
-        setPixelColor(i, leds[i].r, leds[i].g, leds[i].b);
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-        checkConnection();
-#endif
-      }
-      ledShow();
-    } else {
-      mixedRainboxIndex = 0;
-    }
-  }
-
-  //BPM
-  if (effect == Effect::bpm) {
-    EVERY_N_MILLISECONDS(10) {
-      nblendPaletteTowardPalette(currentPalette, targetPalette, maxChanges);  // FOR NOISE ANIMATIon
-      {
-        gHue++;
-      }
-    }
-    EVERY_N_SECONDS(5) {
-      targetPalette = CRGBPalette16(CHSV(random16(), 255, random16(128, 255)),
-                                    CHSV(random16(), 255, random16(128, 255)),
-                                    CHSV(random16(), 192, random16(128, 255)),
-                                    CHSV(random16(), 255, random16(128, 255)));
-    }
+    effectsManager.mixedRainbow(ledShow, checkConnection, setPixelColor, leds, dynamicLedNum);
   }
 
   //FLASH AND FADE SUPPORT
@@ -1471,121 +1414,6 @@ void showleds() {
 
 }
 
-// WS2812B LED Strip switches Red and Green
-CRGB Scroll(int pos) {
-  CRGB color (0,0,0);
-  if(pos < 85) {
-    color.g = 0;
-    color.r = ((float)pos / 85.0f) * 255.0f;
-    color.b = 255 - color.r;
-  } else if(pos < 170) {
-    color.g = ((float)(pos - 85) / 85.0f) * 255.0f;
-    color.r = 255 - color.g;
-    color.b = 0;
-  } else if(pos < 256) {
-    color.b = ((float)(pos - 170) / 85.0f) * 255.0f;
-    color.g = 255 - color.b;
-    color.r = 1;
-  }
-  return color;
-}
-
-//void fire(int cooling, int sparking, int speedDelay) {
-//  static byte heat[NUM_LEDS];
-//  int cooldown;
-//  // Step 1.  Cool down every cell a little
-//  for( int i = 0; i < dynamicLedNum; i++) {
-//    cooldown = random(0, ((cooling * 10) / dynamicLedNum) + 2);
-//    if(cooldown>heat[i]) {
-//      heat[i]=0;
-//    } else {
-//      heat[i]=heat[i]-cooldown;
-//    }
-//  }
-//  // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-//  for( int k= dynamicLedNum - 1; k >= 2; k--) {
-//    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
-//  }
-//  // Step 3.  Randomly ignite new 'sparks' near the bottom
-//  if( random(255) < sparking ) {
-//    int y = random(7);
-//    heat[y] = heat[y] + random(160,255);
-//    //heat[y] = random(160,255);
-//  }
-//  // Step 4.  Convert heat to LED colors
-//  for( int j = 0; j < dynamicLedNum; j++) {
-//    setPixelHeatColor(j, heat[j] );
-//  }
-//  ledShow();
-//  delay(speedDelay);
-//}
-//
-//void setPixelHeatColor(int pixel, byte temperature) {
-//  // Scale 'heat' down from 0-255 to 0-191
-//  byte t192 = round((temperature/255.0)*191);
-//  // calculate ramp up from
-//  byte heatramp = t192 & 0x3F; // 0..63
-//  heatramp <<= 2; // scale up to 0..252
-//  // figure out which third of the spectrum we're in:
-//  if( t192 > 0x80) {                     // hottest
-//    setPixelColor(pixel, 255, 255, heatramp);
-//  } else if( t192 > 0x40 ) {             // middle
-//    setPixelColor(pixel, 255, heatramp, 0);
-//  } else {                               // coolest
-//    setPixelColor(pixel, heatramp, 0, 0);
-//  }
-//}
-
-void twinkleRandom(int count, int speedDelay, boolean onlyOne) {
-  setColor(0,0,0);
-  for (int i=0; i<count; i++) {
-    setPixelColor(random(dynamicLedNum),random(0,255),random(0,255),random(0,255));
-    ledShow();
-    delay(speedDelay);
-    if(onlyOne) {
-      setColor(0,0,0);
-    }
-  }
-  delay(speedDelay);
-}
-
-void theaterChaseRainbow() {
-  byte *c;
-  for (int j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
-    for (int q=0; q < 3; q++) {
-      for (int i=0; i < dynamicLedNum; i=i+3) {
-        c = wheel( (i+j) % 255);
-        setPixelColor(i+q, *c, *(c+1), *(c+2));    //turn every third pixel on
-      }
-      ledShow();
-      delay(1);
-      for (int i=0; i < dynamicLedNum; i=i+3) {
-        setPixelColor(i+q, 0,0,0);        //turn every third pixel off
-      }
-    }
-  }
-}
-
-byte * wheel(byte wheelPos) {
-  static byte c[3];
-  if(wheelPos < 85) {
-    c[0]=wheelPos * 3;
-    c[1]=255 - wheelPos * 3;
-    c[2]=0;
-  } else if(wheelPos < 170) {
-    wheelPos -= 85;
-    c[0]=255 - wheelPos * 3;
-    c[1]=0;
-    c[2]=wheelPos * 3;
-  } else {
-    wheelPos -= 170;
-    c[0]=0;
-    c[1]=wheelPos * 3;
-    c[2]=255 - wheelPos * 3;
-  }
-  return c;
-}
-
 /**
  * Apply white temp correcton on DMA mode
  * @param r red channel
@@ -1715,22 +1543,14 @@ void cleanLEDs() {
 void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b) {
 
 #if defined(ESP32)
-  ledsESP32->SetPixelColor(index, RgbColor(applyWhiteTempRed(r),
-                                           applyWhiteTempGreen(g),
-                                           applyWhiteTempBlue(b)));
+  ledsESP32->SetPixelColor(index, RgbColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b)));
 #else
   if (gpioInUse == 3) {
-    ledsDMA->SetPixelColor(index, RgbColor(applyWhiteTempRed(r),
-                                           applyWhiteTempGreen(g),
-                                           applyWhiteTempBlue(b)));
+    ledsDMA->SetPixelColor(index, RgbColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b)));
   } else if (gpioInUse == 2) {
-    ledsUART->SetPixelColor(index, RgbColor(applyWhiteTempRed(r),
-                                            applyWhiteTempGreen(g),
-                                            applyWhiteTempBlue(b)));
+    ledsUART->SetPixelColor(index, RgbColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b)));
   } else {
-    ledsStandard->SetPixelColor(index, RgbColor(applyWhiteTempRed(r),
-                                                applyWhiteTempGreen(g),
-                                                applyWhiteTempBlue(b)));
+    ledsStandard->SetPixelColor(index, RgbColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b)));
   }
 #endif
 
