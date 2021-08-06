@@ -284,17 +284,10 @@ void callback(char *topic, byte *payload, unsigned int length) {
       processUnSubscribeStream();
     }
     if (stateOn) {
-      realRed = map(red, 0, 255, 0, brightness);
-      realGreen = map(green, 0, 255, 0, brightness);
-      realBlue = map(blue, 0, 255, 0, brightness);
+      setColor(map(red, 0, 255, 0, brightness), map(green, 0, 255, 0, brightness), map(blue, 0, 255, 0, brightness));
     } else {
-      realRed = 0;
-      realGreen = 0;
-      realBlue = 0;
+      setColor(0,0,0);
     }
-    startFade = true;
-    inFade = false; // Kill the current fade
-
   }
 
 }
@@ -528,13 +521,7 @@ bool processJson() {
       stateOn = true;
     } else if (state == OFF_CMD) {
       stateOn = false;
-      onbeforeflash = false;
     }
-  }
-
-  flash = false;
-  if (stateOn) {   //if the light is turned on and the light isn't flashing
-    onbeforeflash = true;
   }
 
   if (bootstrapManager.jsonDoc.containsKey("color")) {
@@ -550,12 +537,6 @@ bool processJson() {
   if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
     int whitetemp = bootstrapManager.jsonDoc["whitetemp"];
     setTemperature(whitetemp);
-  }
-
-  if (bootstrapManager.jsonDoc.containsKey("transition")) {
-    transitionTime = bootstrapManager.jsonDoc["transition"];
-  } else if (effect == Effect::solid) {
-    transitionTime = 0;
   }
 
   if (bootstrapManager.jsonDoc.containsKey("effect")) {
@@ -860,10 +841,15 @@ void setTemperature(int whitetemp) {
  */
 void setColor(int inR, int inG, int inB) {
 
-  for (int i = 0; i < NUM_LEDS; i++) {
-    setPixelColor(i, inR, inG, inB);
+  if (inR == 0 && inG == 0 && inB == 0) {
+    effect = Effect::solid;
   }
-  ledShow();
+  if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
+    for (int i = 0; i < dynamicLedNum; i++) {
+      setPixelColor(i, inR, inG, inB);
+    }
+    ledShow();
+  }
   Serial.print(F("Setting LEDs: "));
   Serial.print(F("r: "));
   Serial.print(inR);
@@ -1088,75 +1074,6 @@ void mainLoop() {
     effectsManager.mixedRainbow(ledShow, checkConnection, setPixelColor, leds, dynamicLedNum);
   }
 
-  //FLASH AND FADE SUPPORT
-  if (flash) {
-    if (startFlash) {
-      startFlash = false;
-      flashStartTime = millis();
-    }
-
-    if ((millis() - flashStartTime) <= flashLength) {
-      if ((millis() - flashStartTime) % 1000 <= 500) {
-        setColor(flashRed, flashGreen, flashBlue);
-      } else {
-        setColor(0, 0, 0);
-        // If you'd prefer the flashing to happen "on top of"
-        // the current color, uncomment the next line.
-        // setColor(realRed, realGreen, realBlue);
-      }
-    } else {
-      flash = false;
-      if (onbeforeflash) { //keeps light off after flash if light was originally off
-        setColor(realRed, realGreen, realBlue);
-      } else {
-        stateOn = false;
-        setColor(0, 0, 0);
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-        sendStatus();
-#endif
-        turnOffRelay();
-      }
-    }
-  }
-
-  if (startFade && effect == Effect::solid) {
-
-    // If we don't want to fade, skip it.
-    if (transitionTime == 0) {
-      setColor(realRed, realGreen, realBlue);
-      redVal = realRed;
-      grnVal = realGreen;
-      bluVal = realBlue;
-      startFade = false;
-    } else {
-      loopCount = 0;
-      stepR = calculateStep(redVal, realRed);
-      stepG = calculateStep(grnVal, realGreen);
-      stepB = calculateStep(bluVal, realBlue);
-      inFade = true;
-    }
-  }
-
-  if (inFade) {
-    startFade = false;
-    unsigned long now = millis();
-    if (now - lastLoop > transitionTime) {
-      if (loopCount <= 1020) {
-        lastLoop = now;
-        redVal = calculateVal(stepR, redVal, loopCount);
-        grnVal = calculateVal(stepG, grnVal, loopCount);
-        bluVal = calculateVal(stepB, bluVal, loopCount);
-        if (effect == Effect::solid) {
-          loopCount = 1020;
-          setColor(redVal, grnVal, bluVal); // Write current values to LED pins
-        }
-        loopCount++;
-      } else {
-        inFade = false;
-      }
-    }
-  }
-
 }
 
 /**
@@ -1332,84 +1249,6 @@ void sendSerialInfo() {
     Serial.printf("baudrate:%d\n", baudRateInUse);
     Serial.printf("effect:%d\n", effect);
 
-  }
-
-}
-
-// From https://www.arduino.cc/en/Tutorial/ColorCrossfader
-/* BELOW THIS LINE IS THE MATH -- YOU SHOULDN'T NEED TO CHANGE THIS FOR THE BASICS
-  The program works like this:
-  Imagine a crossfade that moves the red LED from 0-10,
-    the green from 0-5, and the blue from 10 to 7, in
-    ten steps.
-    We'd want to count the 10 steps and increase or
-    decrease color values in evenly stepped increments.
-    Imagine a + indicates raising a value by 1, and a -
-    equals lowering it. Our 10 step fade would look like:
-    1 2 3 4 5 6 7 8 9 10
-  R + + + + + + + + + +
-  G   +   +   +   +   +
-  B     -     -     -
-  The red rises from 0 to 10 in ten steps, the green from
-  0-5 in 5 steps, and the blue falls from 10 to 7 in three steps.
-  In the real program, the color percentages are converted to
-  0-255 values, and there are 1020 steps (255*4).
-  To figure out how big a step there should be between one up- or
-  down-tick of one of the LED values, we call calculateStep(),
-  which calculates the absolute gap between the start and end values,
-  and then divides that gap by 1020 to determine the size of the step
-  between adjustments in the value.
-*/
-int calculateStep(int prevValue, int endValue) {
-
-  int step = endValue - prevValue; // What's the overall gap?
-  if (step) {                      // If its non-zero,
-    step = 1020 / step;          //   divide by 1020
-  }
-
-  return step;
-
-}
-
-/* The next function is calculateVal. When the loop value, i,
-   reaches the step size appropriate for one of the
-   colors, it increases or decreases the value of that color by 1.
-   (R, G, and B are each calculated separately.)
-*/
-int calculateVal(int step, int val, int i) {
-
-  if ((step) && i % step == 0) { // If step is non-zero and its time to change a value,
-    if (step > 0) {              //   increment the value if step is positive...
-      val += 1;
-    } else if (step < 0) {         //   ...or decrement it if step is negative
-      val -= 1;
-    }
-  }
-
-  // Defensive driving: make sure val stays in the range 0-255
-  if (val > 255) {
-    val = 255;
-  } else if (val < 0) {
-    val = 0;
-  }
-
-  return val;
-
-}
-
-void showleds() {
-
-#if defined(ESP8266)
-  delay(1);
-#endif
-#if defined(ESP32)
-  vTaskDelay(1);
-#endif
-  if (stateOn) {
-    ledShow();
-  } else if (startFade) {
-    setColor(0, 0, 0);
-    startFade = false;
   }
 
 }

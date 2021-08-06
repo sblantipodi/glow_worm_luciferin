@@ -222,5 +222,3 @@ void EffectsManager::solidRainbow(void (*ledShowCallback)(), void (*setPixelColo
   ledShowCallback();
 
 }
-
-

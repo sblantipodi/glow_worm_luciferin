@@ -27,10 +27,13 @@
 class EffectsManager {
 
 #define NUM_LEDS 511 // Max Led support
-private:
-    CRGB scroll(int pos);
 
-public:
+private:
+
+    CRGB scroll(int pos);
+    byte red = 255;
+    byte green = 255;
+    byte blue = 255;
     long lastAnim = 0;
     int mixedRainboxIndex = 0;
     uint16_t maxChanges = 48;
@@ -39,6 +42,8 @@ public:
     uint16_t deltahue = 10;
     long lastAnimSolidRainbow = 0;
 
+public:
+
     void fire(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
               int cooling, int sparking, int speedDelay, int dynamicLedNum);
 
@@ -46,8 +51,7 @@ public:
                        void (*setColor)(int r, int g, int b), int count, int speedDelay, boolean onlyOne,
                        int dynamicLedNum);
 
-    void
-    theaterChaseRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+    void theaterChaseRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
                         int dynamicLedNum);
 
     void mixedRainbow(void (*ledShowCallback)(), void (*checkConnectionCallback)(),

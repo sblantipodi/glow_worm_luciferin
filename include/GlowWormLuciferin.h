@@ -60,8 +60,6 @@ String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
 const char* BASE_TOPIC = "glowwormluciferin";
 String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
-boolean espMultiCoreSemaphore = false;
-boolean espRestartTriggered = false;
 boolean reinitLEDTriggered = false;
 uint8_t whiteTempCorrection[] = {255, 255, 255};
 
@@ -108,10 +106,6 @@ const int THIRD_CHUNK = 510;
 #define CHIPSET     WS2812B
 #define COLOR_ORDER GRB
 
-byte realRed = 0;
-byte realGreen = 0;
-byte realBlue = 0;
-
 byte red = 255;
 byte green = 255;
 byte blue = 255;
@@ -120,28 +114,10 @@ byte brightness = 255;
 /****************** GLOBALS for fade/flash ******************/
 bool stateOn = false;
 bool relayState = false;
-bool startFade = false;
-bool onbeforeflash = false;
-unsigned long lastLoop = 0;
-unsigned transitionTime = 40;
-bool inFade = false;
-int loopCount = 0;
-int stepR, stepG, stepB;
-int redVal, grnVal, bluVal;
 
-bool flash = false;
-bool startFlash = false;
-unsigned int flashLength = 0;
-unsigned long flashStartTime = 0;
-byte flashRed = red;
-byte flashGreen = green;
-byte flashBlue = blue;
 #define UDP_PORT 4210
 WiFiUDP UDP;
 char packet[UDP_PACKET_SIZE];
-
-//RAINBOW
-
 
 //NOISE
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
@@ -168,10 +144,6 @@ bool swapMqttTopic();
 void executeMqttSwap(String customtopic);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
-void fadeall();
-void showleds();
-int calculateStep(int prevValue, int endValue);
-int calculateVal(int step, int val, int i);
 void tcpTask(void * parameter);
 void serialTask(void * parameter);
 void mainLoop();
