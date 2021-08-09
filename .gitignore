@@ -7,4 +7,5 @@ secrets.ini
 cmake-build-*
 CMakeLists.txt
 CMakeListsPrivate.txt
+/tmp.txt
 tmp.txt
