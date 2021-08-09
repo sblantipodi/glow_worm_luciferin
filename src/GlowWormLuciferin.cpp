@@ -977,6 +977,7 @@ void mainLoop() {
     if (reinitLEDTriggered) {
       reinitLEDTriggered = false;
       initLeds();
+      breakLoop = true;
     }
 
     if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
@@ -1293,7 +1294,7 @@ void initLeds() {
 #if defined(ESP32)
   Serial.println("Using DMA");
   cleanLEDs();
-  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
+  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, 15); // and recreate with new count
   if (ledsESP32 == NULL) {
     Serial.println("OUT OF MEMORY");
   }
@@ -1301,6 +1302,10 @@ void initLeds() {
   Serial.println();
   Serial.println("Initializing...");
   Serial.flush();
+  ledsESP32->Begin();
+  ledsESP32->Show();
+  cleanLEDs();
+  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
   ledsESP32->Begin();
   ledsESP32->Show();
 #else
