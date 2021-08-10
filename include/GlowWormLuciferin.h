@@ -16,17 +16,6 @@
 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-  * Components:
-   - Arduino C++ sketch running on an ESP8266EX D1 Mini from Lolin running @ 160MHz
-   - WS2812B 5V LED Strip
-   - 3.3V/5V Logic Level Converter
-   - 220Ω resistor
-   - 1000uf capacitor for 5V power stabilization
-   - Raspberry + Home Assistant for Web GUI, automations and MQTT server (HA is optional but an MQTT server is needed)
-   - Google Home Mini for Voice Recognition (optional)
-  NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, 
-  some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 */
 #if defined(ESP32)
 //#define FASTLED_INTERRUPT_RETRY_COUNT 0
@@ -34,42 +23,28 @@
 #define FASTLED_ESP32_I2S true
 #endif
 #include <FastLED.h>
+#include <NeoPixelBus.h>
+#include <NeoPixelAnimator.h>
 #include "Version.h"
 #include "BootstrapManager.h"
+#include "EffectsManager.h"
 #if defined(ESP32)
 #include "soc/timer_group_struct.h"
 #include "soc/timer_group_reg.h"
 #endif
 
-// White temp
-#define TEMPERATURE_1 UncorrectedTemperature
-#define TEMPERATURE_2 Candle
-#define TEMPERATURE_3 Tungsten40W
-#define TEMPERATURE_4 Tungsten100W
-#define TEMPERATURE_5 Halogen
-#define TEMPERATURE_6 CarbonArc
-#define TEMPERATURE_7 HighNoonSun
-#define TEMPERATURE_8 DirectSunlight
-#define TEMPERATURE_9 OvercastSky
-#define TEMPERATURE_10 ClearBlueSky
-#define TEMPERATURE_11 WarmFluorescent
-#define TEMPERATURE_12 StandardFluorescent
-#define TEMPERATURE_13 CoolWhiteFluorescent
-#define TEMPERATURE_14 FullSpectrumFluorescent
-#define TEMPERATURE_15 GrowLightFluorescent
-#define TEMPERATURE_16 BlackLightFluorescent
-#define TEMPERATURE_17 MercuryVapor
-#define TEMPERATURE_18 SodiumVapor
-#define TEMPERATURE_19 MetalHalide
-#define TEMPERATURE_20 HighPressureSodium
-
 /****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;
+EffectsManager effectsManager;
 Helpers helper;
 #if defined(ESP32)
 TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
 TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
+#define RELAY_PIN 23
+#else
+#define RELAY_PIN 12
 #endif
+
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 String lightStateTopic = "lights/glowwormluciferin";
@@ -85,9 +60,10 @@ String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
 const char* BASE_TOPIC = "glowwormluciferin";
 String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
-boolean espMultiCoreSemaphore = false;
+boolean reinitLEDTriggered = false;
+uint8_t whiteTempCorrection[] = {255, 255, 255};
 
-enum class Effect { GlowWormWifi, GlowWorm, solid, bpm, rainbow, solid_rainbow, mixed_rainbow };
+enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
 
 /****************** Glow Worm Luciferin ******************/
@@ -100,7 +76,7 @@ uint lastLedUpdate = 10000;
 uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
-int gpioInUse = 5, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
+int gpioInUse = 2, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
 // Upgrade firmware
 boolean firmwareUpgrade = false;
 size_t updateSize = 0;
@@ -119,6 +95,8 @@ const String GPIO_PARAM = "gpio";
 const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
 const String EFFECT_PARAM = "effect";
+const int UDP_CHUNK_SIZE = 100;
+const int UDP_PACKET_SIZE = 1024;
 
 const int FIRST_CHUNK = 170;
 const int SECOND_CHUNK = 340;
@@ -128,10 +106,6 @@ const int THIRD_CHUNK = 510;
 #define CHIPSET     WS2812B
 #define COLOR_ORDER GRB
 
-byte realRed = 0;
-byte realGreen = 0;
-byte realBlue = 0;
-
 byte red = 255;
 byte green = 255;
 byte blue = 255;
@@ -139,42 +113,16 @@ byte brightness = 255;
 
 /****************** GLOBALS for fade/flash ******************/
 bool stateOn = false;
-bool startFade = false;
-bool onbeforeflash = false;
-unsigned long lastLoop = 0;
-unsigned transitionTime = 40;
-bool inFade = false;
-int loopCount = 0;
-int stepR, stepG, stepB;
-int redVal, grnVal, bluVal;
+bool relayState = false;
 
-bool flash = false;
-bool startFlash = false;
-unsigned int flashLength = 0;
-unsigned long flashStartTime = 0;
-byte flashRed = red;
-byte flashGreen = green;
-byte flashBlue = blue;
-
-//RAINBOW
-uint16_t thishue = 0; // Starting hue value.
-uint16_t deltahue = 10;
+#define UDP_PORT 4210
+WiFiUDP UDP;
+char packet[UDP_PACKET_SIZE];
 
 //NOISE
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
-uint16_t maxChanges = 48;      // Value for blending between palettes.
 CRGBPalette16 targetPalette(OceanColors_p);
 CRGBPalette16 currentPalette(CRGB::Black);
-
-//BPM
-uint16_t gHue = 0;
-
-// MIXED RAINBOW
-long lastAnim = 0;
-int mixedRainboxIndex = 0;
-
-// AUDIO RAINBOW, SOLID RAINBOW
-long lastAnimSolidRainbow = 0;
 
 bool breakLoop = false;
 int part = 1;
@@ -196,14 +144,9 @@ bool swapMqttTopic();
 void executeMqttSwap(String customtopic);
 void setColor(int inR, int inG, int inB);
 void checkConnection();
-void fadeall();
-void showleds();
-int calculateStep(int prevValue, int endValue);
-int calculateVal(int step, int val, int i);
 void tcpTask(void * parameter);
 void serialTask(void * parameter);
 void mainLoop();
-CRGB Scroll(int pos);
 void sendSerialInfo();
 void feedTheDog();
 void setGpio(int gpio);
@@ -215,3 +158,14 @@ void swapTopicReplace(String customtopic);
 void swapTopicSubscribe();
 void setTemperature(int whitetemp);
 void jsonStream(byte *payload, unsigned int length);
+void turnOffRelay();
+void turnOnRelay();
+uint8_t applyWhiteTempRed(uint8_t r);
+uint8_t applyWhiteTempGreen(uint8_t g);
+uint8_t applyWhiteTempBlue(uint8_t b);
+uint8_t applyBrightnessCorrection(uint8_t c);
+void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b);
+void ledShow();
+void initLeds();
+void fromStreamToStrip(char *payload, boolean isUdpStream);
+void cleanLEDs();
