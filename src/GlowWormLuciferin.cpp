@@ -57,6 +57,8 @@ void setup() {
   String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
   if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
     dynamicLedNum = ledNumToUse.toInt();
+  } else {
+    dynamicLedNum = 2;
   }
   Serial.print("\nUsing LEDs=");
   Serial.println(dynamicLedNum);
@@ -606,6 +608,7 @@ void sendStatus() {
     }
     root["deviceName"] = deviceName;
     root["IP"] = microcontrollerIP;
+    root["wifi"] = bootstrapManager.getWifiQuality();
     root["MAC"] = MAC;
     root["ver"] = VERSION;
     root["framerate"] = framerate;
