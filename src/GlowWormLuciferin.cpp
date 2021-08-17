@@ -67,20 +67,6 @@ void setup() {
   MAC = WiFi.macAddress();
 #endif
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-  // LED number from configuration storage
-  String topicToUse = bootstrapManager.readValueFromFile(TOPIC_FILENAME, MQTT_PARAM);
-  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != topicInUse) {
-    topicInUse = topicToUse;
-    executeMqttSwap(topicInUse);
-  }
-  Serial.print(F("\nMQTT topic in use="));
-  Serial.println(topicInUse);
-
-  // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
-#endif
-
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
   int gpioToUse = 0;
@@ -110,6 +96,21 @@ void setup() {
   Serial.println(gpioInUse);
 
   initLeds();
+  setColor(0, 0, 0);
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  // LED number from configuration storage
+  String topicToUse = bootstrapManager.readValueFromFile(TOPIC_FILENAME, MQTT_PARAM);
+  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != topicInUse) {
+    topicInUse = topicToUse;
+    executeMqttSwap(topicInUse);
+  }
+  Serial.print(F("\nMQTT topic in use="));
+  Serial.println(topicInUse);
+
+  // Bootsrap setup() with Wifi and MQTT functions
+  bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
+#endif
 
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
@@ -580,7 +581,7 @@ bool processJson() {
 void sendStatus() {
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
-    bootstrapManager.publish(helper.string2char(fpsTopic), helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
+    bootstrapManager.publish(helper.string2char(fpsTopic), helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\",\"wifi\":\""+bootstrapManager.getWifiQuality()+"\"}"), false);
   } else {
     bootstrapManager.jsonDoc.clear();
     JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
