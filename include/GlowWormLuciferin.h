@@ -167,5 +167,6 @@ uint8_t applyBrightnessCorrection(uint8_t c);
 void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b);
 void ledShow();
 void initLeds();
-void fromStreamToStrip(char *payload, boolean isUdpStream);
+void fromUDPStreamToStrip(char (&payload)[UDP_PACKET_SIZE]);
+void fromMqttStreamToStrip(char *payload);
 void cleanLEDs();

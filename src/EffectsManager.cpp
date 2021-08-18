@@ -70,13 +70,13 @@ void EffectsManager::twinkleRandom(void (*ledShowCallback)(),
                                    void (*setColor)(int r, int g, int b), int count, int speedDelay, boolean onlyOne,
                                    int dynamicLedNum) {
 
-  setColor(0, 0, 0);
+  setColor(1, 1, 1);
   for (int i = 0; i < count; i++) {
     setPixelColorCallback(random(dynamicLedNum), random(0, 255), random(0, 255), random(0, 255));
     ledShowCallback();
     delay(speedDelay);
     if (onlyOne) {
-      setColor(0, 0, 0);
+      setColor(1, 1, 1);
     }
   }
   delay(speedDelay);

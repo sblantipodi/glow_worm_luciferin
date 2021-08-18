@@ -240,12 +240,12 @@ void manageDisconnections() {
  */
 void manageQueueSubscription() {
 
-  bootstrapManager.subscribe(helper.string2char(lightSetTopic));
-  bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
+  bootstrapManager.subscribe(lightSetTopic.c_str());
+  bootstrapManager.subscribe(streamTopic.c_str(), 0);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
-  bootstrapManager.subscribe(helper.string2char(updateStateTopic));
-  bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
-  bootstrapManager.subscribe(helper.string2char(firmwareConfigTopic));
+  bootstrapManager.subscribe(updateStateTopic.c_str());
+  bootstrapManager.subscribe(unsubscribeTopic.c_str());
+  bootstrapManager.subscribe(firmwareConfigTopic.c_str());
 
 }
 
@@ -269,7 +269,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
       if (JSON_STREAM) {
         jsonStream(payload, length);
       } else {
-        fromStreamToStrip(reinterpret_cast<char *>(payload), false);
+        fromMqttStreamToStrip(reinterpret_cast<char *>(payload));
       }
     }
   } else {
@@ -298,9 +298,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
 /**
  * Get data from the stream and send to the strip
  * @param payload stream data
- * @param isUdpStream UDP stream or MQTT stream
  */
-void fromStreamToStrip(char *payload, boolean isUdpStream) {
+void fromMqttStreamToStrip(char *payload) {
 
   int myLeds;
   char delimiters[] = ",";
@@ -313,16 +312,6 @@ void fromStreamToStrip(char *payload, boolean isUdpStream) {
   ptr = strtok(NULL, delimiters);
   if (brightness != audioBrightness) {
     brightness = audioBrightness;
-  }
-  int chunkTot, chunkNum;
-  if (isUdpStream) {
-    chunkTot = atoi(ptr);
-    ptr = strtok(NULL, delimiters);
-    chunkNum = atoi(ptr);
-    ptr = strtok(NULL, delimiters);
-    index = UDP_CHUNK_SIZE * chunkNum;
-    //Serial.println(chunkTot);
-    //Serial.println(chunkNum);
   }
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
@@ -339,13 +328,53 @@ void fromStreamToStrip(char *payload, boolean isUdpStream) {
     }
   }
   if (effect != Effect::solid) {
-    if (isUdpStream) {
-      if (chunkNum == chunkTot - 1) {
-        framerateCounter++;
-        lastStream = millis();
-        ledShow();
-      }
-    } else {
+      framerateCounter++;
+      lastStream = millis();
+      ledShow();
+  }
+
+}
+
+/**
+ * Get data from the stream and send to the strip
+ * @param payload stream data
+ */
+void fromUDPStreamToStrip(char (&payload)[UDP_PACKET_SIZE]) {
+
+  int myLeds;
+  char delimiters[] = ",";
+  char *ptr;
+  int index = 0;
+  ptr = strtok(payload, delimiters);
+  int numLedFromLuciferin = atoi(ptr);
+  ptr = strtok(NULL, delimiters);
+  int audioBrightness = atoi(ptr);
+  ptr = strtok(NULL, delimiters);
+  if (brightness != audioBrightness) {
+    brightness = audioBrightness;
+  }
+  int chunkTot, chunkNum;
+  chunkTot = atoi(ptr);
+  ptr = strtok(NULL, delimiters);
+  chunkNum = atoi(ptr);
+  ptr = strtok(NULL, delimiters);
+  index = UDP_CHUNK_SIZE * chunkNum;
+  if (numLedFromLuciferin == 0) {
+    effect = Effect::solid;
+  } else {
+    if (dynamicLedNum != numLedFromLuciferin) {
+      setNumLed(numLedFromLuciferin);
+      initLeds();
+    }
+    while (ptr != NULL) {
+      myLeds = atoi(ptr);
+      setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+      index++;
+      ptr = strtok(NULL, delimiters);
+    }
+  }
+  if (effect != Effect::solid) {
+    if (chunkNum == chunkTot - 1) {
       framerateCounter++;
       lastStream = millis();
       ledShow();
@@ -496,12 +525,12 @@ bool processUnSubscribeStream() {
     String instance = bootstrapManager.jsonDoc["instance"];
     String manager = bootstrapManager.jsonDoc["manager"];
     if (manager.equals(deviceName)) {
-      bootstrapManager.unsubscribe(helper.string2char(streamTopic));
+      bootstrapManager.unsubscribe(streamTopic.c_str());
       streamTopic = baseStreamTopic + instance;
       effect = Effect::GlowWormWifi;
       turnOnRelay();
       stateOn = true;
-      bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
+      bootstrapManager.subscribe(streamTopic.c_str(), 0);
     }
   }
   return true;
@@ -581,7 +610,7 @@ bool processJson() {
 void sendStatus() {
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
-    bootstrapManager.publish(helper.string2char(fpsTopic), helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\",\"wifi\":\""+bootstrapManager.getWifiQuality()+"\"}"), false);
+    bootstrapManager.publish(fpsTopic.c_str(), ("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\",\"wifi\":\""+bootstrapManager.getWifiQuality()+"\"}").c_str(), false);
   } else {
     bootstrapManager.jsonDoc.clear();
     JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
@@ -628,7 +657,7 @@ void sendStatus() {
     }
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
-    bootstrapManager.publish(helper.string2char(lightStateTopic), root, true);
+    bootstrapManager.publish(lightStateTopic.c_str(), root, true);
   }
 
 #if defined(ESP32)
@@ -657,7 +686,7 @@ bool processUpdate() {
         bool error = Update.hasError();
         server.send(200, "text/plain", error ? "KO" : "OK");
         if (!error) {
-          bootstrapManager.publish(helper.string2char(updateResultStateTopic), helper.string2char(deviceName), false);
+          bootstrapManager.publish(updateResultStateTopic.c_str(), deviceName.c_str(), false);
         }
         delay(DELAY_500);
         ESP.restart();
@@ -762,13 +791,13 @@ void executeMqttSwap(String customtopic) {
  */
 void swapTopicUnsubscribe() {
 
-  bootstrapManager.unsubscribe(helper.string2char(lightStateTopic));
-  bootstrapManager.unsubscribe(helper.string2char(updateStateTopic));
-  bootstrapManager.unsubscribe(helper.string2char(updateResultStateTopic));
-  bootstrapManager.unsubscribe(helper.string2char(lightSetTopic));
-  bootstrapManager.unsubscribe(helper.string2char(baseStreamTopic));
-  bootstrapManager.unsubscribe(helper.string2char(streamTopic));
-  bootstrapManager.unsubscribe(helper.string2char(unsubscribeTopic));
+  bootstrapManager.unsubscribe(lightStateTopic.c_str());
+  bootstrapManager.unsubscribe(updateStateTopic.c_str());
+  bootstrapManager.unsubscribe(updateResultStateTopic.c_str());
+  bootstrapManager.unsubscribe(lightSetTopic.c_str());
+  bootstrapManager.unsubscribe(baseStreamTopic.c_str());
+  bootstrapManager.unsubscribe(streamTopic.c_str());
+  bootstrapManager.unsubscribe(unsubscribeTopic.c_str());
 
 }
 
@@ -794,13 +823,13 @@ void swapTopicReplace(String customtopic) {
  */
 void swapTopicSubscribe() {
 
-  bootstrapManager.subscribe(helper.string2char(lightStateTopic));
-  bootstrapManager.subscribe(helper.string2char(updateStateTopic));
-  bootstrapManager.subscribe(helper.string2char(updateResultStateTopic));
-  bootstrapManager.subscribe(helper.string2char(lightSetTopic));
-  bootstrapManager.subscribe(helper.string2char(baseStreamTopic));
-  bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
-  bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
+  bootstrapManager.subscribe(lightStateTopic.c_str());
+  bootstrapManager.subscribe(updateStateTopic.c_str());
+  bootstrapManager.subscribe(updateResultStateTopic.c_str());
+  bootstrapManager.subscribe(lightSetTopic.c_str());
+  bootstrapManager.subscribe(baseStreamTopic.c_str());
+  bootstrapManager.subscribe(streamTopic.c_str(), 0);
+  bootstrapManager.subscribe(unsubscribeTopic.c_str());
 
 }
 
@@ -1113,7 +1142,7 @@ void tcpTask(void * parameter) {
       if (len > 0) {
         packet[len] = '\0';
         if (packetSize > 3) {
-            fromStreamToStrip(packet, true);
+          fromUDPStreamToStrip(packet);
         }
       }
     }
@@ -1191,7 +1220,7 @@ void loop() {
     if (len > 0) {
       packet[len] = '\0';
       if (packetSize > 3) {
-        fromStreamToStrip(packet, true);
+        fromUDPStreamToStrip(packet);
       }
     }
   }
@@ -1236,11 +1265,11 @@ void sendSerialInfo() {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
     framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;
-    Serial.printf("framerate:%s\n", helper.string2char(serialized(String((framerate > 0.5 ? framerate : 0),1))));
+    Serial.printf("framerate:%s\n", (serialized(String((framerate > 0.5 ? framerate : 0),1))));
     Serial.printf("firmware:%s\n", "LIGHT");
 #else
     Serial.printf("firmware:%s\n", "FULL");
-    Serial.printf("mqttopic:%s\n", helper.string2char(topicInUse));
+    Serial.printf("mqttopic:%s\n", topicInUse.c_str());
 #endif
     Serial.printf("ver:%s\n", VERSION);
     Serial.printf("lednum:%d\n", dynamicLedNum);
@@ -1249,7 +1278,7 @@ void sendSerialInfo() {
 #elif defined(ESP8266)
     Serial.printf("board:%s\n", "ESP8266");
 #endif
-    Serial.printf("MAC:%s\n", helper.string2char(MAC));
+    Serial.printf("MAC:%s\n", MAC.c_str());
     Serial.printf("gpio:%d\n", gpioInUse);
     Serial.printf("baudrate:%d\n", baudRateInUse);
     Serial.printf("effect:%d\n", effect);
