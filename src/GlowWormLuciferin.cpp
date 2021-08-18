@@ -232,6 +232,8 @@ void setNumLed(int numLedFromLuciferin) {
 void manageDisconnections() {
 
   setColor(0, 0, 0);
+  delay(500);
+  ESP.restart();
 
 }
 
