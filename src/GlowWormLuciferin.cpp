@@ -43,8 +43,8 @@ void setup() {
   }
 #endif
 
-  // BaudRate from configuration storage
-  String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
+// BaudRate from configuration storage
+String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
   if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
     baudRateInUse = baudRateFromStorage.toInt();
   }
@@ -60,11 +60,25 @@ void setup() {
   } else {
     dynamicLedNum = 2;
   }
-  Serial.print("\nUsing LEDs=");
+  Serial.print(F("\nUsing LEDs="));
   Serial.println(dynamicLedNum);
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   MAC = WiFi.macAddress();
+#endif
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  // LED number from configuration storage
+  String topicToUse = bootstrapManager.readValueFromFile(TOPIC_FILENAME, MQTT_PARAM);
+  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != topicInUse) {
+    topicInUse = topicToUse;
+    executeMqttSwap(topicInUse);
+  }
+  Serial.print(F("\nMQTT topic in use="));
+  Serial.println(topicInUse);
+
+  // Bootsrap setup() with Wifi and MQTT functions
+  bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
 #endif
 
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
@@ -82,35 +96,20 @@ void setup() {
     case 5:
       gpioInUse = 5;
       break;
-    case 3:
-      gpioInUse = 3;
-      break;
-    case 16:
-      gpioInUse = 16;
-      break;
-    default:
-      gpioInUse = 2;
-      break;
+      case 3:
+        gpioInUse = 3;
+        break;
+        case 16:
+          gpioInUse = 16;
+          break;
+          default:
+            gpioInUse = 2;
+            break;
   }
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
 
   initLeds();
-  setColor(0, 0, 0);
-
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-  // LED number from configuration storage
-  String topicToUse = bootstrapManager.readValueFromFile(TOPIC_FILENAME, MQTT_PARAM);
-  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != topicInUse) {
-    topicInUse = topicToUse;
-    executeMqttSwap(topicInUse);
-  }
-  Serial.print(F("\nMQTT topic in use="));
-  Serial.println(topicInUse);
-
-  // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(manageDisconnections, manageHardwareButton, callback);
-#endif
 
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
@@ -140,6 +139,8 @@ void setup() {
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
 #endif
+
+  fpsData.reserve(200);
 
 }
 
@@ -341,12 +342,12 @@ void fromMqttStreamToStrip(char *payload) {
  * Get data from the stream and send to the strip
  * @param payload stream data
  */
-void fromUDPStreamToStrip(char (&payload)[UDP_PACKET_SIZE]) {
+void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
 
   int myLeds;
   char delimiters[] = ",";
   char *ptr;
-  int index = 0;
+  int index;
   ptr = strtok(payload, delimiters);
   int numLedFromLuciferin = atoi(ptr);
   ptr = strtok(NULL, delimiters);
@@ -608,51 +609,63 @@ bool processJson() {
 
 /**
  * Send microcontroller state
+ * For debug: ESP.getFreeHeap() ESP.getHeapFragmentation() ESP.getMaxFreeBlockSize()
  */
 void sendStatus() {
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
-    bootstrapManager.publish(fpsTopic.c_str(), ("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\",\"wifi\":\""+bootstrapManager.getWifiQuality()+"\"}").c_str(), false);
+    fpsData = F("{\"deviceName\":\"");
+    fpsData += deviceName;
+    fpsData += F("\",\"MAC\":\"");
+    fpsData += MAC;
+    fpsData += F("\",\"lednum\":\"");
+    fpsData += dynamicLedNum;
+    fpsData += F("\",\"framerate\":\"");
+    fpsData += framerate;
+    fpsData += F("\",\"wifi\":\"");
+    fpsData += bootstrapManager.getWifiQuality();
+    fpsData += F("\"}");
+    bootstrapManager.publish(fpsTopic.c_str(), fpsData.c_str(), false);
   } else {
     bootstrapManager.jsonDoc.clear();
     JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
-    JsonObject color = root.createNestedObject("color");
-    root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
-    color["r"] = red;
-    color["g"] = green;
-    color["b"] = blue;
-    root["brightness"] = brightness;
+    JsonObject color = root.createNestedObject(F("color"));
+    root[F("state")] = (stateOn) ? ON_CMD : OFF_CMD;
+    color[F("r")] = red;
+    color[F("g")] = green;
+    color[F("b")] = blue;
+    root[F("brightness")] = brightness;
     switch (effect) {
       case Effect::GlowWormWifi:
-        root["effect"] = "GlowWormWifi";
+        root[F("effect")] = F("GlowWormWifi");
         break;
       case Effect::GlowWorm:
-        root["effect"] = "GlowWorm";
+        root[F("effect")] = F("GlowWorm");
         break;
-      case Effect::solid: root["effect"] = "solid"; break;
-      case Effect::bpm: root["effect"] = "bpm"; break;
-      case Effect::fire: root["effect"] = "fire"; break;
-      case Effect::twinkle: root["effect"] = "twinkle"; break;
-      case Effect::rainbow: root["effect"] = "rainbow"; break;
-      case Effect::chase_rainbow: root["effect"] = "chase rainbow"; break;
-      case Effect::solid_rainbow: root["effect"] = "solid rainbow"; break;
-      case Effect::mixed_rainbow: root["effect"] = "mixed rainbow"; break;
+        case Effect::solid: root[F("effect")] = F("solid"); break;
+        case Effect::bpm: root[F("effect")] = F("bpm"); break;
+        case Effect::fire: root[F("effect")] = F("fire"); break;
+        case Effect::twinkle: root[F("effect")] = F("twinkle"); break;
+        case Effect::rainbow: root[F("effect")] = F("rainbow"); break;
+        case Effect::chase_rainbow: root[F("effect")] = F("chase rainbow"); break;
+        case Effect::solid_rainbow: root[F("effect")] = F("solid rainbow"); break;
+        case Effect::mixed_rainbow: root[F("effect")] = F("mixed rainbow"); break;
     }
-    root["deviceName"] = deviceName;
-    root["IP"] = microcontrollerIP;
-    root["wifi"] = bootstrapManager.getWifiQuality();
-    root["MAC"] = MAC;
-    root["ver"] = VERSION;
-    root["framerate"] = framerate;
+    root[F("deviceName")] = deviceName;
+    root[F("IP")] = microcontrollerIP;
+    root[F("wifi")] = bootstrapManager.getWifiQuality();
+    root[F("MAC")] = MAC;
+    root[F("ver")] = VERSION;
+    root[F("framerate")] = framerate;
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
-    root["board"] = "ESP8266";
+    root[F("board")] = F("ESP8266");
 #elif defined(ESP32)
     root["board"] = "ESP32";
 #endif
     root[LED_NUM_PARAM] = String(dynamicLedNum);
-    root["gpio"] = gpioInUse;
-    root["mqttopic"] = topicInUse;
+    root[F("gpio")] = gpioInUse;
+    root[F("mqttopic")] = topicInUse;
 
     if (effect == Effect::solid && !stateOn) {
       setColor(0, 0, 0);
@@ -1138,13 +1151,15 @@ void tcpTask(void * parameter) {
     vTaskDelay(1);
 #elif TARGET_GLOWWORMLUCIFERINFULL
     // If packet received...
-    int packetSize = UDP.parsePacket();
-    if (packetSize) {
-      int len = UDP.read(packet, UDP_PACKET_SIZE);
-      if (len > 0) {
-        packet[len] = '\0';
-        if (packetSize > 3) {
-          fromUDPStreamToStrip(packet);
+    if (effect == Effect::GlowWormWifi) {
+      int packetSize = UDP.parsePacket();
+      if (packetSize) {
+        int len = UDP.read(packet, UDP_MAX_BUFFER_SIZE);
+        if (len > 0) {
+          packet[len] = '\0';
+          if (packetSize > 3) {
+            fromUDPStreamToStrip(packet);
+          }
         }
       }
     }
@@ -1216,13 +1231,15 @@ void loop() {
   }
 #if defined(ESP8266)
   // If packet received...
-  int packetSize = UDP.parsePacket();
-  if (packetSize) {
-    int len = UDP.read(packet, UDP_PACKET_SIZE);
-    if (len > 0) {
-      packet[len] = '\0';
-      if (packetSize > 3) {
-        fromUDPStreamToStrip(packet);
+  if (effect == Effect::GlowWormWifi) {
+    int packetSize = UDP.parsePacket();
+    if (packetSize) {
+      int len = UDP.read(packet, UDP_MAX_BUFFER_SIZE);
+      if (len > 0) {
+        packet[len] = '\0';
+        if (packetSize > 3) {
+          fromUDPStreamToStrip(packet);
+        }
       }
     }
   }
@@ -1263,29 +1280,27 @@ void turnOffRelay() {
 void sendSerialInfo() {
 
   EVERY_N_SECONDS(10) {
-
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
-    framerateCounter = 0;
-    Serial.printf("framerate:%s\n", (serialized(String((framerate > 0.5 ? framerate : 0),1))));
-    Serial.printf("firmware:%s\n", "LIGHT");
+      framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
+      framerateCounter = 0;
+      Serial.printf("framerate:%s\n", (serialized(String((framerate > 0.5 ? framerate : 0),1))));
+      Serial.printf("firmware:%s\n", "LIGHT");
 #else
-    Serial.printf("firmware:%s\n", "FULL");
-    Serial.printf("mqttopic:%s\n", topicInUse.c_str());
+      Serial.printf("firmware:%s\n", "FULL");
+      Serial.printf("mqttopic:%s\n", topicInUse.c_str());
 #endif
-    Serial.printf("ver:%s\n", VERSION);
-    Serial.printf("lednum:%d\n", dynamicLedNum);
+      Serial.printf("ver:%s\n", VERSION);
+      Serial.printf("lednum:%d\n", dynamicLedNum);
 #if defined(ESP32)
-    Serial.printf("board:%s\n", "ESP32");
+      Serial.printf("board:%s\n", "ESP32");
 #elif defined(ESP8266)
-    Serial.printf("board:%s\n", "ESP8266");
+      Serial.printf("board:%s\n", "ESP8266");
 #endif
-    Serial.printf("MAC:%s\n", MAC.c_str());
-    Serial.printf("gpio:%d\n", gpioInUse);
-    Serial.printf("baudrate:%d\n", baudRateInUse);
-    Serial.printf("effect:%d\n", effect);
-
-  }
+      Serial.printf("MAC:%s\n", MAC.c_str());
+      Serial.printf("gpio:%d\n", gpioInUse);
+      Serial.printf("baudrate:%d\n", baudRateInUse);
+      Serial.printf("effect:%d\n", effect);
+    }
 
 }
 
@@ -1393,22 +1408,30 @@ void initLeds() {
  */
 void cleanLEDs() {
 
+  boolean cleared = false;
 #if defined(ESP32)
   if (ledsESP32 != NULL) {
-    delete ledsESP32; // delete the previous dynamically created strip
+    cleared = true;
+    delete ledsESP32;
   }
 #endif
 #if defined(ESP8266)
   if (ledsDMA != NULL) {
-    delete ledsDMA; // delete the previous dynamically created strip
+    cleared = true;
+    delete ledsDMA;
   }
   if (ledsUART != NULL) {
-    delete ledsUART; // delete the previous dynamically created strip
+    cleared = true;
+    delete ledsUART;
   }
   if (ledsStandard != NULL) {
-    delete ledsStandard; // delete the previous dynamically created strip
+    cleared = true;
+    delete ledsStandard;
   }
 #endif
+  if (cleared) {
+    Serial.println("LEDs cleared");
+  }
 
 }
 

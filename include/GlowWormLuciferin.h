@@ -80,6 +80,7 @@ int gpioInUse = 2, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
 // Upgrade firmware
 boolean firmwareUpgrade = false;
 size_t updateSize = 0;
+String fpsData((char*)0); // save space on default constructor
 
 /****************** FastLED Defintions ******************/
 #define NUM_LEDS 511 // Max Led support
@@ -95,8 +96,11 @@ const String GPIO_PARAM = "gpio";
 const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
 const String EFFECT_PARAM = "effect";
-const int UDP_CHUNK_SIZE = 100;
-const int UDP_PACKET_SIZE = 1024;
+#define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
+WiFiUDP UDP;
+const int UDP_CHUNK_SIZE = 140; // this value must match with the one in Firefly Luciferin
+const int UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
+char packet[UDP_MAX_BUFFER_SIZE];
 
 const int FIRST_CHUNK = 170;
 const int SECOND_CHUNK = 340;
@@ -114,10 +118,6 @@ byte brightness = 255;
 /****************** GLOBALS for fade/flash ******************/
 bool stateOn = false;
 bool relayState = false;
-
-#define UDP_PORT 4210
-WiFiUDP UDP;
-char packet[UDP_PACKET_SIZE];
 
 //NOISE
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
@@ -167,6 +167,6 @@ uint8_t applyBrightnessCorrection(uint8_t c);
 void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b);
 void ledShow();
 void initLeds();
-void fromUDPStreamToStrip(char (&payload)[UDP_PACKET_SIZE]);
+void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
 void fromMqttStreamToStrip(char *payload);
 void cleanLEDs();
