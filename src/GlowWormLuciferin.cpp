@@ -31,6 +31,7 @@ NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod>* ledsDMA = NULL; // Hardware DMA, G
 NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>* ledsUART = NULL; // Hardware UART, GPIO2, yes serial read/write
 NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod>* ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
 #endif
+char packet[UDP_MAX_BUFFER_SIZE];
 
 /**
  * Setup function
@@ -96,15 +97,15 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
     case 5:
       gpioInUse = 5;
       break;
-      case 3:
-        gpioInUse = 3;
-        break;
-        case 16:
-          gpioInUse = 16;
-          break;
-          default:
-            gpioInUse = 2;
-            break;
+    case 3:
+      gpioInUse = 3;
+      break;
+    case 16:
+      gpioInUse = 16;
+      break;
+    default:
+      gpioInUse = 2;
+      break;
   }
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
@@ -304,15 +305,18 @@ void callback(char *topic, byte *payload, unsigned int length) {
  */
 void fromMqttStreamToStrip(char *payload) {
 
-  int myLeds;
+  uint16_t myLeds;
   char delimiters[] = ",";
   char *ptr;
-  int index = 0;
-  ptr = strtok(payload, delimiters);
-  int numLedFromLuciferin = atoi(ptr);
-  ptr = strtok(NULL, delimiters);
-  int audioBrightness = atoi(ptr);
-  ptr = strtok(NULL, delimiters);
+  char *saveptr;
+  char *ptrAtoi;
+
+  uint16_t index = 0;
+  ptr = strtok_r(payload, delimiters, &saveptr);
+  uint16_t numLedFromLuciferin = strtoul(ptr, &ptrAtoi, 10);
+  ptr = strtok_r(NULL, delimiters, &saveptr);
+  uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
+  ptr = strtok_r(NULL, delimiters, &saveptr);
   if (brightness != audioBrightness) {
     brightness = audioBrightness;
   }
@@ -324,15 +328,15 @@ void fromMqttStreamToStrip(char *payload) {
       initLeds();
     }
     while (ptr != NULL) {
-      myLeds = atoi(ptr);
+      myLeds = strtoul(ptr, &ptrAtoi, 10);
       setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
       index++;
-      ptr = strtok(NULL, delimiters);
+      ptr = strtok_r(NULL, delimiters, &saveptr);
     }
   }
   if (effect != Effect::solid) {
       framerateCounter++;
-      lastStream = millis();
+      lastStream = currentMillis;
       ledShow();
   }
 
@@ -344,45 +348,48 @@ void fromMqttStreamToStrip(char *payload) {
  */
 void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
 
-  int myLeds;
-  char delimiters[] = ",";
-  char *ptr;
-  int index;
-  ptr = strtok(payload, delimiters);
-  int numLedFromLuciferin = atoi(ptr);
-  ptr = strtok(NULL, delimiters);
-  int audioBrightness = atoi(ptr);
-  ptr = strtok(NULL, delimiters);
-  if (brightness != audioBrightness) {
-    brightness = audioBrightness;
-  }
-  int chunkTot, chunkNum;
-  chunkTot = atoi(ptr);
-  ptr = strtok(NULL, delimiters);
-  chunkNum = atoi(ptr);
-  ptr = strtok(NULL, delimiters);
-  index = UDP_CHUNK_SIZE * chunkNum;
-  if (numLedFromLuciferin == 0) {
-    effect = Effect::solid;
-  } else {
-    if (dynamicLedNum != numLedFromLuciferin) {
-      setNumLed(numLedFromLuciferin);
-      initLeds();
+    uint32_t myLeds;
+    char delimiters[] = ",";
+    char *ptr;
+    char *saveptr;
+    char *ptrAtoi;
+
+    uint16_t index;
+    ptr = strtok_r(payload, delimiters, &saveptr);
+    uint16_t numLedFromLuciferin = strtoul(ptr, &ptrAtoi, 10);
+    ptr = strtok_r(NULL, delimiters, &saveptr);
+    uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
+    ptr = strtok_r(NULL, delimiters, &saveptr);
+    if (brightness != audioBrightness) {
+      brightness = audioBrightness;
     }
-    while (ptr != NULL) {
-      myLeds = atoi(ptr);
-      setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
-      index++;
-      ptr = strtok(NULL, delimiters);
+    uint8_t chunkTot, chunkNum;
+    chunkTot = strtoul(ptr, &ptrAtoi, 10);
+    ptr = strtok_r(NULL, delimiters, &saveptr);
+    chunkNum = strtoul(ptr, &ptrAtoi, 10);
+    ptr = strtok_r(NULL, delimiters, &saveptr);
+    index = UDP_CHUNK_SIZE * chunkNum;
+    if (numLedFromLuciferin == 0) {
+      effect = Effect::solid;
+    } else {
+      if (dynamicLedNum != numLedFromLuciferin) {
+        setNumLed(numLedFromLuciferin);
+        initLeds();
+      }
+      while (ptr != NULL) {
+        myLeds = strtoul(ptr, &ptrAtoi, 10);
+        setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+        index++;
+        ptr = strtok_r(NULL, delimiters, &saveptr);
+      }
     }
-  }
-  if (effect != Effect::solid) {
-    if (chunkNum == chunkTot - 1) {
-      framerateCounter++;
-      lastStream = millis();
-      ledShow();
+    if (effect != Effect::solid) {
+      if (chunkNum == chunkTot - 1) {
+        framerateCounter++;
+        lastStream = currentMillis;
+        ledShow();
+      }
     }
-  }
 
 }
 
@@ -467,7 +474,7 @@ void jsonStream(byte *payload, unsigned int length) {
       framerateCounter++;
     }
 #endif
-    lastStream = millis();
+    lastStream = currentMillis;
   }
 
 }
@@ -547,7 +554,7 @@ bool processUnSubscribeStream() {
  */
 bool processJson() {
 
-  lastLedUpdate = millis();
+  lastLedUpdate = currentMillis;
 
   if (bootstrapManager.jsonDoc.containsKey("state")) {
     String state = bootstrapManager.jsonDoc["state"];
@@ -580,10 +587,10 @@ bool processJson() {
       if (bootstrapManager.jsonDoc["MAC"] == MAC) {
         if (requestedEffect == "GlowWorm") {
           effect = Effect::GlowWorm;
-          lastLedUpdate = millis();
+          lastLedUpdate = currentMillis;
         } else if (requestedEffect == "GlowWormWifi") {
           effect = Effect::GlowWormWifi;
-          lastStream = millis();
+          lastStream = currentMillis;
         }
       }
     }
@@ -887,7 +894,7 @@ void setTemperature(int whitetemp) {
  * @param inG green color
  * @param inB blu color
  */
-void setColor(int inR, int inG, int inB) {
+void setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
 
   if (inR == 0 && inG == 0 && inB == 0) {
     effect = Effect::solid;
@@ -919,8 +926,8 @@ void checkConnection() {
 
   EVERY_N_SECONDS(10) {
     // No updates since 7 seconds, turn off LEDs
-    if ((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 10000)) ||
-        (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 10000))) {
+    if ((!breakLoop && (effect == Effect::GlowWorm) && (currentMillis > lastLedUpdate + 10000)) ||
+        (!breakLoop && (effect == Effect::GlowWormWifi) && (currentMillis > lastStream + 10000))) {
       breakLoop = true;
       effect = Effect::solid;
       stateOn = false;
@@ -933,7 +940,7 @@ void checkConnection() {
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
   EVERY_N_SECONDS(15) {
     // No updates since 15 seconds, turn off LEDs
-    if(millis() > lastLedUpdate + 10000){
+    if(currentMillis > lastLedUpdate + 10000){
       setColor(0, 0, 0);
       turnOffRelay();
     }
@@ -967,7 +974,7 @@ void mainLoop() {
   if (effect == Effect::GlowWorm) {
 #endif
     if (!led_state) led_state = true;
-    off_timer = millis();
+    off_timer = currentMillis;
 
     for (i = 0; i < sizeof prefix; ++i) {
       waitLoop:
@@ -1075,7 +1082,7 @@ void mainLoop() {
         setPixelColor(i, r, g, b);
       }
     }
-    lastLedUpdate = millis();
+    lastLedUpdate = currentMillis;
     framerateCounter++;
     ledShow();
 
@@ -1208,6 +1215,7 @@ void serialTask(void * parameter) {
  */
 void loop() {
 
+  currentMillis = millis();
 #if defined(ESP8266)
   mainLoop();
   if (firmwareUpgrade) {
@@ -1232,15 +1240,10 @@ void loop() {
 #if defined(ESP8266)
   // If packet received...
   if (effect == Effect::GlowWormWifi) {
-    int packetSize = UDP.parsePacket();
-    if (packetSize) {
-      int len = UDP.read(packet, UDP_MAX_BUFFER_SIZE);
-      if (len > 0) {
-        packet[len] = '\0';
-        if (packetSize > 3) {
-          fromUDPStreamToStrip(packet);
-        }
-      }
+    uint16_t packetSize = UDP.parsePacket();
+    if (packetSize > 20 && UDP.read(packet, packetSize) == packetSize) {
+      packet[packetSize] = '\0';
+      fromUDPStreamToStrip(packet);
     }
   }
 #endif
@@ -1442,7 +1445,7 @@ void cleanLEDs() {
  * @param g green channel
  * @param b blu channel
  */
-void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b) {
+void setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) {
 
 #if defined(ESP32)
   ledsESP32->SetPixelColor(index, RgbColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b)));
