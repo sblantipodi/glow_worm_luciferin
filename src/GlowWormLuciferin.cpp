@@ -38,6 +38,9 @@ char packet[UDP_MAX_BUFFER_SIZE];
  */
 void setup() {
 
+  // if fastDisconnectionManagement we need to execute the disconnection callback immediately
+  fastDisconnectionManagement = true;
+
 #if defined(ESP32)
   if (!SPIFFS.begin()) {
     SPIFFS.format();
@@ -88,8 +91,8 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
     gpioToUse = gpioFromStorage.toInt();
   }
-  if (gpioToUse == 0) {
-    gpioToUse = additionalParam.toInt();
+  if (gpioToUse == 0 && !additionalParam.isEmpty() && additionalParam.length() >= 1) {
+    gpioToUse = atoi(additionalParam.c_str());
   }
   Serial.print(F("SAVED GPIO="));
   Serial.println(gpioToUse);
@@ -133,18 +136,19 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
           &handleSerialTask, /* Task handle to keep track of created task */
           1);
 #endif
-
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Begin listening to UDP port
   UDP.begin(UDP_PORT);
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
+  fpsData.reserve(200);
+#if defined(ESP8266)
+  // Hey gateway, GlowWorm is here
+  pingESP.ping(WiFi.gatewayIP());
+#endif
 #endif
 
-  fpsData.reserve(200);
-
 }
-
 
 /**
  * Set gpio received by the Firefly Luciferin software
@@ -235,7 +239,9 @@ void manageDisconnections() {
 
   setColor(0, 0, 0);
   delay(500);
-  ESP.restart();
+  if (mqttReconnectAttemp > 10) {
+    WiFi.disconnect();
+  }
 
 }
 
@@ -619,6 +625,7 @@ bool processJson() {
  * For debug: ESP.getFreeHeap() ESP.getHeapFragmentation() ESP.getMaxFreeBlockSize()
  */
 void sendStatus() {
+
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
     fpsData = F("{\"deviceName\":\"");
@@ -680,6 +687,7 @@ void sendStatus() {
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
     bootstrapManager.publish(lightStateTopic.c_str(), root, true);
+
   }
 
 #if defined(ESP32)
@@ -1249,6 +1257,13 @@ void loop() {
 #endif
 #endif
 
+#if defined(ESP8266)
+  EVERY_N_MINUTES(5) {
+    // Hey gateway, GlowWorm is here
+    pingESP.ping(WiFi.gatewayIP());
+  }
+#endif
+
 }
 
 /**
@@ -1351,7 +1366,6 @@ void initLeds() {
   if (ledsESP32 == NULL) {
     Serial.println("OUT OF MEMORY");
   }
-  while (!Serial); // wait for serial attach
   Serial.println();
   Serial.println("Initializing...");
   Serial.flush();
@@ -1369,7 +1383,6 @@ void initLeds() {
     if (ledsDMA == NULL) {
       Serial.println("OUT OF MEMORY");
     }
-    while (!Serial); // wait for serial attach
     Serial.println();
     Serial.println("Initializing...");
     Serial.flush();
