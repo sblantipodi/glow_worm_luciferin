@@ -29,9 +29,12 @@
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
 #if defined(ESP32)
-#include "soc/timer_group_struct.h"
-#include "soc/timer_group_reg.h"
+#include <soc/timer_group_struct.h>
+#include <soc/timer_group_reg.h>
+#elif defined(ESP8266)
+#include <PingESP.h>
 #endif
+
 
 /****************** BOOTSTRAP MANAGER ******************/
 BootstrapManager bootstrapManager;
@@ -41,8 +44,9 @@ Helpers helper;
 TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
 TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
 #define RELAY_PIN 23
-#else
+#elif defined(ESP8266)
 #define RELAY_PIN 12
+PingESP pingESP;
 #endif
 
 
@@ -65,11 +69,8 @@ uint8_t whiteTempCorrection[] = {255, 255, 255};
 
 enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
-long currentMillis = 0;
 
 /****************** Glow Worm Luciferin ******************/
-unsigned long off_timer;
-
 // DPsoftware Checksum
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, i;
 bool led_state = true;
@@ -170,3 +171,4 @@ void initLeds();
 void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
 void fromMqttStreamToStrip(char *payload);
 void cleanLEDs();
+void getUDPStream();
