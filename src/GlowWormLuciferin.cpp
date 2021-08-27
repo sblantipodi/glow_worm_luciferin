@@ -91,11 +91,12 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
     gpioToUse = gpioFromStorage.toInt();
   }
-  if (gpioToUse == 0 && !additionalParam.isEmpty() && additionalParam.length() >= 1) {
-    gpioToUse = atoi(additionalParam.c_str());
+  if (gpioToUse == 0) {
+    if (!additionalParam.isEmpty()) {
+      gpioToUse = additionalParam.toInt();
+    }
   }
-  Serial.print(F("SAVED GPIO="));
-  Serial.println(gpioToUse);
+
   switch (gpioToUse) {
     case 5:
       gpioInUse = 5;
@@ -342,7 +343,7 @@ void fromMqttStreamToStrip(char *payload) {
   }
   if (effect != Effect::solid) {
       framerateCounter++;
-      lastStream = currentMillis;
+      lastStream = millis();
       ledShow();
   }
 
@@ -392,7 +393,7 @@ void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
     if (effect != Effect::solid) {
       if (chunkNum == chunkTot - 1) {
         framerateCounter++;
-        lastStream = currentMillis;
+        lastStream = millis();
         ledShow();
       }
     }
@@ -480,7 +481,7 @@ void jsonStream(byte *payload, unsigned int length) {
       framerateCounter++;
     }
 #endif
-    lastStream = currentMillis;
+    lastStream = millis();
   }
 
 }
@@ -560,7 +561,7 @@ bool processUnSubscribeStream() {
  */
 bool processJson() {
 
-  lastLedUpdate = currentMillis;
+  lastLedUpdate = millis();
 
   if (bootstrapManager.jsonDoc.containsKey("state")) {
     String state = bootstrapManager.jsonDoc["state"];
@@ -593,10 +594,10 @@ bool processJson() {
       if (bootstrapManager.jsonDoc["MAC"] == MAC) {
         if (requestedEffect == "GlowWorm") {
           effect = Effect::GlowWorm;
-          lastLedUpdate = currentMillis;
+          lastLedUpdate = millis();
         } else if (requestedEffect == "GlowWormWifi") {
           effect = Effect::GlowWormWifi;
-          lastStream = currentMillis;
+          lastStream = millis();
         }
       }
     }
@@ -934,8 +935,8 @@ void checkConnection() {
 
   EVERY_N_SECONDS(10) {
     // No updates since 7 seconds, turn off LEDs
-    if ((!breakLoop && (effect == Effect::GlowWorm) && (currentMillis > lastLedUpdate + 10000)) ||
-        (!breakLoop && (effect == Effect::GlowWormWifi) && (currentMillis > lastStream + 10000))) {
+    if ((!breakLoop && (effect == Effect::GlowWorm) && (millis() > lastLedUpdate + 10000)) ||
+        (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 10000))) {
       breakLoop = true;
       effect = Effect::solid;
       stateOn = false;
@@ -948,7 +949,9 @@ void checkConnection() {
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
   EVERY_N_SECONDS(15) {
     // No updates since 15 seconds, turn off LEDs
-    if(currentMillis > lastLedUpdate + 10000){
+    Serial.println("DADADA");
+    if(millis() > lastLedUpdate + 10000){
+      Serial.println("DADADA");
       setColor(0, 0, 0);
       turnOffRelay();
     }
@@ -982,7 +985,6 @@ void mainLoop() {
   if (effect == Effect::GlowWorm) {
 #endif
     if (!led_state) led_state = true;
-    off_timer = currentMillis;
 
     for (i = 0; i < sizeof prefix; ++i) {
       waitLoop:
@@ -1090,7 +1092,7 @@ void mainLoop() {
         setPixelColor(i, r, g, b);
       }
     }
-    lastLedUpdate = currentMillis;
+    lastLedUpdate = millis();
     framerateCounter++;
     ledShow();
 
@@ -1165,19 +1167,7 @@ void tcpTask(void * parameter) {
     sendSerialInfo();
     vTaskDelay(1);
 #elif TARGET_GLOWWORMLUCIFERINFULL
-    // If packet received...
-    if (effect == Effect::GlowWormWifi) {
-      int packetSize = UDP.parsePacket();
-      if (packetSize) {
-        int len = UDP.read(packet, UDP_MAX_BUFFER_SIZE);
-        if (len > 0) {
-          packet[len] = '\0';
-          if (packetSize > 3) {
-            fromUDPStreamToStrip(packet);
-          }
-        }
-      }
-    }
+    getUDPStream();
     vTaskDelay(1);
     EVERY_N_MILLISECONDS(50) {
       feedTheDog();
@@ -1223,7 +1213,6 @@ void serialTask(void * parameter) {
  */
 void loop() {
 
-  currentMillis = millis();
 #if defined(ESP8266)
   mainLoop();
   if (firmwareUpgrade) {
@@ -1246,14 +1235,7 @@ void loop() {
     turnOffRelay();
   }
 #if defined(ESP8266)
-  // If packet received...
-  if (effect == Effect::GlowWormWifi) {
-    uint16_t packetSize = UDP.parsePacket();
-    if (packetSize > 20 && UDP.read(packet, packetSize) == packetSize) {
-      packet[packetSize] = '\0';
-      fromUDPStreamToStrip(packet);
-    }
-  }
+  getUDPStream();
 #endif
 #endif
 
@@ -1263,6 +1245,22 @@ void loop() {
     pingESP.ping(WiFi.gatewayIP());
   }
 #endif
+
+}
+
+/**
+ * Parse UDP packet
+ */
+void getUDPStream() {
+
+  // If packet received...
+  if (effect == Effect::GlowWormWifi) {
+    uint16_t packetSize = UDP.parsePacket();
+    if (packetSize > 20 && UDP.read(packet, packetSize) == packetSize) {
+      packet[packetSize] = '\0';
+      fromUDPStreamToStrip(packet);
+    }
+  }
 
 }
 
