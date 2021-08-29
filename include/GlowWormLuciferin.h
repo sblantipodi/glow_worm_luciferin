@@ -32,7 +32,7 @@
 #include <soc/timer_group_struct.h>
 #include <soc/timer_group_reg.h>
 #elif defined(ESP8266)
-#include <PingESP.h>
+#include "PingESP.h"
 #endif
 
 

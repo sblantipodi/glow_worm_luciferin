@@ -54,6 +54,7 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
   }
   int baudRateToUse = setBaudRateInUse(baudRateInUse);
   Serial.begin(baudRateToUse);
+  while (!Serial); // wait for serial attach
   Serial.print(F("BAUDRATE IN USE="));
   Serial.println(baudRateToUse);
 
@@ -312,7 +313,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
  */
 void fromMqttStreamToStrip(char *payload) {
 
-  uint16_t myLeds;
+  uint32_t myLeds;
   char delimiters[] = ",";
   char *ptr;
   char *saveptr;
@@ -363,6 +364,11 @@ void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
 
     uint16_t index;
     ptr = strtok_r(payload, delimiters, &saveptr);
+    // Discard packet if header does not match the correct one
+    if (strcmp(ptr, "DPsoftware") != 0) {
+      return;
+    }
+    ptr = strtok_r(NULL, delimiters, &saveptr);
     uint16_t numLedFromLuciferin = strtoul(ptr, &ptrAtoi, 10);
     ptr = strtok_r(NULL, delimiters, &saveptr);
     uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
@@ -949,9 +955,7 @@ void checkConnection() {
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
   EVERY_N_SECONDS(15) {
     // No updates since 15 seconds, turn off LEDs
-    Serial.println("DADADA");
     if(millis() > lastLedUpdate + 10000){
-      Serial.println("DADADA");
       setColor(0, 0, 0);
       turnOffRelay();
     }
@@ -1254,9 +1258,10 @@ void loop() {
 void getUDPStream() {
 
   // If packet received...
+  uint16_t packetSize = UDP.parsePacket();
+  UDP.read(packet, UDP_MAX_BUFFER_SIZE);
   if (effect == Effect::GlowWormWifi) {
-    uint16_t packetSize = UDP.parsePacket();
-    if (packetSize > 20 && UDP.read(packet, packetSize) == packetSize) {
+    if (packetSize > 20) {
       packet[packetSize] = '\0';
       fromUDPStreamToStrip(packet);
     }
