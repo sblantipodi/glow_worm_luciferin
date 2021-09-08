@@ -241,9 +241,6 @@ void manageDisconnections() {
 
   setColor(0, 0, 0);
   delay(500);
-  if (mqttReconnectAttemp > 10) {
-    WiFi.disconnect();
-  }
 
 }
 
@@ -1302,26 +1299,26 @@ void sendSerialInfo() {
 
   EVERY_N_SECONDS(10) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-      framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
-      framerateCounter = 0;
-      Serial.printf("framerate:%s\n", (serialized(String((framerate > 0.5 ? framerate : 0),1))));
-      Serial.printf("firmware:%s\n", "LIGHT");
+    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
+    framerateCounter = 0;
+    Serial.printf("framerate:%s\n", (String((framerate > 0.5 ? framerate : 0),1)).c_str());
+    Serial.printf("firmware:%s\n", "LIGHT");
 #else
-      Serial.printf("firmware:%s\n", "FULL");
-      Serial.printf("mqttopic:%s\n", topicInUse.c_str());
+    Serial.printf("firmware:%s\n", "FULL");
+    Serial.printf("mqttopic:%s\n", topicInUse.c_str());
 #endif
-      Serial.printf("ver:%s\n", VERSION);
-      Serial.printf("lednum:%d\n", dynamicLedNum);
+    Serial.printf("ver:%s\n", VERSION);
+    Serial.printf("lednum:%d\n", dynamicLedNum);
 #if defined(ESP32)
-      Serial.printf("board:%s\n", "ESP32");
+    Serial.printf("board:%s\n", "ESP32");
 #elif defined(ESP8266)
-      Serial.printf("board:%s\n", "ESP8266");
+    Serial.printf("board:%s\n", "ESP8266");
 #endif
-      Serial.printf("MAC:%s\n", MAC.c_str());
-      Serial.printf("gpio:%d\n", gpioInUse);
-      Serial.printf("baudrate:%d\n", baudRateInUse);
-      Serial.printf("effect:%d\n", effect);
-    }
+    Serial.printf("MAC:%s\n", MAC.c_str());
+    Serial.printf("gpio:%d\n", gpioInUse);
+    Serial.printf("baudrate:%d\n", baudRateInUse);
+    Serial.printf("effect:%d\n", effect);
+  }
 
 }
 

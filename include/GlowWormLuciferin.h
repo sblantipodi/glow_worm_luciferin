@@ -1,7 +1,7 @@
 /*
   GlowWormLuciferin.h - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
-  
+
   Copyright (C) 2020 - 2021  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
