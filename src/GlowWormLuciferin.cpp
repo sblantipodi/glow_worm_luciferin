@@ -31,11 +31,15 @@ NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod>* ledsDMA = NULL; // Hardware DMA, G
 NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>* ledsUART = NULL; // Hardware UART, GPIO2, yes serial read/write
 NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod>* ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
 #endif
+char packet[UDP_MAX_BUFFER_SIZE];
 
 /**
  * Setup function
  */
 void setup() {
+
+  // if fastDisconnectionManagement we need to execute the disconnection callback immediately
+  fastDisconnectionManagement = true;
 
 #if defined(ESP32)
   if (!SPIFFS.begin()) {
@@ -43,13 +47,14 @@ void setup() {
   }
 #endif
 
-  // BaudRate from configuration storage
-  String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
+// BaudRate from configuration storage
+String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
   if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
     baudRateInUse = baudRateFromStorage.toInt();
   }
   int baudRateToUse = setBaudRateInUse(baudRateInUse);
   Serial.begin(baudRateToUse);
+  while (!Serial); // wait for serial attach
   Serial.print(F("BAUDRATE IN USE="));
   Serial.println(baudRateToUse);
 
@@ -57,8 +62,10 @@ void setup() {
   String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
   if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
     dynamicLedNum = ledNumToUse.toInt();
+  } else {
+    dynamicLedNum = 2;
   }
-  Serial.print("\nUsing LEDs=");
+  Serial.print(F("\nUsing LEDs="));
   Serial.println(dynamicLedNum);
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
@@ -86,10 +93,11 @@ void setup() {
     gpioToUse = gpioFromStorage.toInt();
   }
   if (gpioToUse == 0) {
-    gpioToUse = additionalParam.toInt();
+    if (!additionalParam.isEmpty()) {
+      gpioToUse = additionalParam.toInt();
+    }
   }
-  Serial.print(F("SAVED GPIO="));
-  Serial.println(gpioToUse);
+
   switch (gpioToUse) {
     case 5:
       gpioInUse = 5;
@@ -130,16 +138,19 @@ void setup() {
           &handleSerialTask, /* Task handle to keep track of created task */
           1);
 #endif
-
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Begin listening to UDP port
   UDP.begin(UDP_PORT);
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
+  fpsData.reserve(200);
+#if defined(ESP8266)
+  // Hey gateway, GlowWorm is here
+  pingESP.ping(WiFi.gatewayIP());
+#endif
 #endif
 
 }
-
 
 /**
  * Set gpio received by the Firefly Luciferin software
@@ -229,6 +240,7 @@ void setNumLed(int numLedFromLuciferin) {
 void manageDisconnections() {
 
   setColor(0, 0, 0);
+  delay(500);
 
 }
 
@@ -237,12 +249,12 @@ void manageDisconnections() {
  */
 void manageQueueSubscription() {
 
-  bootstrapManager.subscribe(helper.string2char(lightSetTopic));
-  bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
+  bootstrapManager.subscribe(lightSetTopic.c_str());
+  bootstrapManager.subscribe(streamTopic.c_str(), 0);
   bootstrapManager.subscribe(CMND_AMBI_REBOOT);
-  bootstrapManager.subscribe(helper.string2char(updateStateTopic));
-  bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
-  bootstrapManager.subscribe(helper.string2char(firmwareConfigTopic));
+  bootstrapManager.subscribe(updateStateTopic.c_str());
+  bootstrapManager.subscribe(unsubscribeTopic.c_str());
+  bootstrapManager.subscribe(firmwareConfigTopic.c_str());
 
 }
 
@@ -266,7 +278,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
       if (JSON_STREAM) {
         jsonStream(payload, length);
       } else {
-        fromStreamToStrip(reinterpret_cast<char *>(payload), false);
+        fromMqttStreamToStrip(reinterpret_cast<char *>(payload));
       }
     }
   } else {
@@ -295,31 +307,23 @@ void callback(char *topic, byte *payload, unsigned int length) {
 /**
  * Get data from the stream and send to the strip
  * @param payload stream data
- * @param isUdpStream UDP stream or MQTT stream
  */
-void fromStreamToStrip(char *payload, boolean isUdpStream) {
+void fromMqttStreamToStrip(char *payload) {
 
-  int myLeds;
+  uint32_t myLeds;
   char delimiters[] = ",";
   char *ptr;
-  int index = 0;
-  ptr = strtok(payload, delimiters);
-  int numLedFromLuciferin = atoi(ptr);
-  ptr = strtok(NULL, delimiters);
-  int audioBrightness = atoi(ptr);
-  ptr = strtok(NULL, delimiters);
+  char *saveptr;
+  char *ptrAtoi;
+
+  uint16_t index = 0;
+  ptr = strtok_r(payload, delimiters, &saveptr);
+  uint16_t numLedFromLuciferin = strtoul(ptr, &ptrAtoi, 10);
+  ptr = strtok_r(NULL, delimiters, &saveptr);
+  uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
+  ptr = strtok_r(NULL, delimiters, &saveptr);
   if (brightness != audioBrightness) {
     brightness = audioBrightness;
-  }
-  int chunkTot, chunkNum;
-  if (isUdpStream) {
-    chunkTot = atoi(ptr);
-    ptr = strtok(NULL, delimiters);
-    chunkNum = atoi(ptr);
-    ptr = strtok(NULL, delimiters);
-    index = UDP_CHUNK_SIZE * chunkNum;
-    //Serial.println(chunkTot);
-    //Serial.println(chunkNum);
   }
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
@@ -329,25 +333,73 @@ void fromStreamToStrip(char *payload, boolean isUdpStream) {
       initLeds();
     }
     while (ptr != NULL) {
-      myLeds = atoi(ptr);
+      myLeds = strtoul(ptr, &ptrAtoi, 10);
       setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
       index++;
-      ptr = strtok(NULL, delimiters);
+      ptr = strtok_r(NULL, delimiters, &saveptr);
     }
   }
   if (effect != Effect::solid) {
-    if (isUdpStream) {
+      framerateCounter++;
+      lastStream = millis();
+      ledShow();
+  }
+
+}
+
+/**
+ * Get data from the stream and send to the strip
+ * @param payload stream data
+ */
+void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
+
+    uint32_t myLeds;
+    char delimiters[] = ",";
+    char *ptr;
+    char *saveptr;
+    char *ptrAtoi;
+
+    uint16_t index;
+    ptr = strtok_r(payload, delimiters, &saveptr);
+    // Discard packet if header does not match the correct one
+    if (strcmp(ptr, "DPsoftware") != 0) {
+      return;
+    }
+    ptr = strtok_r(NULL, delimiters, &saveptr);
+    uint16_t numLedFromLuciferin = strtoul(ptr, &ptrAtoi, 10);
+    ptr = strtok_r(NULL, delimiters, &saveptr);
+    uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
+    ptr = strtok_r(NULL, delimiters, &saveptr);
+    if (brightness != audioBrightness) {
+      brightness = audioBrightness;
+    }
+    uint8_t chunkTot, chunkNum;
+    chunkTot = strtoul(ptr, &ptrAtoi, 10);
+    ptr = strtok_r(NULL, delimiters, &saveptr);
+    chunkNum = strtoul(ptr, &ptrAtoi, 10);
+    ptr = strtok_r(NULL, delimiters, &saveptr);
+    index = UDP_CHUNK_SIZE * chunkNum;
+    if (numLedFromLuciferin == 0) {
+      effect = Effect::solid;
+    } else {
+      if (dynamicLedNum != numLedFromLuciferin) {
+        setNumLed(numLedFromLuciferin);
+        initLeds();
+      }
+      while (ptr != NULL) {
+        myLeds = strtoul(ptr, &ptrAtoi, 10);
+        setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+        index++;
+        ptr = strtok_r(NULL, delimiters, &saveptr);
+      }
+    }
+    if (effect != Effect::solid) {
       if (chunkNum == chunkTot - 1) {
         framerateCounter++;
         lastStream = millis();
         ledShow();
       }
-    } else {
-      framerateCounter++;
-      lastStream = millis();
-      ledShow();
     }
-  }
 
 }
 
@@ -493,12 +545,12 @@ bool processUnSubscribeStream() {
     String instance = bootstrapManager.jsonDoc["instance"];
     String manager = bootstrapManager.jsonDoc["manager"];
     if (manager.equals(deviceName)) {
-      bootstrapManager.unsubscribe(helper.string2char(streamTopic));
+      bootstrapManager.unsubscribe(streamTopic.c_str());
       streamTopic = baseStreamTopic + instance;
       effect = Effect::GlowWormWifi;
       turnOnRelay();
       stateOn = true;
-      bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
+      bootstrapManager.subscribe(streamTopic.c_str(), 0);
     }
   }
   return true;
@@ -574,57 +626,72 @@ bool processJson() {
 
 /**
  * Send microcontroller state
+ * For debug: ESP.getFreeHeap() ESP.getHeapFragmentation() ESP.getMaxFreeBlockSize()
  */
 void sendStatus() {
+
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
-    bootstrapManager.publish(helper.string2char(fpsTopic), helper.string2char("{\"deviceName\":\""+deviceName+"\",\"MAC\":\""+MAC+"\",\"lednum\":\""+dynamicLedNum+"\",\"framerate\":\""+framerate+"\"}"), false);
+    fpsData = F("{\"deviceName\":\"");
+    fpsData += deviceName;
+    fpsData += F("\",\"MAC\":\"");
+    fpsData += MAC;
+    fpsData += F("\",\"lednum\":\"");
+    fpsData += dynamicLedNum;
+    fpsData += F("\",\"framerate\":\"");
+    fpsData += framerate;
+    fpsData += F("\",\"wifi\":\"");
+    fpsData += bootstrapManager.getWifiQuality();
+    fpsData += F("\"}");
+    bootstrapManager.publish(fpsTopic.c_str(), fpsData.c_str(), false);
   } else {
     bootstrapManager.jsonDoc.clear();
     JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
-    JsonObject color = root.createNestedObject("color");
-    root["state"] = (stateOn) ? ON_CMD : OFF_CMD;
-    color["r"] = red;
-    color["g"] = green;
-    color["b"] = blue;
-    root["brightness"] = brightness;
+    JsonObject color = root.createNestedObject(F("color"));
+    root[F("state")] = (stateOn) ? ON_CMD : OFF_CMD;
+    color[F("r")] = red;
+    color[F("g")] = green;
+    color[F("b")] = blue;
+    root[F("brightness")] = brightness;
     switch (effect) {
       case Effect::GlowWormWifi:
-        root["effect"] = "GlowWormWifi";
+        root[F("effect")] = F("GlowWormWifi");
         break;
       case Effect::GlowWorm:
-        root["effect"] = "GlowWorm";
+        root[F("effect")] = F("GlowWorm");
         break;
-      case Effect::solid: root["effect"] = "solid"; break;
-      case Effect::bpm: root["effect"] = "bpm"; break;
-      case Effect::fire: root["effect"] = "fire"; break;
-      case Effect::twinkle: root["effect"] = "twinkle"; break;
-      case Effect::rainbow: root["effect"] = "rainbow"; break;
-      case Effect::chase_rainbow: root["effect"] = "chase rainbow"; break;
-      case Effect::solid_rainbow: root["effect"] = "solid rainbow"; break;
-      case Effect::mixed_rainbow: root["effect"] = "mixed rainbow"; break;
+        case Effect::solid: root[F("effect")] = F("solid"); break;
+        case Effect::bpm: root[F("effect")] = F("bpm"); break;
+        case Effect::fire: root[F("effect")] = F("fire"); break;
+        case Effect::twinkle: root[F("effect")] = F("twinkle"); break;
+        case Effect::rainbow: root[F("effect")] = F("rainbow"); break;
+        case Effect::chase_rainbow: root[F("effect")] = F("chase rainbow"); break;
+        case Effect::solid_rainbow: root[F("effect")] = F("solid rainbow"); break;
+        case Effect::mixed_rainbow: root[F("effect")] = F("mixed rainbow"); break;
     }
-    root["deviceName"] = deviceName;
-    root["IP"] = microcontrollerIP;
-    root["MAC"] = MAC;
-    root["ver"] = VERSION;
-    root["framerate"] = framerate;
+    root[F("deviceName")] = deviceName;
+    root[F("IP")] = microcontrollerIP;
+    root[F("wifi")] = bootstrapManager.getWifiQuality();
+    root[F("MAC")] = MAC;
+    root[F("ver")] = VERSION;
+    root[F("framerate")] = framerate;
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
-    root["board"] = "ESP8266";
+    root[F("board")] = F("ESP8266");
 #elif defined(ESP32)
     root["board"] = "ESP32";
 #endif
     root[LED_NUM_PARAM] = String(dynamicLedNum);
-    root["gpio"] = gpioInUse;
-    root["mqttopic"] = topicInUse;
+    root[F("gpio")] = gpioInUse;
+    root[F("mqttopic")] = topicInUse;
 
     if (effect == Effect::solid && !stateOn) {
       setColor(0, 0, 0);
     }
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
-    bootstrapManager.publish(helper.string2char(lightStateTopic), root, true);
+    bootstrapManager.publish(lightStateTopic.c_str(), root, true);
+
   }
 
 #if defined(ESP32)
@@ -653,7 +720,7 @@ bool processUpdate() {
         bool error = Update.hasError();
         server.send(200, "text/plain", error ? "KO" : "OK");
         if (!error) {
-          bootstrapManager.publish(helper.string2char(updateResultStateTopic), helper.string2char(deviceName), false);
+          bootstrapManager.publish(updateResultStateTopic.c_str(), deviceName.c_str(), false);
         }
         delay(DELAY_500);
         ESP.restart();
@@ -758,13 +825,13 @@ void executeMqttSwap(String customtopic) {
  */
 void swapTopicUnsubscribe() {
 
-  bootstrapManager.unsubscribe(helper.string2char(lightStateTopic));
-  bootstrapManager.unsubscribe(helper.string2char(updateStateTopic));
-  bootstrapManager.unsubscribe(helper.string2char(updateResultStateTopic));
-  bootstrapManager.unsubscribe(helper.string2char(lightSetTopic));
-  bootstrapManager.unsubscribe(helper.string2char(baseStreamTopic));
-  bootstrapManager.unsubscribe(helper.string2char(streamTopic));
-  bootstrapManager.unsubscribe(helper.string2char(unsubscribeTopic));
+  bootstrapManager.unsubscribe(lightStateTopic.c_str());
+  bootstrapManager.unsubscribe(updateStateTopic.c_str());
+  bootstrapManager.unsubscribe(updateResultStateTopic.c_str());
+  bootstrapManager.unsubscribe(lightSetTopic.c_str());
+  bootstrapManager.unsubscribe(baseStreamTopic.c_str());
+  bootstrapManager.unsubscribe(streamTopic.c_str());
+  bootstrapManager.unsubscribe(unsubscribeTopic.c_str());
 
 }
 
@@ -790,13 +857,13 @@ void swapTopicReplace(String customtopic) {
  */
 void swapTopicSubscribe() {
 
-  bootstrapManager.subscribe(helper.string2char(lightStateTopic));
-  bootstrapManager.subscribe(helper.string2char(updateStateTopic));
-  bootstrapManager.subscribe(helper.string2char(updateResultStateTopic));
-  bootstrapManager.subscribe(helper.string2char(lightSetTopic));
-  bootstrapManager.subscribe(helper.string2char(baseStreamTopic));
-  bootstrapManager.subscribe(helper.string2char(streamTopic), 0);
-  bootstrapManager.subscribe(helper.string2char(unsubscribeTopic));
+  bootstrapManager.subscribe(lightStateTopic.c_str());
+  bootstrapManager.subscribe(updateStateTopic.c_str());
+  bootstrapManager.subscribe(updateResultStateTopic.c_str());
+  bootstrapManager.subscribe(lightSetTopic.c_str());
+  bootstrapManager.subscribe(baseStreamTopic.c_str());
+  bootstrapManager.subscribe(streamTopic.c_str(), 0);
+  bootstrapManager.subscribe(unsubscribeTopic.c_str());
 
 }
 
@@ -839,7 +906,7 @@ void setTemperature(int whitetemp) {
  * @param inG green color
  * @param inB blu color
  */
-void setColor(int inR, int inG, int inB) {
+void setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
 
   if (inR == 0 && inG == 0 && inB == 0) {
     effect = Effect::solid;
@@ -919,7 +986,6 @@ void mainLoop() {
   if (effect == Effect::GlowWorm) {
 #endif
     if (!led_state) led_state = true;
-    off_timer = millis();
 
     for (i = 0; i < sizeof prefix; ++i) {
       waitLoop:
@@ -1102,17 +1168,7 @@ void tcpTask(void * parameter) {
     sendSerialInfo();
     vTaskDelay(1);
 #elif TARGET_GLOWWORMLUCIFERINFULL
-    // If packet received...
-    int packetSize = UDP.parsePacket();
-    if (packetSize) {
-      int len = UDP.read(packet, UDP_PACKET_SIZE);
-      if (len > 0) {
-        packet[len] = '\0';
-        if (packetSize > 3) {
-            fromStreamToStrip(packet, true);
-        }
-      }
-    }
+    getUDPStream();
     vTaskDelay(1);
     EVERY_N_MILLISECONDS(50) {
       feedTheDog();
@@ -1180,19 +1236,33 @@ void loop() {
     turnOffRelay();
   }
 #if defined(ESP8266)
-  // If packet received...
-  int packetSize = UDP.parsePacket();
-  if (packetSize) {
-    int len = UDP.read(packet, UDP_PACKET_SIZE);
-    if (len > 0) {
-      packet[len] = '\0';
-      if (packetSize > 3) {
-        fromStreamToStrip(packet, true);
-      }
-    }
+  getUDPStream();
+#endif
+#endif
+
+#if defined(ESP8266)
+  EVERY_N_MINUTES(5) {
+    // Hey gateway, GlowWorm is here
+    pingESP.ping(WiFi.gatewayIP());
   }
 #endif
-#endif
+
+}
+
+/**
+ * Parse UDP packet
+ */
+void getUDPStream() {
+
+  // If packet received...
+  uint16_t packetSize = UDP.parsePacket();
+  UDP.read(packet, UDP_MAX_BUFFER_SIZE);
+  if (effect == Effect::GlowWormWifi) {
+    if (packetSize > 20) {
+      packet[packetSize] = '\0';
+      fromUDPStreamToStrip(packet);
+    }
+  }
 
 }
 
@@ -1228,15 +1298,14 @@ void turnOffRelay() {
 void sendSerialInfo() {
 
   EVERY_N_SECONDS(10) {
-
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
     framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;
-    Serial.printf("framerate:%s\n", helper.string2char(serialized(String((framerate > 0.5 ? framerate : 0),1))));
+    Serial.printf("framerate:%s\n", (String((framerate > 0.5 ? framerate : 0),1)).c_str());
     Serial.printf("firmware:%s\n", "LIGHT");
 #else
     Serial.printf("firmware:%s\n", "FULL");
-    Serial.printf("mqttopic:%s\n", helper.string2char(topicInUse));
+    Serial.printf("mqttopic:%s\n", topicInUse.c_str());
 #endif
     Serial.printf("ver:%s\n", VERSION);
     Serial.printf("lednum:%d\n", dynamicLedNum);
@@ -1245,11 +1314,10 @@ void sendSerialInfo() {
 #elif defined(ESP8266)
     Serial.printf("board:%s\n", "ESP8266");
 #endif
-    Serial.printf("MAC:%s\n", helper.string2char(MAC));
+    Serial.printf("MAC:%s\n", MAC.c_str());
     Serial.printf("gpio:%d\n", gpioInUse);
     Serial.printf("baudrate:%d\n", baudRateInUse);
     Serial.printf("effect:%d\n", effect);
-
   }
 
 }
@@ -1298,7 +1366,6 @@ void initLeds() {
   if (ledsESP32 == NULL) {
     Serial.println("OUT OF MEMORY");
   }
-  while (!Serial); // wait for serial attach
   Serial.println();
   Serial.println("Initializing...");
   Serial.flush();
@@ -1316,7 +1383,6 @@ void initLeds() {
     if (ledsDMA == NULL) {
       Serial.println("OUT OF MEMORY");
     }
-    while (!Serial); // wait for serial attach
     Serial.println();
     Serial.println("Initializing...");
     Serial.flush();
@@ -1358,22 +1424,30 @@ void initLeds() {
  */
 void cleanLEDs() {
 
+  boolean cleared = false;
 #if defined(ESP32)
   if (ledsESP32 != NULL) {
-    delete ledsESP32; // delete the previous dynamically created strip
+    cleared = true;
+    delete ledsESP32;
   }
 #endif
 #if defined(ESP8266)
   if (ledsDMA != NULL) {
-    delete ledsDMA; // delete the previous dynamically created strip
+    cleared = true;
+    delete ledsDMA;
   }
   if (ledsUART != NULL) {
-    delete ledsUART; // delete the previous dynamically created strip
+    cleared = true;
+    delete ledsUART;
   }
   if (ledsStandard != NULL) {
-    delete ledsStandard; // delete the previous dynamically created strip
+    cleared = true;
+    delete ledsStandard;
   }
 #endif
+  if (cleared) {
+    Serial.println("LEDs cleared");
+  }
 
 }
 
@@ -1384,7 +1458,7 @@ void cleanLEDs() {
  * @param g green channel
  * @param b blu channel
  */
-void setPixelColor(int index, uint8_t r, uint8_t g, uint8_t b) {
+void setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) {
 
 #if defined(ESP32)
   ledsESP32->SetPixelColor(index, RgbColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b)));

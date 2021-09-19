@@ -20,7 +20,7 @@
 
 #include "EffectsManager.h"
 
-void EffectsManager::fire(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+void EffectsManager::fire(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
                      int cooling, int sparking, int speedDelay, int dynamicLedNum) {
 
   static byte heat[NUM_LEDS];
@@ -66,17 +66,17 @@ void EffectsManager::fire(void (*ledShowCallback)(), void (*setPixelColorCallbac
 }
 
 void EffectsManager::twinkleRandom(void (*ledShowCallback)(),
-                                   void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
-                                   void (*setColor)(int r, int g, int b), int count, int speedDelay, boolean onlyOne,
+                                   void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
+                                   void (*setColor)(uint8_t r, uint8_t g, uint8_t b), int count, int speedDelay, boolean onlyOne,
                                    int dynamicLedNum) {
 
-  setColor(0, 0, 0);
+  setColor(1, 1, 1);
   for (int i = 0; i < count; i++) {
     setPixelColorCallback(random(dynamicLedNum), random(0, 255), random(0, 255), random(0, 255));
     ledShowCallback();
     delay(speedDelay);
     if (onlyOne) {
-      setColor(0, 0, 0);
+      setColor(1, 1, 1);
     }
   }
   delay(speedDelay);
@@ -84,7 +84,7 @@ void EffectsManager::twinkleRandom(void (*ledShowCallback)(),
 }
 
 void EffectsManager::theaterChaseRainbow(void (*ledShowCallback)(),
-                                         void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+                                         void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
                                          int dynamicLedNum) {
 
   // cycle all 256 colors in the wheel
@@ -122,7 +122,7 @@ void EffectsManager::theaterChaseRainbow(void (*ledShowCallback)(),
 }
 
 void EffectsManager::mixedRainbow(void (*ledShowCallback)(), void (*checkConnectionCallback)(),
-                                  void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+                                  void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
                                   CRGB leds[NUM_LEDS], int dynamicLedNum) {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -167,7 +167,7 @@ CRGB EffectsManager::scroll(int pos) {
   return color;
 }
 
-void EffectsManager::bpm(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+void EffectsManager::bpm(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
                          CRGB leds[NUM_LEDS], CRGBPalette16 currentPalette, CRGBPalette16 targetPalette) {
 
   uint8_t BeatsPerMinute = 62;
@@ -194,7 +194,7 @@ void EffectsManager::bpm(void (*ledShowCallback)(), void (*setPixelColorCallback
 
 }
 
-void EffectsManager::rainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+void EffectsManager::rainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
                              CRGB leds[NUM_LEDS], int dynamicLedNum) {
 
   // FastLED's built-in rainbow generator
@@ -207,7 +207,7 @@ void EffectsManager::rainbow(void (*ledShowCallback)(), void (*setPixelColorCall
 
 }
 
-void EffectsManager::solidRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(int, uint8_t r, uint8_t g, uint8_t b),
+void EffectsManager::solidRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
                              CRGB leds[NUM_LEDS], int dynamicLedNum) {
 
   // FastLED's built-in rainbow generator
