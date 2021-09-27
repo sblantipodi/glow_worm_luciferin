@@ -58,9 +58,10 @@ String lightSetTopic = "lights/glowwormluciferin/set";
 String baseStreamTopic = "lights/glowwormluciferin/set/stream";
 String streamTopic = "lights/glowwormluciferin/set/stream";
 String unsubscribeTopic = "lights/glowwormluciferin/unsubscribe";
-const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
+String cmndReboot = "cmnd/glowwormluciferin/reboot";
 String fpsTopic = "lights/glowwormluciferin/fps";
 String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
+String deviceTopic = "lights/glowwormluciferin/device";
 const char* BASE_TOPIC = "glowwormluciferin";
 String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
@@ -99,6 +100,7 @@ const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
 const String EFFECT_PARAM = "effect";
 #define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
+#define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
 WiFiUDP UDP;
 const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Firefly Luciferin
 const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
@@ -110,6 +112,7 @@ const uint16_t THIRD_CHUNK = 510;
 //#define CLOCK_PIN 5
 #define CHIPSET     WS2812B
 #define COLOR_ORDER GRB
+#define UDP_BROAD
 
 byte red = 255;
 byte green = 255;
@@ -172,3 +175,6 @@ void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
 void fromMqttStreamToStrip(char *payload);
 void cleanLEDs();
 void getUDPStream();
+void httpCallback(bool (*callback)());
+void listenOnHttpGet();
+IPAddress returnBroadcastIP();

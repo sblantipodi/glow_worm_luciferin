@@ -144,6 +144,7 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
   fpsData.reserve(200);
+  listenOnHttpGet();
 #if defined(ESP8266)
   // Hey gateway, GlowWorm is here
   pingESP.ping(WiFi.gatewayIP());
@@ -251,10 +252,37 @@ void manageQueueSubscription() {
 
   bootstrapManager.subscribe(lightSetTopic.c_str());
   bootstrapManager.subscribe(streamTopic.c_str(), 0);
-  bootstrapManager.subscribe(CMND_AMBI_REBOOT);
+  bootstrapManager.subscribe(cmndReboot.c_str());
   bootstrapManager.subscribe(updateStateTopic.c_str());
   bootstrapManager.subscribe(unsubscribeTopic.c_str());
   bootstrapManager.subscribe(firmwareConfigTopic.c_str());
+
+}
+
+/**
+ * List on HTTP GET
+ */
+void listenOnHttpGet() {
+
+  server.on(("/" + lightSetTopic).c_str(), []() {
+      httpCallback(processJson);
+  });
+  server.on(("/" + cmndReboot).c_str(), []() {
+      httpCallback(processGlowWormLuciferinRebootCmnd);
+  });
+  server.on(("/" + updateStateTopic).c_str(), []() {
+      httpCallback(processUpdate);
+  });
+  server.on(("/" + unsubscribeTopic).c_str(), []() {
+      httpCallback(processUnSubscribeStream);
+  });
+  server.on(("/" + firmwareConfigTopic).c_str(), []() {
+      httpCallback(processFirmwareConfig);
+  });
+  server.onNotFound([]() {
+      server.send(404, F("text/plain"), F("Glow Worm Luciferin: Uri not found ") + server.uri());
+  });
+  server.begin();
 
 }
 
@@ -284,7 +312,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
   } else {
     bootstrapManager.jsonDoc.clear();
     bootstrapManager.parseQueueMsg(topic, payload, length);
-    if (strcmp(topic, CMND_AMBI_REBOOT) == 0) {
+    if (cmndReboot.equals(topic)) {
       processGlowWormLuciferinRebootCmnd();
     } else if (lightSetTopic.equals(topic)) {
       processJson();
@@ -301,6 +329,25 @@ void callback(char *topic, byte *payload, unsigned int length) {
       setColor(0,0,0);
     }
   }
+
+}
+
+/**
+ * Execute callback from HTTP payload
+ * @param callback to execute using HTTP payload
+ */
+void httpCallback(bool (*callback)()) {
+
+  bootstrapManager.jsonDoc.clear();
+  String payload = server.arg(F("payload"));
+  bootstrapManager.parseHttpMsg(payload, payload.length());
+  callback();
+  if (stateOn) {
+    setColor(map(red, 0, 255, 0, brightness), map(green, 0, 255, 0, brightness), map(blue, 0, 255, 0, brightness));
+  } else {
+    setColor(0,0,0);
+  }
+  server.send(200, F("text/plain"), F("OK"));
 
 }
 
@@ -630,6 +677,8 @@ bool processJson() {
  */
 void sendStatus() {
 
+  IPAddress broadcastIP = returnBroadcastIP();
+
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
     fpsData = F("{\"deviceName\":\"");
@@ -643,7 +692,13 @@ void sendStatus() {
     fpsData += F("\",\"wifi\":\"");
     fpsData += bootstrapManager.getWifiQuality();
     fpsData += F("\"}");
-    bootstrapManager.publish(fpsTopic.c_str(), fpsData.c_str(), false);
+    if (mqttIP.length() > 0) {
+      bootstrapManager.publish(fpsTopic.c_str(), fpsData.c_str(), false);
+    } else {
+      UDP.beginPacket(broadcastIP, UDP_BROADCAST_PORT);
+      UDP.write(fpsData.c_str());
+      UDP.endPacket();
+    }
   } else {
     bootstrapManager.jsonDoc.clear();
     JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
@@ -690,7 +745,15 @@ void sendStatus() {
     }
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
-    bootstrapManager.publish(lightStateTopic.c_str(), root, true);
+    if (mqttIP.length() > 0) {
+      bootstrapManager.publish(lightStateTopic.c_str(), root, true);
+    } else {
+      String output;
+      serializeJson(root, output);
+      UDP.beginPacket(broadcastIP, UDP_BROADCAST_PORT);
+      UDP.write(output.c_str());
+      UDP.endPacket();
+    }
 
   }
 
@@ -702,6 +765,17 @@ void sendStatus() {
 
   // Built in led triggered
   ledTriggered = true;
+
+}
+
+IPAddress returnBroadcastIP() {
+
+  String microcontrollerIP = WiFi.localIP().toString();
+  IPAddress broadcastIP(helper.getValue(microcontrollerIP, '.', 0).toInt(),
+                        helper.getValue(microcontrollerIP, '.', 1).toInt(),
+                        helper.getValue(microcontrollerIP, '.', 2).toInt(),
+                        255);
+  return broadcastIP;
 
 }
 
@@ -720,7 +794,14 @@ bool processUpdate() {
         bool error = Update.hasError();
         server.send(200, "text/plain", error ? "KO" : "OK");
         if (!error) {
-          bootstrapManager.publish(updateResultStateTopic.c_str(), deviceName.c_str(), false);
+          if (mqttIP.length() > 0) {
+            bootstrapManager.publish(updateResultStateTopic.c_str(), deviceName.c_str(), false);
+          } else {
+            IPAddress broadcastIP = returnBroadcastIP();
+            UDP.beginPacket(broadcastIP, UDP_BROADCAST_PORT);
+            UDP.write(deviceName.c_str());
+            UDP.endPacket();
+          }
         }
         delay(DELAY_500);
         ESP.restart();
@@ -1214,18 +1295,17 @@ void serialTask(void * parameter) {
  */
 void loop() {
 
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  server.handleClient();
+#endif
 #if defined(ESP8266)
   mainLoop();
-  if (firmwareUpgrade) {
-    server.handleClient();
-  }
 #endif
 #if defined(ESP32)
   // Upgrade is managed in single core mode, delete tasks pinned to CORE0 and CORE1
   if (firmwareUpgrade) {
     mainLoop();
     vTaskDelay(1);
-    server.handleClient();
   } else {
     delay(1000);
   }
