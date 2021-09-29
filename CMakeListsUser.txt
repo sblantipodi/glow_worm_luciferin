@@ -23,8 +23,14 @@ add_custom_target(
 )
 
 add_custom_target(
-    ERASE_ALL
-    COMMAND platformio.exe run --target erase
+    ERASE_ALL_ESP32
+    COMMAND platformio.exe run --target erase --environment glowwormluciferinfull_esp32
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+add_custom_target(
+    ERASE_ALL_ESP8266
+    COMMAND platformio.exe run --target erase --environment glowwormluciferinfull_esp8266
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
