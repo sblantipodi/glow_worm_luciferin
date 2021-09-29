@@ -280,7 +280,7 @@ void listenOnHttpGet() {
       httpCallback(processFirmwareConfig);
   });
   server.onNotFound([]() {
-      server.send(404, F("text/plain"), F("Glow Worm Luciferin: Uri not found ") + server.uri());
+      server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
   server.begin();
 
@@ -696,7 +696,7 @@ void sendStatus() {
       bootstrapManager.publish(fpsTopic.c_str(), fpsData.c_str(), false);
     } else {
       UDP.beginPacket(broadcastIP, UDP_BROADCAST_PORT);
-      UDP.write(fpsData.c_str());
+      UDP.print(fpsData.c_str());
       UDP.endPacket();
     }
   } else {
@@ -751,7 +751,7 @@ void sendStatus() {
       String output;
       serializeJson(root, output);
       UDP.beginPacket(broadcastIP, UDP_BROADCAST_PORT);
-      UDP.write(output.c_str());
+      UDP.print(output.c_str());
       UDP.endPacket();
     }
 
@@ -799,7 +799,7 @@ bool processUpdate() {
           } else {
             IPAddress broadcastIP = returnBroadcastIP();
             UDP.beginPacket(broadcastIP, UDP_BROADCAST_PORT);
-            UDP.write(deviceName.c_str());
+            UDP.print(deviceName.c_str());
             UDP.endPacket();
           }
         }
