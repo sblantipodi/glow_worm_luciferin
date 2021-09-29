@@ -1016,6 +1016,7 @@ void checkConnection() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
+  server.handleClient();
 
   EVERY_N_SECONDS(10) {
     // No updates since 7 seconds, turn off LEDs
@@ -1295,9 +1296,6 @@ void serialTask(void * parameter) {
  */
 void loop() {
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-  server.handleClient();
-#endif
 #if defined(ESP8266)
   mainLoop();
 #endif
