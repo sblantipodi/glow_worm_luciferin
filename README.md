@@ -77,7 +77,7 @@ NOTE: QuinLED-Dig-Uno must be used with Glow Worm FULL Firmware because it can't
 ## Luciferin Web Interface
 Glow Worm Luciferin FULL firmware exposes a `Web Interface` to control your lights from your browser without the needs of the Firefly Luciferin PC client.
 
-<img align="center" width="450" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/full_firmware_wifi_only/assets/img/web_interface.jpg?raw=true">
+<img align="center" width="400" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/full_firmware_wifi_only/assets/img/web_interface.jpg?raw=true">
 
 ## Home Assistant Mobile Client Screenshots  
 Glow Worm Luciferin firmware can be easily integrated in [Home Assistant](https://github.com/sblantipodi/firefly_luciferin/wiki/Home-Automation-configs).  
