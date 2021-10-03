@@ -27,6 +27,7 @@ const char settingsPage[] PROGMEM = R"=====(<!DOCTYPE html>
     <title>LUCIFERIN Web Interface</title>
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel="icon" type="image/png" href="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png" >
     <script src='https://code.jquery.com/jquery-3.6.0.slim.min.js' integrity='sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=' crossorigin='anonymous'></script>
     <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css' rel='stylesheet'>
     <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js'></script>
@@ -36,8 +37,7 @@ const char settingsPage[] PROGMEM = R"=====(<!DOCTYPE html>
             background:orange !important;
         }
         #toggleLED {
-            height: 5vw;
-            font-size: 3vw;
+            font-size: 1.8rem;
             font-weight: bold;
             background:orange;
             border-color: orange;
@@ -52,7 +52,6 @@ const char settingsPage[] PROGMEM = R"=====(<!DOCTYPE html>
         }
         button {
             width: 100%;
-            min-height: 10vw;
         }
         .col-sm-12, col-sm-6, footer {
             margin: 2vw 0vw 2vw 0vw;
@@ -135,7 +134,7 @@ const char settingsPage[] PROGMEM = R"=====(<!DOCTYPE html>
     </div>
 </div>
 <footer class='bg-light text-center text-lg-start'>
-    <div class='text-center p-3'>
+    <div class='text-center'>
         <a class='text-dark' href='https://github.com/sblantipodi/'>Luciferin on GitHub</a>
     </div>
 </footer>
