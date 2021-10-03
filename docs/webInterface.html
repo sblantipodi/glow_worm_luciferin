@@ -120,5 +120,36 @@
     </div>
 </footer>
 
-
+<script type='text/javascript'>
+    function callDevice(payload) {
+        console.log(payload);
+        const http = new XMLHttpRequest();
+        http.open('GET', 'lights/glowwormluciferin/set?payload=' + payload);
+        http.send();
+        http.onload = () => console.log(http.responseText);
+    }
+    function createPayload() {
+        var toggleLED = $('#toggleLED')[0];
+        var payload = {
+            state: toggleLED.classList.contains('active') ? 'ON' : 'OFF',
+            effect: $('#effectSelect').val(),
+            color: colorPicker.color.rgb,
+            whitetemp: 1
+        }
+        return payload;
+    }
+    var colorPicker = new iro.ColorPicker('#picker', {
+        width: 320,
+        color: '#f00'
+    });
+    $('#effectSelect').change(function () {
+        callDevice(JSON.stringify(createPayload()));
+    });
+    $('#toggleLED').click(function () {
+        callDevice(JSON.stringify(createPayload()));
+    });
+    colorPicker.on('color:change', function(color) {
+        callDevice(JSON.stringify(createPayload()));
+    });
+</script>
 </body>
