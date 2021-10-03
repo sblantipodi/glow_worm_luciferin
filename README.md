@@ -71,8 +71,13 @@ Note: If you want to use the FULL firmware without using a USB cable you need to
 If you don't want to design your own PCB and you have a soldering iron, you might find [Luciferin's official PCB](https://github.com/sblantipodi/firefly_luciferin/wiki/Ready-to-print-PCB) interesting.
 
 ## Pre-build boards support
-Luciferin supports pre-build board like the [QuinLED-Dig-Uno](https://quinled.info/2018/09/15/quinled-dig-uno).  
+Luciferin supports pre-build board like the [QuinLED-Dig-Uno](https://quinled.info/pre-assembled-quinled-dig-uno/).  
 NOTE: QuinLED-Dig-Uno must be used with Glow Worm FULL Firmware because it can't be connected to your PC via USB.
+
+## Luciferin Web Interface
+Glow Worm Luciferin FULL firmware exposes a `Web Interface` to control your lights from your browser without the needs of the Firefly Luciferin PC client.
+
+<img align="center" width="450" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/full_firmware_wifi_only/assets/img/web_interface.jpg?raw=true">
 
 ## Home Assistant Mobile Client Screenshots  
 Glow Worm Luciferin firmware can be easily integrated in [Home Assistant](https://github.com/sblantipodi/firefly_luciferin/wiki/Home-Automation-configs).  
