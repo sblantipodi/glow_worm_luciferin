@@ -32,6 +32,7 @@ NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>* ledsUART = NULL; // Ha
 NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod>* ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
 #endif
 char packet[UDP_MAX_BUFFER_SIZE];
+char packetBroadcast[UDP_MAX_BUFFER_SIZE];
 
 /**
  * Setup function
@@ -141,6 +142,7 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Begin listening to UDP port
   UDP.begin(UDP_PORT);
+  broadcastUDP.begin(UDP_BROADCAST_PORT);
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
   fpsData.reserve(200);
@@ -677,8 +679,6 @@ bool processJson() {
  */
 void sendStatus() {
 
-  IPAddress broadcastIP = returnBroadcastIP();
-
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
     fpsData = F("{\"deviceName\":\"");
@@ -695,9 +695,15 @@ void sendStatus() {
     if (mqttIP.length() > 0) {
       bootstrapManager.publish(fpsTopic.c_str(), fpsData.c_str(), false);
     } else {
-      UDP.beginPacket(broadcastIP, UDP_BROADCAST_PORT);
-      UDP.print(fpsData.c_str());
-      UDP.endPacket();
+#if defined(ESP8266)
+      if (remoteBroadcastPort.isSet()) {
+#elif defined(ESP32)
+        if (!remoteBroadcastPort.toString().isEmpty()) {
+#endif
+        broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
+        broadcastUDP.print(fpsData.c_str());
+        broadcastUDP.endPacket();
+      }
     }
   } else {
     bootstrapManager.jsonDoc.clear();
@@ -750,9 +756,15 @@ void sendStatus() {
     } else {
       String output;
       serializeJson(root, output);
-      UDP.beginPacket(broadcastIP, UDP_BROADCAST_PORT);
-      UDP.print(output.c_str());
-      UDP.endPacket();
+#if defined(ESP8266)
+      if (remoteBroadcastPort.isSet()) {
+#elif defined(ESP32)
+      if (!remoteBroadcastPort.toString().isEmpty()) {
+#endif
+        broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
+        broadcastUDP.print(output.c_str());
+        broadcastUDP.endPacket();
+      }
     }
 
   }
@@ -765,17 +777,6 @@ void sendStatus() {
 
   // Built in led triggered
   ledTriggered = true;
-
-}
-
-IPAddress returnBroadcastIP() {
-
-  String microcontrollerIP = WiFi.localIP().toString();
-  IPAddress broadcastIP(helper.getValue(microcontrollerIP, '.', 0).toInt(),
-                        helper.getValue(microcontrollerIP, '.', 1).toInt(),
-                        helper.getValue(microcontrollerIP, '.', 2).toInt(),
-                        255);
-  return broadcastIP;
 
 }
 
@@ -797,10 +798,15 @@ bool processUpdate() {
           if (mqttIP.length() > 0) {
             bootstrapManager.publish(updateResultStateTopic.c_str(), deviceName.c_str(), false);
           } else {
-            IPAddress broadcastIP = returnBroadcastIP();
-            UDP.beginPacket(broadcastIP, UDP_BROADCAST_PORT);
-            UDP.print(deviceName.c_str());
-            UDP.endPacket();
+#if defined(ESP8266)
+            if (remoteBroadcastPort.isSet()) {
+#elif defined(ESP32)
+            if (!remoteBroadcastPort.toString().isEmpty()) {
+#endif
+              broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
+              broadcastUDP.print(deviceName.c_str());
+              broadcastUDP.endPacket();
+            }
           }
         }
         delay(DELAY_500);
@@ -1340,6 +1346,12 @@ void getUDPStream() {
       packet[packetSize] = '\0';
       fromUDPStreamToStrip(packet);
     }
+  }
+  // If packet received...
+  uint16_t packetSizeBroadcast = broadcastUDP.parsePacket();
+  broadcastUDP.read(packetBroadcast, UDP_MAX_BUFFER_SIZE);
+  if (packetSizeBroadcast == 4) {
+    remoteBroadcastPort = broadcastUDP.remoteIP();
   }
 
 }

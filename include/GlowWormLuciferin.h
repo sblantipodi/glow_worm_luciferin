@@ -102,8 +102,10 @@ const String EFFECT_PARAM = "effect";
 #define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
 #define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
 WiFiUDP UDP;
+WiFiUDP broadcastUDP;
 const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Firefly Luciferin
 const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
+IPAddress remoteBroadcastPort;
 
 const uint16_t FIRST_CHUNK = 170;
 const uint16_t SECOND_CHUNK = 340;
@@ -177,4 +179,3 @@ void cleanLEDs();
 void getUDPStream();
 void httpCallback(bool (*callback)());
 void listenOnHttpGet();
-IPAddress returnBroadcastIP();
