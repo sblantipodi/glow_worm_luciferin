@@ -266,6 +266,9 @@ void manageQueueSubscription() {
  */
 void listenOnHttpGet() {
 
+  server.on("/", []() {
+      server.send(200, F("text/html"), settingsPage);
+  });
   server.on(("/" + lightSetTopic).c_str(), []() {
       httpCallback(processJson);
   });

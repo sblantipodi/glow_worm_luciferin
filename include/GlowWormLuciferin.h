@@ -28,6 +28,7 @@
 #include "Version.h"
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
+#include "WebSettings.h"
 #if defined(ESP32)
 #include <soc/timer_group_struct.h>
 #include <soc/timer_group_reg.h>
