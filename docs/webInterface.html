@@ -124,7 +124,7 @@
     function callDevice(payload) {
         console.log(payload);
         const http = new XMLHttpRequest();
-        http.open('GET', window.location.href + 'lights/glowwormluciferin/set?payload=' + payload);
+        http.open('GET', window.location.href + 'lights/glowwormluciferin/set?dada=dada&payload=' + payload);
         http.send();
         http.onload = () => console.log(http.responseText);
     }
