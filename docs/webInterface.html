@@ -1,5 +1,5 @@
 <head>
-    <title>Bootstrap 5 Example</title>
+    <title>LUCIFERIN Web Interface</title>
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <script src='https://code.jquery.com/jquery-3.6.0.slim.min.js' integrity='sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=' crossorigin='anonymous'></script>
@@ -124,7 +124,7 @@
     function callDevice(payload) {
         console.log(payload);
         const http = new XMLHttpRequest();
-        http.open('GET', window.location.href + 'lights/glowwormluciferin/set?dada=dada&payload=' + payload);
+        http.open('GET', window.top.location.href + 'lights/glowwormluciferin/set?payload=' + payload);
         http.send();
         http.onload = () => console.log(http.responseText);
     }
@@ -142,16 +142,14 @@
         width: 320,
         color: '#f00'
     });
-    $('#floatingSelect').change(function () {
-        var selectedItem = $('#floatingSelect').val();
-        alert('ddasas' + selectedItem);
+    $('#effectSelect').change(function () {
+        callDevice(JSON.stringify(createPayload()));
     });
     $('#toggleLED').click(function () {
-            callDevice(JSON.stringify(createPayload()));
+        callDevice(JSON.stringify(createPayload()));
     });
     colorPicker.on('color:change', function(color) {
-        // log the current color as a HEX string
-        console.log(color.rgb);
+        callDevice(JSON.stringify(createPayload()));
     });
 </script>
 </body>
