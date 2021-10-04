@@ -39,12 +39,12 @@ const char settingsPage[] PROGMEM = R"=====(<!DOCTYPE html>
         #toggleLED {
             font-size: 1.8rem;
             font-weight: bold;
-            background:orange;
-            border-color: orange;
+            background: lightgrey;
+            border-color: lightgrey;
         }
         #toggleLED:active {
-            background-color: #ff6500 !important;
-            border-color: #ff6500 !important;
+            background-color: orange !important;
+            border-color: orange !important;
         }
         body {
             background-color: #f8f8f8;
@@ -158,7 +158,7 @@ const char settingsPage[] PROGMEM = R"=====(<!DOCTYPE html>
     }
     var colorPicker = new iro.ColorPicker('#picker', {
         width: 320,
-        color: '#f00'
+        color: '#0091ff'
     });
     $('#effectSelect').change(function () {
         callDevice(JSON.stringify(createPayload()));
@@ -170,14 +170,14 @@ const char settingsPage[] PROGMEM = R"=====(<!DOCTYPE html>
         callDevice(JSON.stringify(createPayload()));
         var toggleLED = $('#toggleLED')[0];
         if (toggleLED.classList.contains('active')) {
-            $('#toggleLED').css('background-color','#ff6500');
+            $('#toggleLED').css('background-color','orange');
             $('#toggleLED')[0].textContent = "Turn OFF";
         } else {
-            $('#toggleLED').css('background-color','orange');
+            $('#toggleLED').css('background-color','lightgrey');
             $('#toggleLED')[0].textContent = "Turn ON";
         }
     });
-    colorPicker.on('color:change', function(color) {
+    colorPicker.on('input:end', function(color) {
         callDevice(JSON.stringify(createPayload()));
     });
 </script>
