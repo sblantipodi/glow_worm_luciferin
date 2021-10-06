@@ -71,15 +71,15 @@ colorPicker.on(['input:end'], function(color) {
 const sleep = (s) => {
   return new Promise(resolve => setTimeout(resolve, (s*1000)));
 };
-$('#effectSelect').append(new Option("solid", "Solid"));
-$('#effectSelect').append(new Option("fire", "Fire"));
-$('#effectSelect').append(new Option("twinkle", "Twinkle"));
-$('#effectSelect').append(new Option("bpm", "Bpm"));
-$('#effectSelect').append(new Option("rainbow", "Rainbow"));
-$('#effectSelect').append(new Option("mixed rainbow", "Mixed rainbow"));
-$('#effectSelect').append(new Option("chase rainbow", "Chase rainbow"));
-$('#effectSelect').append(new Option("solid rainbow", "Solid rainbow"));
 
 sleep(2).then(() => {
+  $('#effectSelect').append(new Option("Solid", "solid"));
+  $('#effectSelect').append(new Option("Fire", "fire"));
+  $('#effectSelect').append(new Option("Twinkle", "twinkle"));
+  $('#effectSelect').append(new Option("Bpm", "bpm"));
+  $('#effectSelect').append(new Option("Rainbow", "rainbow"));
+  $('#effectSelect').append(new Option("Mixed rainbow", "mixed rainbow"));
+  $('#effectSelect').append(new Option("Chase rainbow", "chase rainbow"));
+  $('#effectSelect').append(new Option("Solid rainbow", "solid rainbow"));
   poll();
 });
