@@ -52,6 +52,7 @@ PingESP pingESP;
 
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
+String prefsTopic = "/prefs";
 String lightStateTopic = "lights/glowwormluciferin";
 String updateStateTopic = "lights/glowwormluciferin/update";
 String updateResultStateTopic = "lights/glowwormluciferin/update/result";
@@ -85,6 +86,8 @@ uint8_t gpioInUse = 2, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
 boolean firmwareUpgrade = false;
 size_t updateSize = 0;
 String fpsData((char*)0); // save space on default constructor
+String prefsData((char*)0); // save space on default constructor
+bool servingWebPages = false;
 
 /****************** FastLED Defintions ******************/
 #define NUM_LEDS 511 // Max Led support
@@ -99,7 +102,7 @@ const String LED_NUM_PARAM = "lednum";
 const String GPIO_PARAM = "gpio";
 const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
-const String EFFECT_PARAM = "effect";
+const __FlashStringHelper* effectParam;
 #define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
 #define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
 WiFiUDP UDP;

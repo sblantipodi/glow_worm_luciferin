@@ -146,6 +146,7 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
   fpsData.reserve(200);
+  prefsData.reserve(200);
   listenOnHttpGet();
 #if defined(ESP8266)
   // Hey gateway, GlowWorm is here
@@ -267,7 +268,31 @@ void manageQueueSubscription() {
 void listenOnHttpGet() {
 
   server.on("/", []() {
+      servingWebPages = true;
+      delay(1000);
       server.send(200, F("text/html"), settingsPage);
+      delay(1000);
+      servingWebPages = false;
+  });
+  server.on(prefsTopic.c_str(), []() {
+      prefsData = F("{\"VERSION\":\"");
+      prefsData += VERSION;
+      prefsData += F("\",\"cp\":\"");
+      prefsData += red; prefsData += F(",");
+      prefsData += green; prefsData += F(",");
+      prefsData += blue;
+      prefsData += F("\",\"toggle\":\"");
+      prefsData += stateOn;
+      prefsData += F("\",\"effect\":\"");
+      prefsData += effectParam;
+      prefsData += F("\",\"whiteTemp\":\"");
+      prefsData += whiteTemp;
+      prefsData += F("\",\"wifi\":\"");
+      prefsData += bootstrapManager.getWifiQuality();
+      prefsData += F("\",\"framerate\":\"");
+      prefsData += framerate;
+      prefsData += F("\"}");
+      server.send(200, F("application/json"), prefsData);
   });
   server.on(("/" + lightSetTopic).c_str(), []() {
       httpCallback(processJson);
@@ -639,8 +664,8 @@ bool processJson() {
   }
 
   if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
-    int whitetemp = bootstrapManager.jsonDoc["whitetemp"];
-    setTemperature(whitetemp);
+    whiteTemp = bootstrapManager.jsonDoc["whitetemp"];
+    setTemperature(whiteTemp);
   }
 
   if (bootstrapManager.jsonDoc.containsKey("effect")) {
@@ -719,20 +744,21 @@ void sendStatus() {
     root[F("brightness")] = brightness;
     switch (effect) {
       case Effect::GlowWormWifi:
-        root[F("effect")] = F("GlowWormWifi");
+        effectParam = F("GlowWormWifi");
         break;
       case Effect::GlowWorm:
-        root[F("effect")] = F("GlowWorm");
+        effectParam = F("GlowWorm");
         break;
-        case Effect::solid: root[F("effect")] = F("solid"); break;
-        case Effect::bpm: root[F("effect")] = F("bpm"); break;
-        case Effect::fire: root[F("effect")] = F("fire"); break;
-        case Effect::twinkle: root[F("effect")] = F("twinkle"); break;
-        case Effect::rainbow: root[F("effect")] = F("rainbow"); break;
-        case Effect::chase_rainbow: root[F("effect")] = F("chase rainbow"); break;
-        case Effect::solid_rainbow: root[F("effect")] = F("solid rainbow"); break;
-        case Effect::mixed_rainbow: root[F("effect")] = F("mixed rainbow"); break;
+        case Effect::solid: effectParam = F("solid"); break;
+        case Effect::bpm: effectParam = F("bpm"); break;
+        case Effect::fire: effectParam = F("fire"); break;
+        case Effect::twinkle: effectParam = F("twinkle"); break;
+        case Effect::rainbow: effectParam = F("rainbow"); break;
+        case Effect::chase_rainbow: effectParam = F("chase rainbow"); break;
+        case Effect::solid_rainbow: effectParam = F("solid rainbow"); break;
+        case Effect::mixed_rainbow: effectParam = F("mixed rainbow"); break;
     }
+    root[F("effect")] = effectParam;
     root[F("deviceName")] = deviceName;
     root[F("IP")] = microcontrollerIP;
     root[F("wifi")] = bootstrapManager.getWifiQuality();
@@ -1328,9 +1354,12 @@ void loop() {
 #endif
 
 #if defined(ESP8266)
-  EVERY_N_MINUTES(5) {
+  EVERY_N_SECONDS(30) {
     // Hey gateway, GlowWorm is here
-    pingESP.ping(WiFi.gatewayIP());
+    bool res = pingESP.ping(WiFi.gatewayIP());
+    if (!res) {
+      WiFi.reconnect();
+    }
   }
 #endif
 
@@ -1341,20 +1370,22 @@ void loop() {
  */
 void getUDPStream() {
 
-  // If packet received...
-  uint16_t packetSize = UDP.parsePacket();
-  UDP.read(packet, UDP_MAX_BUFFER_SIZE);
-  if (effect == Effect::GlowWormWifi) {
-    if (packetSize > 20) {
-      packet[packetSize] = '\0';
-      fromUDPStreamToStrip(packet);
+  if (!servingWebPages) {
+    // If packet received...
+    uint16_t packetSize = UDP.parsePacket();
+    UDP.read(packet, UDP_MAX_BUFFER_SIZE);
+    if (effect == Effect::GlowWormWifi) {
+      if (packetSize > 20) {
+        packet[packetSize] = '\0';
+        fromUDPStreamToStrip(packet);
+      }
     }
-  }
-  // If packet received...
-  uint16_t packetSizeBroadcast = broadcastUDP.parsePacket();
-  broadcastUDP.read(packetBroadcast, UDP_MAX_BUFFER_SIZE);
-  if (packetSizeBroadcast == 4) {
-    remoteBroadcastPort = broadcastUDP.remoteIP();
+    // If packet received...
+    uint16_t packetSizeBroadcast = broadcastUDP.parsePacket();
+    broadcastUDP.read(packetBroadcast, UDP_MAX_BUFFER_SIZE);
+    if (packetSizeBroadcast == 4) {
+      remoteBroadcastPort = broadcastUDP.remoteIP();
+    }
   }
 
 }
