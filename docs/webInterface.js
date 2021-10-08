@@ -24,6 +24,8 @@ function poll() {
           colorPicker.color.rgb = { r: prefs.cp.split(',')[0], g: prefs.cp.split(',')[1], b: prefs.cp.split(',')[2] }
         }
         $('#gitlink').text("Glow Worm Luciferin (V"+prefs.VERSION+')');
+        $('#wifi').text(prefs.wifi + '% ');
+        $('#fps').text(prefs.fps + 'FPS');
       }
     }), 5000);
 }
