@@ -44,7 +44,8 @@ Helpers helper;
 #if defined(ESP32)
 TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
 TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
-#define RELAY_PIN 23
+#define RELAY_PIN_DIG 23 // equals to Q4
+#define RELAY_PIN_PICO 22
 #elif defined(ESP8266)
 #define RELAY_PIN 12
 PingESP pingESP;

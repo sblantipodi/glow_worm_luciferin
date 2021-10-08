@@ -118,8 +118,15 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
 
   initLeds();
 
+#if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
+#elif defined(ESP32)
+  pinMode(RELAY_PIN_DIG, OUTPUT);
+  digitalWrite(RELAY_PIN_DIG, LOW);
+  pinMode(RELAY_PIN_PICO, OUTPUT);
+  digitalWrite(RELAY_PIN_PICO, LOW);
+#endif
 
 #if defined(ESP32)
   xTaskCreatePinnedToCore(
@@ -1397,7 +1404,12 @@ void turnOnRelay() {
 
   if (!relayState) {
     relayState = true;
+#if defined(ESP8266)
     digitalWrite(RELAY_PIN, HIGH);
+#elif defined(ESP32)
+    digitalWrite(RELAY_PIN_DIG, HIGH);
+    digitalWrite(RELAY_PIN_PICO, HIGH);
+#endif
     delay(100);
   }
 
@@ -1411,7 +1423,12 @@ void turnOffRelay() {
   if (relayState) {
     relayState = false;
     delay(100);
+#if defined(ESP8266)
     digitalWrite(RELAY_PIN, LOW);
+#elif defined(ESP32)
+    digitalWrite(RELAY_PIN_DIG, LOW);
+    digitalWrite(RELAY_PIN_PICO, LOW);
+#endif
   }
 
 }
