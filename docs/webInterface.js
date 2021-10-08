@@ -71,7 +71,31 @@ colorPicker.on(['input:end'], function(color) {
 const sleep = (s) => {
   return new Promise(resolve => setTimeout(resolve, (s*1000)));
 };
+var gauge = new JustGage({
+            id: "gauge", // the id of the html element
+            value: 50,
+            min: 0,
+            max: 100,
+            decimals: 2,
+            gaugeWidthScale: 0.6
+        });
 
+// update the value randomly
+setInterval(() => {
+  gauge.refresh(Math.random() * 100);
+}, 
+var gauge2 = new JustGage({
+    id: "gauge2", // the id of the html element
+    value: 50,
+    min: 0,
+    max: 100,
+    decimals: 2,
+    gaugeWidthScale: 0.6
+});
+// update the value randomly
+setInterval(() => {
+  gauge2.refresh(Math.random() * 100);
+}, 
 sleep(2).then(() => {
   $('#effectSelect').append(new Option("Solid", "solid"));
   $('#effectSelect').append(new Option("Fire", "fire"));
