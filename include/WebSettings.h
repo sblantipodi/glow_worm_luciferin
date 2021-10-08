@@ -21,63 +21,6 @@
 #ifndef GLOW_WORM_LUCIFERIN_WEBSETTINGS_H
 #define GLOW_WORM_LUCIFERIN_WEBSETTINGS_H
 
-const char settingsPage[] PROGMEM = R"=====(<!DOCTYPE html>
-<html>
-<head>
-    <title>LUCIFERIN Web Interface</title>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel="icon" type="image/png" href="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png" >
-    <script src='https://code.jquery.com/jquery-3.6.0.slim.min.js' integrity='sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=' crossorigin='anonymous'></script>
-    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css' rel='stylesheet'>
-    <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js'></script>
-    <script src='https://cdn.jsdelivr.net/npm/@jaames/iro@5'></script>
-    <link href='https://sblantipodi.github.io/glow_worm_luciferin/webInterface.css' rel='stylesheet'>
-</head>
-<body>
-<div class='container-fluid p-3 bg-primary text-white text-center'>
-    <h1>LUCIFERIN</h1>
-    <p>Bias Lighting and Ambient Light firmware designed for Firefly Luciferin </p>
-</div>
-<div class='container'>
-    <div class='row'>
-        <div class='col' style='margin-top: 2vw;'>
-            <form onsubmit='submitForm(event)'>
-                <div class='form-group row'>
-                    <div class='col-sm-12'>
-                        <div class='wrap'>
-                            <div id='picker'></div>
-                        </div>
-                    </div>
-                    <div class='col-sm-12'>
-                        <button id='toggleLED' type='button' class='btn btn-primary' data-bs-toggle='button' autocomplete='off'>Turn ON</button>
-                    </div>
-                    <div class='col-sm-12'>
-                        <div class='form-floating'>
-                            <select class='form-select' id='effectSelect'>
-                            </select>
-                            <label for='effectSelect'>EFFECT</label>
-                        </div>
-                    </div>
-                    <div class='col-sm-12'>
-                        <div class='form-floating'>
-                            <select class='form-select' id='whiteTempSelect'>
-                            </select>
-                            <label for='whiteTempSelect'>WHITE TEMPERATURE</label>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<footer class='bg-light text-center text-lg-start'>
-    <div class='text-center'>
-        <small><a id='gitlink' class='text-dark' href='https://github.com/sblantipodi/'>_</a></small>
-    </div>
-</footer>
-<script src='https://sblantipodi.github.io/glow_worm_luciferin/webInterface.js'></script>
-</body>
-</html>)=====";
+const char settingsPage[] PROGMEM = R"=====(<!DOCTYPE html><html><head> <title>LUCIFERIN Web Interface</title> <meta charset='utf-8'> <meta name='viewport' content='width=device-width, initial-scale=1'> <link rel="icon" type="image/png" href="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png" > <script src='https://code.jquery.com/jquery-3.6.0.slim.min.js' integrity='sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=' crossorigin='anonymous'></script> <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css' rel='stylesheet'> <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js'></script> <script src='https://cdn.jsdelivr.net/npm/@jaames/iro@5'></script> <link href='https://sblantipodi.github.io/glow_worm_luciferin/webInterface.css' rel='stylesheet'></head><body><div class='container-fluid p-3 bg-primary text-white text-center'> <h1>LUCIFERIN</h1> <p>Bias Lighting and Ambient Light firmware designed for Firefly Luciferin </p></div><div class='container'> <div class='row'> <div class='col' style='margin-top: 2vw;'> <form onsubmit='submitForm(event)'> <div class='form-group row'> <div class='col-sm-12'> <div class='wrap'> <div id='picker'></div></div></div><div class='col-sm-12'> <button id='toggleLED' type='button' class='btn btn-primary' data-bs-toggle='button' autocomplete='off'>Turn ON</button> </div><div class='col-sm-12'> <div class='form-floating'> <select class='form-select' id='effectSelect'> </select> <label for='effectSelect'>EFFECT</label> </div></div><div class='col-sm-12'> <div class='form-floating'> <select class='form-select' id='whiteTempSelect'> </select> <label for='whiteTempSelect'>WHITE TEMPERATURE</label> </div></div></div></form> </div></div></div><footer class='bg-light text-center text-lg-start'> <div class='text-center'> <small> WiFi: <span id='wifi'>_</span>/ Framerate: <span id='fps'>_</span><br><a id='gitlink' class='text-dark' href='https://github.com/sblantipodi/'>_</a></small> </div></footer><script src='https://sblantipodi.github.io/glow_worm_luciferin/webInterface.js'></script></body></html>)=====";
 
 #endif //GLOW_WORM_LUCIFERIN_WEBSETTINGS_H
