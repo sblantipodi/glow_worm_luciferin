@@ -25,7 +25,7 @@ function poll() {
         }
         $('#gitlink').text("Glow Worm Luciferin (V"+prefs.VERSION+')');
         $('#wifi').text(prefs.wifi + '% ');
-        $('#fps').text(prefs.fps + 'FPS');
+        $('#framerate').text(prefs.fps + 'FPS');
       }
     }), 5000);
 }
