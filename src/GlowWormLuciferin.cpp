@@ -129,22 +129,8 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
 #endif
 
 #if defined(ESP32)
-  xTaskCreatePinnedToCore(
-          tcpTask, /* Task function. */
-          "tcpTask", /* name of task. */
-          32192, /* Stack size of task */
-          NULL, /* parameter of the task */
-          2, /* priority of the task */
-          &handleTcpTask, /* Task handle to keep track of created task */
-          0);
-  xTaskCreatePinnedToCore(
-          serialTask, /* Task function. */
-          "serialTask", /* name of task. */
-          32192, /* Stack size of task */
-          NULL, /* parameter of the task */
-          2, /* priority of the task */
-          &handleSerialTask, /* Task handle to keep track of created task */
-          1);
+  esp_task_wdt_init(3000, true); //enable panic so ESP32 restarts
+  esp_task_wdt_add(NULL); //add current thread to WDT watch
 #endif
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Begin listening to UDP port
@@ -805,12 +791,6 @@ void sendStatus() {
 
   }
 
-#if defined(ESP32)
-  vTaskDelay(1);
-  //Serial.print("Task is running on: ");
-  //Serial.println(xPortGetCoreID());
-#endif
-
   // Built in led triggered
   ledTriggered = true;
 
@@ -1082,19 +1062,12 @@ void checkConnection() {
     }
   }
 #endif
-#if defined(ESP8266)
   sendSerialInfo();
-#endif
 
 }
 
 int serialRead() {
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-#if defined(ESP32)
-  delayMicroseconds(10);
-#endif
-#endif
   return !breakLoop ? Serial.read() : -1;
 
 }
@@ -1268,96 +1241,17 @@ void mainLoop() {
 }
 
 /**
- * Main task for ESP32, pinned to CORE0
- */
-#if defined(ESP32)
-
-void feedTheDog(){
-  // feed dog
-  TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
-  TIMERG0.wdt_feed=1;                       // feed dog
-  TIMERG0.wdt_wprotect=0;                   // write protect
-  TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
-  TIMERG0.wdt_feed=1;                       // feed dog
-  TIMERG0.wdt_wprotect=0;                   // write protect
-}
-
-/**
- * Pinned on CORE0, max performance with TCP
- * @param parameter
- */
-void tcpTask(void * parameter) {
-  while(true) {
-#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-    sendSerialInfo();
-    vTaskDelay(1);
-#elif TARGET_GLOWWORMLUCIFERINFULL
-    getUDPStream();
-    vTaskDelay(1);
-    EVERY_N_MILLISECONDS(50) {
-      feedTheDog();
-    }
-    if (effect == Effect::GlowWormWifi) {
-      mainLoop();
-      vTaskDelay(1);
-    }
-    sendSerialInfo();
-    vTaskDelay(1);
-    if (firmwareUpgrade) {
-      vTaskDelete(handleTcpTask);
-    }
-#endif
-  }
-}
-
-/**
- * Pinned on CORE1, max performance with Serial
- * @param parameter
- */
-void serialTask(void * parameter) {
-  while(true) {
-#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-    mainLoop();
-#elif TARGET_GLOWWORMLUCIFERINFULL
-    if (effect != Effect::GlowWormWifi) {
-      mainLoop();
-    } else {
-      delay(1000);
-    }
-    if (firmwareUpgrade) {
-      vTaskDelete(handleSerialTask);
-    }
-#endif
-  }
-}
-
-#endif
-
-/**
  * Pinned on CORE1 on ESP32, max performance with Serial
  */
 void loop() {
 
-#if defined(ESP8266)
   mainLoop();
-#endif
-#if defined(ESP32)
-  // Upgrade is managed in single core mode, delete tasks pinned to CORE0 and CORE1
-  if (firmwareUpgrade) {
-    mainLoop();
-    vTaskDelay(1);
-  } else {
-    delay(1000);
-  }
-#endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (relayState && !stateOn) {
     turnOffRelay();
   }
-#if defined(ESP8266)
   getUDPStream();
-#endif
 #endif
 
 #if defined(ESP8266)
@@ -1367,6 +1261,11 @@ void loop() {
     if (!res) {
       WiFi.reconnect();
     }
+  }
+#endif
+#if defined(ESP32)
+  EVERY_N_MILLISECONDS(3000) {
+    esp_task_wdt_reset();
   }
 #endif
 
