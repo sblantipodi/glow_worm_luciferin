@@ -30,8 +30,7 @@
 #include "EffectsManager.h"
 #include "WebSettings.h"
 #if defined(ESP32)
-#include <soc/timer_group_struct.h>
-#include <soc/timer_group_reg.h>
+#include <esp_task_wdt.h>
 #elif defined(ESP8266)
 #include "PingESP.h"
 #endif
@@ -155,11 +154,8 @@ bool swapMqttTopic();
 void executeMqttSwap(String customtopic);
 void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
 void checkConnection();
-void tcpTask(void * parameter);
-void serialTask(void * parameter);
 void mainLoop();
 void sendSerialInfo();
-void feedTheDog();
 void setGpio(int gpio);
 void setBaudRate(int baudRate);
 void setNumLed(int numLedFromLuciferin);
