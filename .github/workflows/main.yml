@@ -38,8 +38,8 @@ jobs:
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
           path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
 #      - name: Save artifact (glowwormluciferinfull_esp8266)
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
