@@ -64,7 +64,7 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
   if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
     dynamicLedNum = ledNumToUse.toInt();
   } else {
-    dynamicLedNum = 2;
+    dynamicLedNum = 100;
   }
   Serial.print(F("\nUsing LEDs="));
   Serial.println(dynamicLedNum);
@@ -1402,17 +1402,13 @@ void initLeds() {
 #if defined(ESP32)
   Serial.println("Using DMA");
   cleanLEDs();
-  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, 15); // and recreate with new count
+  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
   if (ledsESP32 == NULL) {
     Serial.println("OUT OF MEMORY");
   }
   Serial.println();
   Serial.println("Initializing...");
   Serial.flush();
-  ledsESP32->Begin();
-  ledsESP32->Show();
-  cleanLEDs();
-  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
   ledsESP32->Begin();
   ledsESP32->Show();
 #else
