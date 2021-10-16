@@ -34,7 +34,12 @@ jobs:
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
           path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
-      - name: Commit firmware into GitHub.io docs folder (ESP8266 FULL)
+      - name: Save artifact (glowwormluciferinfull_esp8266)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp .pio/build/glowwormluciferinlight_esp8266/firmware.bin ./GlowWormLuciferinLIGHT_ESP8266_firmware.bin
+      - name: Commit firmware into GitHub.io docs folder (glowwormluciferinfull_esp8266)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
