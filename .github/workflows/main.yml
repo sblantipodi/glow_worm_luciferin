@@ -48,7 +48,7 @@ jobs:
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
           git commit -m "CI BETA release for firmware web installer";
-          git push origin HEAD:main;
+          git push origin HEAD:master;
 
   build_esp8266_light:
 
