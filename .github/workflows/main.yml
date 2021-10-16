@@ -1,6 +1,10 @@
 name: GitHub Actions CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '*'
+      - '!master'
 
 jobs:
 
@@ -48,7 +52,7 @@ jobs:
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
           git commit -m "CI BETA release for firmware web installer";
-          git push;
+          git push origin HEAD:main;
 
   build_esp8266_light:
 
