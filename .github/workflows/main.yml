@@ -38,17 +38,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp .pio/build/glowwormluciferinlight_esp8266/firmware.bin ./GlowWormLuciferinLIGHT_ESP8266_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp8266/firmware.bin ./GlowWormLuciferinFULL_ESP8266_firmware.bin
       - name: Commit firmware into GitHub.io docs folder (glowwormluciferinfull_esp8266)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mv ./GlowWormLuciferinFULL_ESP8266_firmware.bin ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
-          mv ./GlowWormLuciferinLIGHT_ESP8266_firmware.bin ./docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP8266_firmware.bin
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
-          git add ./docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP8266_firmware.bin;
           git commit -m "CI BETA release for firmware web installer";
           git push;
 
