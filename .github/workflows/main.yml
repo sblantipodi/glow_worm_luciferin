@@ -34,6 +34,18 @@ jobs:
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
           path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
+      - name: Commit firmware into GitHub.io docs folder (ESP8266 FULL)
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+            mv ./GlowWormLuciferinFULL_ESP8266_firmware.bin ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
+            mv ./GlowWormLuciferinLIGHT_ESP8266_firmware.bin ./docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP8266_firmware.bin
+            git config --global user.email "perini.davide@dpsoftware.org";
+            git config --global user.name "Davide Perini";
+            git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
+            git add ./docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP8266_firmware.bin;
+            git commit -m "CI BETA release for firmware web installer";
+            git push;
 
   build_esp8266_light:
 
