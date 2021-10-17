@@ -1,0 +1,305 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Luciferin</title>
+    <meta name="description" content="Bias Lighting and Ambient Light firmware, designed for Firefly Luciferin"/>
+    <meta name="viewport" content="width=device-width"/>
+    <link rel="icon" type="image/png" href="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png" >
+
+    <meta property="og:title" content="Luciferin"/>
+    <meta property="og:site_name" content="Luciferin"/>
+    <meta property="og:url" content="https://sblantipodi.github.io/glow_worm_luciferin/"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:description"
+          content="Easily allow users to flash Luciferin firmware for their ESP-devices on the web."/>
+    <meta property="og:image" content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="Luciferin"/>
+    <meta name="twitter:description"
+          content="Easily allow users to flash Luciferin firmware for their ESP-devices on the web."/>
+    <meta name="twitter:image"
+          content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
+            Roboto, Ubuntu, sans-serif;
+            padding: 0;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .logo {
+            float: right;
+            margin: 0px 0px 15px 15px;
+        }
+
+        .project .logo img {
+            max-height: 50px;
+        }
+
+        a {
+            color: orange;
+        }
+
+        .content pre {
+            max-width: 100%;
+            overflow-y: scroll;
+        }
+
+        .footer {
+            margin-top: 24px;
+            border-top: 1px solid #ccc;
+            padding-top: 24px;
+            text-align: center;
+        }
+
+        .footer .initiative {
+            font-style: italic;
+            margin-top: 16px;
+        }
+
+        table {
+            border-spacing: 0;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        button {
+            position: relative;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 8px 58px;
+            color: var(--esp-tools-button-text-color, #fff);
+            background-color: var(--esp-tools-button-color, orange);
+            border: none;
+            border-radius: 4px;
+            box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .12), 0 1px 5px 0 rgba(0, 0, 0, .2);
+            width: 290px;
+        }
+
+        button::before {
+            content: " ";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            opacity: 0.2;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .14), 0 1px 7px 0 rgba(0, 0, 0, .12), 0 3px 1px -1px rgba(0, 0, 0, .2);
+        }
+
+        button:hover::before {
+            background-color: rgba(255, 255, 255, .8);
+        }
+
+        button:focus {
+            outline: none;
+        }
+
+        button:focus::before {
+            background-color: white;
+        }
+
+        button:active::before {
+            background-color: grey;
+        }
+
+        :host([active]) button {
+            color: rgba(0, 0, 0, 0.38);
+            background-color: rgba(0, 0, 0, 0.12);
+            box-shadow: none;
+            cursor: unset;
+            pointer-events: none;
+        }
+
+        improv-wifi-launch-button {
+            display: block;
+            margin-top: 16px;
+        }
+
+        input[type="checkbox"] {
+            height: 10px;
+            width: 10px;
+            position: relative;
+            -webkit-appearance: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        input[type="checkbox"]:before {
+            content: "";
+            display: inline-block;
+            position: absolute;
+            box-sizing: border-box;
+            height: 14px;
+            width: 14px;
+            border-radius: 1px;
+            border: 2px solid orange;
+            background-color: #ffdca7;
+        }
+
+        input[type="checkbox"]:hover::before {
+            border: 1px solid #4f4f4f;
+        }
+
+        input[type="checkbox"]:checked:hover::before {
+            filter: brightness(90%);
+        }
+
+        input[type="checkbox"]:checked:disabled:hover::before {
+            filter: none;
+        }
+
+        input[type="checkbox"]:checked:before {
+            content: "";
+            display: inline-block;
+            position: absolute;
+            box-sizing: border-box;
+            height: 14px;
+            width: 14px;
+            border-radius: 2px;
+            border: 1px solid #ffdca7;
+            background-color: #ffdca7;
+        }
+
+        input[type="checkbox"]:checked:after {
+            content: "";
+            display: inline-block;
+            position: absolute;
+            top: 5px;
+            left: 2px;
+            box-sizing: border-box;
+            height: 5px;
+            width: 10px;
+            border-left: 2px solid orange;
+            border-bottom: 2px solid orange;
+            -webkit-transform: translateY(-1.5px) rotate(-45deg);
+            transform: translateY(-1.5px) rotate(-45deg);
+        }
+
+        input[type="checkbox"]:disabled::before {
+            border: 2px solid orange;
+            border-radius: 2px;
+            background-color: orange;
+        }
+
+        input[type="checkbox"]:checked:disabled::before {
+            border: 3px solid orange;
+            border-radius: 2px;
+            background-color: orange;
+        }
+
+        .action_btn {
+            display: inline-block;
+            width: calc(50% - 4px);
+            margin: 0 auto;
+        }
+    </style>
+    <script module>
+        import(
+            "https://unpkg.com/esp-web-tools@3.3.0/dist/web/install-button.js?module"
+            );
+
+        function toggleErase() {
+            if (document.getElementById('erase').checked) {
+                document.getElementById('inst_full').setAttribute('erase-first', '');
+                document.getElementById('inst_light').setAttribute('erase-first', '');
+            } else {
+                document.getElementById('inst_full').removeAttribute('erase-first');
+                document.getElementById('inst_light').removeAttribute('erase-first');
+            }
+        }
+    </script>
+</head>
+<body>
+<div class="content">
+    <h1>Glow Worm Luciferin (BETA version)</h1><a href="https://github.com/sblantipodi/firefly_luciferin" class="logo"><img
+        src="static/logos/luciferin_logo.png" alt="Luciferin"/></a>
+
+    <p>
+        <b>Luciferin</b> is a generic term for the light-emitting compound found in organisms that generate
+        bioluminescence
+        like Fireflies and Glow Worms. <br/>
+        <a href="https://github.com/sblantipodi/glow_worm_luciferin">Glow Worm Luciferin</a> is a firmware for
+        ESP8266/ESP32 boards designed for the
+        <a href="https://github.com/sblantipodi/firefly_luciferin">Firefly Luciferin</a> software, the combination of
+        these software create the perfect
+        Bias Lighting and Ambient Light system for PC.
+    </p>
+
+    <p><b>FULL firmware</b> version adds support for remote control, if you flash FULL version you MUST configure WiFi
+        and MQTT. With FULL firmware USB connection is optional.
+        If you flash <b>LIGHT firmware</b> you MUST use USB cable.</p>
+    <p>
+        To try it out and install <b>Glow Worm Luciferin firmware</b>, connect an ESP to
+        your computer and hit the button:
+    </p>
+    <p>
+        <esp-web-install-button id="inst_full"
+                                manifest="static/firmware_build_beta/manifest_full.json">
+            <button slot="activate">INSTALL FULL BETA</button>
+            <span slot="unsupported"><b>Your browser is not supported!</b></span>
+            <span slot="not-allowed">Ah snap, you are not allowed to use this on HTTP!</span>
+        </esp-web-install-button>
+    </p>
+    <p>
+        <esp-web-install-button id="inst_light"
+                                manifest="static/firmware_build_beta/manifest_light.json">
+            <button slot="activate">INSTALL LIGHT BETA</button>
+        </esp-web-install-button>
+    </p>
+    <p>
+        <input type="checkbox" id="erase" name="erase" onchange="toggleErase()">
+        <label for="erase"> Clean install (deletes presets and settings)</label>
+    </p>
+    <p>
+        <b>NOTE: This is a BETA version, for stable version click <a href="https://sblantipodi.github.io/glow_worm_luciferin">here</a>.</b>
+    </p>
+    <p>
+        <i>
+            This only works in desktop Chrome and Edge. If you don't see
+            your ESP device, you might miss drivers.
+        </i>
+    </p>
+
+    <h3 id="drivers">USB Serial Drivers</h3>
+    <p>
+        If the serial port is not showing up, your computer might be missing the
+        drivers for the USB serial chip used in your ESP device. These drivers
+        work for most ESP devices:
+    </p>
+    <ul>
+        <li>
+            CH341:
+            <a href="https://github.com/nodemcu/nodemcu-devkit/tree/master/Drivers">driver</a>
+        </li>
+        <li>
+            CP2102 (square chip):
+            <a href="https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers">driver</a>
+        </li>
+    </ul>
+    <div class="footer">
+        <div>
+            Glow Worm Luciferin – <a href="https://github.com/sblantipodi/glow_worm_luciferin">GitHub</a>
+        </div>
+        <div>
+            Firefly Luciferin – <a href="https://github.com/sblantipodi/firefly_luciferin">GitHub</a>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>
