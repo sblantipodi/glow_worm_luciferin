@@ -31,8 +31,8 @@ jobs:
         run: |
           cd currentbranch;
           git submodule update --init
-#      - name: Setup tmate session
-#        uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Setup template config files
         run: |
           cp /home/runner/work/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/currentbranch/secrets.ini
