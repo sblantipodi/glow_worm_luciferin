@@ -36,7 +36,7 @@ jobs:
           git submodule update --init
       - name: Setup template config files
         run: |
-          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
+          cp /home/runner/work/glow_worm_luciferin/currentbranch/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/currentbranch/glow_worm_luciferin/secrets.ini
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
       - name: Static code analysis
