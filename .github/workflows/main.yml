@@ -106,6 +106,7 @@ jobs:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_LIGHT.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp8266/firmware.bin
       - name: Save artifact (glowwormluciferinlight_esp8266)
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -162,6 +163,7 @@ jobs:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_FULL.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32/firmware.bin
       - name: Save artifact (glowwormluciferinfull_esp32)
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -218,6 +220,7 @@ jobs:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_LIGHT.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp32/firmware.bin
       - name: Save artifact (glowwormluciferinlight_esp32)
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
