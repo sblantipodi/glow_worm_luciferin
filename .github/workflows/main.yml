@@ -36,8 +36,6 @@ jobs:
       - name: Setup template config files
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
       - name: Static code analysis
         run: |
           cd currentbranch;
@@ -51,8 +49,6 @@ jobs:
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp8266/firmware.bin
-#      - name: Setup tmate session
-#        uses: mxschmitt/action-tmate@v3
       - name: Save artifact (glowwormluciferinfull_esp8266)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,6 +68,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: master
+          path: 'currentbranch'
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+          path: 'beta'
       - name: Set up Python
         uses: actions/setup-python@v1
       - name: Install dependencies
@@ -81,21 +84,38 @@ jobs:
           python --version
       - name: Install submodules
         run: |
+          cd currentbranch;
           git submodule update --init
+      #      - name: Setup tmate session
+      #        uses: mxschmitt/action-tmate@v3
       - name: Setup template config files
         run: |
-          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
       - name: Static code analysis
-        run: platformio check --verbose --severity=high --skip-packages
+        run: |
+          cd currentbranch;
+          platformio check --verbose --severity=high --skip-packages;
       - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinlight_esp8266
+        run: |
+          cd currentbranch;
+          platformio run -e glowwormluciferinlight_esp8266;
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v2
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_LIGHT.bin
-          path: .pio/build/glowwormluciferinlight_esp8266/firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp8266/firmware.bin
+      - name: Save artifact (glowwormluciferinlight_esp8266)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd currentbranch;
+          cp .pio/build/glowwormluciferinlight_esp8266/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP8266_firmware.bin
+          cd ../beta;
+          git config --global user.email "perini.davide@dpsoftware.org";
+          git config --global user.name "Davide Perini";
+          git add ./docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP8266_firmware.bin;
+          git commit -m "CI BETA release for firmware web installer";
+          git push;
 
   build_esp32_full:
     runs-on: ubuntu-latest
@@ -103,6 +123,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: master
+          path: 'currentbranch'
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+          path: 'beta'
       - name: Set up Python
         uses: actions/setup-python@v1
       - name: Install dependencies
@@ -112,23 +139,39 @@ jobs:
           python --version
       - name: Install submodules
         run: |
+          cd currentbranch;
           git submodule update --init
+      #      - name: Setup tmate session
+      #        uses: mxschmitt/action-tmate@v3
       - name: Setup template config files
         run: |
-          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
       - name: Static code analysis
         run: |
-          platformio platform install espressif32
-          platformio check --verbose --severity=high --skip-packages
+          cd currentbranch;
+          platformio platform install espressif32;
+          platformio check --verbose --severity=high --skip-packages;
       - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinfull_esp32
+        run: |
+          cd currentbranch;
+          platformio run -e glowwormluciferinfull_esp32;
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v2
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_FULL.bin
-          path: .pio/build/glowwormluciferinfull_esp32/firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32/firmware.bin
+      - name: Save artifact (glowwormluciferinfull_esp32)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd currentbranch;
+          cp .pio/build/glowwormluciferinfull_esp32/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware.bin
+          cd ../beta;
+          git config --global user.email "perini.davide@dpsoftware.org";
+          git config --global user.name "Davide Perini";
+          git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware.bin;
+          git commit -m "CI BETA release for firmware web installer";
+          git push;
 
   build_esp32_light:
     runs-on: ubuntu-latest
@@ -136,6 +179,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: master
+          path: 'currentbranch'
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+          path: 'beta'
       - name: Set up Python
         uses: actions/setup-python@v1
       - name: Install dependencies
@@ -145,20 +195,36 @@ jobs:
           python --version
       - name: Install submodules
         run: |
+          cd currentbranch;
           git submodule update --init
+      #      - name: Setup tmate session
+      #        uses: mxschmitt/action-tmate@v3
       - name: Setup template config files
         run: |
-          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
       - name: Static code analysis
         run: |
-          platformio platform install espressif32
-          platformio check --verbose --severity=high --skip-packages
+          cd currentbranch;
+          platformio platform install espressif32;
+          platformio check --verbose --severity=high --skip-packages;
       - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinlight_esp32
+        run: |
+          cd currentbranch;
+          platformio run -e glowwormluciferinlight_esp32;
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v2
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_LIGHT.bin
-          path: .pio/build/glowwormluciferinlight_esp32/firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp32/firmware.bin
+      - name: Save artifact (glowwormluciferinlight_esp32)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd currentbranch;
+          cp .pio/build/glowwormluciferinlight_esp32/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          cd ../beta;
+          git config --global user.email "perini.davide@dpsoftware.org";
+          git config --global user.name "Davide Perini";
+          git add ./docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_firmware.bin;
+          git commit -m "CI BETA release for firmware web installer";
+          git push;
