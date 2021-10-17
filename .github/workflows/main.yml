@@ -38,6 +38,7 @@ jobs:
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
+      - run: pwd;
       - name: Static code analysis
         run: platformio check --verbose --severity=high --skip-packages
       - name: Run PlatformIO
