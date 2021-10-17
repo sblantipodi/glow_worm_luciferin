@@ -21,8 +21,8 @@ jobs:
         with:
           ref: master
           path: 'beta'
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
       - name: Set up Python
         uses: actions/setup-python@v1
       - name: Install dependencies
@@ -32,6 +32,7 @@ jobs:
           python --version
       - name: Install submodules
         run: |
+          cd currentbranch;
           git submodule update --init
       - name: Setup template config files
         run: |
@@ -49,20 +50,17 @@ jobs:
           path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
 #      - name: Setup tmate session
 #        uses: mxschmitt/action-tmate@v3
-#      - name: Save artifact (glowwormluciferinfull_esp8266)
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        run: |
-#          mkdir beta;
-#          cp .pio/build/glowwormluciferinfull_esp8266/firmware.bin ./beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
-#          cd ./beta;
-#          gh repo clone sblantipodi/glow_worm_luciferin;
-#          mv ./GlowWormLuciferinFULL_ESP8266_firmware.bin ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
-#          git config --global user.email "perini.davide@dpsoftware.org";
-#          git config --global user.name "Davide Perini";
-#          git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
-#          git commit -m "CI BETA release for firmware web installer";
-#          git push;
+      - name: Save artifact (glowwormluciferinfull_esp8266)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp .pio/build/glowwormluciferinfull_esp8266/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
+          cd ../beta;
+          git config --global user.email "perini.davide@dpsoftware.org";
+          git config --global user.name "Davide Perini";
+          git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
+          git commit -m "CI BETA release for firmware web installer";
+          git push;
 
   build_esp8266_light:
 
