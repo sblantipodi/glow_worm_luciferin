@@ -38,22 +38,26 @@ jobs:
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
-      - run: pwd;
       - name: Static code analysis
-        run: platformio check --verbose --severity=high --skip-packages
+        run: |
+          cd currentbranch;
+          platformio check --verbose --severity=high --skip-packages;
       - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinfull_esp8266
+        run: |
+          cd currentbranch;
+          platformio run -e glowwormluciferinfull_esp8266;
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v2
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
-          path: .pio/build/glowwormluciferinfull_esp8266/firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp8266/firmware.bin
 #      - name: Setup tmate session
 #        uses: mxschmitt/action-tmate@v3
       - name: Save artifact (glowwormluciferinfull_esp8266)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cd currentbranch;
           cp .pio/build/glowwormluciferinfull_esp8266/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
           cd ../beta;
           git config --global user.email "perini.davide@dpsoftware.org";
