@@ -203,6 +203,7 @@ void setBaudRate(int baudRate) {
 #endif
 #if defined(ESP32)
   bootstrapManager.writeToSPIFFS(baudrateDoc, BAUDRATE_FILENAME);
+  SPIFFS.end();
 #endif
   delay(20);
 
@@ -224,6 +225,7 @@ void setNumLed(int numLedFromLuciferin) {
   DynamicJsonDocument numLedDoc(1024);
   numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
   bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
+  SPIFFS.end();
 #endif
   delay(20);
 
@@ -899,6 +901,7 @@ bool swapMqttTopic() {
 #endif
 #if defined(ESP32)
       bootstrapManager.writeToSPIFFS(topicDoc, TOPIC_FILENAME);
+      SPIFFS.end();
 #endif
       delay(20);
       executeMqttSwap(customtopic);
