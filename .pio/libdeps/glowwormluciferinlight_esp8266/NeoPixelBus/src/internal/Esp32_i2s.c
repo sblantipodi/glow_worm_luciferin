@@ -126,6 +126,7 @@ static i2s_bus_t I2S[I2S_NUM_MAX] = {
 
 void IRAM_ATTR i2sDmaISR(void* arg);
 
+
 bool i2sInitDmaItems(uint8_t bus_num) {
     if (bus_num >= I2S_NUM_MAX) {
         return false;
@@ -170,10 +171,26 @@ bool i2sInitDmaItems(uint8_t bus_num) {
     I2S[bus_num].tx_queue = xQueueCreate(I2S_DMA_QUEUE_COUNT, sizeof(i2s_dma_item_t*));
     if (I2S[bus_num].tx_queue == NULL) {// memory error
         log_e("MEM ERROR!");
-        free(I2S[bus_num].dma_items);
+        heap_caps_free(I2S[bus_num].dma_items);
         I2S[bus_num].dma_items = NULL;
         return false;
     }
+    return true;
+}
+
+bool i2sDeinitDmaItems(uint8_t bus_num) {
+    if (bus_num >= I2S_NUM_MAX) {
+        return false;
+    }
+    if (!I2S[bus_num].tx_queue) {
+        return false; // nothing to deinit
+    }
+
+    vQueueDelete(I2S[bus_num].tx_queue);
+    I2S[bus_num].tx_queue = NULL;
+    heap_caps_free(I2S[bus_num].dma_items);
+    I2S[bus_num].dma_items = NULL;
+
     return true;
 }
 
@@ -207,38 +224,43 @@ esp_err_t i2sSetClock(uint8_t bus_num, uint8_t div_num, uint8_t div_b, uint8_t d
     return ESP_OK;
 }
 
-void i2sSetPins(uint8_t bus_num, int8_t out, bool invert) {
-    if (bus_num >= I2S_NUM_MAX) {
+void i2sSetPins(uint8_t bus_num, int8_t out, bool invert) 
+{
+    if (bus_num >= I2S_NUM_MAX) 
+    {
         return;
     }
 
-    if (out >= 0) {
-        if (I2S[bus_num].out != out) {
-            if (I2S[bus_num].out >= 0) {
-                gpio_matrix_out(I2S[bus_num].out, 0x100, invert, false);
-            }
-            I2S[bus_num].out = out;
-            pinMode(out, OUTPUT);
+    int8_t outOld = I2S[bus_num].out;
 
-            int i2sSignal;
-#if !defined(CONFIG_IDF_TARGET_ESP32S2) && !defined(CONFIG_IDF_TARGET_ESP32C3)
-//            (I2S_NUM_MAX == 2)
-            if (bus_num == 1) {
-                i2sSignal = I2S1O_DATA_OUT23_IDX;
-            }
-            else
-#endif
-            {
-                i2sSignal = I2S0O_DATA_OUT23_IDX;
-            }
+    I2S[bus_num].out = out;
 
-            gpio_matrix_out(out, i2sSignal, invert, false);
-        }
-    } else if (I2S[bus_num].out >= 0) {
-        gpio_matrix_out(I2S[bus_num].out, 0x100, invert, false);
-        I2S[bus_num].out = -1;
+    // disable old pin
+    if (outOld >= 0)
+    {
+        gpio_matrix_out(outOld, 0x100, false, false);
+        pinMode(outOld, INPUT);
     }
 
+    if (out >= 0) 
+    {
+        pinMode(out, OUTPUT);
+
+        int i2sSignal;
+#if !defined(CONFIG_IDF_TARGET_ESP32S2) && !defined(CONFIG_IDF_TARGET_ESP32C3)
+//            (I2S_NUM_MAX == 2)
+        if (bus_num == 1) 
+        {
+            i2sSignal = I2S1O_DATA_OUT23_IDX;
+        }
+        else
+#endif
+        {
+            i2sSignal = I2S0O_DATA_OUT23_IDX;
+        }
+
+        gpio_matrix_out(out, i2sSignal, invert, false);
+    } 
 }
 
 bool i2sWriteDone(uint8_t bus_num) {
@@ -374,6 +396,10 @@ void i2sInit(uint8_t bus_num,
     i2s->conf.tx_start = 1;// Start I2s module
 
     esp_intr_enable(I2S[bus_num].isr_handle);
+}
+
+void i2sDeinit(uint8_t bus_num) {
+    i2sDeinitDmaItems(bus_num);
 }
 
 esp_err_t i2sSetSampleRate(uint8_t bus_num, uint32_t rate, uint8_t bits) {

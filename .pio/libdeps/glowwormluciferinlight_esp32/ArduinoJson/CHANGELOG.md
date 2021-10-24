@@ -1,6 +1,11 @@
 ArduinoJson: change log
 =======================
 
+v6.18.5 (2021-09-28)
+-------
+
+* Set `ARDUINOJSON_EMBEDDED_MODE` to `1` on Nios II (issue #1657)
+
 v6.18.4 (2021-09-06)
 -------
 

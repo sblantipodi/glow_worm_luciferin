@@ -32,6 +32,7 @@ NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>* ledsUART = NULL; // Ha
 NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod>* ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
 #endif
 char packet[UDP_MAX_BUFFER_SIZE];
+char packetBroadcast[UDP_MAX_BUFFER_SIZE];
 
 /**
  * Setup function
@@ -63,7 +64,7 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
   if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
     dynamicLedNum = ledNumToUse.toInt();
   } else {
-    dynamicLedNum = 2;
+    dynamicLedNum = 100;
   }
   Serial.print(F("\nUsing LEDs="));
   Serial.println(dynamicLedNum);
@@ -117,33 +118,29 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
 
   initLeds();
 
+#if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
+#elif defined(ESP32)
+  pinMode(RELAY_PIN_DIG, OUTPUT);
+  digitalWrite(RELAY_PIN_DIG, LOW);
+  pinMode(RELAY_PIN_PICO, OUTPUT);
+  digitalWrite(RELAY_PIN_PICO, LOW);
+#endif
 
 #if defined(ESP32)
-  xTaskCreatePinnedToCore(
-          tcpTask, /* Task function. */
-          "tcpTask", /* name of task. */
-          32192, /* Stack size of task */
-          NULL, /* parameter of the task */
-          2, /* priority of the task */
-          &handleTcpTask, /* Task handle to keep track of created task */
-          0);
-  xTaskCreatePinnedToCore(
-          serialTask, /* Task function. */
-          "serialTask", /* name of task. */
-          32192, /* Stack size of task */
-          NULL, /* parameter of the task */
-          2, /* priority of the task */
-          &handleSerialTask, /* Task handle to keep track of created task */
-          1);
+  esp_task_wdt_init(3000, true); //enable panic so ESP32 restarts
+  esp_task_wdt_add(NULL); //add current thread to WDT watch
 #endif
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Begin listening to UDP port
   UDP.begin(UDP_PORT);
+  broadcastUDP.begin(UDP_BROADCAST_PORT);
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
   fpsData.reserve(200);
+  prefsData.reserve(200);
+  listenOnHttpGet();
 #if defined(ESP8266)
   // Hey gateway, GlowWorm is here
   pingESP.ping(WiFi.gatewayIP());
@@ -206,6 +203,7 @@ void setBaudRate(int baudRate) {
 #endif
 #if defined(ESP32)
   bootstrapManager.writeToSPIFFS(baudrateDoc, BAUDRATE_FILENAME);
+  SPIFFS.end();
 #endif
   delay(20);
 
@@ -227,6 +225,7 @@ void setNumLed(int numLedFromLuciferin) {
   DynamicJsonDocument numLedDoc(1024);
   numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
   bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
+  SPIFFS.end();
 #endif
   delay(20);
 
@@ -251,10 +250,64 @@ void manageQueueSubscription() {
 
   bootstrapManager.subscribe(lightSetTopic.c_str());
   bootstrapManager.subscribe(streamTopic.c_str(), 0);
-  bootstrapManager.subscribe(CMND_AMBI_REBOOT);
+  bootstrapManager.subscribe(cmndReboot.c_str());
   bootstrapManager.subscribe(updateStateTopic.c_str());
   bootstrapManager.subscribe(unsubscribeTopic.c_str());
   bootstrapManager.subscribe(firmwareConfigTopic.c_str());
+
+}
+
+/**
+ * List on HTTP GET
+ */
+void listenOnHttpGet() {
+
+  server.on("/", []() {
+      servingWebPages = true;
+      delay(1000);
+      server.send(200, F("text/html"), settingsPage);
+      delay(1000);
+      servingWebPages = false;
+  });
+  server.on(prefsTopic.c_str(), []() {
+      prefsData = F("{\"VERSION\":\"");
+      prefsData += VERSION;
+      prefsData += F("\",\"cp\":\"");
+      prefsData += red; prefsData += F(",");
+      prefsData += green; prefsData += F(",");
+      prefsData += blue;
+      prefsData += F("\",\"toggle\":\"");
+      prefsData += stateOn;
+      prefsData += F("\",\"effect\":\"");
+      prefsData += effectParam;
+      prefsData += F("\",\"whiteTemp\":\"");
+      prefsData += whiteTemp;
+      prefsData += F("\",\"wifi\":\"");
+      prefsData += bootstrapManager.getWifiQuality();
+      prefsData += F("\",\"framerate\":\"");
+      prefsData += framerate;
+      prefsData += F("\"}");
+      server.send(200, F("application/json"), prefsData);
+  });
+  server.on(("/" + lightSetTopic).c_str(), []() {
+      httpCallback(processJson);
+  });
+  server.on(("/" + cmndReboot).c_str(), []() {
+      httpCallback(processGlowWormLuciferinRebootCmnd);
+  });
+  server.on(("/" + updateStateTopic).c_str(), []() {
+      httpCallback(processUpdate);
+  });
+  server.on(("/" + unsubscribeTopic).c_str(), []() {
+      httpCallback(processUnSubscribeStream);
+  });
+  server.on(("/" + firmwareConfigTopic).c_str(), []() {
+      httpCallback(processFirmwareConfig);
+  });
+  server.onNotFound([]() {
+      server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
+  });
+  server.begin();
 
 }
 
@@ -284,7 +337,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
   } else {
     bootstrapManager.jsonDoc.clear();
     bootstrapManager.parseQueueMsg(topic, payload, length);
-    if (strcmp(topic, CMND_AMBI_REBOOT) == 0) {
+    if (cmndReboot.equals(topic)) {
       processGlowWormLuciferinRebootCmnd();
     } else if (lightSetTopic.equals(topic)) {
       processJson();
@@ -301,6 +354,25 @@ void callback(char *topic, byte *payload, unsigned int length) {
       setColor(0,0,0);
     }
   }
+
+}
+
+/**
+ * Execute callback from HTTP payload
+ * @param callback to execute using HTTP payload
+ */
+void httpCallback(bool (*callback)()) {
+
+  bootstrapManager.jsonDoc.clear();
+  String payload = server.arg(F("payload"));
+  bootstrapManager.parseHttpMsg(payload, payload.length());
+  callback();
+  if (stateOn) {
+    setColor(map(red, 0, 255, 0, brightness), map(green, 0, 255, 0, brightness), map(blue, 0, 255, 0, brightness));
+  } else {
+    setColor(0,0,0);
+  }
+  server.send(200, F("text/plain"), F("OK"));
 
 }
 
@@ -587,8 +659,8 @@ bool processJson() {
   }
 
   if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
-    int whitetemp = bootstrapManager.jsonDoc["whitetemp"];
-    setTemperature(whitetemp);
+    whiteTemp = bootstrapManager.jsonDoc["whitetemp"];
+    setTemperature(whiteTemp);
   }
 
   if (bootstrapManager.jsonDoc.containsKey("effect")) {
@@ -643,7 +715,19 @@ void sendStatus() {
     fpsData += F("\",\"wifi\":\"");
     fpsData += bootstrapManager.getWifiQuality();
     fpsData += F("\"}");
-    bootstrapManager.publish(fpsTopic.c_str(), fpsData.c_str(), false);
+    if (mqttIP.length() > 0) {
+      bootstrapManager.publish(fpsTopic.c_str(), fpsData.c_str(), false);
+    } else {
+#if defined(ESP8266)
+      if (remoteBroadcastPort.isSet()) {
+#elif defined(ESP32)
+        if (!remoteBroadcastPort.toString().isEmpty()) {
+#endif
+        broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
+        broadcastUDP.print(fpsData.c_str());
+        broadcastUDP.endPacket();
+      }
+    }
   } else {
     bootstrapManager.jsonDoc.clear();
     JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
@@ -655,20 +739,21 @@ void sendStatus() {
     root[F("brightness")] = brightness;
     switch (effect) {
       case Effect::GlowWormWifi:
-        root[F("effect")] = F("GlowWormWifi");
+        effectParam = F("GlowWormWifi");
         break;
       case Effect::GlowWorm:
-        root[F("effect")] = F("GlowWorm");
+        effectParam = F("GlowWorm");
         break;
-        case Effect::solid: root[F("effect")] = F("solid"); break;
-        case Effect::bpm: root[F("effect")] = F("bpm"); break;
-        case Effect::fire: root[F("effect")] = F("fire"); break;
-        case Effect::twinkle: root[F("effect")] = F("twinkle"); break;
-        case Effect::rainbow: root[F("effect")] = F("rainbow"); break;
-        case Effect::chase_rainbow: root[F("effect")] = F("chase rainbow"); break;
-        case Effect::solid_rainbow: root[F("effect")] = F("solid rainbow"); break;
-        case Effect::mixed_rainbow: root[F("effect")] = F("mixed rainbow"); break;
+        case Effect::solid: effectParam = F("solid"); break;
+        case Effect::bpm: effectParam = F("bpm"); break;
+        case Effect::fire: effectParam = F("fire"); break;
+        case Effect::twinkle: effectParam = F("twinkle"); break;
+        case Effect::rainbow: effectParam = F("rainbow"); break;
+        case Effect::chase_rainbow: effectParam = F("chase rainbow"); break;
+        case Effect::solid_rainbow: effectParam = F("solid rainbow"); break;
+        case Effect::mixed_rainbow: effectParam = F("mixed rainbow"); break;
     }
+    root[F("effect")] = effectParam;
     root[F("deviceName")] = deviceName;
     root[F("IP")] = microcontrollerIP;
     root[F("wifi")] = bootstrapManager.getWifiQuality();
@@ -690,15 +775,23 @@ void sendStatus() {
     }
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
-    bootstrapManager.publish(lightStateTopic.c_str(), root, true);
+    if (mqttIP.length() > 0) {
+      bootstrapManager.publish(lightStateTopic.c_str(), root, true);
+    } else {
+      String output;
+      serializeJson(root, output);
+#if defined(ESP8266)
+      if (remoteBroadcastPort.isSet()) {
+#elif defined(ESP32)
+      if (!remoteBroadcastPort.toString().isEmpty()) {
+#endif
+        broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
+        broadcastUDP.print(output.c_str());
+        broadcastUDP.endPacket();
+      }
+    }
 
   }
-
-#if defined(ESP32)
-  vTaskDelay(1);
-  //Serial.print("Task is running on: ");
-  //Serial.println(xPortGetCoreID());
-#endif
 
   // Built in led triggered
   ledTriggered = true;
@@ -720,7 +813,19 @@ bool processUpdate() {
         bool error = Update.hasError();
         server.send(200, "text/plain", error ? "KO" : "OK");
         if (!error) {
-          bootstrapManager.publish(updateResultStateTopic.c_str(), deviceName.c_str(), false);
+          if (mqttIP.length() > 0) {
+            bootstrapManager.publish(updateResultStateTopic.c_str(), deviceName.c_str(), false);
+          } else {
+#if defined(ESP8266)
+            if (remoteBroadcastPort.isSet()) {
+#elif defined(ESP32)
+            if (!remoteBroadcastPort.toString().isEmpty()) {
+#endif
+              broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
+              broadcastUDP.print(deviceName.c_str());
+              broadcastUDP.endPacket();
+            }
+          }
         }
         delay(DELAY_500);
         ESP.restart();
@@ -796,6 +901,7 @@ bool swapMqttTopic() {
 #endif
 #if defined(ESP32)
       bootstrapManager.writeToSPIFFS(topicDoc, TOPIC_FILENAME);
+      SPIFFS.end();
 #endif
       delay(20);
       executeMqttSwap(customtopic);
@@ -935,6 +1041,7 @@ void checkConnection() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
+  server.handleClient();
 
   EVERY_N_SECONDS(10) {
     // No updates since 7 seconds, turn off LEDs
@@ -958,19 +1065,12 @@ void checkConnection() {
     }
   }
 #endif
-#if defined(ESP8266)
   sendSerialInfo();
-#endif
 
 }
 
 int serialRead() {
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-#if defined(ESP32)
-  delayMicroseconds(10);
-#endif
-#endif
   return !breakLoop ? Serial.read() : -1;
 
 }
@@ -1144,106 +1244,31 @@ void mainLoop() {
 }
 
 /**
- * Main task for ESP32, pinned to CORE0
- */
-#if defined(ESP32)
-
-void feedTheDog(){
-  // feed dog
-  TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
-  TIMERG0.wdt_feed=1;                       // feed dog
-  TIMERG0.wdt_wprotect=0;                   // write protect
-  TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
-  TIMERG0.wdt_feed=1;                       // feed dog
-  TIMERG0.wdt_wprotect=0;                   // write protect
-}
-
-/**
- * Pinned on CORE0, max performance with TCP
- * @param parameter
- */
-void tcpTask(void * parameter) {
-  while(true) {
-#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-    sendSerialInfo();
-    vTaskDelay(1);
-#elif TARGET_GLOWWORMLUCIFERINFULL
-    getUDPStream();
-    vTaskDelay(1);
-    EVERY_N_MILLISECONDS(50) {
-      feedTheDog();
-    }
-    if (effect == Effect::GlowWormWifi) {
-      mainLoop();
-      vTaskDelay(1);
-    }
-    sendSerialInfo();
-    vTaskDelay(1);
-    if (firmwareUpgrade) {
-      vTaskDelete(handleTcpTask);
-    }
-#endif
-  }
-}
-
-/**
- * Pinned on CORE1, max performance with Serial
- * @param parameter
- */
-void serialTask(void * parameter) {
-  while(true) {
-#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-    mainLoop();
-#elif TARGET_GLOWWORMLUCIFERINFULL
-    if (effect != Effect::GlowWormWifi) {
-      mainLoop();
-    } else {
-      delay(1000);
-    }
-    if (firmwareUpgrade) {
-      vTaskDelete(handleSerialTask);
-    }
-#endif
-  }
-}
-
-#endif
-
-/**
  * Pinned on CORE1 on ESP32, max performance with Serial
  */
 void loop() {
 
-#if defined(ESP8266)
   mainLoop();
-  if (firmwareUpgrade) {
-    server.handleClient();
-  }
-#endif
-#if defined(ESP32)
-  // Upgrade is managed in single core mode, delete tasks pinned to CORE0 and CORE1
-  if (firmwareUpgrade) {
-    mainLoop();
-    vTaskDelay(1);
-    server.handleClient();
-  } else {
-    delay(1000);
-  }
-#endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (relayState && !stateOn) {
     turnOffRelay();
   }
-#if defined(ESP8266)
   getUDPStream();
-#endif
 #endif
 
 #if defined(ESP8266)
-  EVERY_N_MINUTES(5) {
+  EVERY_N_SECONDS(30) {
     // Hey gateway, GlowWorm is here
-    pingESP.ping(WiFi.gatewayIP());
+    bool res = pingESP.ping(WiFi.gatewayIP());
+    if (!res) {
+      WiFi.reconnect();
+    }
+  }
+#endif
+#if defined(ESP32)
+  EVERY_N_MILLISECONDS(3000) {
+    esp_task_wdt_reset();
   }
 #endif
 
@@ -1254,13 +1279,21 @@ void loop() {
  */
 void getUDPStream() {
 
-  // If packet received...
-  uint16_t packetSize = UDP.parsePacket();
-  UDP.read(packet, UDP_MAX_BUFFER_SIZE);
-  if (effect == Effect::GlowWormWifi) {
-    if (packetSize > 20) {
-      packet[packetSize] = '\0';
-      fromUDPStreamToStrip(packet);
+  if (!servingWebPages) {
+    // If packet received...
+    uint16_t packetSize = UDP.parsePacket();
+    UDP.read(packet, UDP_MAX_BUFFER_SIZE);
+    if (effect == Effect::GlowWormWifi) {
+      if (packetSize > 20) {
+        packet[packetSize] = '\0';
+        fromUDPStreamToStrip(packet);
+      }
+    }
+    // If packet received...
+    uint16_t packetSizeBroadcast = broadcastUDP.parsePacket();
+    broadcastUDP.read(packetBroadcast, UDP_MAX_BUFFER_SIZE);
+    if (packetSizeBroadcast == 4) {
+      remoteBroadcastPort = broadcastUDP.remoteIP();
     }
   }
 
@@ -1273,7 +1306,12 @@ void turnOnRelay() {
 
   if (!relayState) {
     relayState = true;
+#if defined(ESP8266)
     digitalWrite(RELAY_PIN, HIGH);
+#elif defined(ESP32)
+    digitalWrite(RELAY_PIN_DIG, HIGH);
+    digitalWrite(RELAY_PIN_PICO, HIGH);
+#endif
     delay(100);
   }
 
@@ -1287,7 +1325,12 @@ void turnOffRelay() {
   if (relayState) {
     relayState = false;
     delay(100);
+#if defined(ESP8266)
     digitalWrite(RELAY_PIN, LOW);
+#elif defined(ESP32)
+    digitalWrite(RELAY_PIN_DIG, LOW);
+    digitalWrite(RELAY_PIN_PICO, LOW);
+#endif
   }
 
 }
@@ -1362,17 +1405,13 @@ void initLeds() {
 #if defined(ESP32)
   Serial.println("Using DMA");
   cleanLEDs();
-  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, 15); // and recreate with new count
+  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
   if (ledsESP32 == NULL) {
     Serial.println("OUT OF MEMORY");
   }
   Serial.println();
   Serial.println("Initializing...");
   Serial.flush();
-  ledsESP32->Begin();
-  ledsESP32->Show();
-  cleanLEDs();
-  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
   ledsESP32->Begin();
   ledsESP32->Show();
 #else

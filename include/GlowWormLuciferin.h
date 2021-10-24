@@ -28,9 +28,9 @@
 #include "Version.h"
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
+#include "WebSettings.h"
 #if defined(ESP32)
-#include <soc/timer_group_struct.h>
-#include <soc/timer_group_reg.h>
+#include <esp_task_wdt.h>
 #elif defined(ESP8266)
 #include "PingESP.h"
 #endif
@@ -43,7 +43,8 @@ Helpers helper;
 #if defined(ESP32)
 TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
 TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
-#define RELAY_PIN 23
+#define RELAY_PIN_DIG 23 // equals to Q4
+#define RELAY_PIN_PICO 22
 #elif defined(ESP8266)
 #define RELAY_PIN 12
 PingESP pingESP;
@@ -51,6 +52,7 @@ PingESP pingESP;
 
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
+String prefsTopic = "/prefs";
 String lightStateTopic = "lights/glowwormluciferin";
 String updateStateTopic = "lights/glowwormluciferin/update";
 String updateResultStateTopic = "lights/glowwormluciferin/update/result";
@@ -58,9 +60,10 @@ String lightSetTopic = "lights/glowwormluciferin/set";
 String baseStreamTopic = "lights/glowwormluciferin/set/stream";
 String streamTopic = "lights/glowwormluciferin/set/stream";
 String unsubscribeTopic = "lights/glowwormluciferin/unsubscribe";
-const char* CMND_AMBI_REBOOT = "cmnd/glowwormluciferin/reboot";
+String cmndReboot = "cmnd/glowwormluciferin/reboot";
 String fpsTopic = "lights/glowwormluciferin/fps";
 String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
+String deviceTopic = "lights/glowwormluciferin/device";
 const char* BASE_TOPIC = "glowwormluciferin";
 String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
@@ -83,6 +86,8 @@ uint8_t gpioInUse = 2, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
 boolean firmwareUpgrade = false;
 size_t updateSize = 0;
 String fpsData((char*)0); // save space on default constructor
+String prefsData((char*)0); // save space on default constructor
+bool servingWebPages = false;
 
 /****************** FastLED Defintions ******************/
 #define NUM_LEDS 511 // Max Led support
@@ -97,11 +102,14 @@ const String LED_NUM_PARAM = "lednum";
 const String GPIO_PARAM = "gpio";
 const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
-const String EFFECT_PARAM = "effect";
+const __FlashStringHelper* effectParam;
 #define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
+#define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
 WiFiUDP UDP;
+WiFiUDP broadcastUDP;
 const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Firefly Luciferin
 const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
+IPAddress remoteBroadcastPort;
 
 const uint16_t FIRST_CHUNK = 170;
 const uint16_t SECOND_CHUNK = 340;
@@ -110,6 +118,7 @@ const uint16_t THIRD_CHUNK = 510;
 //#define CLOCK_PIN 5
 #define CHIPSET     WS2812B
 #define COLOR_ORDER GRB
+#define UDP_BROAD
 
 byte red = 255;
 byte green = 255;
@@ -145,11 +154,8 @@ bool swapMqttTopic();
 void executeMqttSwap(String customtopic);
 void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
 void checkConnection();
-void tcpTask(void * parameter);
-void serialTask(void * parameter);
 void mainLoop();
 void sendSerialInfo();
-void feedTheDog();
 void setGpio(int gpio);
 void setBaudRate(int baudRate);
 void setNumLed(int numLedFromLuciferin);
@@ -172,3 +178,5 @@ void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
 void fromMqttStreamToStrip(char *payload);
 void cleanLEDs();
 void getUDPStream();
+void httpCallback(bool (*callback)());
+void listenOnHttpGet();
