@@ -97,11 +97,13 @@ const String LED_NUM_FILENAME = "led_number.json";
 const String GPIO_FILENAME = "gpio.json";
 const String TOPIC_FILENAME = "topic.json";
 const String BAUDRATE_FILENAME = "baudrate.json";
+const String WHITE_TEMP_FILENAME = "whitetemp.json";
 const String EFFECT_FILENAME = "effect.json";
 const String LED_NUM_PARAM = "lednum";
 const String GPIO_PARAM = "gpio";
 const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
+const String WHITE_TEMP_PARAM = "whitetemp";
 const __FlashStringHelper* effectParam;
 #define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
 #define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
@@ -158,6 +160,7 @@ void mainLoop();
 void sendSerialInfo();
 void setGpio(int gpio);
 void setBaudRate(int baudRate);
+void setWhiteTemp(int whiteTemp);
 void setNumLed(int numLedFromLuciferin);
 int setBaudRateInUse(int baudRate);
 void swapTopicUnsubscribe();

@@ -48,8 +48,8 @@ void setup() {
   }
 #endif
 
-// BaudRate from configuration storage
-String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
+  // BaudRate from configuration storage
+  String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
   if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
     baudRateInUse = baudRateFromStorage.toInt();
   }
@@ -68,6 +68,15 @@ String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAM
   }
   Serial.print(F("\nUsing LEDs="));
   Serial.println(dynamicLedNum);
+
+  // White temp to use
+  String whiteTempToUse = bootstrapManager.readValueFromFile(WHITE_TEMP_FILENAME, WHITE_TEMP_PARAM);
+  if (!whiteTempToUse.isEmpty() && whiteTempToUse != ERROR && whiteTempToUse.toInt() != 0) {
+    whiteTemp = whiteTempInUse = whiteTempToUse.toInt();
+    setTemperature(whiteTemp);
+  }
+  Serial.print(F("\nUsing White temp="));
+  Serial.println(whiteTempToUse);
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   MAC = WiFi.macAddress();
@@ -194,7 +203,7 @@ int setBaudRateInUse(int baudRate) {
  */
 void setBaudRate(int baudRate) {
 
-  Serial.println("CHANGING BAUDRATE");
+  Serial.println(F("CHANGING BAUDRATE"));
   setBaudRateInUse(baudRate);
   DynamicJsonDocument baudrateDoc(1024);
   baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
@@ -206,6 +215,28 @@ void setBaudRate(int baudRate) {
   SPIFFS.end();
 #endif
   delay(20);
+
+}
+
+/**
+ * Set white temp received by the Firefly Luciferin software
+ * @param baudRate int
+ */
+void setWhiteTemp(int whiteTemp) {
+
+    Serial.println(F("CHANGING WHITE TEMP"));
+    whiteTempInUse = whiteTemp;
+    setTemperature(whiteTemp);
+    DynamicJsonDocument whiteTempDoc(1024);
+    whiteTempDoc[WHITE_TEMP_PARAM] = whiteTempInUse;
+#if defined(ESP8266)
+    bootstrapManager.writeToLittleFS(whiteTempDoc, WHITE_TEMP_FILENAME);
+#endif
+#if defined(ESP32)
+    bootstrapManager.writeToSPIFFS(whiteTempDoc, BAUDRATE_FILENAME);
+  SPIFFS.end();
+#endif
+    delay(20);
 
 }
 
@@ -660,7 +691,9 @@ bool processJson() {
 
   if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
     whiteTemp = bootstrapManager.jsonDoc["whitetemp"];
-    setTemperature(whiteTemp);
+    if (whiteTemp != 0 && whiteTempInUse != whiteTemp) {
+      setWhiteTemp(whiteTemp);
+    }
   }
 
   if (bootstrapManager.jsonDoc.containsKey("effect")) {
@@ -1153,7 +1186,7 @@ void mainLoop() {
 
     if (whiteTemp != 0 && whiteTempInUse != whiteTemp) {
       whiteTempInUse = whiteTemp;
-      setTemperature(whiteTempInUse);
+      setWhiteTemp(whiteTemp);
     }
 
     // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
