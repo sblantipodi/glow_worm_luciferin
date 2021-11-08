@@ -28,7 +28,8 @@ function poll() {
         }
     }), 5000);
 }
-function callDevice(payload) {
+function callDevice() {
+    let payload = createPayload();
     console.log(payload);
     const http = new XMLHttpRequest();
     http.open('GET', 'lights/glowwormluciferin/set?payload=' + payload);
