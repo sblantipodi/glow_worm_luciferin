@@ -294,18 +294,14 @@ void manageQueueSubscription() {
 void listenOnHttpGet() {
 
   server.on("/", []() {
-      servingWebPages = true;
-      delay(1000);
+      stopUDP();
       server.send(200, F("text/html"), settingsPage);
-      delay(1000);
-      servingWebPages = false;
+      startUDP();
   });
   server.on("/setsettings", []() {
-      servingWebPages = true;
-      delay(1000);
+      stopUDP();
       server.send(200, F("text/html"), setSettingsPage);
-      delay(1000);
-      servingWebPages = false;
+      startUDP();
   });
   server.on(prefsTopic.c_str(), []() {
       prefsData = F("{\"VERSION\":\"");
@@ -362,7 +358,6 @@ void listenOnHttpGet() {
           if (!remoteBroadcastPort.toString().isEmpty()) {
 #endif
           broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
-
           if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
             broadcastUDP.print(START_FF);
           } else {
@@ -392,6 +387,7 @@ void listenOnHttpGet() {
       server.send(200, "text/html", setSettingsPage);
   });
   server.on("/setting", []() {
+      stopUDP();
       String deviceName = server.arg("deviceName");
       String microcontrollerIP = server.arg("microcontrollerIP");
       String mqttCheckbox = server.arg("mqttCheckbox");
@@ -492,6 +488,24 @@ void listenOnHttpGet() {
 
   server.begin();
 
+}
+
+/**
+ * Stop UDP broadcast while serving pages
+ */
+void stopUDP() {
+  UDP.stop();
+  servingWebPages = true;
+  delay(10);
+}
+
+/*
+ * Start UDP broadcast while serving pages
+ */
+void startUDP() {
+  delay(10);
+  servingWebPages = false;
+  UDP.begin(UDP_PORT);
 }
 
 /**

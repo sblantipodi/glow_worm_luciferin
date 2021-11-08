@@ -186,3 +186,5 @@ void cleanLEDs();
 void getUDPStream();
 void httpCallback(bool (*callback)());
 void listenOnHttpGet();
+void startUDP();
+void stopUDP();
