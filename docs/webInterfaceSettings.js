@@ -15,8 +15,8 @@ function poll() {
                 console.log(prefs);
                 $('#deviceName').val(prefs.deviceName);
                 $('#microcontrollerIP').val(prefs.ip);
-                if (prefs.mqttIp.length > 0) {
-                    $("#mqttCheckbox").prop('checked', true);
+                if (prefs.mqttIp.length == 0) {
+                    $("#mqttCheckbox").prop('checked', false);
                 }
                 $('#inputMqttIp').val(prefs.mqttIp);
                 $('#mqttPort').val(prefs.mqttPort);
@@ -28,20 +28,22 @@ function poll() {
     }), 5000);
 }
 function callDevice() {
-    alert("OK");
     let payload = "deviceName=" + $('#deviceName').val();
-    payload += "&microcontrollerIP" + $('#microcontrollerIP').val();
-    payload += "&mqttCheckbox" + $("#mqttCheckbox").prop("checked");
-    payload += "&mqttIP" + $('#inputMqttIp').val();
-    payload += "&mqttPort" + $('#mqttPort').val();
-    payload += "&mqttuser" + $('#mqttuser').val();
-    payload += "&mqttpass" + $('#mqttpass').val();
-    payload += "&additionalParam" + $('#additionalParam').val();
+    payload += "&microcontrollerIP=" + $('#microcontrollerIP').val();
+    payload += "&mqttCheckbox=" + $("#mqttCheckbox").prop("checked");
+    payload += "&mqttIP=" + $('#inputMqttIp').val();
+    payload += "&mqttPort=" + $('#mqttPort').val();
+    payload += "&mqttuser=" + $('#mqttuser').val();
+    payload += "&mqttpass=" + $('#mqttpass').val();
+    payload += "&additionalParam=" + $('#additionalParam').val();
     console.log(payload);
     const http = new XMLHttpRequest();
     http.open('GET', 'setting?' + payload);
     http.send();
-    http.onload = () => console.log(http.responseText);
+    http.onload = () => {
+        alert("Success: rebooting the microcontroller using your credentials.");
+        console.log(http.responseText);
+    };
 }
 const sleep = (s) => {
   return new Promise(resolve => setTimeout(resolve, (s*1000)));
