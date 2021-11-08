@@ -32,7 +32,21 @@ function callDevice() {
     let payload = createPayload();
     console.log(payload);
     const http = new XMLHttpRequest();
-    http.open('GET', 'lights/glowwormluciferin/set?payload=' + payload);
+
+    http://192.168.4.1/setting?
+        // deviceName=GLOW_WORM_ESP8266
+        // &microcontrollerIP=
+        // &ssid=NetStar
+        // &pass=Reda7983bfg9000dare83799000bfgreda7983bfg9000dare83799000bfg%25%25
+        // &OTApass=123StellaStella
+        // &mqttCheckbox=on
+        // &mqttIP=192.168.1.3
+        // &mqttPort=1883
+        // &mqttuser=dpsoftwaremqtt
+        // &mqttpass=123StellaStella
+        // &additionalParam=2
+
+    http.open('GET', 'setting?payload=' + payload);
     http.send();
     http.onload = () => console.log(http.responseText);
 }
