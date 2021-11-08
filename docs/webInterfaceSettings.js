@@ -18,7 +18,6 @@ function poll() {
                 if (prefs.mqttIp.length > 0) {
                     $("#mqttCheckbox").prop('checked', true);
                 }
-                $('#deviceName').val(prefs.deviceName);
                 $('#inputMqttIp').val(prefs.mqttIp);
                 $('#mqttPort').val(prefs.mqttPort);
                 $('#mqttuser').val(prefs.mqttuser);
@@ -29,36 +28,20 @@ function poll() {
     }), 5000);
 }
 function callDevice() {
-    let payload = createPayload();
+    alert("OK");
+    let payload = "deviceName=" + $('#deviceName').val();
+    payload += "&microcontrollerIP" + $('#microcontrollerIP').val();
+    payload += "&mqttCheckbox" + $("#mqttCheckbox").prop("checked");
+    payload += "&mqttIP" + $('#inputMqttIp').val();
+    payload += "&mqttPort" + $('#mqttPort').val();
+    payload += "&mqttuser" + $('#mqttuser').val();
+    payload += "&mqttpass" + $('#mqttpass').val();
+    payload += "&additionalParam" + $('#additionalParam').val();
     console.log(payload);
     const http = new XMLHttpRequest();
-
-    http://192.168.4.1/setting?
-        // deviceName=GLOW_WORM_ESP8266
-        // &microcontrollerIP=
-        // &ssid=NetStar
-        // &pass=Reda7983bfg9000dare83799000bfgreda7983bfg9000dare83799000bfg%25%25
-        // &OTApass=123StellaStella
-        // &mqttCheckbox=on
-        // &mqttIP=192.168.1.3
-        // &mqttPort=1883
-        // &mqttuser=dpsoftwaremqtt
-        // &mqttpass=123StellaStella
-        // &additionalParam=2
-
-    http.open('GET', 'setting?payload=' + payload);
+    http.open('GET', 'setting?' + payload);
     http.send();
     http.onload = () => console.log(http.responseText);
-}
-function createPayload() {
-    var toggleLED = $('#toggleLED')[0];
-    var payload = {
-        state: toggleLED.classList.contains('active') ? 'ON' : 'OFF',
-        effect: $('#effectSelect').val(),
-        color: colorPicker.color.rgb,
-        whitetemp: $('#whiteTempSelect').val()
-    }
-    return payload;
 }
 const sleep = (s) => {
   return new Promise(resolve => setTimeout(resolve, (s*1000)));
