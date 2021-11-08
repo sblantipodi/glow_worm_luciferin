@@ -16,7 +16,7 @@ function poll() {
                 $('#deviceName').val(prefs.deviceName);
                 $('#microcontrollerIP').val(prefs.ip);
                 if (prefs.mqttIp.length == 0) {
-                    $("#mqttCheckbox").prop('checked', false);
+                    $("#mqttCheckbox").click();
                 }
                 $('#inputMqttIp').val(prefs.mqttIp);
                 $('#mqttPort').val(prefs.mqttPort);
