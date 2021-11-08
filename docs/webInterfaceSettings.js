@@ -49,6 +49,6 @@ function callDevice() {
 const sleep = (s) => {
   return new Promise(resolve => setTimeout(resolve, (s*1000)));
 };
-sleep(2).then(() => {
+sleep(1).then(() => {
   poll();
 });
