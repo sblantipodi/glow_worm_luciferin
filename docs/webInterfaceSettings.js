@@ -42,7 +42,7 @@ function callDevice() {
     http.send();
     http.onload = () => {
         console.log(http.responseText);
-        alert("Success: rebooting the microcontroller using your credentials.");        
+        alert("Success: rebooting the microcontroller");        
         return false;
     };
 }
