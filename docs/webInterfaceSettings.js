@@ -1,7 +1,8 @@
+var received = false;
+
 function poll() {
     var sleep = time => new Promise(resolve => setTimeout(resolve, time))
     var poll = (promiseFn, time) => promiseFn().then(sleep(time).then(() => poll(promiseFn, time)))
-    var received = false;
     poll(() => new Promise(() => {
         if (!received) {
             received = true;
