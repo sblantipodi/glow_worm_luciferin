@@ -71,9 +71,9 @@ colorPicker.on(['input:end'], function(color) {
     callDevice(JSON.stringify(createPayload()));
 });
 const sleep = (s) => {
-  return new Promise(resolve => setTimeout(resolve, (s*1000)));
+  return new Promise(resolve => setTimeout(resolve, (s)));
 };
-sleep(1).then(() => {
+sleep(500).then(() => {
   $('#effectSelect').append(new Option("Solid", "solid"));
   $('#effectSelect').append(new Option("Fire", "fire"));
   $('#effectSelect').append(new Option("Twinkle", "twinkle"));
