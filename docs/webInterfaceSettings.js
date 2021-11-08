@@ -41,8 +41,9 @@ function callDevice() {
     http.open('GET', 'setting?' + payload);
     http.send();
     http.onload = () => {
-        alert("Success: rebooting the microcontroller using your credentials.");
         console.log(http.responseText);
+        alert("Success: rebooting the microcontroller using your credentials.");        
+        return false;
     };
 }
 const sleep = (s) => {
