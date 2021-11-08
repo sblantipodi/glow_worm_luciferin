@@ -300,6 +300,13 @@ void listenOnHttpGet() {
       delay(1000);
       servingWebPages = false;
   });
+  server.on("/setsettings", []() {
+      servingWebPages = true;
+      delay(1000);
+      server.send(200, F("text/html"), setSettingsPage);
+      delay(1000);
+      servingWebPages = false;
+  });
   server.on(prefsTopic.c_str(), []() {
       prefsData = F("{\"VERSION\":\"");
       prefsData += VERSION;
@@ -320,8 +327,51 @@ void listenOnHttpGet() {
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
   });
+  server.on(GET_SETTINGS, []() {
+      prefsData = F("{\"deviceName\":\"");
+      prefsData += deviceName;
+      prefsData += F("\",\"ip\":\"");
+      prefsData += microcontrollerIP;
+      prefsData += F("\",\"mqttuser\":\"");
+      prefsData += mqttuser;
+      prefsData += F("\",\"mqttIp\":\"");
+      prefsData += mqttIP;
+      prefsData += F("\",\"mqttpass\":\"");
+      prefsData += mqttpass;
+      prefsData += F("\",\"mqttPort\":\"");
+      prefsData += mqttPort;
+      prefsData += F("\",\"gpio\":\"");
+      prefsData += gpioInUse;
+      prefsData += F("\"}");
+      server.send(200, F("application/json"), prefsData);
+  });
   server.on(("/" + lightSetTopic).c_str(), []() {
       httpCallback(processJson);
+      JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
+      if (mqttIP.length() > 0) {
+        if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
+          bootstrapManager.publish(lightStateTopic.c_str(), START_FF, true);
+        } else {
+          bootstrapManager.publish(lightStateTopic.c_str(), STOP_FF, true);
+          framerate = framerateCounter = 0;
+        }
+      } else {
+#if defined(ESP8266)
+        if (remoteBroadcastPort.isSet()) {
+#elif defined(ESP32)
+          if (!remoteBroadcastPort.toString().isEmpty()) {
+#endif
+          broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
+
+          if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
+            broadcastUDP.print(START_FF);
+          } else {
+            broadcastUDP.print(STOP_FF);
+            framerate = framerateCounter = 0;
+          }
+          broadcastUDP.endPacket();
+        }
+      }
   });
   server.on(("/" + cmndReboot).c_str(), []() {
       httpCallback(processGlowWormLuciferinRebootCmnd);
@@ -338,6 +388,108 @@ void listenOnHttpGet() {
   server.onNotFound([]() {
       server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
+  server.on("/setsettings", []() {
+      server.send(200, "text/html", setSettingsPage);
+  });
+  server.on("/setting", []() {
+      String deviceName = server.arg("deviceName");
+      String microcontrollerIP = server.arg("microcontrollerIP");
+      String mqttCheckbox = server.arg("mqttCheckbox");
+      String mqttIP = server.arg("mqttIP");
+      String mqttPort = server.arg("mqttPort");
+      String mqttuser = server.arg("mqttuser");
+      String mqttpass = server.arg("mqttpass");
+      String additionalParam = server.arg("additionalParam");
+      DynamicJsonDocument doc(1024);
+      if (deviceName.length() > 0 && ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0))) {
+        Serial.println("deviceName");
+        Serial.println(deviceName);
+        Serial.println("microcontrollerIP");
+        if (microcontrollerIP.length() == 0) {
+          microcontrollerIP = "DHCP";
+        }
+        Serial.println(microcontrollerIP);
+        Serial.println("qsid");
+        Serial.println(qsid);
+        Serial.println("qpass");
+        Serial.println(qpass);
+        Serial.println("OTApass");
+        Serial.println(OTApass);
+        Serial.println("mqttIP");
+        Serial.println(mqttIP);
+        Serial.println("mqttPort");
+        Serial.println(mqttPort);
+        Serial.println("mqttuser");
+        Serial.println(mqttuser);
+        Serial.println("mqttpass");
+        Serial.println(mqttpass);
+        Serial.println("additionalParam");
+        Serial.println(additionalParam);
+        doc["deviceName"] = deviceName;
+        doc["microcontrollerIP"] = microcontrollerIP;
+        doc["qsid"] = qsid;
+        doc["qpass"] = qpass;
+        doc["OTApass"] = OTApass;
+        if (mqttCheckbox.equals("true")) {
+          doc["mqttIP"] = mqttIP;
+          doc["mqttPort"] = mqttPort;
+          doc["mqttuser"] = mqttuser;
+          doc["mqttpass"] = mqttpass;
+        } else {
+          doc["mqttIP"] = "";
+          doc["mqttPort"] = "";
+          doc["mqttuser"] = "";
+          doc["mqttpass"] = "";
+        }
+        doc["additionalParam"] = additionalParam;
+        content = F("Success: rebooting the microcontroller using your credentials.");
+        statusCode = 200;
+      } else {
+        content = F("Error: missing required fields.");
+        statusCode = 404;
+        Serial.println(F("Sending 404"));
+      }
+      delay(DELAY_500);
+      server.sendHeader("Access-Control-Allow-Origin", "*");
+      server.send(statusCode, "text/plain", content);
+      delay(DELAY_500);
+#if defined(ESP8266)
+      // Write to LittleFS
+      Serial.println(F("Saving setup.json"));
+      File jsonFile = LittleFS.open("/setup.json", "w");
+      if (!jsonFile) {
+        Serial.println(F("Failed to open [setup.json] file for writing"));
+      } else {
+        serializeJsonPretty(doc, Serial);
+        serializeJson(doc, jsonFile);
+        jsonFile.close();
+        Serial.println(F("[setup.json] written correctly"));
+      }
+      delay(DELAY_200);
+#elif defined(ESP32)
+      SPIFFS.format();
+        if (SPIFFS.begin()) {
+            File configFile = SPIFFS.open("/setup.json", "w");
+            if (!configFile) {
+              Serial.println(F("Failed to open [setup.json] file for writing"));
+            }
+            serializeJsonPretty(doc, Serial);
+            serializeJson(doc, configFile);
+            configFile.close();
+            Serial.println("[setup.json] written correctly");
+          } else {
+            Serial.println(F("Failed to mount FS for write"));
+          }
+#endif
+      delay(DELAY_1000);
+#if defined(ESP8266)
+      ESP.reset();
+#elif defined(ESP32)
+      ESP.restart();
+#endif
+
+  });
+
   server.begin();
 
 }

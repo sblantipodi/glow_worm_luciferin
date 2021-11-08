@@ -18,7 +18,11 @@ function poll() {
           $('#toggleLED')[0].textContent = "Turn OFF";
           $('#toggleLED').addClass("active");
         }
-        $('#effectSelect').val(prefs.effect.length == 0 ? 'solid' : prefs.effect);
+        if (prefs.framerate > 0) {
+            $('#effectSelect').val("GlowWorm");
+        } else {
+            $('#effectSelect').val(prefs.effect.length == 0 ? 'solid' : prefs.effect);
+        }
         $('#whiteTempSelect').val(prefs.whiteTemp == 0 ? 1 : prefs.whiteTemp);
         if (prefs.cp.length > 0) {
           colorPicker.color.rgb = { r: prefs.cp.split(',')[0], g: prefs.cp.split(',')[1], b: prefs.cp.split(',')[2] }
@@ -82,6 +86,7 @@ sleep(2).then(() => {
   $('#effectSelect').append(new Option("Mixed rainbow", "mixed rainbow"));
   $('#effectSelect').append(new Option("Chase rainbow", "chase rainbow"));
   $('#effectSelect').append(new Option("Solid rainbow", "solid rainbow"));
+  $('#effectSelect').append(new Option("BIAS LIGHT", "GlowWorm"));
   $('#whiteTempSelect').append(new Option("Uncorrected temperature", "1"));
   $('#whiteTempSelect').append(new Option("1900 Kelvin", "2"));
   $('#whiteTempSelect').append(new Option("2600 Kelvin", "3"));
