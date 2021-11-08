@@ -18,6 +18,9 @@ body {
 button {
     width: 100%;
 }
+.btn-primary {
+    font-weight: bold;
+}
 .col-sm-12, col-sm-6, footer {
     margin: 2vw 0vw 2vw 0vw;
 }
@@ -28,4 +31,8 @@ button {
     flex-direction: row;
     align-items: center;
     justify-content: center;
+}
+.form-check-input:checked {
+    background-color: orange;
+    border-color: orange;
 }
