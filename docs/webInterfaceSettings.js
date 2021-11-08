@@ -15,7 +15,7 @@ function poll() {
                 console.log(prefs);
                 $('#deviceName').val(prefs.deviceName);
                 $('#microcontrollerIP').val(prefs.ip);
-                if (prefs.mqttIp > 0) {
+                if (prefs.mqttIp.length > 0) {
                     $("#mqttCheckbox").prop('checked', true);
                 }
                 $('#deviceName').val(prefs.deviceName);
