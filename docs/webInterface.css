@@ -29,3 +29,7 @@ button {
     align-items: center;
     justify-content: center;
 }
+.form-check-input:checked {
+    background-color: orange;
+    border-color: orange;
+}
