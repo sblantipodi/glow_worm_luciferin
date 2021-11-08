@@ -73,7 +73,7 @@ colorPicker.on(['input:end'], function(color) {
 const sleep = (s) => {
   return new Promise(resolve => setTimeout(resolve, (s*1000)));
 };
-sleep(2).then(() => {
+sleep(1).then(() => {
   $('#effectSelect').append(new Option("Solid", "solid"));
   $('#effectSelect').append(new Option("Fire", "fire"));
   $('#effectSelect').append(new Option("Twinkle", "twinkle"));
