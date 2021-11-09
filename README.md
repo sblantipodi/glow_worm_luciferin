@@ -87,7 +87,6 @@ Glow Worm Luciferin firmware can be easily integrated in [Home Assistant](https:
 ---  
   
 <img align="center" width="800" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/HA_mobile_client_screenshot.jpg?raw=true">  
-![SCREENSHOT](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/HA_mobile_client_screenshot.jpg)
 
 ## Contribute
 You can contribute to Luciferin by:
