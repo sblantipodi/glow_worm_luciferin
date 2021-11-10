@@ -495,6 +495,8 @@ bool Adafruit_SSD1306::begin(uint8_t vcs, uint8_t addr, bool reset,
     return false;
 
   clearDisplay();
+
+#ifndef SSD1306_NO_SPLASH
   if (HEIGHT > 32) {
     drawBitmap((WIDTH - splash1_width) / 2, (HEIGHT - splash1_height) / 2,
                splash1_data, splash1_width, splash1_height, 1);
@@ -502,6 +504,7 @@ bool Adafruit_SSD1306::begin(uint8_t vcs, uint8_t addr, bool reset,
     drawBitmap((WIDTH - splash2_width) / 2, (HEIGHT - splash2_height) / 2,
                splash2_data, splash2_width, splash2_height, 1);
   }
+#endif
 
   vccstate = vcs;
 
@@ -627,7 +630,8 @@ bool Adafruit_SSD1306::begin(uint8_t vcs, uint8_t addr, bool reset,
     @param  y
             Row of display -- 0 at top to (screen height -1) at bottom.
     @param  color
-            Pixel color, one of: SSD1306_BLACK, SSD1306_WHITE or SSD1306_INVERT.
+            Pixel color, one of: SSD1306_BLACK, SSD1306_WHITE or
+            SSD1306_INVERSE.
     @return None (void).
     @note   Changes buffer contents only, no immediate effect on display.
             Follow up with a call to display(), or with other graphics
@@ -685,7 +689,7 @@ void Adafruit_SSD1306::clearDisplay(void) {
     @param  w
             Width of line, in pixels.
     @param  color
-            Line color, one of: SSD1306_BLACK, SSD1306_WHITE or SSD1306_INVERT.
+            Line color, one of: SSD1306_BLACK, SSD1306_WHITE or SSD1306_INVERSE.
     @return None (void).
     @note   Changes buffer contents only, no immediate effect on display.
             Follow up with a call to display(), or with other graphics
@@ -734,7 +738,7 @@ void Adafruit_SSD1306::drawFastHLine(int16_t x, int16_t y, int16_t w,
                    Width of line, in pixels.
         @param color
                Line color, one of: SSD1306_BLACK, SSD1306_WHITE or
-   SSD1306_INVERT.
+   SSD1306_INVERSE.
     @return None (void).
     @note   Changes buffer contents only, no immediate effect on display.
             Follow up with a call to display(), or with other graphics
@@ -785,7 +789,7 @@ void Adafruit_SSD1306::drawFastHLineInternal(int16_t x, int16_t y, int16_t w,
     @param  h
             Height of line, in pixels.
     @param  color
-            Line color, one of: SSD1306_BLACK, SSD1306_WHITE or SSD1306_INVERT.
+            Line color, one of: SSD1306_BLACK, SSD1306_WHITE or SSD1306_INVERSE.
     @return None (void).
     @note   Changes buffer contents only, no immediate effect on display.
             Follow up with a call to display(), or with other graphics
@@ -833,7 +837,7 @@ void Adafruit_SSD1306::drawFastVLine(int16_t x, int16_t y, int16_t h,
         @param __h height of the line in pixels
         @param color
                    Line color, one of: SSD1306_BLACK, SSD1306_WHITE or
-   SSD1306_INVERT.
+   SSD1306_INVERSE.
     @return None (void).
     @note   Changes buffer contents only, no immediate effect on display.
             Follow up with a call to display(), or with other graphics
