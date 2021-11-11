@@ -42,12 +42,6 @@ void setup() {
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
 
-#if defined(ESP32)
-  if (!SPIFFS.begin()) {
-    SPIFFS.format();
-  }
-#endif
-
   // BaudRate from configuration storage
   String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
   if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
@@ -56,6 +50,11 @@ void setup() {
   int baudRateToUse = setBaudRateInUse(baudRateInUse);
   Serial.begin(baudRateToUse);
   while (!Serial); // wait for serial attach
+#if defined(ESP32)
+  if (!SPIFFS.begin(true)) {
+    SPIFFS.format();
+  }
+#endif
   Serial.print(F("BAUDRATE IN USE="));
   Serial.println(baudRateToUse);
 
