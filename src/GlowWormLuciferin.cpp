@@ -354,7 +354,7 @@ void listenOnHttpGet() {
 #if defined(ESP8266)
         if (remoteBroadcastPort.isSet()) {
 #elif defined(ESP32)
-          if (!remoteBroadcastPort.toString().isEmpty()) {
+          if (!remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
           broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
           if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
@@ -919,7 +919,7 @@ void sendStatus() {
 #if defined(ESP8266)
       if (remoteBroadcastPort.isSet()) {
 #elif defined(ESP32)
-        if (!remoteBroadcastPort.toString().isEmpty()) {
+      if (!remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
         broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
         broadcastUDP.print(fpsData.c_str());
@@ -981,7 +981,7 @@ void sendStatus() {
 #if defined(ESP8266)
       if (remoteBroadcastPort.isSet()) {
 #elif defined(ESP32)
-      if (!remoteBroadcastPort.toString().isEmpty()) {
+      if (!remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
         broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
         broadcastUDP.print(output.c_str());
@@ -1017,7 +1017,7 @@ bool processUpdate() {
 #if defined(ESP8266)
             if (remoteBroadcastPort.isSet()) {
 #elif defined(ESP32)
-            if (!remoteBroadcastPort.toString().isEmpty()) {
+            if (!remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
               broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
               broadcastUDP.print(deviceName.c_str());
