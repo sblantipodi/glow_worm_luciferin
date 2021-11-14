@@ -34,7 +34,7 @@ function poll() {
 }
 function callDevice() {
     let payload = "deviceName=" + $('#deviceName').val();
-    payload += "&microcontrollerIP=" + $("#dhcpCheckbox").prop("checked") ? '' : $('#microcontrollerIP').val();
+    payload += "&microcontrollerIP=" + ($("#dhcpCheckbox").prop("checked") ? '' : $('#microcontrollerIP').val());
     payload += "&mqttCheckbox=" + $("#mqttCheckbox").prop("checked");
     payload += "&mqttIP=" + $('#inputMqttIp').val();
     payload += "&mqttPort=" + $('#mqttPort').val();
