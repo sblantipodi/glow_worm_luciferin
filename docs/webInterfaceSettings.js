@@ -15,6 +15,11 @@ function poll() {
                 console.log(prefs);
                 $('#deviceName').val(prefs.deviceName);
                 $('#microcontrollerIP').val(prefs.ip);
+                if (prefs.dhcp == '1') {
+                    document.getElementById('microcontrollerIP').disabled = true;
+                } else {
+                    $("#dhcpCheckbox").click();
+                }
                 if (prefs.mqttIp.length == 0) {
                     $("#mqttCheckbox").click();
                 }
@@ -29,7 +34,7 @@ function poll() {
 }
 function callDevice() {
     let payload = "deviceName=" + $('#deviceName').val();
-    payload += "&microcontrollerIP=" + $('#microcontrollerIP').val();
+    payload += "&microcontrollerIP=" + ($("#dhcpCheckbox").prop("checked") ? '' : $('#microcontrollerIP').val());
     payload += "&mqttCheckbox=" + $("#mqttCheckbox").prop("checked");
     payload += "&mqttIP=" + $('#inputMqttIp').val();
     payload += "&mqttPort=" + $('#mqttPort').val();
@@ -42,13 +47,43 @@ function callDevice() {
     http.send();
     http.onload = () => {
         console.log(http.responseText);
-        alert("Success: rebooting the microcontroller");        
+        alert("Success: rebooting the microcontroller");
         return false;
     };
 }
+function mqttCheckboxAction(cbMqtt, cbDhcp) {
+    if (cbMqtt.checked) {
+        document.getElementById('inputMqttIp').setAttribute('required', '');
+        document.getElementById('mqttPort').setAttribute('required', '');
+        document.getElementById('inputMqttIp').disabled = false;
+        document.getElementById('mqttPort').disabled = false;
+        document.getElementById('mqttPort').disabled = false;
+        document.getElementById('mqttuser').disabled = false;
+        document.getElementById('mqttpass').disabled = false;
+        document.getElementById('inputMqttIp').disabled = false;
+    } else {
+        document.getElementById('inputMqttIp').removeAttribute('required');
+        document.getElementById('inputMqttIp').disabled = true;
+        document.getElementById('mqttPort').removeAttribute('required');
+        document.getElementById('mqttPort').disabled = true;
+        document.getElementById('mqttPort').value = "";
+        document.getElementById('mqttPort').disabled = true;
+        document.getElementById('mqttuser').value = "";
+        document.getElementById('mqttuser').disabled = true;
+        document.getElementById('mqttpass').value = "";
+        document.getElementById('mqttpass').disabled = true;
+        document.getElementById('inputMqttIp').value = "";
+        document.getElementById('inputMqttIp').disabled = true;
+    }
+    if (cbDhcp.checked) {
+        document.getElementById('microcontrollerIP').disabled = true;
+    } else {
+        document.getElementById('microcontrollerIP').disabled = false;
+    }
+}
 const sleep = (s) => {
-  return new Promise(resolve => setTimeout(resolve, (s)));
+    return new Promise(resolve => setTimeout(resolve, (s)));
 };
-sleep(200).then(() => {
-  poll();
+sleep(100).then(() => {
+    poll();
 });

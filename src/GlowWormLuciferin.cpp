@@ -325,6 +325,8 @@ void listenOnHttpGet() {
   server.on(GET_SETTINGS, []() {
       prefsData = F("{\"deviceName\":\"");
       prefsData += deviceName;
+      prefsData += F("\",\"dhcp\":\"");
+      prefsData += dhcpInUse;
       prefsData += F("\",\"ip\":\"");
       prefsData += microcontrollerIP;
       prefsData += F("\",\"mqttuser\":\"");
