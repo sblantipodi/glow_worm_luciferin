@@ -15,9 +15,10 @@ function poll() {
                 console.log(prefs);
                 $('#deviceName').val(prefs.deviceName);
                 $('#microcontrollerIP').val(prefs.ip);
-                if (prefs.dhcp == '0') {
-                    $("#dhcpCheckbox").click();
+                if (prefs.dhcp == '1') {
                     document.getElementById('microcontrollerIP').disabled = true;
+                } else {
+                    $("#dhcpCheckbox").click();
                 }
                 if (prefs.mqttIp.length == 0) {
                     $("#mqttCheckbox").click();
