@@ -34,7 +34,7 @@ function poll() {
 }
 function callDevice() {
     let payload = "deviceName=" + $('#deviceName').val();
-    payload += "&microcontrollerIP=" + $('#microcontrollerIP').val();
+    payload += "&microcontrollerIP=" + $("#dhcpCheckbox").prop("checked") ? '' : $('#microcontrollerIP').val();
     payload += "&mqttCheckbox=" + $("#mqttCheckbox").prop("checked");
     payload += "&mqttIP=" + $('#inputMqttIp').val();
     payload += "&mqttPort=" + $('#mqttPort').val();
@@ -47,7 +47,7 @@ function callDevice() {
     http.send();
     http.onload = () => {
         console.log(http.responseText);
-        alert("Success: rebooting the microcontroller");        
+        alert("Success: rebooting the microcontroller");
         return false;
     };
 }
@@ -79,12 +79,11 @@ function mqttCheckboxAction(cbMqtt, cbDhcp) {
         document.getElementById('microcontrollerIP').disabled = true;
     } else {
         document.getElementById('microcontrollerIP').disabled = false;
-        document.getElementById('microcontrollerIP').value = "";
     }
 }
 const sleep = (s) => {
-  return new Promise(resolve => setTimeout(resolve, (s)));
+    return new Promise(resolve => setTimeout(resolve, (s)));
 };
 sleep(100).then(() => {
-  poll();
+    poll();
 });
