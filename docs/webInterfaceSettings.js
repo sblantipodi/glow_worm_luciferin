@@ -15,7 +15,7 @@ function poll() {
                 console.log(prefs);
                 $('#deviceName').val(prefs.deviceName);
                 $('#microcontrollerIP').val(prefs.ip);
-                if (prefs.dhcp == 'false') {
+                if (prefs.dhcp == '0') {
                     $("#dhcpCheckbox").click();
                 }
                 if (prefs.mqttIp.length == 0) {
@@ -49,8 +49,8 @@ function callDevice() {
         return false;
     };
 }
-function mqttCheckboxAction(cb) {
-    if (cb.checked) {
+function mqttCheckboxAction(cbMqtt, cbDhcp) {
+    if (cbMqtt.checked) {
         document.getElementById('inputMqttIp').setAttribute('required', '');
         document.getElementById('mqttPort').setAttribute('required', '');
         document.getElementById('inputMqttIp').disabled = false;
@@ -72,6 +72,12 @@ function mqttCheckboxAction(cb) {
         document.getElementById('mqttpass').disabled = true;
         document.getElementById('inputMqttIp').value = "";
         document.getElementById('inputMqttIp').disabled = true;
+    }
+    if (cbDhcp.checked) {
+        document.getElementById('microcontrollerIP').disabled = false;
+    } else {
+        document.getElementById('microcontrollerIP').disabled = true;
+        document.getElementById('microcontrollerIP').value = "";
     }
 }
 const sleep = (s) => {
