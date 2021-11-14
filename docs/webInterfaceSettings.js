@@ -17,6 +17,7 @@ function poll() {
                 $('#microcontrollerIP').val(prefs.ip);
                 if (prefs.dhcp == '0') {
                     $("#dhcpCheckbox").click();
+                    document.getElementById('microcontrollerIP').disabled = true;
                 }
                 if (prefs.mqttIp.length == 0) {
                     $("#mqttCheckbox").click();
@@ -74,9 +75,9 @@ function mqttCheckboxAction(cbMqtt, cbDhcp) {
         document.getElementById('inputMqttIp').disabled = true;
     }
     if (cbDhcp.checked) {
-        document.getElementById('microcontrollerIP').disabled = false;
-    } else {
         document.getElementById('microcontrollerIP').disabled = true;
+    } else {
+        document.getElementById('microcontrollerIP').disabled = false;
         document.getElementById('microcontrollerIP').value = "";
     }
 }
