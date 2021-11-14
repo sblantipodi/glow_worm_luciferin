@@ -46,9 +46,34 @@ function callDevice() {
         return false;
     };
 }
+function mqttCheckboxAction(cb) {
+    if (cb.checked) {
+        document.getElementById('inputMqttIp').setAttribute('required', '');
+        document.getElementById('mqttPort').setAttribute('required', '');
+        document.getElementById('inputMqttIp').disabled = false;
+        document.getElementById('mqttPort').disabled = false;
+        document.getElementById('mqttPort').disabled = false;
+        document.getElementById('mqttuser').disabled = false;
+        document.getElementById('mqttpass').disabled = false;
+        document.getElementById('inputMqttIp').disabled = false;
+    } else {
+        document.getElementById('inputMqttIp').removeAttribute('required');
+        document.getElementById('inputMqttIp').disabled = true;
+        document.getElementById('mqttPort').removeAttribute('required');
+        document.getElementById('mqttPort').disabled = true;
+        document.getElementById('mqttPort').value = "";
+        document.getElementById('mqttPort').disabled = true;
+        document.getElementById('mqttuser').value = "";
+        document.getElementById('mqttuser').disabled = true;
+        document.getElementById('mqttpass').value = "";
+        document.getElementById('mqttpass').disabled = true;
+        document.getElementById('inputMqttIp').value = "";
+        document.getElementById('inputMqttIp').disabled = true;
+    }
+}
 const sleep = (s) => {
   return new Promise(resolve => setTimeout(resolve, (s)));
 };
-sleep(200).then(() => {
+sleep(100).then(() => {
   poll();
 });
