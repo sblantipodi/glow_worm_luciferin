@@ -15,6 +15,9 @@ function poll() {
                 console.log(prefs);
                 $('#deviceName').val(prefs.deviceName);
                 $('#microcontrollerIP').val(prefs.ip);
+                if (prefs.dhcp == 'false') {
+                    $("#dhcpCheckbox").click();
+                }
                 if (prefs.mqttIp.length == 0) {
                     $("#mqttCheckbox").click();
                 }
