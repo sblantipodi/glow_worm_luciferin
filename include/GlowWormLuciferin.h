@@ -65,6 +65,7 @@ String fpsTopic = "lights/glowwormluciferin/fps";
 String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
 String deviceTopic = "lights/glowwormluciferin/device";
 const char* BASE_TOPIC = "glowwormluciferin";
+const char* GET_SETTINGS = "/getsettings";
 String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
 boolean reinitLEDTriggered = false;
@@ -104,6 +105,8 @@ const String GPIO_PARAM = "gpio";
 const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
 const String WHITE_TEMP_PARAM = "whitetemp";
+const char START_FF[] = "{\"state\":\"ON\",\"startStopInstances\":\"PLAY\"}";
+const char STOP_FF[] = "{\"state\":\"ON\",\"startStopInstances\":\"STOP\"}";
 const __FlashStringHelper* effectParam;
 #define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
 #define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
@@ -183,3 +186,5 @@ void cleanLEDs();
 void getUDPStream();
 void httpCallback(bool (*callback)());
 void listenOnHttpGet();
+void startUDP();
+void stopUDP();
