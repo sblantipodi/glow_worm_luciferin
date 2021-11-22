@@ -25,7 +25,7 @@
  * Dynamic PIN Template
  */
 #if defined(ESP32)
-NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>* ledsESP32 = NULL; // Hardware, ALL GPIO, yes serial read/write
+NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1Ws2812xMethod>* ledsESP32 = NULL; // Hardware, ALL GPIO, yes serial read/write
 #else
 NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod>* ledsDMA = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
 NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>* ledsUART = NULL; // Hardware UART, GPIO2, yes serial read/write
@@ -1605,7 +1605,7 @@ void initLeds() {
 #if defined(ESP32)
   Serial.println("Using DMA");
   cleanLEDs();
-  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1800KbpsMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
+  ledsESP32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
   if (ledsESP32 == NULL) {
     Serial.println("OUT OF MEMORY");
   }
