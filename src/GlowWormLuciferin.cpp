@@ -469,11 +469,12 @@ void listenOnHttpGet() {
             File configFile = SPIFFS.open("/setup.json", "w");
             if (!configFile) {
               Serial.println(F("Failed to open [setup.json] file for writing"));
+            } else {
+              serializeJsonPretty(doc, Serial);
+              serializeJson(doc, configFile);
+              configFile.close();
+              Serial.println("[setup.json] written correctly");
             }
-            serializeJsonPretty(doc, Serial);
-            serializeJson(doc, configFile);
-            configFile.close();
-            Serial.println("[setup.json] written correctly");
           } else {
             Serial.println(F("Failed to mount FS for write"));
           }
