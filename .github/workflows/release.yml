@@ -84,8 +84,6 @@ jobs:
         run: |
           cp .pio/build/glowwormluciferinlight_esp8266/firmware.bin ./GlowWormLuciferinLIGHT_ESP8266_firmware.bin
           hub release edit -a GlowWormLuciferinLIGHT_ESP8266_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
       - name: Commit firmware into GitHub.io docs folder
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
