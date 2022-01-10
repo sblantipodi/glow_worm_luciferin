@@ -1,0 +1,8 @@
+Some Information: 
+Layer height: 0.2 mm
+Infill: 20%
+Auto generated supports: ON
+Material: PAL 
+Temp: Bed-60°C Nozzel-200°C
+
+To get a good result, prevent supports on the logo. (Depends on your slicer)
