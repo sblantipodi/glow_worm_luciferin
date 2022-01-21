@@ -480,9 +480,7 @@ void listenOnHttpGet() {
           }
 #endif
       delay(DELAY_1000);
-#if defined(ESP8266)
-      ESP.reset();
-#elif defined(ESP32)
+#if defined(ESP8266) || defined(ESP32)
       ESP.restart();
 #endif
 
