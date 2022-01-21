@@ -337,6 +337,8 @@ void listenOnHttpGet() {
       prefsData += mqttpass;
       prefsData += F("\",\"mqttPort\":\"");
       prefsData += mqttPort;
+      prefsData += F("\",\"lednum\":\"");
+      prefsData += dynamicLedNum;
       prefsData += F("\",\"gpio\":\"");
       prefsData += gpioInUse;
       prefsData += F("\"}");
@@ -397,6 +399,7 @@ void listenOnHttpGet() {
       String mqttuser = server.arg("mqttuser");
       String mqttpass = server.arg("mqttpass");
       String additionalParam = server.arg("additionalParam");
+      String lednum = server.arg("lednum");
       DynamicJsonDocument doc(1024);
       if (deviceName.length() > 0 && ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0))) {
         Serial.println("deviceName");
@@ -422,6 +425,8 @@ void listenOnHttpGet() {
         Serial.println(mqttpass);
         Serial.println("additionalParam");
         Serial.println(additionalParam);
+        Serial.println("lednum");
+        Serial.println(lednum);
         doc["deviceName"] = deviceName;
         doc["microcontrollerIP"] = microcontrollerIP;
         doc["qsid"] = qsid;
@@ -463,6 +468,9 @@ void listenOnHttpGet() {
         Serial.println(F("[setup.json] written correctly"));
       }
       delay(DELAY_200);
+      Serial.println(F("Saving lednum"));
+      setNumLed(lednum.toInt());
+      delay(DELAY_200);
 #elif defined(ESP32)
       SPIFFS.format();
         if (SPIFFS.begin()) {
@@ -475,6 +483,9 @@ void listenOnHttpGet() {
               configFile.close();
               Serial.println("[setup.json] written correctly");
             }
+            Serial.println(F("Saving lednum"));
+            setNumLed(lednum.toInt());
+            delay(DELAY_200);
           } else {
             Serial.println(F("Failed to mount FS for write"));
           }
