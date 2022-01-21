@@ -27,6 +27,7 @@ function poll() {
                 $('#mqttPort').val(prefs.mqttPort);
                 $('#mqttuser').val(prefs.mqttuser);
                 $('#mqttpass').val(prefs.mqttpass);
+                $('#lednum').val(prefs.gpio);
                 $('#additionalParam').val(prefs.gpio);
             }
         }
@@ -41,6 +42,7 @@ function callDevice() {
     payload += "&mqttuser=" + $('#mqttuser').val();
     payload += "&mqttpass=" + $('#mqttpass').val();
     payload += "&additionalParam=" + $('#additionalParam').val();
+    payload += "&lednum=" + $('#lednum').val();
     console.log(payload);
     const http = new XMLHttpRequest();
     http.open('GET', 'setting?' + payload);
