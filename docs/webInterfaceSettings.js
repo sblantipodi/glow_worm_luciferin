@@ -27,7 +27,7 @@ function poll() {
                 $('#mqttPort').val(prefs.mqttPort);
                 $('#mqttuser').val(prefs.mqttuser);
                 $('#mqttpass').val(prefs.mqttpass);
-                $('#lednum').val(prefs.gpio);
+                $('#lednum').val(prefs.lednum);
                 $('#additionalParam').val(prefs.gpio);
             }
         }
