@@ -550,7 +550,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
     } else if (lightSetTopic.equals(topic)) {
       processJson();
     } else if (updateStateTopic.equals(topic)) {
-      processUpdate();
+      processMqttUpdate();
     } else if (firmwareConfigTopic.equals(topic)) {
       processFirmwareConfig();
     } else if (unsubscribeTopic.equals(topic)) {
@@ -1009,66 +1009,75 @@ void sendStatus() {
 }
 
 /**
+* Handle web server for the upgrade process
+* @return true if message is correctly processed
+*/
+bool processMqttUpdate() {
+
+    if (bootstrapManager.jsonDoc.containsKey(F("update"))) {
+      return processUpdate();
+    }
+    return true;
+
+}
+
+/**
  * Handle web server for the upgrade process
- * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
 bool processUpdate() {
 
-  if (bootstrapManager.jsonDoc.containsKey(F("update"))) {
-
-    Serial.println(F("Starting web server"));
-    server.on("/update", HTTP_POST, []() {
-        server.sendHeader("Connection", "close");
-        bool error = Update.hasError();
-        server.send(200, "text/plain", error ? "KO" : "OK");
-        if (!error) {
-          if (mqttIP.length() > 0) {
-            bootstrapManager.publish(updateResultStateTopic.c_str(), deviceName.c_str(), false);
-          } else {
+  Serial.println(F("Starting web server"));
+  server.on("/update", HTTP_POST, []() {
+      server.sendHeader("Connection", "close");
+      bool error = Update.hasError();
+      server.send(200, "text/plain", error ? "KO" : "OK");
+      if (!error) {
+        if (mqttIP.length() > 0) {
+          bootstrapManager.publish(updateResultStateTopic.c_str(), deviceName.c_str(), false);
+        } else {
 #if defined(ESP8266)
-            if (remoteBroadcastPort.isSet()) {
+          if (remoteBroadcastPort.isSet()) {
 #elif defined(ESP32)
-            if (!remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
+          if (!remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
-              broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
-              broadcastUDP.print(deviceName.c_str());
-              broadcastUDP.endPacket();
-            }
+            broadcastUDP.beginPacket(remoteBroadcastPort, UDP_BROADCAST_PORT);
+            broadcastUDP.print(deviceName.c_str());
+            broadcastUDP.endPacket();
           }
         }
-        delay(DELAY_500);
-        ESP.restart();
-    }, []() {
-        HTTPUpload &upload = server.upload();
-        if (upload.status == UPLOAD_FILE_START) {
-          Serial.printf("Update: %s\n", upload.filename.c_str());
+      }
+      delay(DELAY_500);
+      ESP.restart();
+  }, []() {
+      HTTPUpload &upload = server.upload();
+      if (upload.status == UPLOAD_FILE_START) {
+        Serial.printf("Update: %s\n", upload.filename.c_str());
 #if defined(ESP32)
-          updateSize = UPDATE_SIZE_UNKNOWN;
+        updateSize = UPDATE_SIZE_UNKNOWN;
 #elif defined(ESP8266)
-          updateSize = 480000;
+        updateSize = 480000;
 #endif
-          if (!Update.begin(updateSize)) { //start with max available size
-            Update.printError(Serial);
-          }
-        } else if (upload.status == UPLOAD_FILE_WRITE) {
-          /* flashing firmware to ESP*/
-          if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-            Update.printError(Serial);
-          }
-        } else if (upload.status == UPLOAD_FILE_END) {
-          if (Update.end(true)) { //true to set the size to the current progress
-            Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
-          } else {
-            Update.printError(Serial);
-          }
+        if (!Update.begin(updateSize)) { //start with max available size
+          Update.printError(Serial);
         }
-    });
-    server.begin();
-    Serial.println(F("Web server started"));
-    firmwareUpgrade = true;
+      } else if (upload.status == UPLOAD_FILE_WRITE) {
+        /* flashing firmware to ESP*/
+        if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+          Update.printError(Serial);
+        }
+      } else if (upload.status == UPLOAD_FILE_END) {
+        if (Update.end(true)) { //true to set the size to the current progress
+          Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+        } else {
+          Update.printError(Serial);
+        }
+      }
+  });
+  server.begin();
+  Serial.println(F("Web server started"));
+  firmwareUpgrade = true;
 
-  }
   return true;
 
 }

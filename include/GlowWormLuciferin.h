@@ -151,6 +151,7 @@ void manageHardwareButton();
 // Project specific functions
 void sendStatus();
 bool processUpdate();
+bool processMqttUpdate();
 bool processJson();
 bool processFirmwareConfig();
 bool processGlowWormLuciferinRebootCmnd();
