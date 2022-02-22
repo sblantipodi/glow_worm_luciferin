@@ -1,1 +1,1 @@
-{"type": "library", "name": "ArduinoJson", "version": "6.19.1", "spec": {"owner": "bblanchon", "id": 64, "name": "ArduinoJson", "requirements": null, "url": null}}
+{"type": "library", "name": "ArduinoJson", "version": "6.19.2", "spec": {"owner": "bblanchon", "id": 64, "name": "ArduinoJson", "requirements": null, "url": null}}
