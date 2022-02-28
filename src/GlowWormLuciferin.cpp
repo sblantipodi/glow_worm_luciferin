@@ -151,6 +151,7 @@ void setup() {
   listenOnHttpGet();
 #if defined(ESP8266)
   // Hey gateway, GlowWorm is here
+  delay(DELAY_500);
   pingESP.ping(WiFi.gatewayIP());
 #endif
 #endif
