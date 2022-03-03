@@ -2,7 +2,7 @@
   GlowWormLuciferin.h - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright (C) 2020 - 2021  Davide Perini
+  Copyright (C) 2020 - 2022  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -151,6 +151,7 @@ void manageHardwareButton();
 // Project specific functions
 void sendStatus();
 bool processUpdate();
+bool processMqttUpdate();
 bool processJson();
 bool processFirmwareConfig();
 bool processGlowWormLuciferinRebootCmnd();
