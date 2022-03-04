@@ -82,7 +82,7 @@ uint lastLedUpdate = 10000;
 uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
-uint8_t gpioInUse = 2, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
+uint8_t gpioInUse = 2, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse, colorMode = 2;
 // Upgrade firmware
 boolean firmwareUpgrade = false;
 size_t updateSize = 0;
