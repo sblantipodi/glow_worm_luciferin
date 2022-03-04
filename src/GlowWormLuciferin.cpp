@@ -136,6 +136,14 @@ void setup() {
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
 
+  String colorModeFromStorage = bootstrapManager.readValueFromFile(COLOR_MODE_FILENAME, COLOR_MODE_PARAM);
+  int colorModeToUse = 0;
+  if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
+    colorMode = colorModeFromStorage.toInt();
+  } else {
+    colorMode = 0;
+  }
+
   initLeds();
 
 #if defined(ESP8266)
@@ -172,7 +180,7 @@ void setup() {
 
 /**
  * Set gpio received by the Firefly Luciferin software
- * @param gpio itn
+ * @param gpio gpio to use
  */
 void setGpio(int gpio) {
 
@@ -187,6 +195,28 @@ void setGpio(int gpio) {
   DynamicJsonDocument gpioDoc(1024);
   gpioDoc[GPIO_PARAM] = gpioInUse;
   bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
+#endif
+  delay(20);
+
+}
+
+/**
+ * Set color mode received by the Firefly Luciferin software
+ * @param colorMode
+ */
+void setColorMode(int colorMode) {
+
+  Serial.println("CHANGING COLOR MODE");
+  gpioInUse = gpio;
+#if defined(ESP8266)
+  DynamicJsonDocument colorModeDoc(1024);
+  colorModeDoc[COLOR_MODE_PARAM] = colorMode;
+  bootstrapManager.writeToLittleFS(colorModeDoc, COLOR_MODE_FILENAME);
+#endif
+#if defined(ESP32)
+  DynamicJsonDocument colorModeDoc(1024);
+  colorModeDoc[COLOR_MODE_PARAM] = colorMode;
+  bootstrapManager.writeToSPIFFS(colorModeDoc, COLOR_MODE_FILENAME);
 #endif
   delay(20);
 
@@ -877,6 +907,7 @@ bool processJson() {
       uint8_t newColorMode = bootstrapManager.jsonDoc["color"]["colorMode"];
       if ((newColorMode > 0 && colorMode == 0) || (newColorMode == 0 && colorMode > 0)) {
         colorMode = newColorMode;
+        setColorMode(colorMode);
         initLeds();
       }
       colorMode = newColorMode;
@@ -933,9 +964,6 @@ bool processJson() {
  */
 void sendStatus() {
 
-  //TODO
-  Serial.println(colorMode);
-
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
     fpsData = F("{\"deviceName\":\"");
@@ -970,6 +998,7 @@ void sendStatus() {
     color[F("r")] = red;
     color[F("g")] = green;
     color[F("b")] = blue;
+    color[F("colorMode")] = colorMode;
     root[F("brightness")] = brightness;
     switch (effect) {
       case Effect::GlowWormWifi:
@@ -1604,6 +1633,8 @@ void sendSerialInfo() {
     Serial.printf("gpio:%d\n", gpioInUse);
     Serial.printf("baudrate:%d\n", baudRateInUse);
     Serial.printf("effect:%d\n", effect);
+    Serial.printf("colorMode:%d\n", colorMode);
+
   }
 
 }
