@@ -515,3 +515,47 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
   Serial.println(inB);
 
 }
+
+/**
+ * Set numled received by the Firefly Luciferin software
+ * @param numLedFromLuciferin int
+ */
+void LedManager::setNumLed(int numLedFromLuciferin) {
+
+  ledManager.dynamicLedNum = numLedFromLuciferin;
+#if defined(ESP8266)
+  DynamicJsonDocument numLedDoc(1024);
+  numLedDoc[LED_NUM_PARAM] = ledManager.dynamicLedNum;
+  bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
+#endif
+#if defined(ESP32)
+  DynamicJsonDocument numLedDoc(1024);
+  numLedDoc[LED_NUM_PARAM] = ledManager.dynamicLedNum;
+  bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
+  SPIFFS.end();
+#endif
+  delay(20);
+
+}
+
+/**
+ * Set white temp received by the Firefly Luciferin software
+ * @param baudRate int
+ */
+void LedManager::setWhiteTemp(int whiteTemp) {
+
+  Serial.println(F("CHANGING WHITE TEMP"));
+  whiteTempInUse = whiteTemp;
+  ledManager.setTemperature(whiteTemp);
+  DynamicJsonDocument whiteTempDoc(1024);
+  whiteTempDoc[WHITE_TEMP_PARAM] = whiteTempInUse;
+#if defined(ESP8266)
+  bootstrapManager.writeToLittleFS(whiteTempDoc, WHITE_TEMP_FILENAME);
+#endif
+#if defined(ESP32)
+  bootstrapManager.writeToSPIFFS(whiteTempDoc, BAUDRATE_FILENAME);
+  SPIFFS.end();
+#endif
+  delay(20);
+
+}

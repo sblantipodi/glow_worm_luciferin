@@ -21,13 +21,18 @@
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
 #include "LedManager.h"
+#include "NetworkManager.h"
 
-uint8_t gpioInUse = 2;
-uint8_t colorMode = 0;
-byte brightness = 255;
 BootstrapManager bootstrapManager;
 EffectsManager effectsManager;
 LedManager ledManager;
+NetworkManager networkManager;
 Helpers helper;
+uint8_t gpioInUse = 2;
+uint8_t colorMode = 0;
+byte brightness = 255;
 uint8_t whiteTempCorrection[] = {255, 255, 255};
 Effect effect;
+float framerate = 0;
+float framerateCounter = 0;
+uint lastStream = 0;

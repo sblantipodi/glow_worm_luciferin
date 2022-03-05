@@ -24,17 +24,22 @@
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
 #include "LedManager.h"
+#include "NetworkManager.h"
 
-extern uint8_t gpioInUse;
-extern uint8_t colorMode;
-extern byte brightness;
 extern class BootstrapManager bootstrapManager;
 extern class EffectsManager effectsManager;
 extern class LedManager ledManager;
+extern class NetworkManager networkManager;
 extern class Helpers helper;
+extern uint8_t gpioInUse;
+extern uint8_t colorMode;
+extern byte brightness;
 extern uint8_t whiteTempCorrection[];
 enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
 extern Effect effect;
+extern float framerate;
+extern float framerateCounter;
+extern uint lastStream;
 
 
 #endif
