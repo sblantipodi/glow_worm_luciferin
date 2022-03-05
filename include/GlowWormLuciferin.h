@@ -76,7 +76,7 @@ Effect effect;
 
 /****************** Glow Worm Luciferin ******************/
 // DPsoftware Checksum
-uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, i;
+uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, fireflyColorMode, i;
 bool led_state = true;
 uint lastLedUpdate = 10000;
 uint lastStream = 0;
@@ -192,3 +192,8 @@ void httpCallback(bool (*callback)());
 void listenOnHttpGet();
 void startUDP();
 void stopUDP();
+void initEsp32();
+void initDma();
+void initUart();
+void initStandard();
+void setColorModeInit(uint8_t newColorMode);

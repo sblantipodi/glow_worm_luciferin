@@ -38,13 +38,7 @@ NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangWs2812xMethod>* ledsStandardRgbw = 
 char packet[UDP_MAX_BUFFER_SIZE];
 char packetBroadcast[UDP_MAX_BUFFER_SIZE];
 
-void initEsp32();
 
-void initDma();
-
-void initUart();
-
-void initStandard();
 
 /**
  * Setup function
@@ -443,6 +437,7 @@ void listenOnHttpGet() {
       String mqttuser = server.arg("mqttuser");
       String mqttpass = server.arg("mqttpass");
       String additionalParam = server.arg("additionalParam");
+      String colorModeParam = server.arg("colorMode");
       String lednum = server.arg("lednum");
       DynamicJsonDocument doc(1024);
       if (deviceName.length() > 0 && ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0))) {
@@ -471,6 +466,8 @@ void listenOnHttpGet() {
         Serial.println(additionalParam);
         Serial.println("lednum");
         Serial.println(lednum);
+        Serial.println("colorMode");
+        Serial.println(colorModeParam);
         doc["deviceName"] = deviceName;
         doc["microcontrollerIP"] = microcontrollerIP;
         doc["qsid"] = qsid;
@@ -498,6 +495,8 @@ void listenOnHttpGet() {
       delay(DELAY_500);
       server.sendHeader("Access-Control-Allow-Origin", "*");
       server.send(statusCode, "text/plain", content);
+      delay(DELAY_500);
+      setColorMode(colorModeParam.toInt());
       delay(DELAY_500);
 #if defined(ESP8266)
       // Write to LittleFS
@@ -906,14 +905,7 @@ bool processJson() {
     blue = bootstrapManager.jsonDoc["color"]["b"];
     if (bootstrapManager.jsonDoc["color"].containsKey("colorMode")) {
       uint8_t newColorMode = bootstrapManager.jsonDoc["color"]["colorMode"];
-      if (colorMode != newColorMode) {
-        setColorMode(newColorMode);
-      }
-      if ((newColorMode > 0 && colorMode == 0) || (newColorMode == 0 && colorMode > 0)) {
-        colorMode = newColorMode;
-        initLeds();
-      }
-      colorMode = newColorMode;
+      setColorModeInit(newColorMode);
     }
   }
 
@@ -1250,6 +1242,19 @@ void swapTopicSubscribe() {
 
 #endif
 
+void setColorModeInit(uint8_t newColorMode) {
+
+  if (colorMode != newColorMode) {
+    setColorMode(newColorMode);
+  }
+  if ((newColorMode > 0 && colorMode == 0) || (newColorMode == 0 && colorMode > 0)) {
+    colorMode = newColorMode;
+    initLeds();
+  }
+  colorMode = newColorMode;
+
+}
+
 /**
  * Set White Temperature for Color Correction
  * @param whitetemp kelvin
@@ -1387,9 +1392,11 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) checkConnection();
     fireflyEffect = serialRead();
     while (!breakLoop && !Serial.available()) checkConnection();
+    fireflyColorMode = serialRead();
+    while (!breakLoop && !Serial.available()) checkConnection();
     chk = serialRead();
 
-    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect ^ 0x55))) {
+    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect ^ fireflyColorMode ^ 0x55))) {
       i = 0;
       goto waitLoop;
     }
@@ -1453,6 +1460,8 @@ void mainLoop() {
         case 100: fireflyEffectInUse = 0; break;
       }
     }
+
+    setColorModeInit(fireflyColorMode);
 
     // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
     // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
@@ -1532,6 +1541,7 @@ void loop() {
   getUDPStream();
 #endif
 
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
 #if defined(ESP8266)
   EVERY_N_SECONDS(30) {
     // Hey gateway, GlowWorm is here
@@ -1540,6 +1550,7 @@ void loop() {
       WiFi.reconnect();
     }
   }
+#endif
 #endif
 #if defined(ESP32)
   EVERY_N_MILLISECONDS(3000) {
