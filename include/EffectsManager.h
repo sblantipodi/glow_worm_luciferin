@@ -23,10 +23,13 @@
 
 #include <Arduino.h>
 #include <FastLED.h>
+#include "LedManager.h"
+#include "Globals.h"
+
+const int NUM_LEDS = 511;
+
 
 class EffectsManager {
-
-#define NUM_LEDS 511 // Max Led support
 
 private:
 
@@ -44,28 +47,20 @@ private:
 
 public:
 
-    void fire(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-              int cooling, int sparking, int speedDelay, int dynamicLedNum);
+    void fire(int cooling, int sparking, int speedDelay, int dynamicLedNum);
 
-    void twinkleRandom(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                       void (*setColor)(uint8_t r, uint8_t g, uint8_t b), int count, int speedDelay, boolean onlyOne,
-                       int dynamicLedNum);
+    void twinkleRandom(void (*setColor)(uint8_t r, uint8_t g, uint8_t b), int count, int speedDelay,
+                       boolean onlyOne, int dynamicLedNum);
 
-    void theaterChaseRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                        int dynamicLedNum);
+    void theaterChaseRainbow(int dynamicLedNum);
 
-    void mixedRainbow(void (*ledShowCallback)(), void (*checkConnectionCallback)(),
-                      void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b), CRGB leds[NUM_LEDS],
-                      int dynamicLedNum);
+    void mixedRainbow(void (*checkConnectionCallback)(), CRGB leds[NUM_LEDS], int dynamicLedNum);
 
-    void bpm(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-             CRGB leds[NUM_LEDS], CRGBPalette16 currentPalette, CRGBPalette16 targetPalette);
+    void bpm(CRGB leds[NUM_LEDS], CRGBPalette16 currentPalette, CRGBPalette16 targetPalette);
 
-    void rainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                 CRGB leds[NUM_LEDS], int dynamicLedNum);
+    void rainbow(CRGB leds[NUM_LEDS], int dynamicLedNum);
 
-    void solidRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                      CRGB leds[NUM_LEDS], int dynamicLedNum);
+    void solidRainbow(CRGB leds[NUM_LEDS], int dynamicLedNum);
 
 };
 

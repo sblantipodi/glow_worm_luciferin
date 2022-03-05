@@ -26,8 +26,7 @@
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include "Version.h"
-#include "BootstrapManager.h"
-#include "EffectsManager.h"
+#include "Globals.h"
 #include "WebSettings.h"
 #if defined(ESP32)
 #include <esp_task_wdt.h>
@@ -37,9 +36,6 @@
 
 
 /****************** BOOTSTRAP MANAGER ******************/
-BootstrapManager bootstrapManager;
-EffectsManager effectsManager;
-Helpers helper;
 #if defined(ESP32)
 TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
 TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
@@ -69,7 +65,6 @@ const char* GET_SETTINGS = "/getsettings";
 String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
 boolean reinitLEDTriggered = false;
-uint8_t whiteTempCorrection[] = {255, 255, 255};
 
 enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
 Effect effect;
@@ -82,7 +77,7 @@ uint lastLedUpdate = 10000;
 uint lastStream = 0;
 float framerate = 0;
 float framerateCounter = 0;
-uint8_t gpioInUse = 2, baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse, colorMode = 2;
+uint8_t baudRateInUse = 3, fireflyEffectInUse, whiteTempInUse;
 // Upgrade firmware
 boolean firmwareUpgrade = false;
 size_t updateSize = 0;
@@ -91,18 +86,14 @@ String prefsData((char*)0); // save space on default constructor
 bool servingWebPages = false;
 
 /****************** FastLED Defintions ******************/
-#define NUM_LEDS 511 // Max Led support
 CRGB leds[NUM_LEDS];
-uint16_t dynamicLedNum = NUM_LEDS;
 const String LED_NUM_FILENAME = "led_number.json";
-const String COLOR_MODE_FILENAME = "color_mode.json";
 const String GPIO_FILENAME = "gpio.json";
 const String TOPIC_FILENAME = "topic.json";
 const String BAUDRATE_FILENAME = "baudrate.json";
 const String WHITE_TEMP_FILENAME = "whitetemp.json";
 const String EFFECT_FILENAME = "effect.json";
 const String LED_NUM_PARAM = "lednum";
-const String COLOR_MODE_PARAM = "colorMode";
 const String GPIO_PARAM = "gpio";
 const String MQTT_PARAM = "mqttopic";
 const String BAUDRATE_PARAM = "baudrate";
@@ -130,7 +121,6 @@ const uint16_t THIRD_CHUNK = 510;
 byte red = 255;
 byte green = 255;
 byte blue = 255;
-byte brightness = 255;
 
 /****************** GLOBALS for fade/flash ******************/
 bool stateOn = false;
@@ -165,7 +155,6 @@ void checkConnection();
 void mainLoop();
 void sendSerialInfo();
 void setGpio(int gpio);
-void setColorMode(int colorMode);
 void setBaudRate(int baudRate);
 void setWhiteTemp(int whiteTemp);
 void setNumLed(int numLedFromLuciferin);
@@ -173,7 +162,6 @@ int setBaudRateInUse(int baudRate);
 void swapTopicUnsubscribe();
 void swapTopicReplace(String customtopic);
 void swapTopicSubscribe();
-void setTemperature(int whitetemp);
 void jsonStream(byte *payload, unsigned int length);
 void turnOffRelay();
 void turnOnRelay();
@@ -181,19 +169,14 @@ uint8_t applyWhiteTempRed(uint8_t r);
 uint8_t applyWhiteTempGreen(uint8_t g);
 uint8_t applyWhiteTempBlue(uint8_t b);
 uint8_t applyBrightnessCorrection(uint8_t c);
-void setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b);
-void ledShow();
-void initLeds();
 void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
 void fromMqttStreamToStrip(char *payload);
-void cleanLEDs();
 void getUDPStream();
 void httpCallback(bool (*callback)());
 void listenOnHttpGet();
 void startUDP();
 void stopUDP();
-void initEsp32();
-void initDma();
-void initUart();
-void initStandard();
-void setColorModeInit(uint8_t newColorMode);
+
+
+char packet[UDP_MAX_BUFFER_SIZE];
+char packetBroadcast[UDP_MAX_BUFFER_SIZE];

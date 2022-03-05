@@ -21,22 +21,7 @@
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 #include "GlowWormLuciferin.h"
 
-/**
- * Dynamic PIN Template
- */
-#if defined(ESP32)
-NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32 = NULL; // Hardware, ALL GPIO, yes serial read/write
-NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32Rgbw = NULL; // Hardware, ALL GPIO, yes serial read/write
-#else
-NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod>* ledsDma = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
-NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod>* ledsDmaRgbw = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
-NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>* ledsUart = NULL; // Hardware UART, GPIO2, yes serial read/write
-NeoPixelBus<NeoGrbwFeature, NeoEsp8266Uart1800KbpsMethod>* ledsUartRgbw = NULL; // Hardware UART, GPIO2, yes serial read/write
-NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod>* ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
-NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangWs2812xMethod>* ledsStandardRgbw = NULL; // No hardware, ALL GPIO, yes serial read/write
-#endif
-char packet[UDP_MAX_BUFFER_SIZE];
-char packetBroadcast[UDP_MAX_BUFFER_SIZE];
+
 
 
 
@@ -67,18 +52,18 @@ void setup() {
   // LED number from configuration storage
   String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
   if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
-    dynamicLedNum = ledNumToUse.toInt();
+    ledManager.dynamicLedNum = ledNumToUse.toInt();
   } else {
-    dynamicLedNum = 100;
+    ledManager.dynamicLedNum = 100;
   }
   Serial.print(F("\nUsing LEDs="));
-  Serial.println(dynamicLedNum);
+  Serial.println(ledManager.dynamicLedNum);
 
   // White temp to use
   String whiteTempToUse = bootstrapManager.readValueFromFile(WHITE_TEMP_FILENAME, WHITE_TEMP_PARAM);
   if (!whiteTempToUse.isEmpty() && whiteTempToUse != ERROR && whiteTempToUse.toInt() != 0) {
     whiteTemp = whiteTempInUse = whiteTempToUse.toInt();
-    setTemperature(whiteTemp);
+    ledManager.setTemperature(whiteTemp);
   }
   Serial.print(F("\nUsing White temp="));
   Serial.println(whiteTempToUse);
@@ -130,7 +115,7 @@ void setup() {
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
 
-  String colorModeFromStorage = bootstrapManager.readValueFromFile(COLOR_MODE_FILENAME, COLOR_MODE_PARAM);
+  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME, ledManager.COLOR_MODE_PARAM);
   int colorModeToUse = 0;
   if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
     colorMode = colorModeFromStorage.toInt();
@@ -138,7 +123,7 @@ void setup() {
     colorMode = 0;
   }
 
-  initLeds();
+  ledManager.initLeds();
 
 #if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);
@@ -194,26 +179,7 @@ void setGpio(int gpio) {
 
 }
 
-/**
- * Set color mode received by the Firefly Luciferin software
- * @param colorMode
- */
-void setColorMode(int colorModeToUse) {
 
-  Serial.println("CHANGING COLOR MODE");
-#if defined(ESP8266)
-  DynamicJsonDocument colorModeDoc(1024);
-  colorModeDoc[COLOR_MODE_PARAM] = colorModeToUse;
-  bootstrapManager.writeToLittleFS(colorModeDoc, COLOR_MODE_FILENAME);
-#endif
-#if defined(ESP32)
-  DynamicJsonDocument colorModeDoc(1024);
-  colorModeDoc[COLOR_MODE_PARAM] = colorModeToUse;
-  bootstrapManager.writeToSPIFFS(colorModeDoc, COLOR_MODE_FILENAME);
-#endif
-  delay(20);
-
-}
 
 int setBaudRateInUse(int baudRate) {
 
@@ -261,7 +227,7 @@ void setWhiteTemp(int whiteTemp) {
 
   Serial.println(F("CHANGING WHITE TEMP"));
   whiteTempInUse = whiteTemp;
-  setTemperature(whiteTemp);
+  ledManager.setTemperature(whiteTemp);
   DynamicJsonDocument whiteTempDoc(1024);
   whiteTempDoc[WHITE_TEMP_PARAM] = whiteTempInUse;
 #if defined(ESP8266)
@@ -281,15 +247,15 @@ void setWhiteTemp(int whiteTemp) {
  */
 void setNumLed(int numLedFromLuciferin) {
 
-  dynamicLedNum = numLedFromLuciferin;
+  ledManager.dynamicLedNum = numLedFromLuciferin;
 #if defined(ESP8266)
   DynamicJsonDocument numLedDoc(1024);
-  numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+  numLedDoc[LED_NUM_PARAM] = ledManager.dynamicLedNum;
   bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
 #endif
 #if defined(ESP32)
   DynamicJsonDocument numLedDoc(1024);
-  numLedDoc[LED_NUM_PARAM] = dynamicLedNum;
+  numLedDoc[LED_NUM_PARAM] = ledManager.dynamicLedNum;
   bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
   SPIFFS.end();
 #endif
@@ -374,7 +340,7 @@ void listenOnHttpGet() {
       prefsData += F("\",\"mqttPort\":\"");
       prefsData += mqttPort;
       prefsData += F("\",\"lednum\":\"");
-      prefsData += dynamicLedNum;
+      prefsData += ledManager.dynamicLedNum;
       prefsData += F("\",\"gpio\":\"");
       prefsData += gpioInUse;
       prefsData += F("\",\"colorMode\":\"");
@@ -496,7 +462,7 @@ void listenOnHttpGet() {
       server.sendHeader("Access-Control-Allow-Origin", "*");
       server.send(statusCode, "text/plain", content);
       delay(DELAY_500);
-      setColorMode(colorModeParam.toInt());
+      ledManager.setColorMode(colorModeParam.toInt());
       delay(DELAY_500);
 #if defined(ESP8266)
       // Write to LittleFS
@@ -651,13 +617,13 @@ void fromMqttStreamToStrip(char *payload) {
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
   } else {
-    if (dynamicLedNum != numLedFromLuciferin) {
+    if (ledManager.dynamicLedNum != numLedFromLuciferin) {
       setNumLed(numLedFromLuciferin);
-      initLeds();
+      ledManager.initLeds();
     }
     while (ptr != NULL) {
       myLeds = strtoul(ptr, &ptrAtoi, 10);
-      setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+      ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
       index++;
       ptr = strtok_r(NULL, delimiters, &saveptr);
     }
@@ -665,7 +631,7 @@ void fromMqttStreamToStrip(char *payload) {
   if (effect != Effect::solid) {
     framerateCounter++;
     lastStream = millis();
-    ledShow();
+    ledManager.ledShow();
   }
 
 }
@@ -705,13 +671,13 @@ void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
   } else {
-    if (dynamicLedNum != numLedFromLuciferin) {
+    if (ledManager.dynamicLedNum != numLedFromLuciferin) {
       setNumLed(numLedFromLuciferin);
-      initLeds();
+      ledManager.initLeds();
     }
     while (ptr != NULL) {
       myLeds = strtoul(ptr, &ptrAtoi, 10);
-      setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+      ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
       index++;
       ptr = strtok_r(NULL, delimiters, &saveptr);
     }
@@ -720,7 +686,7 @@ void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
     if (chunkNum == chunkTot - 1) {
       framerateCounter++;
       lastStream = millis();
-      ledShow();
+      ledManager.ledShow();
     }
   }
 
@@ -741,13 +707,13 @@ void jsonStream(byte *payload, unsigned int length) {
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
   } else {
-    if (dynamicLedNum != numLedFromLuciferin) {
+    if (ledManager.dynamicLedNum != numLedFromLuciferin) {
       setNumLed(numLedFromLuciferin);
     }
-    // (leds, 0, (dynamicLedNum) * sizeof(struct CRGB));
+    // (leds, 0, (ledManager.dynamicLedNum) * sizeof(struct CRGB));
     JsonArray stream = bootstrapManager.jsonDocBigSize["stream"];
-    if (dynamicLedNum < FIRST_CHUNK) {
-      for (uint16_t i = 0; i < dynamicLedNum; i++) {
+    if (ledManager.dynamicLedNum < FIRST_CHUNK) {
+      for (uint16_t i = 0; i < ledManager.dynamicLedNum; i++) {
         int rgb = stream[i];
         leds[i].r = (rgb >> 16 & 0xFF);
         leds[i].g = (rgb >> 8 & 0xFF);
@@ -755,7 +721,7 @@ void jsonStream(byte *payload, unsigned int length) {
       }
       FastLED.show();
     } else {
-      if (dynamicLedNum >= FIRST_CHUNK) {
+      if (ledManager.dynamicLedNum >= FIRST_CHUNK) {
         part = bootstrapManager.jsonDocBigSize["part"];
       }
       if (part == 1) {
@@ -774,7 +740,7 @@ void jsonStream(byte *payload, unsigned int length) {
           leds[i].b = (rgb >> 0 & 0xFF);
           j++;
         }
-        if (dynamicLedNum < SECOND_CHUNK) {
+        if (ledManager.dynamicLedNum < SECOND_CHUNK) {
           FastLED.show();
         }
       } else if (part == 3) {
@@ -786,7 +752,7 @@ void jsonStream(byte *payload, unsigned int length) {
           leds[i].b = (rgb >> 0 & 0xFF);
           j++;
         }
-        if (dynamicLedNum < THIRD_CHUNK) {
+        if (ledManager.dynamicLedNum < THIRD_CHUNK) {
           FastLED.show();
         }
       } else if (part == 4) {
@@ -802,8 +768,8 @@ void jsonStream(byte *payload, unsigned int length) {
       }
     }
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-    if ((dynamicLedNum < FIRST_CHUNK) || (dynamicLedNum < SECOND_CHUNK && part == 2)
-        || (dynamicLedNum < THIRD_CHUNK && part == 3) || (part == 4)) {
+    if ((ledManager.dynamicLedNum < FIRST_CHUNK) || (ledManager.dynamicLedNum < SECOND_CHUNK && part == 2)
+        || (ledManager.dynamicLedNum < THIRD_CHUNK && part == 3) || (part == 4)) {
       framerateCounter++;
     }
 #endif
@@ -846,7 +812,7 @@ bool processFirmwareConfig() {
       // Restart if needed
       if (reinitLEDTriggered) {
         reinitLEDTriggered = false;
-        initLeds();
+        ledManager.initLeds();
       }
       if (espRestart) {
         ESP.restart();
@@ -905,7 +871,7 @@ bool processJson() {
     blue = bootstrapManager.jsonDoc["color"]["b"];
     if (bootstrapManager.jsonDoc["color"].containsKey("colorMode")) {
       uint8_t newColorMode = bootstrapManager.jsonDoc["color"]["colorMode"];
-      setColorModeInit(newColorMode);
+      ledManager.setColorModeInit(newColorMode);
     }
   }
 
@@ -966,7 +932,7 @@ void sendStatus() {
     fpsData += F("\",\"MAC\":\"");
     fpsData += MAC;
     fpsData += F("\",\"lednum\":\"");
-    fpsData += dynamicLedNum;
+    fpsData += ledManager.dynamicLedNum;
     fpsData += F("\",\"framerate\":\"");
     fpsData += framerate;
     fpsData += F("\",\"wifi\":\"");
@@ -1024,7 +990,7 @@ void sendStatus() {
 #elif defined(ESP32)
     root["board"] = "ESP32";
 #endif
-    root[LED_NUM_PARAM] = String(dynamicLedNum);
+    root[LED_NUM_PARAM] = String(ledManager.dynamicLedNum);
     root[F("gpio")] = gpioInUse;
     root[F("mqttopic")] = topicInUse;
 
@@ -1242,49 +1208,9 @@ void swapTopicSubscribe() {
 
 #endif
 
-void setColorModeInit(uint8_t newColorMode) {
 
-  if (colorMode != newColorMode) {
-    setColorMode(newColorMode);
-  }
-  if ((newColorMode > 0 && colorMode == 0) || (newColorMode == 0 && colorMode > 0)) {
-    colorMode = newColorMode;
-    initLeds();
-  }
-  colorMode = newColorMode;
 
-}
 
-/**
- * Set White Temperature for Color Correction
- * @param whitetemp kelvin
- */
-void setTemperature(int whitetemp) {
-
-  switch (whitetemp) {
-    case 1: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 255; whiteTempCorrection[2] = 255;  break;
-    case 2: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 147; whiteTempCorrection[2] = 41;  break;
-    case 3: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 197; whiteTempCorrection[2] = 143;  break;
-    case 4: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 214; whiteTempCorrection[2] = 170;  break;
-    case 5: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 241; whiteTempCorrection[2] = 224;  break;
-    case 6: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 250; whiteTempCorrection[2] = 244;  break;
-    case 7: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 255; whiteTempCorrection[2] = 251;  break;
-    case 8: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 255; whiteTempCorrection[2] = 255;  break;
-    case 9: whiteTempCorrection[0] = 201; whiteTempCorrection[1] = 226; whiteTempCorrection[2] = 255;  break;
-    case 10: whiteTempCorrection[0] = 64; whiteTempCorrection[1] = 156; whiteTempCorrection[2] = 255;  break;
-    case 11: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 224; whiteTempCorrection[2] = 229;  break;
-    case 12: whiteTempCorrection[0] = 244; whiteTempCorrection[1] = 255; whiteTempCorrection[2] = 250;  break;
-    case 13: whiteTempCorrection[0] = 212; whiteTempCorrection[1] = 235; whiteTempCorrection[2] = 255;  break;
-    case 14: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 244; whiteTempCorrection[2] = 242;  break;
-    case 15: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 239; whiteTempCorrection[2] = 247;  break;
-    case 16: whiteTempCorrection[0] = 167; whiteTempCorrection[1] = 1; whiteTempCorrection[2] = 255;  break;
-    case 17: whiteTempCorrection[0] = 216; whiteTempCorrection[1] = 247; whiteTempCorrection[2] = 255;  break;
-    case 18: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 209; whiteTempCorrection[2] = 178;  break;
-    case 19: whiteTempCorrection[0] = 242; whiteTempCorrection[1] = 252; whiteTempCorrection[2] = 255;  break;
-    case 20: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 183; whiteTempCorrection[2] = 76;  break;
-  }
-
-}
 
 /**
  * Set led strip color
@@ -1298,10 +1224,10 @@ void setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
     effect = Effect::solid;
   }
   if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
-    for (int i = 0; i < dynamicLedNum; i++) {
-      setPixelColor(i, inR, inG, inB);
+    for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+      ledManager.setPixelColor(i, inR, inG, inB);
     }
-    ledShow();
+    ledManager.ledShow();
   }
   Serial.print(F("Setting LEDs: "));
   Serial.print(F("r: "));
@@ -1417,14 +1343,14 @@ void mainLoop() {
     }
 
     int numLedFromLuciferin = lo + loSecondPart + 1;
-    if (dynamicLedNum != numLedFromLuciferin && numLedFromLuciferin < NUM_LEDS) {
+    if (ledManager.dynamicLedNum != numLedFromLuciferin && numLedFromLuciferin < NUM_LEDS) {
       setNumLed(numLedFromLuciferin);
       reinitLEDTriggered = true;
     }
 
     if (reinitLEDTriggered) {
       reinitLEDTriggered = false;
-      initLeds();
+      ledManager.initLeds();
       breakLoop = true;
     }
 
@@ -1461,7 +1387,7 @@ void mainLoop() {
       }
     }
 
-    setColorModeInit(fireflyColorMode);
+    ledManager.setColorModeInit(fireflyColorMode);
 
     // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
     // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
@@ -1474,12 +1400,12 @@ void mainLoop() {
       while (!breakLoop && !Serial.available()) checkConnection();
       b = serialRead();
       if (fireflyEffectInUse <= 5) {
-        setPixelColor(i, r, g, b);
+        ledManager.setPixelColor(i, r, g, b);
       }
     }
     lastLedUpdate = millis();
     framerateCounter++;
-    ledShow();
+    ledManager.ledShow();
 
     // Flush serial buffer
     while (!breakLoop && Serial.available() > 0) {
@@ -1492,37 +1418,37 @@ void mainLoop() {
 
   //EFFECT BPM
   if (effect == Effect::bpm) {
-    effectsManager.bpm(ledShow, setPixelColor, leds, currentPalette, targetPalette);
+    effectsManager.bpm(leds, currentPalette, targetPalette);
   }
 
   //EFFECT RAINBOW
   if (effect == Effect::rainbow) {
-    effectsManager.rainbow(ledShow, setPixelColor, leds, dynamicLedNum);
+    effectsManager.rainbow(leds, ledManager.dynamicLedNum);
   }
 
   //SOLID RAINBOW
   if (effect == Effect::solid_rainbow) {
-    effectsManager.solidRainbow(ledShow, setPixelColor, leds, dynamicLedNum);
+    effectsManager.solidRainbow(leds, ledManager.dynamicLedNum);
   }
 
   //FIRE
   if (effect == Effect::fire) {
-    effectsManager.fire(ledShow, setPixelColor, 55, 120, 15, dynamicLedNum);
+    effectsManager.fire(55, 120, 15, ledManager.dynamicLedNum);
   }
 
   //TWINKLE
   if (effect == Effect::twinkle) {
-    effectsManager.twinkleRandom(ledShow, setPixelColor, setColor, 20, 100, false, dynamicLedNum);
+    effectsManager.twinkleRandom(setColor, 20, 100, false, ledManager.dynamicLedNum);
   }
 
   //CHASE RAINBOW
   if (effect == Effect::chase_rainbow) {
-    effectsManager.theaterChaseRainbow(ledShow, setPixelColor, dynamicLedNum);
+    effectsManager.theaterChaseRainbow(ledManager.dynamicLedNum);
   }
 
   //MIXED RAINBOW
   if (effect == Effect::mixed_rainbow) {
-    effectsManager.mixedRainbow(ledShow, checkConnection, setPixelColor, leds, dynamicLedNum);
+    effectsManager.mixedRainbow(checkConnection, leds, ledManager.dynamicLedNum);
   }
 
 }
@@ -1637,7 +1563,7 @@ void sendSerialInfo() {
     Serial.printf("mqttopic:%s\n", topicInUse.c_str());
 #endif
     Serial.printf("ver:%s\n", VERSION);
-    Serial.printf("lednum:%d\n", dynamicLedNum);
+    Serial.printf("lednum:%d\n", ledManager.dynamicLedNum);
 #if defined(ESP32)
     Serial.printf("board:%s\n", "ESP32");
 #elif defined(ESP8266)
@@ -1650,394 +1576,5 @@ void sendSerialInfo() {
     Serial.printf("colorMode:%d\n", colorMode);
 
   }
-
-}
-
-/**
- * Apply white temp correcton on DMA mode
- * @param r red channel
- * @return corrected temperature
- */
-uint8_t applyWhiteTempRed(uint8_t r) {
-  return r > 0 ? applyBrightnessCorrection((whiteTempCorrection[0] * r) / 255) : r;
-}
-/**
- * Apply white temp correction on DMA mode
- * @param g red channel
- * @return corrected temperature
- */
-uint8_t applyWhiteTempGreen(uint8_t g) {
-  return g > 0 ? applyBrightnessCorrection((whiteTempCorrection[1] * g) / 255) : g;
-}
-/**
- * Apply white temp correction on DMA mode
- * @param b red channel
- * @return corrected temperature
- */
-uint8_t applyWhiteTempBlue(uint8_t b) {
-  return b > 0 ? applyBrightnessCorrection((whiteTempCorrection[2] * b) / 255) : b;
-}
-/**
- * Apply brightness correction on DMA mode
- * @param b red channel
- * @return corrected brightness
- */
-uint8_t applyBrightnessCorrection(uint8_t c) {
-  return (c && brightness) > 0 ? (c*((brightness*100)/255))/100 : c;
-}
-
-
-void initStandard() {
-#if defined(ESP8266)
-  Serial.println(F("Using Standard"));
-
-  cleanLEDs();
-  ledsStandard = new NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, 5); // and recreate with new count
-  if (ledsStandard == NULL) {
-    Serial.println(F("OUT OF MEMORY"));
-  }
-  while (!Serial); // wait for serial attach
-  Serial.println();
-  Serial.println(F("Initializing..."));
-
-  Serial.flush();
-  ledsStandard->Begin();
-  ledsStandard->Show();
-#endif
-}
-
-void initStandardRgbw() {
-#if defined(ESP8266)
-  Serial.println(F("Using Standard RGBW"));
-
-  cleanLEDs();
-  ledsStandardRgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, 5); // and recreate with new count
-  if (ledsStandardRgbw == NULL) {
-    Serial.println(F("OUT OF MEMORY"));
-  }
-  while (!Serial); // wait for serial attach
-  Serial.println();
-  Serial.println(F("Initializing..."));
-
-  Serial.flush();
-  ledsStandardRgbw->Begin();
-  ledsStandardRgbw->Show();
-#endif
-}
-
-void initUart() {
-#if defined(ESP8266)
-  Serial.println(F("Using UART"));
-
-  cleanLEDs();
-  ledsUart = new NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
-  if (ledsUart == NULL) {
-    Serial.println(F("OUT OF MEMORY"));
-  }
-  while (!Serial); // wait for serial attach
-  Serial.println();
-  Serial.println(F("Initializing..."));
-
-  Serial.flush();
-  ledsUart->Begin();
-  ledsUart->Show();
-#endif
-}
-
-void initUartRgbw() {
-#if defined(ESP8266)
-  Serial.println(F("Using UART RGBW"));
-
-  cleanLEDs();
-  ledsUartRgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
-  if (ledsUartRgbw == NULL) {
-    Serial.println(F("OUT OF MEMORY"));
-  }
-  while (!Serial); // wait for serial attach
-  Serial.println();
-  Serial.println(F("Initializing..."));
-
-  Serial.flush();
-  ledsUartRgbw->Begin();
-  ledsUartRgbw->Show();
-#endif
-}
-
-void initDma() {
-#if defined(ESP8266)
-  Serial.println(F("Using DMA"));
-
-  cleanLEDs();
-  ledsDma = new NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
-  if (ledsDma == NULL) {
-    Serial.println(F("OUT OF MEMORY"));
-  }
-  Serial.println();
-  Serial.println(F("Initializing..."));
-
-  Serial.flush();
-  ledsDma->Begin();
-  ledsDma->Show();
-#endif
-}
-
-void initDmaRgbw() {
-#if defined(ESP8266)
-  Serial.println(F("Using DMA RGBW"));
-
-  cleanLEDs();
-  ledsDmaRgbw = new NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
-  if (ledsDmaRgbw == NULL) {
-    Serial.println(F("OUT OF MEMORY"));
-  }
-  Serial.println();
-  Serial.println(F("Initializing..."));
-
-  Serial.flush();
-  ledsDmaRgbw->Begin();
-  ledsDmaRgbw->Show();
-#endif
-}
-
-void initEsp32() {
-#if defined(ESP32)
-  Serial.println(F("Using DMA"));
-  cleanLEDs();
-  ledsEsp32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
-  if (ledsEsp32 == NULL) {
-    Serial.println(F("OUT OF MEMORY"));
-  }
-  Serial.println();
-  Serial.println(F("Initializing..."));
-  Serial.flush();
-  ledsEsp32->Begin();
-  ledsEsp32->Show();
-#endif
-}
-
-void initEsp32Rgbw() {
-#if defined(ESP32)
-  Serial.println(F("Using DMA"));
-  cleanLEDs();
-  ledsEsp32Rgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
-  if (ledsEsp32Rgbw == NULL) {
-    Serial.println(F("OUT OF MEMORY"));
-  }
-  Serial.println();
-  Serial.println(F("Initializing..."));
-  Serial.flush();
-  ledsEsp32Rgbw->Begin();
-  ledsEsp32Rgbw->Show();
-#endif
-}
-
-/**
- * Init LEDs
- */
-void initLeds() {
-
-  switch (colorMode) {
-    case 0: initEsp32(); break;
-    case 1:
-    case 2:
-    case 3: initEsp32Rgbw(); break;
-  }
-
-  if (gpioInUse == 3) {
-    switch (colorMode) {
-      case 0: initDma(); break;
-      case 1:
-      case 2:
-      case 3: initDmaRgbw(); break;
-    }
-  } else if (gpioInUse == 2) {
-
-    switch (colorMode) {
-      case 0: initUart(); break;
-      case 1:
-      case 2:
-      case 3: initUartRgbw(); break;
-    }
-  } else {
-
-    switch (colorMode) {
-      case 0: initStandard(); break;
-      case 1:
-      case 2:
-      case 3: initStandardRgbw(); break;
-    }
-  }
-
-}
-
-/**
- * Clean the LEDs before reinit
- */
-void cleanLEDs() {
-
-  boolean cleared = false;
-#if defined(ESP32)
-  if (ledsEsp32 != NULL) {
-    cleared = true;
-    delete ledsEsp32;
-  } else if (ledsEsp32Rgbw != NULL) {
-    cleared = true;
-    delete ledsEsp32Rgbw;
-  }
-#endif
-#if defined(ESP8266)
-  if (ledsDma != NULL) {
-    while (!ledsDma->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsDma;
-    ledsDma = NULL;
-  }
-  if (ledsDmaRgbw != NULL) {
-    while (!ledsDmaRgbw->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsDmaRgbw;
-    ledsDmaRgbw = NULL;
-  }
-  if (ledsUart != NULL) {
-    while (!ledsUart->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsUart;
-    ledsUart = NULL;
-  }
-  if (ledsUartRgbw != NULL) {
-    while (!ledsUartRgbw->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsUartRgbw;
-    ledsUartRgbw = NULL;
-  }
-  if (ledsStandard != NULL) {
-    while (!ledsStandard->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsStandard;
-    ledsStandard = NULL;
-  }
-  if (ledsStandardRgbw != NULL) {
-    while (!ledsStandardRgbw->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsStandardRgbw;
-    ledsStandardRgbw = NULL;
-  }
-#endif
-  if (cleared) {
-    Serial.println("LEDs cleared");
-  }
-
-}
-
-RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
-
-  return RgbColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b));
-
-}
-
-RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
-
-  uint8_t w;
-  w = r < g ? (r < b ? r : b) : (g < b ? g : b);
-  // subtract w in accurate mode
-  if (colorMode == 1) {
-    r -= w; g -= w; b -= w;
-  } else if (colorMode == 3) {
-    w = 0;
-  }
-  return RgbwColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b), w);
-
-}
-
-/**
- * Set pixel color
- * @param index LED num
- * @param r red channel
- * @param g green channel
- * @param b blu channel
- */
-void setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) {
-
-  RgbColor rgbColor;
-  RgbwColor rgbwColor;
-  switch (colorMode) {
-    case 0: rgbColor = calculateRgbMode(r, g, b); break;
-    case 1:
-    case 2:
-    case 3: rgbwColor = calculateRgbwMode(r, g, b); break;
-  }
-
-#if defined(ESP32)
-  switch (colorMode) {
-    case 0: ledsEsp32->SetPixelColor(index, rgbColor); break;
-    case 1:
-    case 2:
-    case 3: ledsEsp32Rgbw->SetPixelColor(index, rgbwColor); break;
-  }
-
-#else
-  if (gpioInUse == 3) {
-    switch (colorMode) {
-      case 0: ledsDma->SetPixelColor(index, rgbColor); break;
-      case 1:
-      case 2:
-      case 3: ledsDmaRgbw->SetPixelColor(index, rgbwColor); break;
-    }
-  } else if (gpioInUse == 2) {
-    switch (colorMode) {
-      case 0: ledsUart->SetPixelColor(index, rgbColor); break;
-      case 1:
-      case 2:
-      case 3: ledsUartRgbw->SetPixelColor(index, rgbwColor); break;
-    }
-  } else {
-    switch (colorMode) {
-      case 0: ledsStandard->SetPixelColor(index, rgbColor); break;
-      case 1:
-      case 2:
-      case 3: ledsStandardRgbw->SetPixelColor(index, rgbwColor); break;
-    }
-  }
-#endif
-
-}
-
-
-/**
- * Show LEDs
- */
-void ledShow() {
-
-#if defined(ESP32)
-  switch (colorMode) {
-      case 0: ledsEsp32->Show(); break;
-      case 1:
-      case 2:
-      case 3: ledsEsp32Rgbw->Show(); break;
-    }
-#else
-  if (gpioInUse == 3) {
-    switch (colorMode) {
-      case 0: ledsDma->Show(); break;
-      case 1:
-      case 2:
-      case 3: ledsDmaRgbw->Show(); break;
-    }
-  } else if (gpioInUse == 2) {
-    switch (colorMode) {
-      case 0: ledsUart->Show(); break;
-      case 1:
-      case 2:
-      case 3: ledsUartRgbw->Show(); break;
-    }
-  } else {
-    switch (colorMode) {
-      case 0: ledsStandard->Show(); break;
-      case 1:
-      case 2:
-      case 3: ledsStandardRgbw->Show(); break;
-    }
-  }
-#endif
 
 }
