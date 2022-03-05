@@ -204,18 +204,17 @@ void setGpio(int gpio) {
  * Set color mode received by the Firefly Luciferin software
  * @param colorMode
  */
-void setColorMode(int colorMode) {
+void setColorMode(int colorModeToUse) {
 
   Serial.println("CHANGING COLOR MODE");
-  gpioInUse = gpio;
 #if defined(ESP8266)
   DynamicJsonDocument colorModeDoc(1024);
-  colorModeDoc[COLOR_MODE_PARAM] = colorMode;
+  colorModeDoc[COLOR_MODE_PARAM] = colorModeToUse;
   bootstrapManager.writeToLittleFS(colorModeDoc, COLOR_MODE_FILENAME);
 #endif
 #if defined(ESP32)
   DynamicJsonDocument colorModeDoc(1024);
-  colorModeDoc[COLOR_MODE_PARAM] = colorMode;
+  colorModeDoc[COLOR_MODE_PARAM] = colorModeToUse;
   bootstrapManager.writeToSPIFFS(colorModeDoc, COLOR_MODE_FILENAME);
 #endif
   delay(20);
@@ -384,6 +383,8 @@ void listenOnHttpGet() {
       prefsData += dynamicLedNum;
       prefsData += F("\",\"gpio\":\"");
       prefsData += gpioInUse;
+      prefsData += F("\",\"colorMode\":\"");
+      prefsData += colorMode;
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
   });
@@ -905,9 +906,11 @@ bool processJson() {
     blue = bootstrapManager.jsonDoc["color"]["b"];
     if (bootstrapManager.jsonDoc["color"].containsKey("colorMode")) {
       uint8_t newColorMode = bootstrapManager.jsonDoc["color"]["colorMode"];
+      if (colorMode != newColorMode) {
+        setColorMode(newColorMode);
+      }
       if ((newColorMode > 0 && colorMode == 0) || (newColorMode == 0 && colorMode > 0)) {
         colorMode = newColorMode;
-        setColorMode(colorMode);
         initLeds();
       }
       colorMode = newColorMode;
@@ -1873,25 +1876,40 @@ void cleanLEDs() {
 #endif
 #if defined(ESP8266)
   if (ledsDma != NULL) {
+    while (!ledsDma->CanShow()) { yield(); }
     cleared = true;
     delete ledsDma;
-  } else if (ledsDmaRgbw != NULL) {
+    ledsDma = NULL;
+  }
+  if (ledsDmaRgbw != NULL) {
+    while (!ledsDmaRgbw->CanShow()) { yield(); }
     cleared = true;
     delete ledsDmaRgbw;
+    ledsDmaRgbw = NULL;
   }
   if (ledsUart != NULL) {
+    while (!ledsUart->CanShow()) { yield(); }
     cleared = true;
     delete ledsUart;
-  } else if (ledsUartRgbw != NULL) {
+    ledsUart = NULL;
+  }
+  if (ledsUartRgbw != NULL) {
+    while (!ledsUartRgbw->CanShow()) { yield(); }
     cleared = true;
     delete ledsUartRgbw;
+    ledsUartRgbw = NULL;
   }
   if (ledsStandard != NULL) {
+    while (!ledsStandard->CanShow()) { yield(); }
     cleared = true;
     delete ledsStandard;
-  } else if (ledsStandardRgbw != NULL) {
+    ledsStandard = NULL;
+  }
+  if (ledsStandardRgbw != NULL) {
+    while (!ledsStandardRgbw->CanShow()) { yield(); }
     cleared = true;
     delete ledsStandardRgbw;
+    ledsStandardRgbw = NULL;
   }
 #endif
   if (cleared) {
