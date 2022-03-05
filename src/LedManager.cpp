@@ -553,7 +553,7 @@ void LedManager::setWhiteTemp(int whiteTemp) {
   bootstrapManager.writeToLittleFS(whiteTempDoc, WHITE_TEMP_FILENAME);
 #endif
 #if defined(ESP32)
-  bootstrapManager.writeToSPIFFS(whiteTempDoc, BAUDRATE_FILENAME);
+  bootstrapManager.writeToSPIFFS(whiteTempDoc, WHITE_TEMP_FILENAME);
   SPIFFS.end();
 #endif
   delay(20);
