@@ -57,6 +57,8 @@ NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32Rgbw = NULL; //
     uint16_t dynamicLedNum = 511;
 
     void cleanLEDs();
+    void initEsp32();
+    void initEsp32Rgbw();
     void initLeds();
     void initStandard();
     void initStandardRgbw();
@@ -69,6 +71,7 @@ NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32Rgbw = NULL; //
     void setColorMode(int colorModeToUse);
     void setColorModeInit(uint8_t newColorMode);
     void setTemperature(int whitetemp);
+    void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
 
 };
 

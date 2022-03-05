@@ -351,7 +351,7 @@ void LedManager::initDmaRgbw() {
 #endif
 }
 
-void initEsp32() {
+void LedManager::initEsp32() {
 #if defined(ESP32)
   Serial.println(F("Using DMA"));
   cleanLEDs();
@@ -367,7 +367,7 @@ void initEsp32() {
 #endif
 }
 
-void initEsp32Rgbw() {
+void LedManager::initEsp32Rgbw() {
 #if defined(ESP32)
   Serial.println(F("Using DMA"));
   cleanLEDs();
@@ -486,5 +486,32 @@ void LedManager::setTemperature(int whitetemp) {
     case 19: whiteTempCorrection[0] = 242; whiteTempCorrection[1] = 252; whiteTempCorrection[2] = 255;  break;
     case 20: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 183; whiteTempCorrection[2] = 76;  break;
   }
+
+}
+
+/**
+ * Set led strip color
+ * @param inR red color
+ * @param inG green color
+ * @param inB blu color
+ */
+void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
+
+  if (inR == 0 && inG == 0 && inB == 0) {
+    effect = Effect::solid;
+  }
+  if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
+    for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+      ledManager.setPixelColor(i, inR, inG, inB);
+    }
+    ledManager.ledShow();
+  }
+  Serial.print(F("Setting LEDs: "));
+  Serial.print(F("r: "));
+  Serial.print(inR);
+  Serial.print(F(", g: "));
+  Serial.print(inG);
+  Serial.print(F(", b: "));
+  Serial.println(inB);
 
 }

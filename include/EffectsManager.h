@@ -49,8 +49,7 @@ public:
 
     void fire(int cooling, int sparking, int speedDelay, int dynamicLedNum);
 
-    void twinkleRandom(void (*setColor)(uint8_t r, uint8_t g, uint8_t b), int count, int speedDelay,
-                       boolean onlyOne, int dynamicLedNum);
+    void twinkleRandom(int count, int speedDelay, boolean onlyOne, int dynamicLedNum);
 
     void theaterChaseRainbow(int dynamicLedNum);
 

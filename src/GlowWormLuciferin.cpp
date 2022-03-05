@@ -116,7 +116,6 @@ void setup() {
   Serial.println(gpioInUse);
 
   String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME, ledManager.COLOR_MODE_PARAM);
-  int colorModeToUse = 0;
   if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
     colorMode = colorModeFromStorage.toInt();
   } else {
@@ -270,7 +269,7 @@ void setNumLed(int numLedFromLuciferin) {
  */
 void manageDisconnections() {
 
-  setColor(0, 0, 0);
+  ledManager.setColor(0, 0, 0);
   delay(500);
 
 }
@@ -566,9 +565,9 @@ void callback(char *topic, byte *payload, unsigned int length) {
       processUnSubscribeStream();
     }
     if (stateOn) {
-      setColor(map(red, 0, 255, 0, brightness), map(green, 0, 255, 0, brightness), map(blue, 0, 255, 0, brightness));
+      ledManager.setColor(map(red, 0, 255, 0, brightness), map(green, 0, 255, 0, brightness), map(blue, 0, 255, 0, brightness));
     } else {
-      setColor(0,0,0);
+      ledManager.setColor(0,0,0);
     }
   }
 
@@ -585,9 +584,9 @@ void httpCallback(bool (*callback)()) {
   bootstrapManager.parseHttpMsg(payload, payload.length());
   callback();
   if (stateOn) {
-    setColor(map(red, 0, 255, 0, brightness), map(green, 0, 255, 0, brightness), map(blue, 0, 255, 0, brightness));
+    ledManager.setColor(map(red, 0, 255, 0, brightness), map(green, 0, 255, 0, brightness), map(blue, 0, 255, 0, brightness));
   } else {
-    setColor(0,0,0);
+    ledManager.setColor(0,0,0);
   }
   server.send(200, F("text/plain"), F("OK"));
 
@@ -995,7 +994,7 @@ void sendStatus() {
     root[F("mqttopic")] = topicInUse;
 
     if (effect == Effect::solid && !stateOn) {
-      setColor(0, 0, 0);
+      ledManager.setColor(0, 0, 0);
     }
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
@@ -1212,32 +1211,7 @@ void swapTopicSubscribe() {
 
 
 
-/**
- * Set led strip color
- * @param inR red color
- * @param inG green color
- * @param inB blu color
- */
-void setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
 
-  if (inR == 0 && inG == 0 && inB == 0) {
-    effect = Effect::solid;
-  }
-  if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
-    for (int i = 0; i < ledManager.dynamicLedNum; i++) {
-      ledManager.setPixelColor(i, inR, inG, inB);
-    }
-    ledManager.ledShow();
-  }
-  Serial.print(F("Setting LEDs: "));
-  Serial.print(F("r: "));
-  Serial.print(inR);
-  Serial.print(F(", g: "));
-  Serial.print(inG);
-  Serial.print(F(", b: "));
-  Serial.println(inB);
-
-}
 
 /**
  * Check connection and turn off the LED strip if no input received
@@ -1266,7 +1240,7 @@ void checkConnection() {
   EVERY_N_SECONDS(15) {
     // No updates since 15 seconds, turn off LEDs
     if(millis() > lastLedUpdate + 10000){
-      setColor(0, 0, 0);
+      ledManager.setColor(0, 0, 0);
       turnOffRelay();
     }
   }
@@ -1438,7 +1412,7 @@ void mainLoop() {
 
   //TWINKLE
   if (effect == Effect::twinkle) {
-    effectsManager.twinkleRandom(setColor, 20, 100, false, ledManager.dynamicLedNum);
+    effectsManager.twinkleRandom(20, 100, false, ledManager.dynamicLedNum);
   }
 
   //CHASE RAINBOW

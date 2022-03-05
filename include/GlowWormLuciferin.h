@@ -66,8 +66,6 @@ String topicInUse = "glowwormluciferin";
 bool JSON_STREAM = false; // DEPRECATED
 boolean reinitLEDTriggered = false;
 
-enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
-Effect effect;
 
 /****************** Glow Worm Luciferin ******************/
 // DPsoftware Checksum
@@ -150,7 +148,6 @@ bool processGlowWormLuciferinRebootCmnd();
 bool processUnSubscribeStream();
 bool swapMqttTopic();
 void executeMqttSwap(String customtopic);
-void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
 void checkConnection();
 void mainLoop();
 void sendSerialInfo();

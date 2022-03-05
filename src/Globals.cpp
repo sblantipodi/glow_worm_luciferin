@@ -30,3 +30,4 @@ EffectsManager effectsManager;
 LedManager ledManager;
 Helpers helper;
 uint8_t whiteTempCorrection[] = {255, 255, 255};
+Effect effect;

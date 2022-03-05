@@ -64,16 +64,15 @@ void EffectsManager::fire(int cooling, int sparking, int speedDelay, int dynamic
 
 }
 
-void EffectsManager::twinkleRandom(void (*setColor)(uint8_t r, uint8_t g, uint8_t b), int count, int speedDelay,
-                                   boolean onlyOne, int dynamicLedNum) {
+void EffectsManager::twinkleRandom(int count, int speedDelay, boolean onlyOne, int dynamicLedNum) {
 
-  setColor(1, 1, 1);
+  ledManager.setColor(1, 1, 1);
   for (int i = 0; i < count; i++) {
     ledManager.setPixelColor(random(dynamicLedNum), random(0, 255), random(0, 255), random(0, 255));
     ledManager.ledShow();
     delay(speedDelay);
     if (onlyOne) {
-      setColor(1, 1, 1);
+      ledManager.setColor(1, 1, 1);
     }
   }
   delay(speedDelay);

@@ -33,6 +33,8 @@ extern class EffectsManager effectsManager;
 extern class LedManager ledManager;
 extern class Helpers helper;
 extern uint8_t whiteTempCorrection[];
+enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
+extern Effect effect;
 
 
 #endif
