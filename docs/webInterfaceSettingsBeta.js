@@ -29,6 +29,7 @@ function poll() {
                 $('#mqttpass').val(prefs.mqttpass);
                 $('#lednum').val(prefs.lednum);
                 $('#additionalParam').val(prefs.gpio);
+                $('#colorMode').val(prefs.colorMode);                
             }
         }
     }), 5000);
@@ -42,6 +43,7 @@ function callDevice() {
     payload += "&mqttuser=" + $('#mqttuser').val();
     payload += "&mqttpass=" + $('#mqttpass').val();
     payload += "&additionalParam=" + $('#additionalParam').val();
+    payload += "&colorMode=" + $('#colorMode').val();
     payload += "&lednum=" + $('#lednum').val();
     console.log(payload);
     const http = new XMLHttpRequest();
