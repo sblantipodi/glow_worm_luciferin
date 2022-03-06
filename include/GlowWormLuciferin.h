@@ -33,8 +33,6 @@
 #include "PingESP.h"
 #endif
 
-
-/****************** BOOTSTRAP MANAGER ******************/
 #if defined(ESP32)
 TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
 TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
@@ -42,51 +40,18 @@ TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
 PingESP pingESP;
 #endif
 
-
-
-/****************** Glow Worm Luciferin ******************/
-// DPsoftware Checksum
-bool led_state = true;
-
-uint8_t fireflyEffectInUse;
-
-
-
-/****************** FastLED Defintions ******************/
-const String EFFECT_FILENAME = "effect.json";
-
-
-
-
-
-
 #define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
 //#define CLOCK_PIN 5
 #define CHIPSET     WS2812B
 #define COLOR_ORDER GRB
-#define UDP_BROAD
 
-
-
-/****************** GLOBALS for fade/flash ******************/
-
-//NOISE
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
 CRGBPalette16 targetPalette(OceanColors_p);
 CRGBPalette16 currentPalette(CRGB::Black);
 
-
-/****************** FUNCTION DECLARATION (NEEDED BY PLATFORMIO WHILE COMPILING CPP FILES) ******************/
-// Bootstrap functions
-// Project specific functions
-
 void mainLoop();
 
 
-uint8_t applyWhiteTempRed(uint8_t r);
-uint8_t applyWhiteTempGreen(uint8_t g);
-uint8_t applyWhiteTempBlue(uint8_t b);
-uint8_t applyBrightnessCorrection(uint8_t c);
 
 
 

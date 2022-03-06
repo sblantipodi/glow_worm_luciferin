@@ -21,10 +21,6 @@
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 #include "GlowWormLuciferin.h"
 
-
-
-
-
 /**
  * Setup function
  */
@@ -156,34 +152,19 @@ void setup() {
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ * Read serial or break the reading
+ * @return -1 if loop must break
+ */
 int serialRead() {
 
   return !breakLoop ? Serial.read() : -1;
 
 }
 
+/**
+ * Main loop
+ */
 void mainLoop() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -194,7 +175,7 @@ void mainLoop() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (effect == Effect::GlowWorm) {
 #endif
-    if (!led_state) led_state = true;
+    if (!ledManager.led_state) ledManager.led_state = true;
 
     for (i = 0; i < prefixLength; ++i) {
       waitLoop:
@@ -268,9 +249,9 @@ void mainLoop() {
     }
 
     // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
-    if (fireflyEffect != 0 && fireflyEffectInUse != fireflyEffect) {
-      fireflyEffectInUse = fireflyEffect;
-      switch (fireflyEffectInUse) {
+    if (fireflyEffect != 0 && ledManager.fireflyEffectInUse != fireflyEffect) {
+      ledManager.fireflyEffectInUse = fireflyEffect;
+      switch (ledManager.fireflyEffectInUse) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
         case 1:
       case 2:
@@ -286,7 +267,7 @@ void mainLoop() {
         case 10: effect = Effect::rainbow; break;
         case 11: effect = Effect::chase_rainbow; break;
         case 12: effect = Effect::solid_rainbow; break;
-        case 100: fireflyEffectInUse = 0; break;
+        case 100: ledManager.fireflyEffectInUse = 0; break;
       }
     }
 
@@ -302,7 +283,7 @@ void mainLoop() {
       g = serialRead();
       while (!breakLoop && !Serial.available()) networkManager.checkConnection();
       b = serialRead();
-      if (fireflyEffectInUse <= 5) {
+      if (ledManager.fireflyEffectInUse <= 5) {
         ledManager.setPixelColor(i, r, g, b);
       }
     }
@@ -357,7 +338,7 @@ void mainLoop() {
 }
 
 /**
- * Pinned on CORE1 on ESP32, max performance with Serial
+ * Loop
  */
 void loop() {
 
@@ -388,8 +369,3 @@ void loop() {
 #endif
 
 }
-
-
-
-
-

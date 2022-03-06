@@ -25,74 +25,60 @@
 #include <NeoPixelAnimator.h>
 #include "Globals.h"
 
-
 const String LED_NUM_PARAM = "lednum";
 const String LED_NUM_FILENAME = "led_number.json";
 const String WHITE_TEMP_PARAM = "whitetemp";
 const String WHITE_TEMP_FILENAME = "whitetemp.json";
 
-
 class LedManager {
 
+  public:
 
-
-
-private:
-//    RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b);
-//    RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b);
-
-
-public:
-    /**
- * Dynamic PIN Template
- */
 #if defined(ESP32)
-    NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32 = NULL; // Hardware, ALL GPIO, yes serial read/write
-NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32Rgbw = NULL; // Hardware, ALL GPIO, yes serial read/write
+      NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32 = NULL; // Hardware, ALL GPIO, yes serial read/write
+      NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32Rgbw = NULL; // Hardware, ALL GPIO, yes serial read/write
 #else
-    NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *ledsDma = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
-    NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod> *ledsDmaRgbw = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
-    NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod> *ledsUart = NULL; // Hardware UART, GPIO2, yes serial read/write
-    NeoPixelBus<NeoGrbwFeature, NeoEsp8266Uart1800KbpsMethod> *ledsUartRgbw = NULL; // Hardware UART, GPIO2, yes serial read/write
-    NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
-    NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandardRgbw = NULL; // No hardware, ALL GPIO, yes serial read/write
+      NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *ledsDma = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
+      NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod> *ledsDmaRgbw = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
+      NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod> *ledsUart = NULL; // Hardware UART, GPIO2, yes serial read/write
+      NeoPixelBus<NeoGrbwFeature, NeoEsp8266Uart1800KbpsMethod> *ledsUartRgbw = NULL; // Hardware UART, GPIO2, yes serial read/write
+      NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
+      NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandardRgbw = NULL; // No hardware, ALL GPIO, yes serial read/write
 #endif
-//TODO
-    CRGB leds[511];
+      CRGB leds[511];
+      const String COLOR_MODE_FILENAME = "color_mode.json";
+      const String COLOR_MODE_PARAM = "colorMode";
+      const String EFFECT_FILENAME = "effect.json";
+      uint16_t dynamicLedNum = 511;
+      uint8_t whiteTempInUse;
+      byte red = 255;
+      byte green = 255;
+      byte blue = 255;
+      bool stateOn = false;
+      const __FlashStringHelper* effectParam;
+      boolean reinitLEDTriggered = false;
+      uint lastLedUpdate = 10000;
+      bool led_state = true;
+      uint8_t fireflyEffectInUse;
 
-    const String COLOR_MODE_FILENAME = "color_mode.json";
-    const String COLOR_MODE_PARAM = "colorMode";
-    uint16_t dynamicLedNum = 511;
-    uint8_t whiteTempInUse;
-    byte red = 255;
-    byte green = 255;
-    byte blue = 255;
-    bool stateOn = false;
-    const __FlashStringHelper* effectParam;
-    boolean reinitLEDTriggered = false;
-    uint lastLedUpdate = 10000;
-
-
-    void cleanLEDs();
-    void initEsp32();
-    void initEsp32Rgbw();
-    void initLeds();
-    void initStandard();
-    void initStandardRgbw();
-    void initUart();
-    void initUartRgbw();
-    void initDma();
-    void initDmaRgbw();
-    void ledShow();
-    void setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b);
-    void setColorMode(int colorModeToUse);
-    void setColorModeInit(uint8_t newColorMode);
-    void setTemperature(int whitetemp);
-    void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
-    void setNumLed(int numLedFromLuciferin);
-    void setWhiteTemp(int whiteTemp);
-
-
+      void cleanLEDs();
+      void initEsp32();
+      void initEsp32Rgbw();
+      void initLeds();
+      void initStandard();
+      void initStandardRgbw();
+      void initUart();
+      void initUartRgbw();
+      void initDma();
+      void initDmaRgbw();
+      void ledShow();
+      void setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b);
+      void setColorMode(int colorModeToUse);
+      void setColorModeInit(uint8_t newColorMode);
+      void setTemperature(int whitetemp);
+      void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
+      void setNumLed(int numLedFromLuciferin);
+      void setWhiteTemp(int whiteTemp);
 
 };
 

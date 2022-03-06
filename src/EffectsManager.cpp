@@ -20,6 +20,13 @@
 
 #include "EffectsManager.h"
 
+/**
+ * Fire effect
+ * @param cooling config effect param
+ * @param sparking config effect param
+ * @param speedDelay config effect param
+ * @param dynamicLedNum config effect param
+ */
 void EffectsManager::fire(int cooling, int sparking, int speedDelay, int dynamicLedNum) {
 
   static byte heat[NUM_LEDS];
@@ -64,6 +71,13 @@ void EffectsManager::fire(int cooling, int sparking, int speedDelay, int dynamic
 
 }
 
+/**
+ * Twinkle effect
+ * @param count config effect param
+ * @param speedDelay config effect param
+ * @param onlyOne config effect param
+ * @param dynamicLedNum config effect param
+ */
 void EffectsManager::twinkleRandom(int count, int speedDelay, boolean onlyOne, int dynamicLedNum) {
 
   ledManager.setColor(1, 1, 1);
@@ -79,6 +93,10 @@ void EffectsManager::twinkleRandom(int count, int speedDelay, boolean onlyOne, i
 
 }
 
+/**
+ * Theater chase rainbow effect
+ * @param dynamicLedNum number of leds
+ */
 void EffectsManager::theaterChaseRainbow(int dynamicLedNum) {
 
   // cycle all 256 colors in the wheel
@@ -115,6 +133,10 @@ void EffectsManager::theaterChaseRainbow(int dynamicLedNum) {
   }
 }
 
+/**
+ * Mixed Rainbow effect
+ * @param dynamicLedNum number of leds
+ */
 void EffectsManager::mixedRainbow(int dynamicLedNum) {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -140,7 +162,11 @@ void EffectsManager::mixedRainbow(int dynamicLedNum) {
 
 }
 
-// WS2812B LED Strip switches Red and Green
+/**
+ * Scroll effect WS2812B LED Strip switches Red and Green
+ * @param pos config param
+ * @return color
+ */
 CRGB EffectsManager::scroll(int pos) {
   CRGB color(0, 0, 0);
   if (pos < 85) {
@@ -159,6 +185,11 @@ CRGB EffectsManager::scroll(int pos) {
   return color;
 }
 
+/**
+ * BPM effect
+ * @param currentPalette config param
+ * @param targetPalette config param
+ */
 void EffectsManager::bpm(CRGBPalette16 currentPalette, CRGBPalette16 targetPalette) {
 
   uint8_t BeatsPerMinute = 62;
@@ -185,6 +216,10 @@ void EffectsManager::bpm(CRGBPalette16 currentPalette, CRGBPalette16 targetPalet
 
 }
 
+/**
+ * Rainbow effect
+ * @param dynamicLedNum number of leds
+ */
 void EffectsManager::rainbow(int dynamicLedNum) {
 
   // FastLED's built-in rainbow generator
@@ -197,6 +232,10 @@ void EffectsManager::rainbow(int dynamicLedNum) {
 
 }
 
+/**
+ * Solid rainbow effect
+ * @param dynamicLedNum number of leds
+ */
 void EffectsManager::solidRainbow(int dynamicLedNum) {
 
   // FastLED's built-in rainbow generator

@@ -24,16 +24,15 @@
 #include "NetworkManager.h"
 
 BootstrapManager bootstrapManager;
-
 EffectsManager effectsManager;
 LedManager ledManager;
 NetworkManager networkManager;
-
 Helpers helper;
 Globals globals;
 
-uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, fireflyColorMode, i;
-uint8_t prefixLength = 6;
+// DPsoftware checksum for serial
+uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
+                    fireflyEffect, fireflyColorMode, i, prefixLength = 6;
 uint8_t gpioInUse = 2;
 uint8_t colorMode = 0;
 byte brightness = 255;
@@ -45,8 +44,6 @@ uint lastStream = 0;
 uint8_t baudRateInUse = 3;
 bool relayState = false;
 bool breakLoop = false;
-
-
 
 /**
  * Set gpio received by the Firefly Luciferin software
@@ -70,6 +67,11 @@ void Globals::setGpio(int gpio) {
 
 }
 
+/**
+ * Set the baudrate on the microcontroller
+ * @param baudRate supported baud rate
+ * @return baudrate index
+ */
 int Globals::setBaudRateInUse(int baudRate) {
 
   baudRateInUse = baudRate;
@@ -171,7 +173,6 @@ void Globals::sendSerialInfo() {
     Serial.printf("baudrate:%d\n", baudRateInUse);
     Serial.printf("effect:%d\n", effect);
     Serial.printf("colorMode:%d\n", colorMode);
-
   }
 
 }

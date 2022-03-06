@@ -77,7 +77,9 @@ void LedManager::ledShow() {
  * @return corrected brightness
  */
 uint8_t applyBrightnessCorrection(int c) {
+
   return (c && brightness) > 0 ? (c*((brightness*100)/255))/100 : c;
+
 }
 
 /**
@@ -86,7 +88,9 @@ uint8_t applyBrightnessCorrection(int c) {
  * @return corrected temperature
  */
 uint8_t applyWhiteTempRed(uint8_t r) {
+
   return r > 0 ? applyBrightnessCorrection((whiteTempCorrection[0] * r) / 255) : r;
+
 }
 /**
  * Apply white temp correction on DMA mode
@@ -94,7 +98,9 @@ uint8_t applyWhiteTempRed(uint8_t r) {
  * @return corrected temperature
  */
 uint8_t applyWhiteTempGreen(uint8_t g) {
+
   return g > 0 ? applyBrightnessCorrection((whiteTempCorrection[1] * g) / 255) : g;
+
 }
 /**
  * Apply white temp correction on DMA mode
@@ -102,17 +108,32 @@ uint8_t applyWhiteTempGreen(uint8_t g) {
  * @return corrected temperature
  */
 uint8_t applyWhiteTempBlue(uint8_t b) {
+
   return b > 0 ? applyBrightnessCorrection((whiteTempCorrection[2] * b) / 255) : b;
+
 }
 
-
-
+/**
+ * Apply white temp correction on RGB color
+ * @param r red channel
+ * @param g green channel
+ * @param b blue channel
+ * @return RGB color
+ */
 RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
 
   return RgbColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b));
 
 }
 
+/**
+ * Apply white temp correction on RGB color and calculate W channel
+ * colorMode can be: 0 = RGB, 1 = RGBW Accurate, 2 = RGBW Brighter, 3 = RGBW RGB only
+ * @param r red channel
+ * @param g green channel
+ * @param b blue channel
+ * @return RGBW color
+ */
 RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
 
   uint8_t w;
@@ -144,7 +165,6 @@ void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) 
     case 2:
     case 3: rgbwColor = calculateRgbwMode(r, g, b); break;
   }
-
 #if defined(ESP32)
   switch (colorMode) {
     case 0: ledsEsp32->SetPixelColor(index, rgbColor); break;
@@ -152,7 +172,6 @@ void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) 
     case 2:
     case 3: ledsEsp32Rgbw->SetPixelColor(index, rgbwColor); break;
   }
-
 #else
   if (gpioInUse == 3) {
     switch (colorMode) {
@@ -239,10 +258,13 @@ void LedManager::cleanLEDs() {
 
 }
 
+/**
+ * Init led strip. No hardware, ALL GPIO, yes serial read/write
+ */
 void LedManager::initStandard() {
+
 #if defined(ESP8266)
   Serial.println(F("Using Standard"));
-
   cleanLEDs();
   ledsStandard = new NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, 5); // and recreate with new count
   if (ledsStandard == NULL) {
@@ -251,17 +273,20 @@ void LedManager::initStandard() {
   while (!Serial); // wait for serial attach
   Serial.println();
   Serial.println(F("Initializing..."));
-
   Serial.flush();
   ledsStandard->Begin();
   ledsStandard->Show();
 #endif
+
 }
 
+/**
+ * Init led strip RGBW. No hardware, ALL GPIO, yes serial read/write
+ */
 void LedManager::initStandardRgbw() {
+
 #if defined(ESP8266)
   Serial.println(F("Using Standard RGBW"));
-
   cleanLEDs();
   ledsStandardRgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, 5); // and recreate with new count
   if (ledsStandardRgbw == NULL) {
@@ -275,12 +300,16 @@ void LedManager::initStandardRgbw() {
   ledsStandardRgbw->Begin();
   ledsStandardRgbw->Show();
 #endif
+
 }
 
+/**
+ * Init led strip RGB. Hardware UART, GPIO2, yes serial read/writeHardware UART, GPIO2, yes serial read/write
+ */
 void LedManager::initUart() {
+
 #if defined(ESP8266)
   Serial.println(F("Using UART"));
-
   cleanLEDs();
   ledsUart = new NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
   if (ledsUart == NULL) {
@@ -289,17 +318,20 @@ void LedManager::initUart() {
   while (!Serial); // wait for serial attach
   Serial.println();
   Serial.println(F("Initializing..."));
-
   Serial.flush();
   ledsUart->Begin();
   ledsUart->Show();
 #endif
+
 }
 
+/**
+ * Init led strip RGBW. Hardware UART, GPIO2, yes serial read/write
+ */
 void LedManager::initUartRgbw() {
+
 #if defined(ESP8266)
   Serial.println(F("Using UART RGBW"));
-
   cleanLEDs();
   ledsUartRgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
   if (ledsUartRgbw == NULL) {
@@ -308,17 +340,20 @@ void LedManager::initUartRgbw() {
   while (!Serial); // wait for serial attach
   Serial.println();
   Serial.println(F("Initializing..."));
-
   Serial.flush();
   ledsUartRgbw->Begin();
   ledsUartRgbw->Show();
 #endif
+
 }
 
+/**
+ * Init led strip RGB. Hardware DMA, GPIO3, no serial read, yes serial write
+ */
 void LedManager::initDma() {
+
 #if defined(ESP8266)
   Serial.println(F("Using DMA"));
-
   cleanLEDs();
   ledsDma = new NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
   if (ledsDma == NULL) {
@@ -326,17 +361,20 @@ void LedManager::initDma() {
   }
   Serial.println();
   Serial.println(F("Initializing..."));
-
   Serial.flush();
   ledsDma->Begin();
   ledsDma->Show();
 #endif
+
 }
 
+/**
+ * Init led strip RGBW. Hardware DMA, GPIO3, no serial read, yes serial write
+ */
 void LedManager::initDmaRgbw() {
+
 #if defined(ESP8266)
   Serial.println(F("Using DMA RGBW"));
-
   cleanLEDs();
   ledsDmaRgbw = new NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
   if (ledsDmaRgbw == NULL) {
@@ -344,14 +382,18 @@ void LedManager::initDmaRgbw() {
   }
   Serial.println();
   Serial.println(F("Initializing..."));
-
   Serial.flush();
   ledsDmaRgbw->Begin();
   ledsDmaRgbw->Show();
 #endif
+
 }
 
+/**
+ * Init led strip RGB. Hardware, ALL GPIO, yes serial read/write
+ */
 void LedManager::initEsp32() {
+
 #if defined(ESP32)
   Serial.println(F("Using DMA"));
   cleanLEDs();
@@ -365,9 +407,14 @@ void LedManager::initEsp32() {
   ledsEsp32->Begin();
   ledsEsp32->Show();
 #endif
+
 }
 
+/**
+ * Init led strip RGBW. Hardware, ALL GPIO, yes serial read/write
+ */
 void LedManager::initEsp32Rgbw() {
+
 #if defined(ESP32)
   Serial.println(F("Using DMA"));
   cleanLEDs();
@@ -381,6 +428,7 @@ void LedManager::initEsp32Rgbw() {
   ledsEsp32Rgbw->Begin();
   ledsEsp32Rgbw->Show();
 #endif
+
 }
 
 /**
@@ -394,7 +442,6 @@ void LedManager::initLeds() {
     case 2:
     case 3: initEsp32Rgbw(); break;
   }
-
   if (gpioInUse == 3) {
     switch (colorMode) {
       case 0: initDma(); break;
@@ -403,7 +450,6 @@ void LedManager::initLeds() {
       case 3: initDmaRgbw(); break;
     }
   } else if (gpioInUse == 2) {
-
     switch (colorMode) {
       case 0: initUart(); break;
       case 1:
@@ -411,7 +457,6 @@ void LedManager::initLeds() {
       case 3: initUartRgbw(); break;
     }
   } else {
-
     switch (colorMode) {
       case 0: initStandard(); break;
       case 1:
@@ -445,6 +490,10 @@ void LedManager::setColorMode(int colorModeToUse) {
 
 }
 
+/**
+ * Set color mode, store it, reinit led strip
+ * @param newColorMode color mode to use
+ */
 void LedManager::setColorModeInit(uint8_t newColorMode) {
 
   if (colorMode != newColorMode) {

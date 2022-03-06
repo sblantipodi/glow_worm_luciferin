@@ -24,8 +24,6 @@ uint16_t NetworkManager::part = 1;
 boolean NetworkManager::firmwareUpgrade = false;
 size_t NetworkManager::updateSize = 0;
 String NetworkManager::fpsData;
-//char NetworkManager::START_FF[] = "{\"state\":\"ON\",\"startStopInstances\":\"PLAY\"}";
-//char NetworkManager::STOP_FF[] = "{\"state\":\"ON\",\"startStopInstances\":\"STOP\"}";
 
 /**
  * Parse UDP packet
@@ -348,7 +346,6 @@ void NetworkManager::listenOnHttpGet() {
 #if defined(ESP8266) || defined(ESP32)
       ESP.restart();
 #endif
-
   });
 
   server.begin();
@@ -359,18 +356,22 @@ void NetworkManager::listenOnHttpGet() {
  * Stop UDP broadcast while serving pages
  */
 void NetworkManager::stopUDP() {
+
   networkManager.UDP.stop();
   networkManager.servingWebPages = true;
   delay(10);
+
 }
 
 /*
  * Start UDP broadcast while serving pages
  */
 void NetworkManager::startUDP() {
+
   delay(10);
   networkManager.servingWebPages = false;
   networkManager.UDP.begin(UDP_PORT);
+
 }
 
 /**
@@ -482,8 +483,6 @@ void NetworkManager::fromMqttStreamToStrip(char *payload) {
   }
 
 }
-
-
 
 /**
  * [DEPRECATED] Stream RGB in JSON format
@@ -841,9 +840,7 @@ void NetworkManager::sendStatus() {
         networkManager.broadcastUDP.endPacket();
       }
     }
-
   }
-
   // Built in led triggered
   ledTriggered = true;
 
@@ -1002,7 +999,6 @@ void NetworkManager::swapTopicSubscribe() {
   bootstrapManager.subscribe(networkManager.unsubscribeTopic.c_str());
 
 }
-
 
 #endif
 

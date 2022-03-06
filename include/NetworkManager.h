@@ -31,16 +31,19 @@ const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one
 
 class NetworkManager {
 
-private:
-
-
-public:
+  public:
 
     WiFiUDP UDP;
     WiFiUDP broadcastUDP;
 
     #define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
     #define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
+    char packet[UDP_MAX_BUFFER_SIZE];
+    char packetBroadcast[UDP_MAX_BUFFER_SIZE];
+    static const uint16_t FIRST_CHUNK = 170;
+    static const uint16_t SECOND_CHUNK = 340;
+    static const uint16_t THIRD_CHUNK = 510;
+    static uint16_t part;
 
     String prefsTopic = "/prefs";
     String lightStateTopic = "lights/glowwormluciferin";
@@ -59,21 +62,13 @@ public:
     String topicInUse = "glowwormluciferin";
     const String MQTT_PARAM = "mqttopic";
     const String TOPIC_FILENAME = "topic.json";
-
     bool JSON_STREAM = false; // DEPRECATED
     bool servingWebPages = false;
 
     IPAddress remoteBroadcastPort;
-    char packet[UDP_MAX_BUFFER_SIZE];
-    char packetBroadcast[UDP_MAX_BUFFER_SIZE];
-    static const uint16_t FIRST_CHUNK = 170;
-    static const uint16_t SECOND_CHUNK = 340;
-    static const uint16_t THIRD_CHUNK = 510;
-    static uint16_t part;
-    // Upgrade firmware
+
     static boolean firmwareUpgrade;
     static size_t updateSize;
-
     static String fpsData; // save space on default constructor
     String prefsData; // save space on default constructor
     char START_FF[50] = "{\"state\":\"ON\",\"startStopInstances\":\"PLAY\"}";
@@ -104,13 +99,6 @@ public:
     static void manageHardwareButton();
     static void sendStatus();
     void checkConnection();
-
-
-
-
-
-
-
 
 };
 
