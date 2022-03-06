@@ -57,10 +57,21 @@ NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32Rgbw = NULL; //
     NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandardRgbw = NULL; // No hardware, ALL GPIO, yes serial read/write
 #endif
+//TODO
+    CRGB leds[511];
+
     const String COLOR_MODE_FILENAME = "color_mode.json";
     const String COLOR_MODE_PARAM = "colorMode";
     uint16_t dynamicLedNum = 511;
     uint8_t whiteTempInUse;
+    byte red = 255;
+    byte green = 255;
+    byte blue = 255;
+    bool stateOn = false;
+    const __FlashStringHelper* effectParam;
+    boolean reinitLEDTriggered = false;
+    uint lastLedUpdate = 10000;
+
 
     void cleanLEDs();
     void initEsp32();
@@ -80,6 +91,7 @@ NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32Rgbw = NULL; //
     void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
     void setNumLed(int numLedFromLuciferin);
     void setWhiteTemp(int whiteTemp);
+
 
 
 };

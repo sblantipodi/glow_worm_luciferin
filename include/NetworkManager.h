@@ -22,6 +22,8 @@
 #define GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H
 
 #include <Arduino.h>
+#include "Version.h"
+#include "WebSettings.h"
 #include "Globals.h"
 
 const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Firefly Luciferin
@@ -55,15 +57,58 @@ public:
     const char *BASE_TOPIC = "glowwormluciferin";
     const char *GET_SETTINGS = "/getsettings";
     String topicInUse = "glowwormluciferin";
+    const String MQTT_PARAM = "mqttopic";
+    const String TOPIC_FILENAME = "topic.json";
+
     bool JSON_STREAM = false; // DEPRECATED
     bool servingWebPages = false;
 
     IPAddress remoteBroadcastPort;
     char packet[UDP_MAX_BUFFER_SIZE];
     char packetBroadcast[UDP_MAX_BUFFER_SIZE];
+    static const uint16_t FIRST_CHUNK = 170;
+    static const uint16_t SECOND_CHUNK = 340;
+    static const uint16_t THIRD_CHUNK = 510;
+    static uint16_t part;
+    // Upgrade firmware
+    static boolean firmwareUpgrade;
+    static size_t updateSize;
+
+    static String fpsData; // save space on default constructor
+    String prefsData; // save space on default constructor
+    char START_FF[50] = "{\"state\":\"ON\",\"startStopInstances\":\"PLAY\"}";
+    char STOP_FF[50] = "{\"state\":\"ON\",\"startStopInstances\":\"STOP\"}";
 
     void getUDPStream();
     void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
+    static void fromMqttStreamToStrip(char *payload);
+    void httpCallback(bool (*callback)());
+    void listenOnHttpGet();
+    void startUDP();
+    void stopUDP();
+    void swapTopicUnsubscribe();
+    void swapTopicReplace(String customtopic);
+    void swapTopicSubscribe();
+    static bool processUpdate();
+    static bool processMqttUpdate();
+    static bool processJson();
+    static bool processFirmwareConfig();
+    static bool processGlowWormLuciferinRebootCmnd();
+    static bool processUnSubscribeStream();
+    bool swapMqttTopic();
+    static void jsonStream(byte *payload, unsigned int length);
+    static void manageDisconnections();
+    static void manageQueueSubscription();
+    void executeMqttSwap(String customtopic);
+    static void callback(char* topic, byte* payload, unsigned int length);
+    static void manageHardwareButton();
+    static void sendStatus();
+    void checkConnection();
+
+
+
+
+
 
 
 

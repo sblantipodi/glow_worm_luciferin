@@ -53,13 +53,13 @@ public:
 
     void theaterChaseRainbow(int dynamicLedNum);
 
-    void mixedRainbow(void (*checkConnectionCallback)(), CRGB leds[NUM_LEDS], int dynamicLedNum);
+    void mixedRainbow(int dynamicLedNum);
 
-    void bpm(CRGB leds[NUM_LEDS], CRGBPalette16 currentPalette, CRGBPalette16 targetPalette);
+    void bpm(CRGBPalette16 currentPalette, CRGBPalette16 targetPalette);
 
-    void rainbow(CRGB leds[NUM_LEDS], int dynamicLedNum);
+    void rainbow(int dynamicLedNum);
 
-    void solidRainbow(CRGB leds[NUM_LEDS], int dynamicLedNum);
+    void solidRainbow(int dynamicLedNum);
 
 };
 

@@ -26,11 +26,23 @@
 #include "LedManager.h"
 #include "NetworkManager.h"
 
+#if defined(ESP32)
+#define RELAY_PIN_DIG 23 // equals to Q4
+#define RELAY_PIN_PICO 22
+#elif defined(ESP8266)
+#define RELAY_PIN 12
+#endif
+
 extern class BootstrapManager bootstrapManager;
 extern class EffectsManager effectsManager;
 extern class LedManager ledManager;
 extern class NetworkManager networkManager;
 extern class Helpers helper;
+extern class Globals globals;
+
+extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, fireflyColorMode, i;
+extern uint8_t prefixLength;
+
 extern uint8_t gpioInUse;
 extern uint8_t colorMode;
 extern byte brightness;
@@ -40,6 +52,26 @@ extern Effect effect;
 extern float framerate;
 extern float framerateCounter;
 extern uint lastStream;
+const String GPIO_PARAM = "gpio";
+const String GPIO_FILENAME = "gpio.json";
+const String BAUDRATE_PARAM = "baudrate";
+const String BAUDRATE_FILENAME = "baudrate.json";
+
+extern uint8_t baudRateInUse;
+extern bool relayState;
+extern bool breakLoop;
+
+class Globals {
+
+public:
+    void setGpio(int gpio);
+    void setBaudRate(int baudRate);
+    int setBaudRateInUse(int baudRate);
+    void turnOffRelay();
+    void turnOnRelay();
+    void sendSerialInfo();
+
+};
 
 
 #endif

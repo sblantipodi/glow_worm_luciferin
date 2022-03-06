@@ -115,8 +115,7 @@ void EffectsManager::theaterChaseRainbow(int dynamicLedNum) {
   }
 }
 
-void EffectsManager::mixedRainbow(void (*checkConnectionCallback)(),
-                                  CRGB leds[NUM_LEDS], int dynamicLedNum) {
+void EffectsManager::mixedRainbow(int dynamicLedNum) {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (millis() - lastAnim >= 10) {
@@ -128,10 +127,10 @@ void EffectsManager::mixedRainbow(void (*checkConnectionCallback)(),
 #endif
   if (mixedRainboxIndex < 256) {
     for (int i = 0; i < dynamicLedNum; i++) {
-      leds[i] = scroll((i * 256 / dynamicLedNum + mixedRainboxIndex) % 256);
-      ledManager.setPixelColor(i, leds[i].r, leds[i].g, leds[i].b);
+      ledManager.leds[i] = scroll((i * 256 / dynamicLedNum + mixedRainboxIndex) % 256);
+      ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-      checkConnectionCallback();
+      networkManager.checkConnection();
 #endif
     }
     ledManager.ledShow();
@@ -160,14 +159,14 @@ CRGB EffectsManager::scroll(int pos) {
   return color;
 }
 
-void EffectsManager::bpm(CRGB leds[NUM_LEDS], CRGBPalette16 currentPalette, CRGBPalette16 targetPalette) {
+void EffectsManager::bpm(CRGBPalette16 currentPalette, CRGBPalette16 targetPalette) {
 
   uint8_t BeatsPerMinute = 62;
   CRGBPalette16 palette = PartyColors_p;
   uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
   for (int i = 0; i < NUM_LEDS; i++) { //9948
-    leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-    ledManager.setPixelColor(i, leds[i].r, leds[i].g, leds[i].b);
+    ledManager.leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+    ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
   }
   ledManager.ledShow();
 
@@ -186,24 +185,25 @@ void EffectsManager::bpm(CRGB leds[NUM_LEDS], CRGBPalette16 currentPalette, CRGB
 
 }
 
-void EffectsManager::rainbow(CRGB leds[NUM_LEDS], int dynamicLedNum) {
+void EffectsManager::rainbow(int dynamicLedNum) {
 
   // FastLED's built-in rainbow generator
   thishue++;
-  fill_rainbow(leds, dynamicLedNum, thishue, deltahue);
+  fill_rainbow(ledManager.leds, dynamicLedNum, thishue, deltahue);
   for (int i = 0; i < dynamicLedNum; i++) {
-    ledManager.setPixelColor(i, leds[i].r, leds[i].g, leds[i].b);
+    ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
   }
   ledManager.ledShow();
 
 }
 
-void EffectsManager::solidRainbow(CRGB leds[NUM_LEDS], int dynamicLedNum) {
+void EffectsManager::solidRainbow(int dynamicLedNum) {
 
   // FastLED's built-in rainbow generator
-  fill_solid(leds, dynamicLedNum, CHSV(thishue, 255, 255));
+  fill_solid(ledManager.leds, dynamicLedNum, CHSV(thishue, 255, 255));
+  fill_solid(ledManager.leds, dynamicLedNum, CHSV(thishue, 255, 255));
   for (int i = 0; i < dynamicLedNum; i++) {
-    ledManager.setPixelColor(i, leds[i].r, leds[i].g, leds[i].b);
+    ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
   }
   if (millis()-lastAnimSolidRainbow >= 90) {
     lastAnimSolidRainbow = millis();
