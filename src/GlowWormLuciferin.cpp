@@ -232,7 +232,7 @@ void mainLoop() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
     if (!relayState) {
-      turnOnRelay();
+      globals.turnOnRelay();
     }
 #endif
 

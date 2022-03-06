@@ -576,7 +576,7 @@ void NetworkManager::jsonStream(byte *payload, unsigned int length) {
  * @param json StaticJsonDocument
  * @return true if mqtt has been swapper and need reboot
  */
-bool NetworkManager::swapMqttTopic() {
+boolean NetworkManager::swapMqttTopic() {
 
   boolean reboot = false;
   if (bootstrapManager.jsonDoc.containsKey(MQTT_PARAM)) {
@@ -633,7 +633,8 @@ bool NetworkManager::processFirmwareConfig() {
       }
       // SWAP TOPIC
       //TODO
-      boolean topicRestart = swapMqttTopic();
+      NetworkManager networkManagerTemp;
+      boolean topicRestart = networkManagerTemp.swapMqttTopic();
       if (topicRestart) espRestart = true;
       // Restart if needed
       if (ledManager.reinitLEDTriggered) {
@@ -1031,9 +1032,9 @@ void NetworkManager::checkConnection() {
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
   EVERY_N_SECONDS(15) {
     // No updates since 15 seconds, turn off LEDs
-    if(millis() > lastLedUpdate + 10000){
+    if(millis() > ledManager.lastLedUpdate + 10000){
       ledManager.setColor(0, 0, 0);
-      turnOffRelay();
+      globals.turnOffRelay();
     }
   }
 #endif
