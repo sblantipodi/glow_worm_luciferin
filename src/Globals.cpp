@@ -52,6 +52,9 @@ bool breakLoop = false;
 void Globals::setGpio(int gpio) {
 
   Serial.println("CHANGING GPIO");
+  if (gpio == 0) {
+    gpio = 2;
+  }
   gpioInUse = gpio;
 #if defined(ESP8266)
   DynamicJsonDocument gpioDoc(1024);

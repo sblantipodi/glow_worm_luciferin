@@ -305,8 +305,6 @@ void NetworkManager::listenOnHttpGet() {
       server.sendHeader("Access-Control-Allow-Origin", "*");
       server.send(statusCode, "text/plain", content);
       delay(DELAY_500);
-      ledManager.setColorMode(colorModeParam.toInt());
-      delay(DELAY_500);
 #if defined(ESP8266)
       // Write to LittleFS
       Serial.println(F("Saving setup.json"));
@@ -323,25 +321,35 @@ void NetworkManager::listenOnHttpGet() {
       Serial.println(F("Saving lednum"));
       ledManager.setNumLed(lednum.toInt());
       delay(DELAY_200);
+      Serial.println(F("Saving gpio"));
+      globals.setGpio(additionalParam.toInt());
+      delay(DELAY_200);
 #elif defined(ESP32)
       SPIFFS.format();
-        if (SPIFFS.begin()) {
-            File configFile = SPIFFS.open("/setup.json", "w");
-            if (!configFile) {
-              Serial.println(F("Failed to open [setup.json] file for writing"));
-            } else {
-              serializeJsonPretty(doc, Serial);
-              serializeJson(doc, configFile);
-              configFile.close();
-              Serial.println("[setup.json] written correctly");
-            }
-            Serial.println(F("Saving lednum"));
-            ledManager.setNumLed(lednum.toInt());
-            delay(DELAY_200);
-          } else {
-            Serial.println(F("Failed to mount FS for write"));
-          }
+      delay(DELAY_500);
+      if (SPIFFS.begin()) {
+        File configFile = SPIFFS.open("/setup.json", "w");
+        if (!configFile) {
+          Serial.println(F("Failed to open [setup.json] file for writing"));
+        } else {
+          serializeJsonPretty(doc, Serial);
+          serializeJson(doc, configFile);
+          configFile.close();
+          Serial.println("[setup.json] written correctly");
+        }
+        delay(DELAY_200);
+        Serial.println(F("Saving lednum"));
+        ledManager.setNumLed(lednum.toInt());
+        delay(DELAY_200);
+        Serial.println(F("Saving gpio"));
+        globals.setGpio(additionalParam.toInt());
+        delay(DELAY_200);
+      } else {
+        Serial.println(F("Failed to mount FS for write"));
+      }
 #endif
+      delay(DELAY_500);
+      ledManager.setColorMode(colorModeParam.toInt());
       delay(DELAY_1000);
 #if defined(ESP8266) || defined(ESP32)
       ESP.restart();
@@ -580,12 +588,12 @@ boolean NetworkManager::swapMqttTopic() {
   boolean reboot = false;
   if (bootstrapManager.jsonDoc.containsKey(MQTT_PARAM)) {
     String customtopic = bootstrapManager.jsonDoc[MQTT_PARAM];
-    if (customtopic != networkManager.topicInUse) {
+    if (customtopic != topicInUse) {
       // Write to storage
       Serial.println("SWAPPING MQTT_TOPIC");
-      networkManager.topicInUse = customtopic;
+      topicInUse = customtopic;
       DynamicJsonDocument topicDoc(1024);
-      topicDoc[MQTT_PARAM] = networkManager.topicInUse;
+      topicDoc[MQTT_PARAM] = topicInUse;
 #if defined(ESP8266)
       bootstrapManager.writeToLittleFS(topicDoc, TOPIC_FILENAME);
 #endif
@@ -630,10 +638,17 @@ bool NetworkManager::processFirmwareConfig() {
           espRestart = true;
         }
       }
+      // COLOR_MODE
+      if (bootstrapManager.jsonDoc.containsKey(ledManager.COLOR_MODE_PARAM)) {
+        int colorModeParam = (int) bootstrapManager.jsonDoc[ledManager.COLOR_MODE_PARAM];
+        if (colorMode != colorModeParam) {
+          colorMode = colorModeParam;
+          ledManager.setColorMode(colorMode);
+          ledManager.reinitLEDTriggered = true;
+        }
+      }
       // SWAP TOPIC
-      //TODO
-      NetworkManager networkManagerTemp;
-      boolean topicRestart = networkManagerTemp.swapMqttTopic();
+      boolean topicRestart = networkManager.swapMqttTopic();
       if (topicRestart) espRestart = true;
       // Restart if needed
       if (ledManager.reinitLEDTriggered) {
@@ -695,10 +710,6 @@ bool NetworkManager::processJson() {
     ledManager.red = bootstrapManager.jsonDoc["color"]["r"];
     ledManager.green = bootstrapManager.jsonDoc["color"]["g"];
     ledManager.blue = bootstrapManager.jsonDoc["color"]["b"];
-    if (bootstrapManager.jsonDoc["color"].containsKey("colorMode")) {
-      uint8_t newColorMode = bootstrapManager.jsonDoc["color"]["colorMode"];
-      ledManager.setColorModeInit(newColorMode);
-    }
   }
 
   if (bootstrapManager.jsonDoc.containsKey("brightness")) {

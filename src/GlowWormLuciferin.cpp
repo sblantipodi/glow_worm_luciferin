@@ -40,6 +40,7 @@ void setup() {
 #if defined(ESP32)
   if (!SPIFFS.begin(true)) {
     SPIFFS.format();
+    delay(DELAY_500);
   }
 #endif
   Serial.print(F("BAUDRATE IN USE="));
@@ -93,31 +94,23 @@ void setup() {
       gpioToUse = additionalParam.toInt();
     }
   }
-
   switch (gpioToUse) {
-    case 5:
-      gpioInUse = 5;
-      break;
-    case 3:
-      gpioInUse = 3;
-      break;
-    case 16:
-      gpioInUse = 16;
-      break;
-    default:
-      gpioInUse = 2;
-      break;
+    case 5: gpioInUse = 5; break;
+    case 3: gpioInUse = 3; break;
+    case 16: gpioInUse = 16; break;
+    default: gpioInUse = 2; break;
   }
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
 
+
+  // Color mode from configuration storage
   String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME, ledManager.COLOR_MODE_PARAM);
   if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
     colorMode = colorModeFromStorage.toInt();
-  } else {
-    colorMode = 0;
   }
-
+  Serial.print(F("COLOR_MODE IN USE="));
+  Serial.println(colorMode);
   ledManager.initLeds();
 
 #if defined(ESP8266)
