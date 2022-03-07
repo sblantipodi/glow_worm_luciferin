@@ -138,10 +138,11 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
 
   uint8_t w;
   w = r < g ? (r < b ? r : b) : (g < b ? g : b);
-  // subtract w in accurate mode
   if (colorMode == 1) {
+    // subtract white in accurate mode
     r -= w; g -= w; b -= w;
   } else if (colorMode == 3) {
+    // RGB only, turn off white led
     w = 0;
   }
   return RgbwColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b), w);
