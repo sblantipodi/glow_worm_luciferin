@@ -48,8 +48,8 @@ jobs:
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp8266/firmware.bin
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3          
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
       - name: Save artifact (glowwormluciferinfull_esp8266)
         continue-on-error: true
         env:
