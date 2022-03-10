@@ -46,7 +46,6 @@ extern uint8_t prefixLength;
 extern uint8_t gpioInUse;
 extern uint8_t colorMode;
 extern byte brightness;
-extern uint8_t whiteTempCorrection[];
 enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
 extern Effect effect;
 extern float framerate;

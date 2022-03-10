@@ -57,7 +57,6 @@ void setup() {
   String whiteTempToUse = bootstrapManager.readValueFromFile(WHITE_TEMP_FILENAME, WHITE_TEMP_PARAM);
   if (!whiteTempToUse.isEmpty() && whiteTempToUse != ERROR && whiteTempToUse.toInt() != 0) {
     whiteTemp = ledManager.whiteTempInUse = whiteTempToUse.toInt();
-    ledManager.setTemperature(whiteTemp);
   }
   Serial.print(F("\nUsing White temp="));
   Serial.println(whiteTempToUse);

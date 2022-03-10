@@ -36,7 +36,6 @@ uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, us
 uint8_t gpioInUse = 2;
 uint8_t colorMode = 0;
 byte brightness = 255;
-uint8_t whiteTempCorrection[] = {255, 255, 255};
 Effect effect;
 float framerate = 0;
 float framerateCounter = 0;
@@ -176,6 +175,9 @@ void Globals::sendSerialInfo() {
     Serial.printf("baudrate:%d\n", baudRateInUse);
     Serial.printf("effect:%d\n", effect);
     Serial.printf("colorMode:%d\n", colorMode);
+
+    // TODO
+    Serial.printf("white:%d\n", whiteTemp);
   }
 
 }

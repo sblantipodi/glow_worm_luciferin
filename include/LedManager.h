@@ -75,7 +75,6 @@ class LedManager {
       void setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b);
       void setColorMode(int colorModeToUse);
       void setColorModeInit(uint8_t newColorMode);
-      void setTemperature(int whitetemp);
       void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
       void setNumLed(int numLedFromLuciferin);
       void setWhiteTemp(int whiteTemp);

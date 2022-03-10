@@ -325,9 +325,7 @@ void NetworkManager::listenOnHttpGet() {
       globals.setGpio(additionalParam.toInt());
       delay(DELAY_200);
 #elif defined(ESP32)
-      SPIFFS.format();
-      delay(DELAY_500);
-      if (SPIFFS.begin()) {
+      if (SPIFFS.begin(false)) {
         File configFile = SPIFFS.open("/setup.json", "w");
         if (!configFile) {
           Serial.println(F("Failed to open [setup.json] file for writing"));

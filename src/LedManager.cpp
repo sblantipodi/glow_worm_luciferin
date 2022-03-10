@@ -71,6 +71,31 @@ void LedManager::ledShow() {
 
 }
 
+//get RGB values from color temperature in K (https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html)
+byte* colorKtoRGB(byte* rgb) {
+
+  float r, g, b;
+  float temp = whiteTemp;
+  if (temp <= 66) {
+    r = 255;
+    g = round(99.4708025861 * log(temp) - 161.1195681661);
+    if (temp <= 19) {
+      b = 0;
+    } else {
+      b = round(138.5177312231 * log((temp - 10)) - 305.0447927307);
+    }
+  } else {
+    r = round(329.698727446 * pow((temp - 60), -0.1332047592));
+    g = round(288.1221695283 * pow((temp - 60), -0.0755148492));
+    b = 255;
+  }
+  rgb[0] = (uint8_t) constrain(r, 0, 255);
+  rgb[1] = (uint8_t) constrain(g, 0, 255);
+  rgb[2] = (uint8_t) constrain(b, 0, 255);
+  return rgb;
+
+}
+
 /**
  * Apply brightness correction on DMA mode
  * @param b red channel
@@ -82,36 +107,7 @@ uint8_t applyBrightnessCorrection(int c) {
 
 }
 
-/**
- * Apply white temp correcton on DMA mode
- * @param r red channel
- * @return corrected temperature
- */
-uint8_t applyWhiteTempRed(uint8_t r) {
-
-  return r > 0 ? applyBrightnessCorrection((whiteTempCorrection[0] * r) / 255) : r;
-
-}
-/**
- * Apply white temp correction on DMA mode
- * @param g red channel
- * @return corrected temperature
- */
-uint8_t applyWhiteTempGreen(uint8_t g) {
-
-  return g > 0 ? applyBrightnessCorrection((whiteTempCorrection[1] * g) / 255) : g;
-
-}
-/**
- * Apply white temp correction on DMA mode
- * @param b red channel
- * @return corrected temperature
- */
-uint8_t applyWhiteTempBlue(uint8_t b) {
-
-  return b > 0 ? applyBrightnessCorrection((whiteTempCorrection[2] * b) / 255) : b;
-
-}
+uint16_t lastKelvin = 0;
 
 /**
  * Apply white temp correction on RGB color
@@ -122,7 +118,17 @@ uint8_t applyWhiteTempBlue(uint8_t b) {
  */
 RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
 
-  return RgbColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b));
+  // TODO
+  if (whiteTemp != 40) {
+    byte rgb[] = {r, g, b};
+    if (lastKelvin != whiteTemp) colorKtoRGB(rgb);
+    rgb[0] = ((uint16_t) rgb[0] * r) / 255; // correct R
+    rgb[1] = ((uint16_t) rgb[1] * g) / 255; // correct G
+    rgb[2] = ((uint16_t) rgb[2] * b) / 255; // correct B
+    return RgbColor(rgb[0], rgb[1], rgb[2]);
+  } else {
+    return RgbColor(r, g, b);
+  }
 
 }
 
@@ -145,7 +151,16 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
     // RGB only, turn off white led
     w = 0;
   }
-  return RgbwColor(applyWhiteTempRed(r), applyWhiteTempGreen(g), applyWhiteTempBlue(b), w);
+  if (whiteTemp != 40) {
+    byte rgb[] = {r, g, b};
+    if (lastKelvin != whiteTemp) colorKtoRGB(rgb);
+    rgb[0] = ((uint16_t) rgb[0] * r) /255; // correct R
+    rgb[1] = ((uint16_t) rgb[1] * g) /255; // correct G
+    rgb[2] = ((uint16_t) rgb[2] * b) /255; // correct B
+    return RgbwColor(rgb[0], rgb[1], rgb[2], w);
+  } else {
+    return RgbwColor(r, g, b, w);
+  }
 
 }
 
@@ -509,37 +524,6 @@ void LedManager::setColorModeInit(uint8_t newColorMode) {
 }
 
 /**
- * Set White Temperature for Color Correction
- * @param whitetemp kelvin
- */
-void LedManager::setTemperature(int whitetemp) {
-
-  switch (whitetemp) {
-    case 1: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 255; whiteTempCorrection[2] = 255;  break;
-    case 2: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 147; whiteTempCorrection[2] = 41;  break;
-    case 3: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 197; whiteTempCorrection[2] = 143;  break;
-    case 4: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 214; whiteTempCorrection[2] = 170;  break;
-    case 5: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 241; whiteTempCorrection[2] = 224;  break;
-    case 6: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 250; whiteTempCorrection[2] = 244;  break;
-    case 7: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 255; whiteTempCorrection[2] = 251;  break;
-    case 8: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 255; whiteTempCorrection[2] = 255;  break;
-    case 9: whiteTempCorrection[0] = 201; whiteTempCorrection[1] = 226; whiteTempCorrection[2] = 255;  break;
-    case 10: whiteTempCorrection[0] = 64; whiteTempCorrection[1] = 156; whiteTempCorrection[2] = 255;  break;
-    case 11: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 224; whiteTempCorrection[2] = 229;  break;
-    case 12: whiteTempCorrection[0] = 244; whiteTempCorrection[1] = 255; whiteTempCorrection[2] = 250;  break;
-    case 13: whiteTempCorrection[0] = 212; whiteTempCorrection[1] = 235; whiteTempCorrection[2] = 255;  break;
-    case 14: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 244; whiteTempCorrection[2] = 242;  break;
-    case 15: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 239; whiteTempCorrection[2] = 247;  break;
-    case 16: whiteTempCorrection[0] = 167; whiteTempCorrection[1] = 1; whiteTempCorrection[2] = 255;  break;
-    case 17: whiteTempCorrection[0] = 216; whiteTempCorrection[1] = 247; whiteTempCorrection[2] = 255;  break;
-    case 18: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 209; whiteTempCorrection[2] = 178;  break;
-    case 19: whiteTempCorrection[0] = 242; whiteTempCorrection[1] = 252; whiteTempCorrection[2] = 255;  break;
-    case 20: whiteTempCorrection[0] = 255; whiteTempCorrection[1] = 183; whiteTempCorrection[2] = 76;  break;
-  }
-
-}
-
-/**
  * Set led strip color
  * @param inR red color
  * @param inG green color
@@ -596,7 +580,6 @@ void LedManager::setWhiteTemp(int whiteTemp) {
 
   Serial.println(F("CHANGING WHITE TEMP"));
   whiteTempInUse = whiteTemp;
-  ledManager.setTemperature(whiteTemp);
   DynamicJsonDocument whiteTempDoc(1024);
   whiteTempDoc[WHITE_TEMP_PARAM] = whiteTempInUse;
 #if defined(ESP8266)
