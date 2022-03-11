@@ -714,10 +714,14 @@ bool NetworkManager::processJson() {
     brightness = bootstrapManager.jsonDoc["brightness"];
   }
 
-  if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
-    whiteTemp = bootstrapManager.jsonDoc["whitetemp"];
-    if (whiteTemp != 0 && ledManager.whiteTempInUse != whiteTemp) {
-      ledManager.setWhiteTemp(whiteTemp);
+  if (bootstrapManager.jsonDoc.containsKey("MAC")) {
+    if (bootstrapManager.jsonDoc["MAC"] == MAC) {
+      if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
+        whiteTemp = bootstrapManager.jsonDoc["whitetemp"];
+        if (whiteTemp != 0 && ledManager.whiteTempInUse != whiteTemp) {
+          ledManager.setWhiteTemp(whiteTemp);
+        }
+      }
     }
   }
 
