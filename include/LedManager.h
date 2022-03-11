@@ -29,7 +29,7 @@ const String LED_NUM_PARAM = "lednum";
 const String LED_NUM_FILENAME = "led_number.json";
 const String WHITE_TEMP_PARAM = "whitetemp";
 const String WHITE_TEMP_FILENAME = "whitetemp.json";
-const uint8 WHITE_TEMP_CORRECTION_DISABLE = 65;
+const uint8_t WHITE_TEMP_CORRECTION_DISABLE = 65;
 
 class LedManager {
 
