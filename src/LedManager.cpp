@@ -71,11 +71,16 @@ void LedManager::ledShow() {
 
 }
 
-//get RGB values from color temperature in K (https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html)
+/**
+ * Apply white balance from color temperature in Kelvin
+ * (https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html)
+ * @param rgb RGB channel
+ * @return RGB channel with color correction
+ */
 byte* colorKtoRGB(byte* rgb) {
 
   float r, g, b;
-  float temp = whiteTemp;
+  float temp = whiteTemp - 10;
   if (temp <= 66) {
     r = 255;
     g = round(99.4708025861 * log(temp) - 161.1195681661);
@@ -118,16 +123,15 @@ uint16_t lastKelvin = 0;
  */
 RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
 
-  // TODO
-  if (whiteTemp != 40) {
+  if (whiteTemp != WHITE_TEMP_CORRECTION_DISABLE) {
     byte rgb[] = {r, g, b};
     if (lastKelvin != whiteTemp) colorKtoRGB(rgb);
     rgb[0] = ((uint16_t) rgb[0] * r) / 255; // correct R
     rgb[1] = ((uint16_t) rgb[1] * g) / 255; // correct G
     rgb[2] = ((uint16_t) rgb[2] * b) / 255; // correct B
-    return RgbColor(rgb[0], rgb[1], rgb[2]);
+    return RgbColor(applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2]));
   } else {
-    return RgbColor(r, g, b);
+    return RgbColor(applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b));
   }
 
 }
@@ -151,15 +155,15 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
     // RGB only, turn off white led
     w = 0;
   }
-  if (whiteTemp != 40) {
+  if (whiteTemp != WHITE_TEMP_CORRECTION_DISABLE) {
     byte rgb[] = {r, g, b};
     if (lastKelvin != whiteTemp) colorKtoRGB(rgb);
     rgb[0] = ((uint16_t) rgb[0] * r) /255; // correct R
     rgb[1] = ((uint16_t) rgb[1] * g) /255; // correct G
     rgb[2] = ((uint16_t) rgb[2] * b) /255; // correct B
-    return RgbwColor(rgb[0], rgb[1], rgb[2], w);
+    return RgbwColor(applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2]), applyBrightnessCorrection(w));
   } else {
-    return RgbwColor(r, g, b, w);
+    return RgbwColor(applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b), applyBrightnessCorrection(w));
   }
 
 }
