@@ -175,8 +175,6 @@ void Globals::sendSerialInfo() {
     Serial.printf("baudrate:%d\n", baudRateInUse);
     Serial.printf("effect:%d\n", effect);
     Serial.printf("colorMode:%d\n", colorMode);
-
-    // TODO
     Serial.printf("white:%d\n", whiteTemp);
   }
 

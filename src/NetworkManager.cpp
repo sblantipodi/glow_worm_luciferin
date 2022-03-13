@@ -694,66 +694,59 @@ bool NetworkManager::processJson() {
 
   ledManager.lastLedUpdate = millis();
 
-  if (bootstrapManager.jsonDoc.containsKey("state")) {
-    String state = bootstrapManager.jsonDoc["state"];
-    if (state == ON_CMD) {
-      globals.turnOnRelay();
-      ledManager.stateOn = true;
-    } else if (state == OFF_CMD) {
-      ledManager.stateOn = false;
-    }
-  }
-
-  if (bootstrapManager.jsonDoc.containsKey("color")) {
-    ledManager.red = bootstrapManager.jsonDoc["color"]["r"];
-    ledManager.green = bootstrapManager.jsonDoc["color"]["g"];
-    ledManager.blue = bootstrapManager.jsonDoc["color"]["b"];
-  }
-
-  if (bootstrapManager.jsonDoc.containsKey("brightness")) {
-    brightness = bootstrapManager.jsonDoc["brightness"];
-  }
-
-  if (bootstrapManager.jsonDoc.containsKey("MAC")) {
-    if (bootstrapManager.jsonDoc["MAC"] == MAC) {
-      if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
-        whiteTemp = bootstrapManager.jsonDoc["whitetemp"];
-        if (whiteTemp != 0 && ledManager.whiteTempInUse != whiteTemp) {
-          ledManager.setWhiteTemp(whiteTemp);
-        }
+  if (!bootstrapManager.jsonDoc.containsKey("MAC")
+    || (bootstrapManager.jsonDoc.containsKey("MAC") && bootstrapManager.jsonDoc["MAC"] == MAC)) {
+    if (bootstrapManager.jsonDoc.containsKey("state")) {
+      String state = bootstrapManager.jsonDoc["state"];
+      if (state == ON_CMD) {
+        globals.turnOnRelay();
+        ledManager.stateOn = true;
+      } else if (state == OFF_CMD) {
+        ledManager.stateOn = false;
       }
     }
-  }
-
-  if (bootstrapManager.jsonDoc.containsKey("effect")) {
-    JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
+    if (bootstrapManager.jsonDoc.containsKey("color")) {
+      ledManager.red = bootstrapManager.jsonDoc["color"]["r"];
+      ledManager.green = bootstrapManager.jsonDoc["color"]["g"];
+      ledManager.blue = bootstrapManager.jsonDoc["color"]["b"];
+    }
+    if (bootstrapManager.jsonDoc.containsKey("brightness")) {
+      brightness = bootstrapManager.jsonDoc["brightness"];
+    }
     if (bootstrapManager.jsonDoc.containsKey("MAC")) {
       if (bootstrapManager.jsonDoc["MAC"] == MAC) {
-        if (requestedEffect == "GlowWorm") {
-          effect = Effect::GlowWorm;
-          ledManager.lastLedUpdate = millis();
-        } else if (requestedEffect == "GlowWormWifi") {
-          effect = Effect::GlowWormWifi;
-          lastStream = millis();
+        if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
+          whiteTemp = bootstrapManager.jsonDoc["whitetemp"];
+          if (whiteTemp != 0 && ledManager.whiteTempInUse != whiteTemp) {
+            ledManager.setWhiteTemp(whiteTemp);
+          }
         }
       }
     }
-    else {
-      if (requestedEffect == "bpm") effect = Effect::bpm;
-      else if (requestedEffect == "fire") effect = Effect::fire;
-      else if (requestedEffect == "twinkle") effect = Effect::twinkle;
-      else if (requestedEffect == "rainbow") effect = Effect::rainbow;
-      else if (requestedEffect == "chase rainbow") effect = Effect::chase_rainbow;
-      else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
-      else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
-      else {
-        effect = Effect::solid;
-        breakLoop = true;
-      }
+    if (bootstrapManager.jsonDoc.containsKey("effect")) {
+      JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
+        if (requestedEffect == "bpm") effect = Effect::bpm;
+        else if (requestedEffect == "fire") effect = Effect::fire;
+        else if (requestedEffect == "twinkle") effect = Effect::twinkle;
+        else if (requestedEffect == "rainbow") effect = Effect::rainbow;
+        else if (requestedEffect == "chase rainbow") effect = Effect::chase_rainbow;
+        else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
+        else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
+        else {
+          effect = Effect::solid;
+          breakLoop = true;
+        }
+        if (bootstrapManager.jsonDoc["MAC"] == MAC) {
+          if (requestedEffect == "GlowWorm") {
+            effect = Effect::GlowWorm;
+            ledManager.lastLedUpdate = millis();
+          } else if (requestedEffect == "GlowWormWifi") {
+            effect = Effect::GlowWormWifi;
+            lastStream = millis();
+          }
+        }
     }
-
   }
-
   return true;
 
 }
