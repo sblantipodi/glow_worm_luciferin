@@ -713,8 +713,8 @@ bool NetworkManager::processJson() {
     if (bootstrapManager.jsonDoc.containsKey("brightness")) {
       brightness = bootstrapManager.jsonDoc["brightness"];
     }
-    if (bootstrapManager.jsonDoc.containsKey("MAC")) {
-      if (bootstrapManager.jsonDoc["MAC"] == MAC) {
+    if (bootstrapManager.jsonDoc.containsKey("MAC") || bootstrapManager.jsonDoc.containsKey("allInstances")) {
+      if (bootstrapManager.jsonDoc["MAC"] == MAC || bootstrapManager.jsonDoc.containsKey("allInstances")) {
         if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
           whiteTemp = bootstrapManager.jsonDoc["whitetemp"];
           if (whiteTemp != 0 && ledManager.whiteTempInUse != whiteTemp) {
@@ -825,6 +825,7 @@ void NetworkManager::sendStatus() {
     root[LED_NUM_PARAM] = String(ledManager.dynamicLedNum);
     root[F("gpio")] = gpioInUse;
     root[F("mqttopic")] = networkManager.topicInUse;
+    root[F("whitetemp")] = whiteTemp;
 
     if (effect == Effect::solid && !ledManager.stateOn) {
       ledManager.setColor(0, 0, 0);
