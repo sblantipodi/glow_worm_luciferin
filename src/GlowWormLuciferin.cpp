@@ -56,7 +56,7 @@ void setup() {
   // White temp to use
   String whiteTempToUse = bootstrapManager.readValueFromFile(WHITE_TEMP_FILENAME, WHITE_TEMP_PARAM);
   if (!whiteTempToUse.isEmpty() && whiteTempToUse != ERROR && whiteTempToUse.toInt() != 0) {
-    whiteTemp = ledManager.whiteTempInUse = whiteTempToUse.toInt();
+    whiteTempInUse = whiteTempToUse.toInt();
   }
   Serial.print(F("\nUsing White temp="));
   Serial.println(whiteTempToUse);
@@ -173,7 +173,6 @@ void mainLoop() {
       i = 0;
       goto waitLoop;
     }
-
     while (!breakLoop && !Serial.available()) networkManager.checkConnection();
     hi = serialRead();
     while (!breakLoop && !Serial.available()) networkManager.checkConnection();
@@ -232,8 +231,7 @@ void mainLoop() {
       ESP.restart();
     }
 
-    if (whiteTemp != 0 && ledManager.whiteTempInUse != whiteTemp) {
-      ledManager.whiteTempInUse = whiteTemp;
+    if (whiteTemp != 0 && whiteTempInUse != whiteTemp && (whiteTemp >= 20 && whiteTemp <= 110)) {
       ledManager.setWhiteTemp(whiteTemp);
     }
 
@@ -259,9 +257,9 @@ void mainLoop() {
         case 100: ledManager.fireflyEffectInUse = 0; break;
       }
     }
-
-    ledManager.setColorModeInit(fireflyColorMode);
-
+    if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 4)) {
+      ledManager.setColorModeInit(fireflyColorMode);
+    }
     // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
     // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
     for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {

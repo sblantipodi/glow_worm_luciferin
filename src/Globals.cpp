@@ -34,7 +34,8 @@ Globals globals;
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
                     fireflyEffect, fireflyColorMode, i, prefixLength = 6;
 uint8_t gpioInUse = 2;
-uint8_t colorMode = 0;
+uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
+uint8_t colorMode = 1;
 byte brightness = 255;
 Effect effect;
 float framerate = 0;
@@ -175,7 +176,29 @@ void Globals::sendSerialInfo() {
     Serial.printf("baudrate:%d\n", baudRateInUse);
     Serial.printf("effect:%d\n", effect);
     Serial.printf("colorMode:%d\n", colorMode);
-    Serial.printf("white:%d\n", whiteTemp);
+    Serial.printf("white:%d\n", whiteTempInUse);
+  }
+
+}
+
+/**
+ * Return effect string
+ * @param e effect enum
+ * @return  effect string
+ */
+const char* Globals::effectToString(Effect e) {
+
+  switch (e) {
+    case Effect::bpm: return "bpm";
+    case Effect::fire: return "fire";
+    case Effect::twinkle: return "twinkle";
+    case Effect::rainbow: return "rainbow";
+    case Effect::chase_rainbow: return "chase rainbow";
+    case Effect::solid_rainbow: return "solid rainbow";
+    case Effect::mixed_rainbow: return "mixed rainbow";
+    case Effect::GlowWorm: return "GlowWorm";
+    case Effect::GlowWormWifi: return "GlowWormWifi";
+    default: return "solid";
   }
 
 }

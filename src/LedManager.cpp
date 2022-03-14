@@ -27,42 +27,42 @@ void LedManager::ledShow() {
 
 #if defined(ESP32)
   switch (colorMode) {
-      case 0: ledsEsp32->Show(); break;
-      case 1:
+      case 1: ledsEsp32->Show(); break;
       case 2:
-      case 3: ledsEsp32Rgbw->Show(); break;
+      case 3:
+      case 4: ledsEsp32Rgbw->Show(); break;
     }
 #else
   if (gpioInUse == 3) {
     switch (colorMode) {
-      case 0:
+      case 1:
         ledsDma->Show();
         break;
-      case 1:
       case 2:
       case 3:
+      case 4:
         ledsDmaRgbw->Show();
         break;
     }
   } else if (gpioInUse == 2) {
     switch (colorMode) {
-      case 0:
+      case 1:
         ledsUart->Show();
         break;
-      case 1:
       case 2:
       case 3:
+      case 4:
         ledsUartRgbw->Show();
         break;
     }
   } else {
     switch (colorMode) {
-      case 0:
+      case 1:
         ledsStandard->Show();
         break;
-      case 1:
       case 2:
       case 3:
+      case 4:
         ledsStandardRgbw->Show();
         break;
     }
@@ -80,7 +80,7 @@ void LedManager::ledShow() {
 byte* colorKtoRGB(byte* rgb) {
 
   float r, g, b;
-  float temp = whiteTemp - 10;
+  float temp = whiteTempInUse - 10;
   if (temp <= 66) {
     r = 255;
     g = round(99.4708025861 * log(temp) - 161.1195681661);
@@ -123,9 +123,9 @@ uint16_t lastKelvin = 0;
  */
 RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
 
-  if (whiteTemp != WHITE_TEMP_CORRECTION_DISABLE) {
+  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
     byte rgb[] = {r, g, b};
-    if (lastKelvin != whiteTemp) colorKtoRGB(rgb);
+    if (lastKelvin != whiteTempInUse) colorKtoRGB(rgb);
     rgb[0] = ((uint16_t) rgb[0] * r) / 255; // correct R
     rgb[1] = ((uint16_t) rgb[1] * g) / 255; // correct G
     rgb[2] = ((uint16_t) rgb[2] * b) / 255; // correct B
@@ -138,7 +138,7 @@ RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
 
 /**
  * Apply white temp correction on RGB color and calculate W channel
- * colorMode can be: 0 = RGB, 1 = RGBW Accurate, 2 = RGBW Brighter, 3 = RGBW RGB only
+ * colorMode can be: 1 = RGB, 2 = RGBW Accurate, 3 = RGBW Brighter, 4 = RGBW RGB only
  * @param r red channel
  * @param g green channel
  * @param b blue channel
@@ -148,16 +148,16 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
 
   uint8_t w;
   w = r < g ? (r < b ? r : b) : (g < b ? g : b);
-  if (colorMode == 1) {
+  if (colorMode == 2) {
     // subtract white in accurate mode
     r -= w; g -= w; b -= w;
-  } else if (colorMode == 3) {
+  } else if (colorMode == 4) {
     // RGB only, turn off white led
     w = 0;
   }
-  if (whiteTemp != WHITE_TEMP_CORRECTION_DISABLE) {
+  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
     byte rgb[] = {r, g, b};
-    if (lastKelvin != whiteTemp) colorKtoRGB(rgb);
+    if (lastKelvin != whiteTempInUse) colorKtoRGB(rgb);
     rgb[0] = ((uint16_t) rgb[0] * r) /255; // correct R
     rgb[1] = ((uint16_t) rgb[1] * g) /255; // correct G
     rgb[2] = ((uint16_t) rgb[2] * b) /255; // correct B
@@ -180,39 +180,39 @@ void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) 
   RgbColor rgbColor;
   RgbwColor rgbwColor;
   switch (colorMode) {
-    case 0: rgbColor = calculateRgbMode(r, g, b); break;
-    case 1:
+    case 1: rgbColor = calculateRgbMode(r, g, b); break;
     case 2:
-    case 3: rgbwColor = calculateRgbwMode(r, g, b); break;
+    case 3:
+    case 4: rgbwColor = calculateRgbwMode(r, g, b); break;
   }
 #if defined(ESP32)
   switch (colorMode) {
-    case 0: ledsEsp32->SetPixelColor(index, rgbColor); break;
-    case 1:
+    case 1: ledsEsp32->SetPixelColor(index, rgbColor); break;
     case 2:
-    case 3: ledsEsp32Rgbw->SetPixelColor(index, rgbwColor); break;
+    case 3:
+    case 4: ledsEsp32Rgbw->SetPixelColor(index, rgbwColor); break;
   }
 #else
   if (gpioInUse == 3) {
     switch (colorMode) {
-      case 0: ledsDma->SetPixelColor(index, rgbColor); break;
-      case 1:
+      case 1: ledsDma->SetPixelColor(index, rgbColor); break;
       case 2:
-      case 3: ledsDmaRgbw->SetPixelColor(index, rgbwColor); break;
+      case 3:
+      case 4: ledsDmaRgbw->SetPixelColor(index, rgbwColor); break;
     }
   } else if (gpioInUse == 2) {
     switch (colorMode) {
-      case 0: ledsUart->SetPixelColor(index, rgbColor); break;
-      case 1:
+      case 1: ledsUart->SetPixelColor(index, rgbColor); break;
       case 2:
-      case 3: ledsUartRgbw->SetPixelColor(index, rgbwColor); break;
+      case 3:
+      case 4: ledsUartRgbw->SetPixelColor(index, rgbwColor); break;
     }
   } else {
     switch (colorMode) {
-      case 0: ledsStandard->SetPixelColor(index, rgbColor); break;
-      case 1:
+      case 1: ledsStandard->SetPixelColor(index, rgbColor); break;
       case 2:
-      case 3: ledsStandardRgbw->SetPixelColor(index, rgbwColor); break;
+      case 3:
+      case 4: ledsStandardRgbw->SetPixelColor(index, rgbwColor); break;
     }
   }
 #endif
@@ -457,31 +457,31 @@ void LedManager::initEsp32Rgbw() {
 void LedManager::initLeds() {
 
   switch (colorMode) {
-    case 0: initEsp32(); break;
-    case 1:
+    case 1: initEsp32(); break;
     case 2:
-    case 3: initEsp32Rgbw(); break;
+    case 3:
+    case 4: initEsp32Rgbw(); break;
   }
   if (gpioInUse == 3) {
     switch (colorMode) {
-      case 0: initDma(); break;
-      case 1:
+      case 1: initDma(); break;
       case 2:
-      case 3: initDmaRgbw(); break;
+      case 3:
+      case 4: initDmaRgbw(); break;
     }
   } else if (gpioInUse == 2) {
     switch (colorMode) {
-      case 0: initUart(); break;
-      case 1:
+      case 1: initUart(); break;
       case 2:
-      case 3: initUartRgbw(); break;
+      case 3:
+      case 4: initUartRgbw(); break;
     }
   } else {
     switch (colorMode) {
-      case 0: initStandard(); break;
-      case 1:
+      case 1: initStandard(); break;
       case 2:
-      case 3: initStandardRgbw(); break;
+      case 3:
+      case 4: initStandardRgbw(); break;
     }
   }
 
@@ -519,7 +519,8 @@ void LedManager::setColorModeInit(uint8_t newColorMode) {
   if (colorMode != newColorMode) {
     setColorMode(newColorMode);
   }
-  if ((newColorMode > 0 && colorMode == 0) || (newColorMode == 0 && colorMode > 0)) {
+  // Do not init leds if it is not required (switch from RGB to RGBW or from RGBW to RGB)
+  if ((newColorMode > 1 && colorMode == 1) || (newColorMode == 1 && colorMode > 1)) {
     colorMode = newColorMode;
     initLeds();
   }
@@ -578,14 +579,14 @@ void LedManager::setNumLed(int numLedFromLuciferin) {
 
 /**
  * Set white temp received by the Firefly Luciferin software
- * @param baudRate int
+ * @param wt white temp
  */
-void LedManager::setWhiteTemp(int whiteTemp) {
+void LedManager::setWhiteTemp(int wt) {
 
   Serial.println(F("CHANGING WHITE TEMP"));
-  whiteTempInUse = whiteTemp;
+  whiteTempInUse = wt;
   DynamicJsonDocument whiteTempDoc(1024);
-  whiteTempDoc[WHITE_TEMP_PARAM] = whiteTempInUse;
+  whiteTempDoc[WHITE_TEMP_PARAM] = wt;
 #if defined(ESP8266)
   bootstrapManager.writeToLittleFS(whiteTempDoc, WHITE_TEMP_FILENAME);
 #endif

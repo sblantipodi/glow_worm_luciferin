@@ -157,9 +157,11 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += F("\",\"toggle\":\"");
       prefsData += ledManager.stateOn;
       prefsData += F("\",\"effect\":\"");
-      prefsData += ledManager.effectParam;
+      prefsData += globals.effectToString(effect);
       prefsData += F("\",\"whiteTemp\":\"");
-      prefsData += whiteTemp;
+      prefsData += whiteTempInUse;
+      prefsData += F("\",\"brightness\":\"");
+      prefsData += brightness;
       prefsData += F("\",\"wifi\":\"");
       prefsData += bootstrapManager.getWifiQuality();
       prefsData += F("\",\"framerate\":\"");
@@ -693,9 +695,9 @@ bool NetworkManager::processUnSubscribeStream() {
 bool NetworkManager::processJson() {
 
   ledManager.lastLedUpdate = millis();
-
-  if (!bootstrapManager.jsonDoc.containsKey("MAC")
-    || (bootstrapManager.jsonDoc.containsKey("MAC") && bootstrapManager.jsonDoc["MAC"] == MAC)) {
+  boolean skipMacCheck = ((bootstrapManager.jsonDoc.containsKey("MAC") && bootstrapManager.jsonDoc["MAC"] == MAC)
+          || bootstrapManager.jsonDoc.containsKey("allInstances"));
+  if (!bootstrapManager.jsonDoc.containsKey("MAC") || skipMacCheck) {
     if (bootstrapManager.jsonDoc.containsKey("state")) {
       String state = bootstrapManager.jsonDoc["state"];
       if (state == ON_CMD) {
@@ -713,38 +715,36 @@ bool NetworkManager::processJson() {
     if (bootstrapManager.jsonDoc.containsKey("brightness")) {
       brightness = bootstrapManager.jsonDoc["brightness"];
     }
-    if (bootstrapManager.jsonDoc.containsKey("MAC") || bootstrapManager.jsonDoc.containsKey("allInstances")) {
-      if (bootstrapManager.jsonDoc["MAC"] == MAC || bootstrapManager.jsonDoc.containsKey("allInstances")) {
-        if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
-          whiteTemp = bootstrapManager.jsonDoc["whitetemp"];
-          if (whiteTemp != 0 && ledManager.whiteTempInUse != whiteTemp) {
-            ledManager.setWhiteTemp(whiteTemp);
-          }
+    if (skipMacCheck) {
+      if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
+        uint8_t wt = bootstrapManager.jsonDoc["whitetemp"];
+        if (wt != 0 && whiteTempInUse != wt) {
+          ledManager.setWhiteTemp(wt);
         }
       }
     }
     if (bootstrapManager.jsonDoc.containsKey("effect")) {
       JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
-        if (requestedEffect == "bpm") effect = Effect::bpm;
-        else if (requestedEffect == "fire") effect = Effect::fire;
-        else if (requestedEffect == "twinkle") effect = Effect::twinkle;
-        else if (requestedEffect == "rainbow") effect = Effect::rainbow;
-        else if (requestedEffect == "chase rainbow") effect = Effect::chase_rainbow;
-        else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
-        else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
-        else {
-          effect = Effect::solid;
-          breakLoop = true;
+      if (requestedEffect == "bpm") effect = Effect::bpm;
+      else if (requestedEffect == "fire") effect = Effect::fire;
+      else if (requestedEffect == "twinkle") effect = Effect::twinkle;
+      else if (requestedEffect == "rainbow") effect = Effect::rainbow;
+      else if (requestedEffect == "chase rainbow") effect = Effect::chase_rainbow;
+      else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
+      else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
+      else {
+        effect = Effect::solid;
+        breakLoop = true;
+      }
+      if (skipMacCheck) {
+        if (requestedEffect == "GlowWorm") {
+          effect = Effect::GlowWorm;
+          ledManager.lastLedUpdate = millis();
+        } else if (requestedEffect == "GlowWormWifi") {
+          effect = Effect::GlowWormWifi;
+          lastStream = millis();
         }
-        if (bootstrapManager.jsonDoc["MAC"] == MAC) {
-          if (requestedEffect == "GlowWorm") {
-            effect = Effect::GlowWorm;
-            ledManager.lastLedUpdate = millis();
-          } else if (requestedEffect == "GlowWormWifi") {
-            effect = Effect::GlowWormWifi;
-            lastStream = millis();
-          }
-        }
+      }
     }
   }
   return true;
@@ -793,23 +793,7 @@ void NetworkManager::sendStatus() {
     color[F("b")] = ledManager.blue;
     color[F("colorMode")] = colorMode;
     root[F("brightness")] = brightness;
-    switch (effect) {
-      case Effect::GlowWormWifi:
-        ledManager.effectParam = F("GlowWormWifi");
-        break;
-      case Effect::GlowWorm:
-        ledManager.effectParam = F("GlowWorm");
-        break;
-      case Effect::solid: ledManager.effectParam = F("solid"); break;
-      case Effect::bpm: ledManager.effectParam = F("bpm"); break;
-      case Effect::fire: ledManager.effectParam = F("fire"); break;
-      case Effect::twinkle: ledManager.effectParam = F("twinkle"); break;
-      case Effect::rainbow: ledManager.effectParam = F("rainbow"); break;
-      case Effect::chase_rainbow: ledManager.effectParam = F("chase rainbow"); break;
-      case Effect::solid_rainbow: ledManager.effectParam = F("solid rainbow"); break;
-      case Effect::mixed_rainbow: ledManager.effectParam = F("mixed rainbow"); break;
-    }
-    root[F("effect")] = ledManager.effectParam;
+    root[F("effect")] = globals.effectToString(effect);
     root[F("deviceName")] = deviceName;
     root[F("IP")] = microcontrollerIP;
     root[F("wifi")] = bootstrapManager.getWifiQuality();
@@ -825,7 +809,7 @@ void NetworkManager::sendStatus() {
     root[LED_NUM_PARAM] = String(ledManager.dynamicLedNum);
     root[F("gpio")] = gpioInUse;
     root[F("mqttopic")] = networkManager.topicInUse;
-    root[F("whitetemp")] = whiteTemp;
+    root[F("whitetemp")] = whiteTempInUse;
 
     if (effect == Effect::solid && !ledManager.stateOn) {
       ledManager.setColor(0, 0, 0);

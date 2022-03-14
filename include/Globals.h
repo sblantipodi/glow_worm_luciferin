@@ -44,6 +44,7 @@ extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRat
 extern uint8_t prefixLength;
 
 extern uint8_t gpioInUse;
+extern uint8_t whiteTempInUse;
 extern uint8_t colorMode;
 extern byte brightness;
 enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
@@ -69,6 +70,7 @@ public:
     void turnOffRelay();
     void turnOnRelay();
     void sendSerialInfo();
+    const char* effectToString(Effect e);
 
 };
 

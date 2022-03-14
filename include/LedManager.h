@@ -51,12 +51,10 @@ class LedManager {
       const String COLOR_MODE_PARAM = "colorMode";
       const String EFFECT_FILENAME = "effect.json";
       uint16_t dynamicLedNum = 511;
-      uint8_t whiteTempInUse;
       byte red = 255;
       byte green = 255;
       byte blue = 255;
       bool stateOn = false;
-      const __FlashStringHelper* effectParam;
       boolean reinitLEDTriggered = false;
       uint lastLedUpdate = 10000;
       bool led_state = true;
