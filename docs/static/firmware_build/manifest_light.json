@@ -1,5 +1,5 @@
 {
-  "name": "Glow Worm Luciferin LIGHT firmware, designed for Firefly Luciferin",
+  "name": "Glow Worm Luciferin LIGHT firmware. Keep this page visible to prevent slow down",
   "builds": [
     {
       "chipFamily": "ESP32",
