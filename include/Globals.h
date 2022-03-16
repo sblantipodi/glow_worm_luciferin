@@ -1,5 +1,5 @@
 /*
-  Helpers.h - Helper classes
+  Globals.h - Helper classes
   
   Copyright (C) 2020 - 2022  Davide Perini
   

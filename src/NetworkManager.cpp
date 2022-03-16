@@ -1,5 +1,5 @@
 /*
-  EffectsManager.cpp - Glow Worm Luciferin for Firefly Luciferin
+  NetworkManager.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
   Copyright (C) 2020 - 2022  Davide Perini

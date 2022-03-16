@@ -1,5 +1,5 @@
 /*
-  Helpers.cpp - Helper classes
+  Globals.cpp - Helper classes
   
   Copyright (C) 2020 - 2022  Davide Perini
   
