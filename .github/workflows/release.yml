@@ -139,6 +139,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cp .pio/build/glowwormluciferinfull_esp32/firmware.bin ./GlowWormLuciferinFULL_ESP32_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_firmware-factory.bin
           hub release edit -a GlowWormLuciferinFULL_ESP32_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
       - name: Run PlatformIO
         run: platformio run -e glowwormluciferinlight_esp32
@@ -147,6 +148,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cp .pio/build/glowwormluciferinlight_esp32/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin
           hub release edit -a GlowWormLuciferinLIGHT_ESP32_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
       - name: Commit firmware into GitHub.io docs folder
         env:
@@ -154,10 +156,14 @@ jobs:
         run: |
           cp ./GlowWormLuciferinFULL_ESP32_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware.bin
           cp ./GlowWormLuciferinLIGHT_ESP32_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          cp ./GlowWormLuciferinFULL_ESP32_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware-factory.bin
+          cp ./GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware-factory.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin;
           git add ./version;
           git add ./include/Version.h;
           git commit -m "CI release for firmware web installer";
