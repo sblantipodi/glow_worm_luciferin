@@ -19,6 +19,21 @@
           content="Easily allow users to flash Luciferin firmware for their ESP-devices on the web."/>
     <meta name="twitter:image"
           content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
+    <script module>
+        import(
+            "https://unpkg.com/esp-web-tools@7.2.0/dist/web/install-button.js?module"
+            );
+
+        function toggleErase() {
+            if (document.getElementById('erase').checked) {
+                document.getElementById('inst_full').setAttribute('erase-first', '');
+                document.getElementById('inst_light').setAttribute('erase-first', '');
+            } else {
+                document.getElementById('inst_full').removeAttribute('erase-first');
+                document.getElementById('inst_light').removeAttribute('erase-first');
+            }
+        }
+    </script>
     <style>
         body {
             font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
@@ -217,21 +232,7 @@
           }
         }
     </style>
-    <script module>
-        import(
-            "https://unpkg.com/esp-web-tools@7.2.0/dist/web/install-button.js?module"
-            );
-
-        function toggleErase() {
-            if (document.getElementById('erase').checked) {
-                document.getElementById('inst_full').setAttribute('erase-first', '');
-                document.getElementById('inst_light').setAttribute('erase-first', '');
-            } else {
-                document.getElementById('inst_full').removeAttribute('erase-first');
-                document.getElementById('inst_light').removeAttribute('erase-first');
-            }
-        }
-    </script>
+    
 </head>
 <body>
 <div class="content">
