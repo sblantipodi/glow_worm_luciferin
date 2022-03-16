@@ -1,5 +1,5 @@
 {
-  "name": "Glow Worm Luciferin FULL firmware",
+  "name": "Glow Worm Luciferin FULL",
   "builds": [
     {
       "chipFamily": "ESP32",
