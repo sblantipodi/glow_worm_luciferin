@@ -207,8 +207,13 @@
             width: calc(50% - 4px);
             margin: 0 auto;
         }
-        mwc-textfield {
-            --mdc-theme-primary: orange;
+        :root {
+          --mdc-theme-primary: orange;
+          --mdc-theme-secondary: #feeae6;
+        }
+        :host {
+          --mdc-theme-primary: orange;
+          --mdc-theme-secondary: #feeae6;
         }
     </style>
     <script module>
