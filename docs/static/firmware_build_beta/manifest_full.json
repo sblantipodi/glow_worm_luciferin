@@ -1,5 +1,5 @@
 {
-  "name": "Glow Worm Luciferin FULL firmware. Keep this page visible to prevent slow down",
+  "name": "Glow Worm Luciferin FULL firmware",
   "builds": [
     {
       "chipFamily": "ESP32",
