@@ -4,7 +4,10 @@
     {
       "chipFamily": "ESP32",
       "parts": [       
-        { "path": "GlowWormLuciferinFULL_ESP32_firmware.bin", "offset": 0 }
+        { "path": "bootloader.bin", "offset": 4096 },
+        { "path": "partitions.bin", "offset": 32768 },
+        { "path": "ota.bin", "offset": 57344 },
+        { "path": "GlowWormLuciferinFULL_ESP32_firmware.bin", "offset": 65536 }      
       ]
     },
     {
