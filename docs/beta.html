@@ -207,13 +207,14 @@
             width: calc(50% - 4px);
             margin: 0 auto;
         }
-        :root {
-          --esp-tools-button-color: orange;
-          --esp-tools-button-text-color: orange;
-        }        
-        :host {
-            --esp-tools-button-color: orange;
-            --esp-tools-button-text-color: orange;
+        @media (prefers-color-scheme: day) {
+          ewt-install-dialog {
+            --mdc-theme-primary: orange;
+            --mdc-theme-surface: #333;
+            --mdc-dialog-heading-ink-color: #fff;
+            --mdc-dialog-content-ink-color: #ddd;
+            --mdc-text-field-fill-color: #ddd;
+          }
         }
     </style>
     <script module>
