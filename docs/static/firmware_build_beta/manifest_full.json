@@ -4,7 +4,7 @@
     {
       "chipFamily": "ESP32",
       "parts": [       
-        { "path": "GlowWormLuciferinFULL_ESP32_firmware.bin", "offset": 0 }      
+        { "path": "GlowWormLuciferinFULL_ESP32_firmware-factory.bin", "offset": 0 }      
       ]
     },
     {
