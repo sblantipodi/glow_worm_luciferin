@@ -1,5 +1,5 @@
 {
-  "name": "Glow Worm Luciferin LIGHT firmware. Keep this page visible to prevent slow down",
+  "name": "Glow Worm Luciferin LIGHT firmware",
   "builds": [
     {
       "chipFamily": "ESP32",
@@ -14,5 +14,6 @@
       "chipFamily": "ESP8266",
       "parts": [{ "path": "GlowWormLuciferinLIGHT_ESP8266_firmware.bin", "offset": 0 }]
     }
-  ]
+  ],
+  "new_install_prompt_erase": true
 }
