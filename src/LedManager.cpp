@@ -227,11 +227,15 @@ void LedManager::cleanLEDs() {
   boolean cleared = false;
 #if defined(ESP32)
   if (ledsEsp32 != NULL) {
+    while (!ledsEsp32->CanShow()) { yield(); }
     cleared = true;
     delete ledsEsp32;
+    ledsEsp32 = NULL;
   } else if (ledsEsp32Rgbw != NULL) {
+    while (!ledsEsp32Rgbw->CanShow()) { yield(); }
     cleared = true;
     delete ledsEsp32Rgbw;
+    ledsEsp32Rgbw = NULL;
   }
 #endif
 #if defined(ESP8266)
@@ -420,12 +424,13 @@ void LedManager::initEsp32() {
   ledsEsp32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
   if (ledsEsp32 == NULL) {
     Serial.println(F("OUT OF MEMORY"));
+  } else {
+    Serial.println();
+    Serial.println(F("Initializing..."));
+    Serial.flush();
+    ledsEsp32->Begin();
+    ledsEsp32->Show();
   }
-  Serial.println();
-  Serial.println(F("Initializing..."));
-  Serial.flush();
-  ledsEsp32->Begin();
-  ledsEsp32->Show();
 #endif
 
 }
@@ -441,12 +446,13 @@ void LedManager::initEsp32Rgbw() {
   ledsEsp32Rgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
   if (ledsEsp32Rgbw == NULL) {
     Serial.println(F("OUT OF MEMORY"));
+  } else {
+    Serial.println();
+    Serial.println(F("Initializing..."));
+    Serial.flush();
+    ledsEsp32Rgbw->Begin();
+    ledsEsp32Rgbw->Show();
   }
-  Serial.println();
-  Serial.println(F("Initializing..."));
-  Serial.flush();
-  ledsEsp32Rgbw->Begin();
-  ledsEsp32Rgbw->Show();
 #endif
 
 }
