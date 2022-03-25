@@ -43,7 +43,6 @@ void setup() {
   while (!Serial); // wait for serial attach
   Serial.print(F("BAUDRATE IN USE="));
   Serial.println(baudRateToUse);
-  if (Serial.available() > 0 && Serial.peek() == 'I') bootstrapManager.manageImprovWifi();
 
   // LED number from configuration storage
   String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
