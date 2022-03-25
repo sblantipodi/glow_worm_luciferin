@@ -190,6 +190,8 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += gpioInUse;
       prefsData += F("\",\"colorMode\":\"");
       prefsData += colorMode;
+      prefsData += F("\",\"br\":\"");
+      prefsData += baudRateInUse;
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
   });
@@ -250,6 +252,7 @@ void NetworkManager::listenOnHttpGet() {
       String additionalParam = server.arg("additionalParam");
       String colorModeParam = server.arg("colorMode");
       String lednum = server.arg("lednum");
+      String br = server.arg("br");
       DynamicJsonDocument doc(1024);
       if (deviceName.length() > 0 && ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0))) {
         Serial.println("deviceName");
@@ -279,6 +282,8 @@ void NetworkManager::listenOnHttpGet() {
         Serial.println(lednum);
         Serial.println("colorMode");
         Serial.println(colorModeParam);
+        Serial.println("br");
+        Serial.println(br);
         doc["deviceName"] = deviceName;
         doc["microcontrollerIP"] = microcontrollerIP;
         doc["qsid"] = qsid;
@@ -350,6 +355,9 @@ void NetworkManager::listenOnHttpGet() {
 #endif
       delay(DELAY_500);
       ledManager.setColorMode(colorModeParam.toInt());
+      delay(DELAY_500);
+      globals.setBaudRateInUse(br.toInt());
+      globals.setBaudRate(baudRateInUse);
       delay(DELAY_1000);
 #if defined(ESP8266) || defined(ESP32)
       ESP.restart();

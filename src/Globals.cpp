@@ -41,7 +41,11 @@ Effect effect;
 float framerate = 0;
 float framerateCounter = 0;
 uint lastStream = 0;
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+uint8_t baudRateInUse = 8;
+#else
 uint8_t baudRateInUse = 3;
+#endif
 bool relayState = false;
 bool breakLoop = false;
 
@@ -86,6 +90,7 @@ int Globals::setBaudRateInUse(int baudRate) {
     case 5: baudRateToUse = 1000000; break;
     case 6: baudRateToUse = 1500000; break;
     case 7: baudRateToUse = 2000000; break;
+    case 8: baudRateToUse = 115200; break;
     default: baudRateToUse = 500000; break;
   }
   return baudRateToUse;

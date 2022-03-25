@@ -26,6 +26,7 @@
  */
 void setup() {
 
+  firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
   // BaudRate from configuration storage
@@ -226,7 +227,7 @@ void mainLoop() {
       breakLoop = true;
     }
 
-    if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 7)) {
+    if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 8)) {
       globals.setBaudRate(baudRate);
       ESP.restart();
     }
@@ -240,20 +241,21 @@ void mainLoop() {
       ledManager.fireflyEffectInUse = fireflyEffect;
       switch (ledManager.fireflyEffectInUse) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-        case 1:
+      case 1:
       case 2:
       case 3:
       case 4:
-        effect = Effect::GlowWorm; break;
+      case 5:
+          effect = Effect::GlowWorm; break;
 #endif
-        case 5: effect = Effect::solid; break;
-        case 6: effect = Effect::fire; break;
-        case 7: effect = Effect::twinkle; break;
-        case 8: effect = Effect::bpm; break;
-        case 9: effect = Effect::mixed_rainbow; break;
-        case 10: effect = Effect::rainbow; break;
-        case 11: effect = Effect::chase_rainbow; break;
-        case 12: effect = Effect::solid_rainbow; break;
+        case 6: effect = Effect::solid; break;
+        case 7: effect = Effect::fire; break;
+        case 8: effect = Effect::twinkle; break;
+        case 9: effect = Effect::bpm; break;
+        case 10: effect = Effect::mixed_rainbow; break;
+        case 11: effect = Effect::rainbow; break;
+        case 12: effect = Effect::chase_rainbow; break;
+        case 13: effect = Effect::solid_rainbow; break;
         case 100: ledManager.fireflyEffectInUse = 0; break;
       }
     }
@@ -270,7 +272,7 @@ void mainLoop() {
       g = serialRead();
       while (!breakLoop && !Serial.available()) networkManager.checkConnection();
       b = serialRead();
-      if (ledManager.fireflyEffectInUse <= 5) {
+      if (ledManager.fireflyEffectInUse <= 6) {
         ledManager.setPixelColor(i, r, g, b);
       }
     }
@@ -285,6 +287,13 @@ void mainLoop() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   }
 #endif
+
+  if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
+    temporaryDisableImprove = true;
+  } else {
+    temporaryDisableImprove = false;
+  }
+
   breakLoop = false;
 
   //EFFECT BPM
