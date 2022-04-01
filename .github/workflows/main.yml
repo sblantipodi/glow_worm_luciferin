@@ -35,10 +35,10 @@ jobs:
       - name: Setup template config files
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
-      - name: Static code analysis
-        run: |
-          cd currentbranch;
-          platformio check --verbose --severity=high --skip-packages;
+#      - name: Static code analysis
+#        run: |
+#          cd currentbranch;
+#          platformio check --verbose --severity=high --skip-packages;
       - name: Run PlatformIO
         run: |
           cd currentbranch;
