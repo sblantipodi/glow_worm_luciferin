@@ -184,13 +184,12 @@ jobs:
         run: |
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
           echo "::set-output name=id::$id"
-      - name: Sleep for 1200 seconds
-        run: sleep 1200s
-        shell: bash
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           hub release edit --draft=false -m "Release ${{ env.RELEASE_VERSION }}" "${{ env.RELEASE_VERSION }}"
-
+      - name: Sleep for 1200 seconds (Smoke test after the release)
+        run: sleep 1200s
+        shell: bash
 
