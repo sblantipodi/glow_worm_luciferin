@@ -1,3 +1,4 @@
+
 <html>
 <head>
     <meta charset="utf-8"/>
@@ -19,60 +20,67 @@
           content="Easily allow users to flash Luciferin firmware for their ESP-devices on the web."/>
     <meta name="twitter:image"
           content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
-    <style>
+    <script module>
+        import(
+            "https://unpkg.com/esp-web-tools@7.3.1/dist/web/install-button.js?module"
+            );
+
+        function toggleErase() {
+            if (document.getElementById('erase').checked) {
+                document.getElementById('inst_full').setAttribute('erase-first', '');
+                document.getElementById('inst_light').setAttribute('erase-first', '');
+            } else {
+                document.getElementById('inst_full').removeAttribute('erase-first');
+                document.getElementById('inst_light').removeAttribute('erase-first');
+            }
+        }
+    </script>
+    <style>       
         body {
             font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
             Roboto, Ubuntu, sans-serif;
             padding: 0;
             margin: 0;
             line-height: 1.4;
+	    background-color: #f8f8f8;
+	    color: #212529;
         }
-
         .content {
             max-width: 600px;
             margin: 0 auto;
             padding: 12px;
         }
-
         .logo {
             float: right;
             margin: 0px 0px 15px 15px;
         }
-
         .project .logo img {
             max-height: 50px;
         }
-
         a {
             color: orange;
         }
-
         .content pre {
             max-width: 100%;
             overflow-y: scroll;
         }
-
         .footer {
             margin-top: 24px;
             border-top: 1px solid #ccc;
             padding-top: 24px;
             text-align: center;
         }
-
         .footer .initiative {
             font-style: italic;
             margin-top: 16px;
         }
-
         table {
             border-spacing: 0;
         }
-
         td {
             padding: 8px;
             border-bottom: 1px solid #ccc;
         }
-
         button {
             position: relative;
             cursor: pointer;
@@ -85,7 +93,6 @@
             box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .12), 0 1px 5px 0 rgba(0, 0, 0, .2);
             width: 290px;
         }
-
         button::before {
             content: " ";
             position: absolute;
@@ -96,27 +103,21 @@
             opacity: 0.2;
             border-radius: 4px;
         }
-
         button:hover {
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .14), 0 1px 7px 0 rgba(0, 0, 0, .12), 0 3px 1px -1px rgba(0, 0, 0, .2);
         }
-
         button:hover::before {
             background-color: rgba(255, 255, 255, .8);
         }
-
         button:focus {
             outline: none;
         }
-
         button:focus::before {
             background-color: white;
         }
-
         button:active::before {
             background-color: grey;
         }
-
         :host([active]) button {
             color: rgba(0, 0, 0, 0.38);
             background-color: rgba(0, 0, 0, 0.12);
@@ -124,12 +125,10 @@
             cursor: unset;
             pointer-events: none;
         }
-
         improv-wifi-launch-button {
             display: block;
             margin-top: 16px;
         }
-
         input[type="checkbox"] {
             height: 10px;
             width: 10px;
@@ -138,7 +137,6 @@
             cursor: pointer;
             margin-right: 10px;
         }
-
         input[type="checkbox"]:before {
             content: "";
             display: inline-block;
@@ -150,19 +148,15 @@
             border: 2px solid orange;
             background-color: #ffdca7;
         }
-
         input[type="checkbox"]:hover::before {
             border: 1px solid #4f4f4f;
         }
-
         input[type="checkbox"]:checked:hover::before {
             filter: brightness(90%);
         }
-
         input[type="checkbox"]:checked:disabled:hover::before {
             filter: none;
         }
-
         input[type="checkbox"]:checked:before {
             content: "";
             display: inline-block;
@@ -174,7 +168,6 @@
             border: 1px solid #ffdca7;
             background-color: #ffdca7;
         }
-
         input[type="checkbox"]:checked:after {
             content: "";
             display: inline-block;
@@ -189,40 +182,32 @@
             -webkit-transform: translateY(-1.5px) rotate(-45deg);
             transform: translateY(-1.5px) rotate(-45deg);
         }
-
         input[type="checkbox"]:disabled::before {
             border: 2px solid orange;
             border-radius: 2px;
             background-color: orange;
         }
-
         input[type="checkbox"]:checked:disabled::before {
             border: 3px solid orange;
             border-radius: 2px;
             background-color: orange;
         }
-
         .action_btn {
             display: inline-block;
             width: calc(50% - 4px);
             margin: 0 auto;
         }
-    </style>
-    <script module>
-        import(
-            "https://unpkg.com/esp-web-tools@3.3.0/dist/web/install-button.js?module"
-            );
-
-        function toggleErase() {
-            if (document.getElementById('erase').checked) {
-                document.getElementById('inst_full').setAttribute('erase-first', '');
-                document.getElementById('inst_light').setAttribute('erase-first', '');
-            } else {
-                document.getElementById('inst_full').removeAttribute('erase-first');
-                document.getElementById('inst_light').removeAttribute('erase-first');
-            }
+        :root {
+          --mdc-theme-primary: #795548;
         }
-    </script>
+        ewt-install-dialog, ewt-no-port-picked-dialog {
+          --mdc-theme-primary: orange;
+          --esp-tools-button-color: orange;
+          --esp-tools-button-text-color: orange;
+          --mdc-text-field-fill-color: #f8f8f8; 
+        }
+    </style>
+    
 </head>
 <body>
 <div class="content">
@@ -240,7 +225,8 @@
         Bias Lighting and Ambient Light system for PC.
     </p>
 
-    <p><b>FULL firmware</b> version adds support for remote control, if you flash FULL version you MUST configure WiFi. With FULL firmware USB connection is optional.
+    <p><b>FULL firmware</b> version adds support for remote control, if you flash FULL version you MUST configure WiFi.  
+        With FULL firmware USB connection is optional.  
         If you flash <b>LIGHT firmware</b> you MUST use USB cable.</p>
     <p>
         To try it out and install <b>Glow Worm Luciferin firmware</b>, connect an ESP to
@@ -259,34 +245,17 @@
                                 manifest="static/firmware_build/manifest_light.json">
             <button slot="activate">INSTALL LIGHT</button>
         </esp-web-install-button>
-    </p>
-    <p>
-        <input type="checkbox" id="erase" name="erase" onchange="toggleErase()">
-        <label for="erase"> Clean install (deletes presets and settings)</label>
-    </p>
+    </p>        
     <p>
         <i>
-            Note, this only works in desktop Chrome and Edge. If you don't see
+            This only works in desktop Chrome and Edge. If you don't see
             your ESP device, you might miss drivers.
         </i>
-    </p>
-
-    <h3 id="drivers">USB Serial Drivers</h3>
+    </p>    
     <p>
-        If the serial port is not showing up, your computer might be missing the
-        drivers for the USB serial chip used in your ESP device. These drivers
-        work for most ESP devices:
-    </p>
-    <ul>
-        <li>
-            CH341:
-            <a href="https://github.com/nodemcu/nodemcu-devkit/tree/master/Drivers">driver</a>
-        </li>
-        <li>
-            CP210x (square chip):
-            <a href="https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers">driver</a>
-        </li>
-    </ul>
+        <b>PLEASE DISABLE ADD BLOCKER TO INSTALL FIRMWARE</b>
+        <br>
+    </p>    
     <div class="footer">
         <div>
             Glow Worm Luciferin – <a href="https://github.com/sblantipodi/glow_worm_luciferin">GitHub</a>
