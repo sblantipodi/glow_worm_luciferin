@@ -23,49 +23,36 @@
 
 #include <Arduino.h>
 #include <FastLED.h>
+#include "LedManager.h"
+#include "Globals.h"
+
+const int NUM_LEDS = 511;
 
 class EffectsManager {
 
-#define NUM_LEDS 511 // Max Led support
+  private:
 
-private:
+      CRGB scroll(int pos);
+      byte red = 255;
+      byte green = 255;
+      byte blue = 255;
+      long lastAnim = 0;
+      int mixedRainboxIndex = 0;
+      uint16_t maxChanges = 48;
+      uint16_t gHue = 0;
+      uint16_t thishue = 0;
+      uint16_t deltahue = 10;
+      long lastAnimSolidRainbow = 0;
 
-    CRGB scroll(int pos);
-    byte red = 255;
-    byte green = 255;
-    byte blue = 255;
-    long lastAnim = 0;
-    int mixedRainboxIndex = 0;
-    uint16_t maxChanges = 48;
-    uint16_t gHue = 0;
-    uint16_t thishue = 0;
-    uint16_t deltahue = 10;
-    long lastAnimSolidRainbow = 0;
+  public:
 
-public:
-
-    void fire(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-              int cooling, int sparking, int speedDelay, int dynamicLedNum);
-
-    void twinkleRandom(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                       void (*setColor)(uint8_t r, uint8_t g, uint8_t b), int count, int speedDelay, boolean onlyOne,
-                       int dynamicLedNum);
-
-    void theaterChaseRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                        int dynamicLedNum);
-
-    void mixedRainbow(void (*ledShowCallback)(), void (*checkConnectionCallback)(),
-                      void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b), CRGB leds[NUM_LEDS],
-                      int dynamicLedNum);
-
-    void bpm(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-             CRGB leds[NUM_LEDS], CRGBPalette16 currentPalette, CRGBPalette16 targetPalette);
-
-    void rainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                 CRGB leds[NUM_LEDS], int dynamicLedNum);
-
-    void solidRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                      CRGB leds[NUM_LEDS], int dynamicLedNum);
+      void fire(int cooling, int sparking, int speedDelay, int dynamicLedNum);
+      void twinkleRandom(int count, int speedDelay, boolean onlyOne, int dynamicLedNum);
+      void theaterChaseRainbow(int dynamicLedNum);
+      void mixedRainbow(int dynamicLedNum);
+      void bpm(CRGBPalette16 currentPalette, CRGBPalette16 targetPalette);
+      void rainbow(int dynamicLedNum);
+      void solidRainbow(int dynamicLedNum);
 
 };
 

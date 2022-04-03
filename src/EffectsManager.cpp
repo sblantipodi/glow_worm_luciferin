@@ -20,8 +20,14 @@
 
 #include "EffectsManager.h"
 
-void EffectsManager::fire(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                     int cooling, int sparking, int speedDelay, int dynamicLedNum) {
+/**
+ * Fire effect
+ * @param cooling config effect param
+ * @param sparking config effect param
+ * @param speedDelay config effect param
+ * @param dynamicLedNum config effect param
+ */
+void EffectsManager::fire(int cooling, int sparking, int speedDelay, int dynamicLedNum) {
 
   static byte heat[NUM_LEDS];
   int cooldown;
@@ -53,39 +59,45 @@ void EffectsManager::fire(void (*ledShowCallback)(), void (*setPixelColorCallbac
     heatramp <<= 2; // scale up to 0..252
     // figure out which third of the spectrum we're in:
     if (t192 > 0x80) {                     // hottest
-      setPixelColorCallback(j, 255, 255, heatramp);
+      ledManager.setPixelColor(j, 255, 255, heatramp);
     } else if (t192 > 0x40) {             // middle
-      setPixelColorCallback(j, 255, heatramp, 0);
+      ledManager.setPixelColor(j, 255, heatramp, 0);
     } else {                               // coolest
-      setPixelColorCallback(j, heatramp, 0, 0);
+      ledManager.setPixelColor(j, heatramp, 0, 0);
     }
   }
-  ledShowCallback();
+  ledManager.ledShow();
   delay(speedDelay);
 
 }
 
-void EffectsManager::twinkleRandom(void (*ledShowCallback)(),
-                                   void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                                   void (*setColor)(uint8_t r, uint8_t g, uint8_t b), int count, int speedDelay, boolean onlyOne,
-                                   int dynamicLedNum) {
+/**
+ * Twinkle effect
+ * @param count config effect param
+ * @param speedDelay config effect param
+ * @param onlyOne config effect param
+ * @param dynamicLedNum config effect param
+ */
+void EffectsManager::twinkleRandom(int count, int speedDelay, boolean onlyOne, int dynamicLedNum) {
 
-  setColor(1, 1, 1);
+  ledManager.setColor(1, 1, 1);
   for (int i = 0; i < count; i++) {
-    setPixelColorCallback(random(dynamicLedNum), random(0, 255), random(0, 255), random(0, 255));
-    ledShowCallback();
+    ledManager.setPixelColor(random(dynamicLedNum), random(0, 255), random(0, 255), random(0, 255));
+    ledManager.ledShow();
     delay(speedDelay);
     if (onlyOne) {
-      setColor(1, 1, 1);
+      ledManager.setColor(1, 1, 1);
     }
   }
   delay(speedDelay);
 
 }
 
-void EffectsManager::theaterChaseRainbow(void (*ledShowCallback)(),
-                                         void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                                         int dynamicLedNum) {
+/**
+ * Theater chase rainbow effect
+ * @param dynamicLedNum number of leds
+ */
+void EffectsManager::theaterChaseRainbow(int dynamicLedNum) {
 
   // cycle all 256 colors in the wheel
   for (int j = 0; j < 256; j++) {
@@ -109,21 +121,23 @@ void EffectsManager::theaterChaseRainbow(void (*ledShowCallback)(),
           c[2] = 255 - wheelPos * 3;
         }
         //turn every third pixel on
-        setPixelColorCallback(i + q, *c, *(c + 1), *(c + 2));
+        ledManager.setPixelColor(i + q, *c, *(c + 1), *(c + 2));
       }
-      ledShowCallback();
+      ledManager.ledShow();
       delay(1);
       for (int i = 0; i < dynamicLedNum; i = i + 3) {
         //turn every third pixel off
-        setPixelColorCallback(i + q, 0, 0, 0);
+        ledManager.setPixelColor(i + q, 0, 0, 0);
       }
     }
   }
 }
 
-void EffectsManager::mixedRainbow(void (*ledShowCallback)(), void (*checkConnectionCallback)(),
-                                  void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                                  CRGB leds[NUM_LEDS], int dynamicLedNum) {
+/**
+ * Mixed Rainbow effect
+ * @param dynamicLedNum number of leds
+ */
+void EffectsManager::mixedRainbow(int dynamicLedNum) {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (millis() - lastAnim >= 10) {
@@ -135,20 +149,24 @@ void EffectsManager::mixedRainbow(void (*ledShowCallback)(), void (*checkConnect
 #endif
   if (mixedRainboxIndex < 256) {
     for (int i = 0; i < dynamicLedNum; i++) {
-      leds[i] = scroll((i * 256 / dynamicLedNum + mixedRainboxIndex) % 256);
-      setPixelColorCallback(i, leds[i].r, leds[i].g, leds[i].b);
+      ledManager.leds[i] = scroll((i * 256 / dynamicLedNum + mixedRainboxIndex) % 256);
+      ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-      checkConnectionCallback();
+      networkManager.checkConnection();
 #endif
     }
-    ledShowCallback();
+    ledManager.ledShow();
   } else {
     mixedRainboxIndex = 0;
   }
 
 }
 
-// WS2812B LED Strip switches Red and Green
+/**
+ * Scroll effect WS2812B LED Strip switches Red and Green
+ * @param pos config param
+ * @return color
+ */
 CRGB EffectsManager::scroll(int pos) {
   CRGB color(0, 0, 0);
   if (pos < 85) {
@@ -167,17 +185,21 @@ CRGB EffectsManager::scroll(int pos) {
   return color;
 }
 
-void EffectsManager::bpm(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                         CRGB leds[NUM_LEDS], CRGBPalette16 currentPalette, CRGBPalette16 targetPalette) {
+/**
+ * BPM effect
+ * @param currentPalette config param
+ * @param targetPalette config param
+ */
+void EffectsManager::bpm(CRGBPalette16 currentPalette, CRGBPalette16 targetPalette) {
 
   uint8_t BeatsPerMinute = 62;
   CRGBPalette16 palette = PartyColors_p;
   uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
   for (int i = 0; i < NUM_LEDS; i++) { //9948
-    leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-    setPixelColorCallback(i, leds[i].r, leds[i].g, leds[i].b);
+    ledManager.leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+    ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
   }
-  ledShowCallback();
+  ledManager.ledShow();
 
   EVERY_N_MILLISECONDS(10) {
     nblendPaletteTowardPalette(currentPalette, targetPalette, maxChanges);  // FOR NOISE ANIMATIon
@@ -194,31 +216,38 @@ void EffectsManager::bpm(void (*ledShowCallback)(), void (*setPixelColorCallback
 
 }
 
-void EffectsManager::rainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                             CRGB leds[NUM_LEDS], int dynamicLedNum) {
+/**
+ * Rainbow effect
+ * @param dynamicLedNum number of leds
+ */
+void EffectsManager::rainbow(int dynamicLedNum) {
 
   // FastLED's built-in rainbow generator
   thishue++;
-  fill_rainbow(leds, dynamicLedNum, thishue, deltahue);
+  fill_rainbow(ledManager.leds, dynamicLedNum, thishue, deltahue);
   for (int i = 0; i < dynamicLedNum; i++) {
-    setPixelColorCallback(i, leds[i].r, leds[i].g, leds[i].b);
+    ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
   }
-  ledShowCallback();
+  ledManager.ledShow();
 
 }
 
-void EffectsManager::solidRainbow(void (*ledShowCallback)(), void (*setPixelColorCallback)(uint16_t, uint8_t r, uint8_t g, uint8_t b),
-                             CRGB leds[NUM_LEDS], int dynamicLedNum) {
+/**
+ * Solid rainbow effect
+ * @param dynamicLedNum number of leds
+ */
+void EffectsManager::solidRainbow(int dynamicLedNum) {
 
   // FastLED's built-in rainbow generator
-  fill_solid(leds, dynamicLedNum, CHSV(thishue, 255, 255));
+  fill_solid(ledManager.leds, dynamicLedNum, CHSV(thishue, 255, 255));
+  fill_solid(ledManager.leds, dynamicLedNum, CHSV(thishue, 255, 255));
   for (int i = 0; i < dynamicLedNum; i++) {
-    setPixelColorCallback(i, leds[i].r, leds[i].g, leds[i].b);
+    ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
   }
   if (millis()-lastAnimSolidRainbow >= 90) {
     lastAnimSolidRainbow = millis();
     thishue++;
   }
-  ledShowCallback();
+  ledManager.ledShow();
 
 }

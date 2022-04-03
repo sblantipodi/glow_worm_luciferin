@@ -49,7 +49,7 @@ jobs:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp8266/firmware.bin
 #      - name: Setup tmate session
-#        uses: mxschmitt/action-tmate@v3          
+#        uses: mxschmitt/action-tmate@v3
       - name: Save artifact (glowwormluciferinfull_esp8266)
         continue-on-error: true
         env:
@@ -71,7 +71,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: master
           path: 'currentbranch'
       - uses: actions/checkout@v2
         with:
@@ -127,7 +126,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: master
           path: 'currentbranch'
       - uses: actions/checkout@v2
         with:
@@ -170,10 +168,12 @@ jobs:
         run: |
           cd currentbranch;
           cp .pio/build/glowwormluciferinfull_esp32/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware-factory.bin
           cd ../beta;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware.bin;
+          git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware-factory.bin;
           git commit -m "CI BETA release for firmware web installer";
           git push;
 
@@ -184,7 +184,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: master
           path: 'currentbranch'
       - uses: actions/checkout@v2
         with:
@@ -227,9 +226,11 @@ jobs:
         run: |
           cd currentbranch;
           cp .pio/build/glowwormluciferinlight_esp32/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin
           cd ../beta;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_firmware.bin;
+          git add ./docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin;
           git commit -m "CI BETA release for firmware web installer";
           git push;
