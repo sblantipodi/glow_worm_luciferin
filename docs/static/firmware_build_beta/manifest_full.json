@@ -13,6 +13,6 @@
       "parts": [{ "path": "GlowWormLuciferinFULL_ESP8266_firmware.bin", "offset": 0 }]
     }
   ],
-  "new_install_prompt_erase": true
+  "new_install_prompt_erase": true,
   "funding_url": "https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A" 
 }
