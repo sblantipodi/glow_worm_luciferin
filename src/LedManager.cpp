@@ -123,7 +123,8 @@ uint16_t lastKelvin = 0;
  */
 RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
 
-  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
+  // If Firefly Luciferin is driving the microcontroller, colorKtoRGB color correction is made by the PC software, this boosts performance by 30%
+  if ((whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) && (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi)) {
     byte rgb[] = {r, g, b};
     if (lastKelvin != whiteTempInUse) colorKtoRGB(rgb);
     rgb[0] = ((uint16_t) rgb[0] * r) / 255; // correct R
@@ -155,7 +156,8 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
     // RGB only, turn off white led
     w = 0;
   }
-  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
+  // If Firefly Luciferin is driving the microcontroller, colorKtoRGB color correction is made by the PC software, this boosts performance by 30%
+  if ((whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) && (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi)) {
     byte rgb[] = {r, g, b};
     if (lastKelvin != whiteTempInUse) colorKtoRGB(rgb);
     rgb[0] = ((uint16_t) rgb[0] * r) /255; // correct R
