@@ -113,6 +113,7 @@ uint8_t applyBrightnessCorrection(int c) {
 }
 
 uint16_t lastKelvin = 0;
+byte colorCorrectionRGB[] = {0, 0, 0};
 
 /**
  * Apply white temp correction on RGB color
@@ -123,13 +124,15 @@ uint16_t lastKelvin = 0;
  */
 RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
 
-  // If Firefly Luciferin is driving the microcontroller, colorKtoRGB color correction is made by the PC software, this boosts performance by 30%
-  if ((whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) && (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi)) {
-    byte rgb[] = {r, g, b};
-    if (lastKelvin != whiteTempInUse) colorKtoRGB(rgb);
-    rgb[0] = ((uint16_t) rgb[0] * r) / 255; // correct R
-    rgb[1] = ((uint16_t) rgb[1] * g) / 255; // correct G
-    rgb[2] = ((uint16_t) rgb[2] * b) / 255; // correct B
+  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
+    if (lastKelvin != whiteTempInUse) {
+      colorKtoRGB(colorCorrectionRGB);
+    }
+    lastKelvin = whiteTempInUse;
+    byte rgb[3];
+    rgb[0] = ((uint16_t) colorCorrectionRGB[0] * r) / 255; // correct R
+    rgb[1] = ((uint16_t) colorCorrectionRGB[1] * g) / 255; // correct G
+    rgb[2] = ((uint16_t) colorCorrectionRGB[2] * b) / 255; // correct B
     return RgbColor(applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2]));
   } else {
     return RgbColor(applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b));
@@ -156,13 +159,15 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
     // RGB only, turn off white led
     w = 0;
   }
-  // If Firefly Luciferin is driving the microcontroller, colorKtoRGB color correction is made by the PC software, this boosts performance by 30%
-  if ((whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) && (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi)) {
-    byte rgb[] = {r, g, b};
-    if (lastKelvin != whiteTempInUse) colorKtoRGB(rgb);
-    rgb[0] = ((uint16_t) rgb[0] * r) /255; // correct R
-    rgb[1] = ((uint16_t) rgb[1] * g) /255; // correct G
-    rgb[2] = ((uint16_t) rgb[2] * b) /255; // correct B
+  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
+    if (lastKelvin != whiteTempInUse) {
+      colorKtoRGB(colorCorrectionRGB);
+    }
+    lastKelvin = whiteTempInUse;
+    byte rgb[3];
+    rgb[0] = ((uint16_t) colorCorrectionRGB[0] * r) /255; // correct R
+    rgb[1] = ((uint16_t) colorCorrectionRGB[1] * g) /255; // correct G
+    rgb[2] = ((uint16_t) colorCorrectionRGB[2] * b) /255; // correct B
     return RgbwColor(applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2]), applyBrightnessCorrection(w));
   } else {
     return RgbwColor(applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b), applyBrightnessCorrection(w));
