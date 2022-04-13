@@ -33,17 +33,7 @@
                 document.getElementById('inst_full').removeAttribute('erase-first');
                 document.getElementById('inst_light').removeAttribute('erase-first');
             }
-        }
-        $(document).ready(function() {   //same as: $(function() { 
-	  const button = document.querySelector('esp-web-install-button');
-		button.overrides = {
-		  checkSameFirmware(manifest, improvInfo) {
-		    const manifestFirmware = manifest.name.toLowerCase();
-		    const deviceFirmware = improvInfo.firmware.toLowerCase();
-		    return manifestFirmware.includes(deviceFirmware);
-		  }
-		};
-	});	
+        }       
     </script>
     <style>       
         body {
