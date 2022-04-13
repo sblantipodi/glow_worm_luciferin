@@ -14,5 +14,6 @@
     }
   ],
   "new_install_prompt_erase": true,
+  "new_install_skip_erase": false,
   "funding_url": "https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A" 
 }
