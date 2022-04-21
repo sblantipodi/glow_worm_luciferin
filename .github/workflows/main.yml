@@ -256,7 +256,7 @@ jobs:
           keyname1: 'version'
           valuetoset: '${{ steps.vars.outputs.TAG_NAME }}'
       - name: Set property version in a ESP Web Tools json file
-        uses: benday-inc/set-property-v alue-in-appsettings@v1.2
+        uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
           pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/docs/static/firmware_build_beta/manifest_light.json'
           keyname1: 'version'
