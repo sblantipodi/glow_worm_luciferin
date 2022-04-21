@@ -240,7 +240,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: master
           path: 'beta'
       - name: Retrieve version
         id: vars
