@@ -51,21 +51,21 @@ jobs:
 
 
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
       - name: Retrieve version
         run: |
-          echo "::set-env name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/beta/version)"
+          echo "::set-env name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/version)"
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
-          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/beta/docs/static/firmware_build_beta/manifest_full.json'
+          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/docs/static/firmware_build_beta/manifest_full.json'
           keyname1: 'version'
           valuetoset: '${{ env.TAG_NAME }}'
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
-          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/beta/docs/static/firmware_build_beta/manifest_light.json'
+          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/docs/static/firmware_build_beta/manifest_light.json'
           keyname1: 'version'
           valuetoset: "${{ env.TAG_NAME }}"
       - name: Save artifact (glowwormluciferinfull_esp8266)
@@ -84,7 +84,7 @@ jobs:
           pwd;
           cat ./docs/static/firmware_build_beta/manifest_full.json;
           cat ./docs/static/firmware_build_beta/manifest_light.json;
-          cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/beta/docs/static/firmware_build_beta/manifest_light.json;
+          cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/docs/static/firmware_build_beta/manifest_light.json;
           echo ${{ steps.version.outputs.TAG_NAME }};
           git add ./docs/static/firmware_build_beta/manifest_full.json;
           git add ./docs/static/firmware_build_beta/manifest_light.json;
