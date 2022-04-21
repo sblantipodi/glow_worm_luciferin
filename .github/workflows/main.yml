@@ -240,9 +240,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          path: 'currentbranch'
-      - uses: actions/checkout@v2
-        with:
           ref: master
           path: 'beta'
       - name: Retrieve version
@@ -266,8 +263,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd currentbranch;
-          cd ../beta;
+          cd beta;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/manifest_full.json;
