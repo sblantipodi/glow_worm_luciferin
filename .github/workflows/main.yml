@@ -55,7 +55,7 @@ jobs:
 #        uses: mxschmitt/action-tmate@v3
       - name: Retrieve version
         run: |
-          echo "::set-env name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/currentbranch/glow_worm_luciferin/currentbranch/version)"
+          echo "::set-env name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/currentbranch/beta/glow_worm_luciferin/currentbranch/version)"
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
