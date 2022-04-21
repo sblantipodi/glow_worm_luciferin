@@ -249,8 +249,3 @@ jobs:
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin;
           git commit -m "CI BETA release for firmware web installer";
           git push;
-
-${{steps:
-  get-id:
-    outputs:
-      id}}:
