@@ -51,8 +51,8 @@ jobs:
 
 
 
-#      - name: Setup tmate session
-#        uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Retrieve version
         run: |
           echo "::set-env name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/beta/version)"
