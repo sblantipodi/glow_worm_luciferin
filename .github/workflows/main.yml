@@ -55,19 +55,19 @@ jobs:
 #        uses: mxschmitt/action-tmate@v3
       - name: Retrieve version
         run: |
-          echo "::set-env name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/version)"
+          echo "::set-output name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/version)"
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
           pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/docs/static/firmware_build_beta/manifest_full.json'
           keyname1: 'version'
-          valuetoset: '${{ env.TAG_NAME }}'
+          valuetoset: '${{ steps.version.outputs.TAG_NAME }}'
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
           pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/docs/static/firmware_build_beta/manifest_light.json'
           keyname1: 'version'
-          valuetoset: "${{ env.TAG_NAME }}"
+          valuetoset: "${{ steps.version.outputs.TAG_NAME }}"
       - name: Save artifact (glowwormluciferinfull_esp8266)
         continue-on-error: true
         env:
