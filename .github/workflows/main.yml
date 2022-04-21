@@ -241,6 +241,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: 'beta'
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+          path: 'currentbranch'
       - name: Retrieve version
         id: vars
         run: |
@@ -248,13 +252,13 @@ jobs:
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
-          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/docs/static/firmware_build_beta/manifest_full.json'
+          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_full.json'
           keyname1: 'version'
           valuetoset: '${{ steps.vars.outputs.TAG_NAME }}'
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
-          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/docs/static/firmware_build_beta/manifest_light.json'
+          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_light.json'
           keyname1: 'version'
           valuetoset: "${{ steps.vars.outputs.TAG_NAME }}"
       - name: Save artifact (glowwormluciferinfull_esp8266)
@@ -262,11 +266,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd beta;
+          cd currentbranch;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/manifest_full.json;
           git add ./docs/static/firmware_build_beta/manifest_light.json;
-          cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/docs/static/firmware_build_beta/manifest_light.json;
+          cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_light.json;
           git commit -m "CI BETA release for firmware web installer";
           git push;
