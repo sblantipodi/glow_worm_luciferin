@@ -32,27 +32,30 @@ jobs:
           git submodule update --init
 #      - name: Setup tmate session
 #        uses: mxschmitt/action-tmate@v3
-      - name: Setup template config files
-        run: |
-          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
-      - name: Static code analysis
-        run: |
-          cd currentbranch;
-          platformio check --verbose --severity=high --skip-packages;
-      - name: Run PlatformIO
-        run: |
-          cd currentbranch;
-          platformio run -e glowwormluciferinfull_esp8266;
-      - name: Creating artifact from BIN file
-        uses: actions/upload-artifact@v2
-        with:
-          name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
-          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp8266/firmware.bin
+#      - name: Setup template config files
+#        run: |
+#          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
+#      - name: Static code analysis
+#        run: |
+#          cd currentbranch;
+#          platformio check --verbose --severity=high --skip-packages;
+#      - name: Run PlatformIO
+#        run: |
+#          cd currentbranch;
+#          platformio run -e glowwormluciferinfull_esp8266;
+#      - name: Creating artifact from BIN file
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: DRAFT_GLOW_WORM_LUCIFERIN_ESP8266_FULL.bin
+#          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp8266/firmware.bin
+
+
+
 #      - name: Setup tmate session
 #        uses: mxschmitt/action-tmate@v3
       - name: Retrieve version
         run: |
-          echo "::set-output name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/version)')"
+          echo "::set-output name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/version)"
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
@@ -76,6 +79,9 @@ jobs:
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
+          pwd;
+          pwd;
+          pwd;
           cat ./docs/static/firmware_build_beta/manifest_full.json;
           cat ./docs/static/firmware_build_beta/manifest_light.json;
           cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_light.json;
