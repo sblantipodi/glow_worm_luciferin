@@ -74,11 +74,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd currentbranch;
-          cp .pio/build/glowwormluciferinfull_esp8266/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
+#          cp .pio/build/glowwormluciferinfull_esp8266/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
           cd ../beta;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
-          git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
+#          git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
           pwd;
           pwd;
           pwd;
