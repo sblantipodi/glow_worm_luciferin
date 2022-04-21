@@ -33,27 +33,33 @@
                 document.getElementById('inst_full').removeAttribute('erase-first');
                 document.getElementById('inst_light').removeAttribute('erase-first');
             }
-        }       
-    sleep(1000).then(() => {
-	const button = document.querySelector('esp-web-install-button');
-	button.overrides = {
-  	    checkSameFirmware(manifest, improvInfo) {
-    	    const manifestFirmware = manifest.name.toLowerCase();
-    	    const deviceFirmware = improvInfo.firmware.toLowerCase();
-    	    manifestFirmware.includes(deviceFirmware);
-	  }
-	};
-	    });
+        }
+        window.addEventListener("load", function(event) {
+            makeSelector();
+            try{
+                const button = document.querySelector("esp-web-install-button");
+                button.overrides = {
+                    checkSameFirmware(manifest, improvInfo) {
+                        const manifestFirmware = manifest.name.toLowerCase();
+                        const deviceFirmware = improvInfo.firmware.toLowerCase();
+                        return manifestFirmware.includes(deviceFirmware);
+                    }
+                };
+            }
+            catch(e){
+                console.log(e);
+            }
+        },{ once: true });
     </script>
-    <style>       
+    <style>
         body {
             font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
             Roboto, Ubuntu, sans-serif;
             padding: 0;
             margin: 0;
             line-height: 1.4;
-	    background-color: #f8f8f8;
-	    color: #212529;
+            background-color: #f8f8f8;
+            color: #212529;
         }
         .content {
             max-width: 600px;
@@ -208,16 +214,16 @@
             margin: 0 auto;
         }
         :root {
-          --mdc-theme-primary: #795548;
+            --mdc-theme-primary: #795548;
         }
         ewt-install-dialog, ewt-no-port-picked-dialog {
-          --mdc-theme-primary: orange;
-          --esp-tools-button-color: orange;
-          --esp-tools-button-text-color: orange;
-          --mdc-text-field-fill-color: #f8f8f8; 
+            --mdc-theme-primary: orange;
+            --esp-tools-button-color: orange;
+            --esp-tools-button-text-color: orange;
+            --mdc-text-field-fill-color: #f8f8f8;
         }
     </style>
-    
+
 </head>
 <body>
 <div class="content">
@@ -235,8 +241,8 @@
         Bias Lighting and Ambient Light system for PC.
     </p>
 
-    <p><b>FULL firmware</b> version adds support for remote control, if you flash FULL version you MUST configure WiFi.  
-        With FULL firmware USB connection is optional.  
+    <p><b>FULL firmware</b> version adds support for remote control, if you flash FULL version you MUST configure WiFi.
+        With FULL firmware USB connection is optional.
         If you flash <b>LIGHT firmware</b> you MUST use USB cable.</p>
     <p>
         To try it out and install <b>Glow Worm Luciferin firmware</b>, connect an ESP to
@@ -255,7 +261,7 @@
                                 manifest="static/firmware_build_beta/manifest_light.json">
             <button slot="activate">INSTALL LIGHT BETA</button>
         </esp-web-install-button>
-    </p>    
+    </p>
     <p>
         <b>NOTE: This is a BETA version, for stable version click <a href="https://sblantipodi.github.io/glow_worm_luciferin">here</a>.</b>
     </p>
@@ -267,17 +273,17 @@
             This only works in desktop Chrome and Edge. If you don't see
             your ESP device, you might miss drivers.
         </i>
-    </p>    
+    </p>
     <p>
         <b>PLEASE DISABLE ADD BLOCKER TO INSTALL FIRMWARE</b>
         <br>
-    </p>    
+    </p>
     <div class="footer">
         <div>
             <a href="https://github.com/sblantipodi/glow_worm_luciferin">Glow Worm Luciferin</a> | <a href="https://github.com/sblantipodi/firefly_luciferin">Firefly Luciferin</a>
         </div>
         <div>
-	   <p><a href="https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A"><img src="https://img.shields.io/badge/donate-PayPal-blue"></a></p>
+            <p><a href="https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A"><img src="https://img.shields.io/badge/donate-PayPal-blue"></a></p>
         </div>
     </div>
 </div>
