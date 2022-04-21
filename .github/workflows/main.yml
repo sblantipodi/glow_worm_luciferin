@@ -76,6 +76,8 @@ jobs:
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
+          git add ./docs/static/firmware_build_beta/manifest_full.json;
+          git add ./docs/static/firmware_build_beta/manifest_light.json;
           git commit -m "CI BETA release for firmware web installer";
           git push;
 
