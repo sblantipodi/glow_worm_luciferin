@@ -23,17 +23,7 @@
     <script module>
         import(
             "https://unpkg.com/esp-web-tools@8.0.1/dist/web/install-button.js?module"
-            );
-
-        function toggleErase() {
-            if (document.getElementById('erase').checked) {
-                document.getElementById('inst_full').setAttribute('erase-first', '');
-                document.getElementById('inst_light').setAttribute('erase-first', '');
-            } else {
-                document.getElementById('inst_full').removeAttribute('erase-first');
-                document.getElementById('inst_light').removeAttribute('erase-first');
-            }
-        }
+            );       
         window.addEventListener("load", function(event) {
             try{
                 const button = document.querySelector("esp-web-install-button");
