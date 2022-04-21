@@ -55,34 +55,36 @@ jobs:
 #        uses: mxschmitt/action-tmate@v3
       - name: Retrieve version
         run: |
-          echo "::set-output name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/version)"
+          echo "::set-env name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/version)"
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
-          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_full.json'
+          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/beta/docs/static/firmware_build_beta/manifest_full.json'
           keyname1: 'version'
-          valuetoset: '${{ steps.version.outputs.TAG_NAME }}'
+          valuetoset: '${{ env.TAG_NAME }}'
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
-          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_light.json'
+          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/beta/docs/static/firmware_build_beta/manifest_light.json'
           keyname1: 'version'
-          valuetoset: ${{ steps.version.outputs.TAG_NAME }}
+          valuetoset: "${{ env.TAG_NAME }}"
       - name: Save artifact (glowwormluciferinfull_esp8266)
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd currentbranch;
+          #cp .pio/build/glowwormluciferinfull_esp8266/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
           cd ../beta;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
+          #git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
           pwd;
           pwd;
           pwd;
           cat ./docs/static/firmware_build_beta/manifest_full.json;
           cat ./docs/static/firmware_build_beta/manifest_light.json;
-          cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_light.json;
+          cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/beta/docs/static/firmware_build_beta/manifest_light.json;
           echo ${{ steps.version.outputs.TAG_NAME }};
           git add ./docs/static/firmware_build_beta/manifest_full.json;
           git add ./docs/static/firmware_build_beta/manifest_light.json;
