@@ -245,7 +245,7 @@ jobs:
       - name: Retrieve version
         id: vars
         run: |
-          echo "::set-output name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/version)"
+          echo "::set-output name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/version)"
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.2
         with:
