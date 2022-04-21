@@ -34,6 +34,7 @@
                 document.getElementById('inst_light').removeAttribute('erase-first');
             }
         }       
+    sleep(1000).then(() => {
 	const button = document.querySelector('esp-web-install-button');
 	button.overrides = {
   	    checkSameFirmware(manifest, improvInfo) {
@@ -42,6 +43,7 @@
     	    manifestFirmware.includes(deviceFirmware);
 	  }
 	};
+	    });
     </script>
     <style>       
         body {
