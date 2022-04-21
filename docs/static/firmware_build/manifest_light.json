@@ -1,6 +1,6 @@
 {
   "name": "Glow Worm Luciferin LIGHT",
-  "version": "5.5.8",
+  "version": "5.5.7",
   "builds": [
     {
       "chipFamily": "ESP32",
