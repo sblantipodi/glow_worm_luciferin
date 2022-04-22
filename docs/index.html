@@ -12,7 +12,7 @@
     <meta property="og:url" content="https://sblantipodi.github.io/glow_worm_luciferin/"/>
     <meta property="og:type" content="website"/>
     <meta property="og:description"
-          content="Easily allow users to flash Luciferin firmware for their ESP-devices on the web."/>
+          content="Easily allow users to install Luciferin firmware for their ESP-devices on the web."/>
     <meta property="og:image" content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" content="Luciferin"/>
@@ -22,28 +22,33 @@
           content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
     <script module>
         import(
-            "https://unpkg.com/esp-web-tools@7.3.1/dist/web/install-button.js?module"
+            "https://unpkg.com/esp-web-tools@8.0.1/dist/web/install-button.js?module"
             );
-
-        function toggleErase() {
-            if (document.getElementById('erase').checked) {
-                document.getElementById('inst_full').setAttribute('erase-first', '');
-                document.getElementById('inst_light').setAttribute('erase-first', '');
-            } else {
-                document.getElementById('inst_full').removeAttribute('erase-first');
-                document.getElementById('inst_light').removeAttribute('erase-first');
+        window.addEventListener("load", function(event) {
+            try{
+                const button = document.querySelector("esp-web-install-button");
+                button.overrides = {
+                    checkSameFirmware(manifest, improvInfo) {
+                        const manifestFirmware = manifest.name.toLowerCase();
+                        const deviceFirmware = improvInfo.firmware.toLowerCase();
+                        return (manifestFirmware.includes("glow worm") && deviceFirmware.includes("firm"));
+                    }
+                };
             }
-        }
+            catch(e){
+                console.log(e);
+            }
+        },{ once: true });
     </script>
-    <style>       
+    <style>
         body {
             font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
             Roboto, Ubuntu, sans-serif;
             padding: 0;
             margin: 0;
             line-height: 1.4;
-	    background-color: #f8f8f8;
-	    color: #212529;
+            background-color: #f8f8f8;
+            color: #212529;
         }
         .content {
             max-width: 600px;
@@ -198,16 +203,16 @@
             margin: 0 auto;
         }
         :root {
-          --mdc-theme-primary: #795548;
+            --mdc-theme-primary: #795548;
         }
         ewt-install-dialog, ewt-no-port-picked-dialog {
-          --mdc-theme-primary: orange;
-          --esp-tools-button-color: orange;
-          --esp-tools-button-text-color: orange;
-          --mdc-text-field-fill-color: #f8f8f8; 
+            --mdc-theme-primary: orange;
+            --esp-tools-button-color: orange;
+            --esp-tools-button-text-color: orange;
+            --mdc-text-field-fill-color: #f8f8f8;
         }
     </style>
-    
+
 </head>
 <body>
 <div class="content">
@@ -225,8 +230,8 @@
         Bias Lighting and Ambient Light system for PC.
     </p>
 
-    <p><b>FULL firmware</b> version adds support for remote control, if you flash FULL version you MUST configure WiFi.  
-        With FULL firmware USB connection is optional.  
+    <p><b>FULL firmware</b> version adds support for remote control, if you flash FULL version you MUST configure WiFi.
+        With FULL firmware USB connection is optional.
         If you flash <b>LIGHT firmware</b> you MUST use USB cable.</p>
     <p>
         To try it out and install <b>Glow Worm Luciferin firmware</b>, connect an ESP to
@@ -245,25 +250,24 @@
                                 manifest="static/firmware_build/manifest_light.json">
             <button slot="activate">INSTALL LIGHT</button>
         </esp-web-install-button>
-    </p>        
+    </p>
     <p>
         <i>
             This only works in desktop Chrome and Edge. If you don't see
             your ESP device, you might miss drivers.
         </i>
-    </p>    
+    </p>
     <p>
         <b>PLEASE DISABLE ADD BLOCKER TO INSTALL FIRMWARE</b>
         <br>
-    </p>    
+    </p>
     <div class="footer">
         <div>
-            Glow Worm Luciferin – <a href="https://github.com/sblantipodi/glow_worm_luciferin">GitHub</a>
+            <a href="https://github.com/sblantipodi/glow_worm_luciferin">Glow Worm Luciferin</a> | <a href="https://github.com/sblantipodi/firefly_luciferin">Firefly Luciferin</a>
         </div>
         <div>
-            Firefly Luciferin – <a href="https://github.com/sblantipodi/firefly_luciferin">GitHub</a>
+            <p><a href="https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A"><img src="https://img.shields.io/badge/donate-PayPal-blue"></a></p>
         </div>
-
     </div>
 </div>
 </body>
