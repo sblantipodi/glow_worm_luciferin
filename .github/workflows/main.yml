@@ -35,7 +35,7 @@ jobs:
       - name: Setup template config files
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
-          touch .version_no_increment_update_date;
+          touch /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.version_no_increment_update_date;
       - name: Static code analysis
         run: |
           cd currentbranch;
@@ -91,7 +91,7 @@ jobs:
       - name: Setup template config files
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
-          touch .version_no_increment_update_date;
+          touch /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.version_no_increment_update_date;
       - name: Static code analysis
         run: |
           cd currentbranch;
@@ -147,7 +147,7 @@ jobs:
       - name: Setup template config files
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
-          touch .version_no_increment_update_date;
+          touch /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.version_no_increment_update_date;
       - name: Static code analysis
         run: |
           cd currentbranch;
@@ -206,7 +206,7 @@ jobs:
       - name: Setup template config files
         run: |
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
-          touch .version_no_increment_update_date;
+          touch /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.version_no_increment_update_date;
       - name: Static code analysis
         run: |
           cd currentbranch;
