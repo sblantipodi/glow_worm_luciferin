@@ -46,6 +46,8 @@ License along with NeoPixel.  If not, see
 // '_state' flags for internal state
 #define NEO_DIRTY   0x80 // a change was made to pixel data that requires a show
 
+#include "internal/NeoUtil.h"
+
 #include "internal/NeoHueBlend.h"
 
 #include "internal/NeoSettings.h"
@@ -66,6 +68,7 @@ License along with NeoPixel.  If not, see
 #include "internal/NeoColorFeatures.h"
 #include "internal/NeoTm1814ColorFeatures.h"
 #include "internal/NeoTm1914ColorFeatures.h"
+#include "internal/NeoSm168xxColorFeatures.h"
 #include "internal/DotStarColorFeatures.h"
 #include "internal/Lpd8806ColorFeatures.h"
 #include "internal/Lpd6803ColorFeatures.h"
@@ -95,10 +98,12 @@ License along with NeoPixel.  If not, see
 #include "internal/Lpd6803GenericMethod.h"
 #include "internal/Ws2801GenericMethod.h"
 #include "internal/P9813GenericMethod.h"
+#include "internal/Tlc5947GenericMethod.h"
 
 #if defined(ARDUINO_ARCH_ESP8266)
 
 #include "internal/NeoEsp8266DmaMethod.h"
+#include "internal/NeoEsp8266I2sDmx512Method.h"
 #include "internal/NeoEsp8266UartMethod.h"
 #include "internal/NeoEspBitBangMethod.h"
 
@@ -150,6 +155,13 @@ public:
         _countPixels(countPixels),
         _state(0),
         _method(pinClock, pinData, countPixels, T_COLOR_FEATURE::PixelSize, T_COLOR_FEATURE::SettingsSize)
+    {
+    }
+
+    NeoPixelBus(uint16_t countPixels, uint8_t pinClock, uint8_t pinData, uint8_t pinLatch, uint8_t pinOutputEnable = NOT_A_PIN) :
+        _countPixels(countPixels),
+        _state(0),
+        _method(pinClock, pinData, pinLatch, pinOutputEnable, countPixels, T_COLOR_FEATURE::PixelSize, T_COLOR_FEATURE::SettingsSize)
     {
     }
 
@@ -386,7 +398,7 @@ public:
 
     void SetPixelSettings(const typename T_COLOR_FEATURE::SettingsObject& settings)
     {
-        T_COLOR_FEATURE::applySettings(_method.getData(), settings);
+        T_COLOR_FEATURE::applySettings(_method.getData(), _method.getDataSize(), settings);
         Dirty();
     };
 
@@ -418,13 +430,13 @@ protected:
     uint8_t* _pixels()
     {
         // get pixels data within the data stream
-        return T_COLOR_FEATURE::pixels(_method.getData());
+        return T_COLOR_FEATURE::pixels(_method.getData(), _method.getDataSize());
     }
 
     const uint8_t* _pixels() const
     {
         // get pixels data within the data stream
-        return T_COLOR_FEATURE::pixels(_method.getData());
+        return T_COLOR_FEATURE::pixels(_method.getData(), _method.getDataSize());
     }
 
     void _rotateLeft(uint16_t rotationCount, uint16_t first, uint16_t last)
