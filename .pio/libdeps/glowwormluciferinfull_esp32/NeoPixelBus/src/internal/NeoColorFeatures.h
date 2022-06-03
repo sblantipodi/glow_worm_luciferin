@@ -279,16 +279,16 @@ public:
     typedef NeoNoSettings SettingsObject;
     static const size_t SettingsSize = 0;
 
-    static void applySettings(uint8_t*, const SettingsObject&)
+    static void applySettings([[maybe_unused]] uint8_t* pData, [[maybe_unused]] size_t sizeData, [[maybe_unused]] const SettingsObject& settings)
     {
     }
 
-    static uint8_t* pixels(uint8_t* pData)
+    static uint8_t* pixels([[maybe_unused]] uint8_t* pData, [[maybe_unused]] size_t sizeData)
     {
         return pData;
     }
 
-    static const uint8_t* pixels(const uint8_t* pData)
+    static const uint8_t* pixels([[maybe_unused]] const uint8_t* pData, [[maybe_unused]] size_t sizeData)
     {
         return pData;
     }
@@ -300,16 +300,16 @@ public:
     typedef NeoNoSettings SettingsObject;
     static const size_t SettingsSize = 0;
 
-    static void applySettings(uint8_t*, const SettingsObject&)
+    static void applySettings([[maybe_unused]] uint8_t* pData, [[maybe_unused]] size_t sizeData, [[maybe_unused]] const SettingsObject& settings)
     {
     }
 
-    static uint8_t* pixels(uint8_t* pData)
+    static uint8_t* pixels([[maybe_unused]] uint8_t* pData, [[maybe_unused]] size_t sizeData)
     {
         return pData;
     }
 
-    static const uint8_t* pixels(const uint8_t* pData)
+    static const uint8_t* pixels([[maybe_unused]] const uint8_t* pData, [[maybe_unused]] size_t sizeData)
     {
         return pData;
     }
@@ -321,16 +321,16 @@ public:
     typedef NeoNoSettings SettingsObject;
     static const size_t SettingsSize = 0;
 
-    static void applySettings(uint8_t*, const SettingsObject&)
+    static void applySettings([[maybe_unused]] uint8_t* pData, [[maybe_unused]] size_t sizeData, [[maybe_unused]] const SettingsObject& settings)
     {
     }
 
-    static uint8_t* pixels(uint8_t* pData)
+    static uint8_t* pixels([[maybe_unused]] uint8_t* pData, [[maybe_unused]] size_t sizeData)
     {
         return pData;
     }
 
-    static const uint8_t* pixels(const uint8_t* pData)
+    static const uint8_t* pixels([[maybe_unused]] const uint8_t* pData, [[maybe_unused]] size_t sizeData)
     {
         return pData;
     }
@@ -342,16 +342,16 @@ public:
     typedef NeoNoSettings SettingsObject;
     static const size_t SettingsSize = 0;
 
-    static void applySettings(uint8_t*, const SettingsObject&)
+    static void applySettings([[maybe_unused]] uint8_t* pData, [[maybe_unused]] size_t sizeData, [[maybe_unused]] const SettingsObject& settings)
     {
     }
 
-    static uint8_t* pixels(uint8_t* pData)
+    static uint8_t* pixels([[maybe_unused]] uint8_t* pData, [[maybe_unused]] size_t sizeData)
     {
         return pData;
     }
 
-    static const uint8_t* pixels(const uint8_t* pData)
+    static const uint8_t* pixels([[maybe_unused]] const uint8_t* pData, [[maybe_unused]] size_t sizeData)
     {
         return pData;
     }
@@ -587,6 +587,45 @@ public:
         color.R = pgm_read_byte(p++);
         color.B = pgm_read_byte(p++);
         color.G = pgm_read_byte(p);
+
+        return color;
+    }
+    
+};
+
+class NeoBgrFeature : public Neo3ByteElementsNoSettings
+{
+public:
+    static void applyPixelColor(uint8_t* pPixels, uint16_t indexPixel, ColorObject color)
+    {
+        uint8_t* p = getPixelAddress(pPixels, indexPixel);
+
+        *p++ = color.B;
+        *p++ = color.G;
+        *p = color.R;
+    }
+
+    static ColorObject retrievePixelColor(const uint8_t* pPixels, uint16_t indexPixel)
+    {
+        ColorObject color;
+        const uint8_t* p = getPixelAddress(pPixels, indexPixel);
+
+        color.B = *p++;
+        color.G = *p++;
+        color.R = *p;
+
+        return color;
+    }
+
+    
+    static ColorObject retrievePixelColor_P(PGM_VOID_P pPixels, uint16_t indexPixel)
+    {
+        ColorObject color;
+        const uint8_t* p = getPixelAddress(reinterpret_cast<const uint8_t*>(pPixels), indexPixel);
+
+        color.B = pgm_read_byte(p++);
+        color.G = pgm_read_byte(p++);
+        color.R = pgm_read_byte(p);
 
         return color;
     }
