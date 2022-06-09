@@ -47,7 +47,7 @@ Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferi
 [![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## Components:
-- ESP8266/ESP32 (ESP8266 is the recommended device)
+- ESP8266/ESP32 
 - WS2812B 5V LED Strip (60 LEDs per meter is recommended)
 - 3.3V/5V Logic Level Converter 
 - 220Ω resistor
