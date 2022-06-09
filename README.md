@@ -48,10 +48,10 @@ Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferi
 
 ## Components:
 - ESP8266/ESP32 
-- WS2812B 5V LED Strip (60 LEDs per meter is recommended)
+- WS2812B/SK6812 5V LED Strip (60 LEDs per meter is recommended)
 - 3.3V/5V Logic Level Converter 
 - 220Ω resistor
-- 1000uf capacitor for 5V power stabilization
+- 1000uf capacitor
 - Raspberry + Home Assistant for Web GUI, automations and MQTT server (optional)
 - Google Home Mini for Voice Recognition (optional)
 
