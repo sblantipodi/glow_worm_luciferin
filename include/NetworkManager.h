@@ -59,6 +59,7 @@ class NetworkManager {
     String deviceTopic = "lights/glowwormluciferin/device";
     const char *BASE_TOPIC = "glowwormluciferin";
     const char *GET_SETTINGS = "/getsettings";
+    const char *GET_LDR = "/getLdr";
     String topicInUse = "glowwormluciferin";
     const String MQTT_PARAM = "mqttopic";
     const String TOPIC_FILENAME = "topic.json";

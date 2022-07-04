@@ -49,6 +49,11 @@ class LedManager {
       CRGB leds[511];
       const String COLOR_MODE_FILENAME = "color_mode.json";
       const String COLOR_MODE_PARAM = "colorMode";
+      const String LDR_FILENAME = "ldr.json";
+      const String LDR_PARAM = "ldr";
+      const String LDR_CONT_PARAM = "ldrCont";
+      const String MIN_LDR_PARAM = "minLdr";
+      const String MAX_LDR_PARAM = "maxLdr";
       const String EFFECT_FILENAME = "effect.json";
       uint16_t dynamicLedNum = 511;
       byte red = 255;
@@ -77,6 +82,7 @@ class LedManager {
       void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
       void setNumLed(int numLedFromLuciferin);
       void setWhiteTemp(int whiteTemp);
+      void setLdr(boolean ldrEnabled, boolean ldrContinuous, String minLdr, String maxLdr);
 
 };
 

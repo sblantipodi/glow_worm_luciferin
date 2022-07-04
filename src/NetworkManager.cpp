@@ -73,7 +73,7 @@ void NetworkManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) 
   ptr = strtok_r(NULL, delimiters, &saveptr);
   uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
   ptr = strtok_r(NULL, delimiters, &saveptr);
-  if (brightness != audioBrightness) {
+  if (brightness != audioBrightness && !ldrEnabled) {
     brightness = audioBrightness;
   }
   uint8_t chunkTot, chunkNum;
@@ -91,7 +91,11 @@ void NetworkManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) 
     }
     while (ptr != NULL) {
       myLeds = strtoul(ptr, &ptrAtoi, 10);
-      ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+      if (!ldrContinuous && ldrEnabled && ldrReading) {
+        ledManager.setPixelColor(index, 0, 0, 0);
+      } else {
+        ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+      }
       index++;
       ptr = strtok_r(NULL, delimiters, &saveptr);
     }
@@ -166,6 +170,10 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += bootstrapManager.getWifiQuality();
       prefsData += F("\",\"framerate\":\"");
       prefsData += framerate;
+      if (ldrEnabled) {
+        prefsData += F("\",\"ldr\":\"");
+        prefsData += ((ldrValue * 100) / LDR_DIVIDER);
+      }
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
   });
@@ -192,6 +200,18 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += colorMode;
       prefsData += F("\",\"br\":\"");
       prefsData += baudRateInUse;
+      prefsData += F("\"}");
+      server.send(200, F("application/json"), prefsData);
+  });
+  server.on(networkManager.GET_LDR, [this]() {
+      prefsData = F("{\"ldrEnabled\":\"");
+      prefsData += ldrEnabled;
+      prefsData += F("\",\"ldrContinuous\":\"");
+      prefsData += ldrContinuous;
+      prefsData += F("\",\"ldrMin\":\"");
+      prefsData += ldrMin;
+      prefsData += F("\",\"ldrMax\":\"");
+      prefsData += ldrMax;
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
   });
@@ -240,6 +260,41 @@ void NetworkManager::listenOnHttpGet() {
   server.on("/setsettings", []() {
       server.send(200, "text/html", setSettingsPage);
   });
+  server.on("/setldr", []() {
+      server.send(200, "text/html", setLdrPage);
+  });
+  server.on("/ldr", [this]() {
+      stopUDP();
+      String ldrEnabled = server.arg("ldrEnabled");
+      String ldrContinuous = server.arg("ldrContinuous");
+      String ldrMin = server.arg("ldrMin");
+      String ldrMax = server.arg("ldrMax");
+      DynamicJsonDocument doc(1024);
+      Serial.println("ldrEnabled");
+      Serial.println(ldrEnabled);
+      Serial.println("ldrContinuous");
+      Serial.println(ldrContinuous);
+      Serial.println("ldrMin");
+      Serial.println(ldrMin);
+      Serial.println("ldrMax");
+      Serial.println(ldrMax);
+      doc["ldrEnabled"] = ldrEnabled;
+      doc["ldrContinuous"] = ldrContinuous;
+      doc["ldrMin"] = ldrMin;
+      doc["ldrMax"] = ldrMax;
+      content = F("Success: rebooting the microcontroller using your credentials.");
+      statusCode = 200;
+      delay(DELAY_500);
+      server.sendHeader("Access-Control-Allow-Origin", "*");
+      server.send(statusCode, "text/plain", content);
+      delay(DELAY_500);
+      ledManager.setLdr(ldrEnabled == "true", ldrContinuous == "true", ldrMin, ldrMax);
+      delay(DELAY_1000);
+#if defined(ESP8266) || defined(ESP32)
+      ESP.restart();
+#endif
+  });
+
   server.on("/setting", [this]() {
       stopUDP();
       String deviceName = server.arg("deviceName");
@@ -475,7 +530,7 @@ void NetworkManager::fromMqttStreamToStrip(char *payload) {
   ptr = strtok_r(NULL, delimiters, &saveptr);
   uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
   ptr = strtok_r(NULL, delimiters, &saveptr);
-  if (brightness != audioBrightness) {
+  if (brightness != audioBrightness && !ldrEnabled) {
     brightness = audioBrightness;
   }
   if (numLedFromLuciferin == 0) {
@@ -487,7 +542,11 @@ void NetworkManager::fromMqttStreamToStrip(char *payload) {
     }
     while (ptr != NULL) {
       myLeds = strtoul(ptr, &ptrAtoi, 10);
-      ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+      if (!ldrContinuous && ldrEnabled && ldrReading) {
+        ledManager.setPixelColor(index, 0, 0, 0);
+      } else {
+        ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+      }
       index++;
       ptr = strtok_r(NULL, delimiters, &saveptr);
     }
@@ -808,6 +867,7 @@ void NetworkManager::sendStatus() {
     root[F("MAC")] = MAC;
     root[F("ver")] = VERSION;
     root[F("framerate")] = framerate;
+    root[F("ldr")] = ldrValue;
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
     root[F("board")] = F("ESP8266");

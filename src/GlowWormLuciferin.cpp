@@ -100,7 +100,6 @@ void setup() {
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
 
-
   // Color mode from configuration storage
   String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME, ledManager.COLOR_MODE_PARAM);
   if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
@@ -109,6 +108,29 @@ void setup() {
   Serial.print(F("COLOR_MODE IN USE="));
   Serial.println(colorMode);
   ledManager.initLeds();
+
+  // Color mode from configuration storage
+  String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
+  String ldrContFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_CONT_PARAM);
+  String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
+  String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MAX_LDR_PARAM);
+
+  if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
+    ldrEnabled = ldrFromStorage == "1";
+  }
+  if (!ldrContFromStorage.isEmpty() && ldrContFromStorage != ERROR) {
+    ldrContinuous = ldrContFromStorage == "1";
+  }
+  if (!ldrMinFromStorage.isEmpty() && ldrMinFromStorage != ERROR && ldrMinFromStorage.toInt() != 0) {
+    ldrMin = ldrMinFromStorage.toInt();
+  }
+  if (!ldrMaxFromStorage.isEmpty() && ldrMaxFromStorage != ERROR && ldrMaxFromStorage.toInt() != 0) {
+    ldrMax = ldrMaxFromStorage.toInt();
+  }
+  Serial.println(ldrEnabled);
+  Serial.println(ldrContinuous);
+  Serial.println(ldrMin);
+  Serial.println(ldrMax);
 
 #if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);
@@ -206,7 +228,7 @@ void mainLoop() {
     }
 #endif
 
-    if (usbBrightness != brightness) {
+    if (usbBrightness != brightness& !ldrEnabled) {
       brightness = usbBrightness;
     }
 
@@ -363,5 +385,42 @@ void loop() {
     esp_task_wdt_reset();
   }
 #endif
+
+  if (ldrEnabled) {
+    currentMillisLDR = millis();
+    if (ldrContinuous) {
+      EVERY_N_SECONDS(1) {
+        ldrReading = true;
+        previousMillisLDR = currentMillisLDR;
+      }
+    } else {
+      // TODO
+      EVERY_N_MINUTES(1) {
+        ldrReading = true;
+        previousMillisLDR = currentMillisLDR;
+      }
+    }
+    if (ldrReading) {
+      if (ldrContinuous || (currentMillisLDR - previousMillisLDR >= LDR_RECOVER_TIME)) {
+#if defined(ESP8266)
+        ldrValue = analogRead(LDR_PIN);
+#elif defined(ESP32)
+        int tmpLdrVal = analogRead(LDR_PIN_DIG);
+        ldrValue = analogRead(LDR_PIN_PICO);
+        if (tmpLdrVal > ldrValue) ldrValue = tmpLdrVal;
+#endif
+        uint8_t minBright = (ldrMin * 255) / 100;
+        uint8_t maxBright = (ldrMax * 255) / 100;
+        brightness = (ldrValue * 255) / LDR_DIVIDER;
+        if (brightness <= minBright) {
+          brightness = minBright;
+        }
+        if (brightness >= maxBright) {
+          brightness = maxBright;
+        }
+        ldrReading = false;
+      }
+    }
+  }
 
 }

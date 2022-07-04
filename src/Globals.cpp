@@ -48,6 +48,12 @@ uint8_t baudRateInUse = 3;
 #endif
 bool relayState = false;
 bool breakLoop = false;
+bool ldrReading = false;
+int ldrValue;
+bool ldrEnabled = false;
+bool ldrContinuous = false;
+uint8_t ldrMin = 20;
+uint8_t ldrMax = 100;
 
 /**
  * Set gpio received by the Firefly Luciferin software

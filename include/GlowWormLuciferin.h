@@ -40,10 +40,12 @@ TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
 PingESP pingESP;
 #endif
 
-#define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
-//#define CLOCK_PIN 5
 #define CHIPSET     WS2812B
 #define COLOR_ORDER GRB
+
+long previousMillisLDR = 0;
+unsigned long currentMillisLDR = 0;
+const unsigned int LDR_RECOVER_TIME = 4000;
 
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
 CRGBPalette16 targetPalette(OceanColors_p);

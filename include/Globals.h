@@ -27,11 +27,17 @@
 #include "NetworkManager.h"
 
 #if defined(ESP32)
-#define RELAY_PIN_DIG 23 // equals to Q4
+#define RELAY_PIN_DIG 32 // equals to Q4
 #define RELAY_PIN_PICO 22
+#define LDR_PIN_DIG 36
+#define LDR_PIN_PICO 33
+#define LDR_DIVIDER 4096
 #elif defined(ESP8266)
 #define RELAY_PIN 12
+#define LDR_PIN A0
+#define LDR_DIVIDER 1024
 #endif
+#define DATA_PIN 5 // Wemos D1 Mini Lite PIN D5
 
 extern class BootstrapManager bootstrapManager;
 extern class EffectsManager effectsManager;
@@ -56,6 +62,12 @@ const String GPIO_PARAM = "gpio";
 const String GPIO_FILENAME = "gpio.json";
 const String BAUDRATE_PARAM = "baudrate";
 const String BAUDRATE_FILENAME = "baudrate.json";
+extern bool ldrReading;
+extern int ldrValue;
+extern bool ldrEnabled;
+extern bool ldrContinuous;
+extern uint8_t ldrMin;
+extern uint8_t ldrMax;
 
 extern uint8_t baudRateInUse;
 extern bool relayState;
