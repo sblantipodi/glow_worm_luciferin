@@ -1,7 +1,7 @@
-G04 Layer: Mechanical*
+G04 Layer: MechanicalLayer*
 G04 Panelize: Stamp Hole, Column: 2, Row: 3, Board Size: 35.05mm x 26.17mm, Panelized Board Size: 72.1mm x 82.51mm*
-G04 EasyEDA v6.4.25, 2021-10-09T00:25:21+02:00*
-G04 2177c25503544fa0b13e01c7088fd064,4245c91a3b6e4cf7aa995480f5c7e4a3,10*
+G04 EasyEDA v6.5.9, 2022-07-22 15:10:41*
+G04 7b4b3cc524da4ca09f73bc94dfdf97f7,4245c91a3b6e4cf7aa995480f5c7e4a3,10*
 G04 Gerber Generator version 0.2*
 G04 Scale: 100 percent, Rotated: No, Reflected: No *
 G04 Dimensions in millimeters *
