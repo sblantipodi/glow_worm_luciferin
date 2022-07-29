@@ -394,6 +394,7 @@ void loop() {
         previousMillisLDR = currentMillisLDR;
       }
     } else {
+
       // TODO
       EVERY_N_MINUTES(1) {
         ldrReading = true;

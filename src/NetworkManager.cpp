@@ -836,6 +836,8 @@ void NetworkManager::sendStatus() {
     fpsData += framerate;
     fpsData += F("\",\"wifi\":\"");
     fpsData += bootstrapManager.getWifiQuality();
+    fpsData += F("\",\"ldr\":\"");
+    fpsData += ((ldrValue * 100) / LDR_DIVIDER);
     fpsData += F("\"}");
     if (mqttIP.length() > 0) {
       bootstrapManager.publish(networkManager.fpsTopic.c_str(), fpsData.c_str(), false);
@@ -867,7 +869,7 @@ void NetworkManager::sendStatus() {
     root[F("MAC")] = MAC;
     root[F("ver")] = VERSION;
     root[F("framerate")] = framerate;
-    root[F("ldr")] = ldrValue;
+    root[F("ldr")] = ((ldrValue * 100) / LDR_DIVIDER);
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
     root[F("board")] = F("ESP8266");

@@ -188,6 +188,7 @@ void Globals::sendSerialInfo() {
     Serial.printf("effect:%d\n", effect);
     Serial.printf("colorMode:%d\n", colorMode);
     Serial.printf("white:%d\n", whiteTempInUse);
+    Serial.printf("ldr:%d\n", ((ldrValue * 100) / LDR_DIVIDER));
   }
 
 }
