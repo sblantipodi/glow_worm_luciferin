@@ -39,7 +39,7 @@ button {
 .slider-margin {
     margin-top: 1em;
 }
-.bnt-white {
+btn.btn-white {
     background-color: orange;
     color: white;
     font-weight: bold;
