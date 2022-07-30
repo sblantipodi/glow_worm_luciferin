@@ -44,3 +44,14 @@ button {
     color: white;
     font-weight: bold;
 }
+.margin-2 {
+    margin-top: 2vw;
+}
+.btn.back-btn {
+    color:white; 
+    left: 1em; 
+    top: 1em; 
+    display: block; 
+    position: absolute; 
+    width: 5em;
+}
