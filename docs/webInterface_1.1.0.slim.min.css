@@ -55,6 +55,14 @@ button {
     position: absolute; 
     width: 5em;
 }
+.btn.right-btn {
+    color:white; 
+    right: 1em; 
+    top: 1em; 
+    display: block; 
+    position: absolute; 
+    width: 5em;
+}
 .btn-orange {
     background-color: orange;
     border-color: orange;
