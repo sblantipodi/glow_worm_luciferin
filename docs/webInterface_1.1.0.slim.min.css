@@ -7,11 +7,11 @@
     background: lightgrey;
     border-color: lightgrey;
 }
-#toggleLED {
+#toggleLED:hover {
     font-size: 1.8rem;
     font-weight: bold;
-    background: grey;
-    border-color: grey;
+    background: grey !important;;
+    border-color: grey !important;;
 }
 #toggleLED:active {
     background-color: orange !important;
