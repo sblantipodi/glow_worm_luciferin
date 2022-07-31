@@ -79,3 +79,6 @@ button.btn.btn-orange:hover {
     color: white;
     font-weight: bold;
 }
+footer.ldrfoot {
+    margin: 0px;
+}
