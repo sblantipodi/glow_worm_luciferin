@@ -7,9 +7,19 @@
     background: lightgrey;
     border-color: lightgrey;
 }
+#toggleLED {
+    font-size: 1.8rem;
+    font-weight: bold;
+    background: grey;
+    border-color: grey;
+}
 #toggleLED:active {
     background-color: orange !important;
     border-color: orange !important;
+}
+#toggleLED:active:hover {
+    background-color: darkorange !important;
+    border-color: darkorange !important;
 }
 body {
     background-color: #f8f8f8;
@@ -66,4 +76,12 @@ button {
 .btn-orange {
     background-color: orange;
     border-color: orange;
+    color: white;
+    font-weight: bold;
+}
+button.btn.btn-orange:hover {
+    background-color: darkorange;
+    border-color: orange;
+    color: white;
+    font-weight: bold;
 }
