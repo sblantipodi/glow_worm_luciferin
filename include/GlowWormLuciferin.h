@@ -45,7 +45,6 @@ PingESP pingESP;
 
 long previousMillisLDR = 0;
 unsigned long currentMillisLDR = 0;
-const unsigned int LDR_RECOVER_TIME = 4000;
 
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
 CRGBPalette16 targetPalette(OceanColors_p);

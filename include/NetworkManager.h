@@ -53,9 +53,14 @@ class NetworkManager {
     String baseStreamTopic = "lights/glowwormluciferin/set/stream";
     String streamTopic = "lights/glowwormluciferin/set/stream";
     String unsubscribeTopic = "lights/glowwormluciferin/unsubscribe";
+    String setSettings = "/setsettings";
+    String setting = "setting";
+    String setLdr = "setldr";
+    String ldr = "ldr";
     String cmndReboot = "cmnd/glowwormluciferin/reboot";
     String fpsTopic = "lights/glowwormluciferin/fps";
     String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
+    String ldrTopic = "lights/glowwormluciferin/ldr";
     String deviceTopic = "lights/glowwormluciferin/device";
     const char *BASE_TOPIC = "glowwormluciferin";
     const char *GET_SETTINGS = "/getsettings";
@@ -80,8 +85,8 @@ class NetworkManager {
     static void fromMqttStreamToStrip(char *payload);
     void httpCallback(bool (*callback)());
     void listenOnHttpGet();
-    void startUDP();
-    void stopUDP();
+    static void startUDP();
+    static void stopUDP();
     void swapTopicUnsubscribe();
     void swapTopicReplace(String customtopic);
     void swapTopicSubscribe();
@@ -90,6 +95,7 @@ class NetworkManager {
     static bool processJson();
     static bool processFirmwareConfig();
     static bool processGlowWormLuciferinRebootCmnd();
+    static bool processLDR();
     static bool processUnSubscribeStream();
     bool swapMqttTopic();
     static void jsonStream(byte *payload, unsigned int length);

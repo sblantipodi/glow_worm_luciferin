@@ -53,7 +53,8 @@ int ldrValue;
 bool ldrEnabled = false;
 bool ldrContinuous = false;
 uint8_t ldrMin = 20;
-uint8_t ldrMax = 100;
+int ldrDivider = LDR_DIVIDER;
+const unsigned int LDR_RECOVER_TIME = 4000;
 
 /**
  * Set gpio received by the Firefly Luciferin software
@@ -188,7 +189,7 @@ void Globals::sendSerialInfo() {
     Serial.printf("effect:%d\n", effect);
     Serial.printf("colorMode:%d\n", colorMode);
     Serial.printf("white:%d\n", whiteTempInUse);
-    Serial.printf("ldr:%d\n", ((ldrValue * 100) / LDR_DIVIDER));
+    Serial.printf("ldr:%d\n", ((ldrValue * 100) / ldrDivider));
   }
 
 }

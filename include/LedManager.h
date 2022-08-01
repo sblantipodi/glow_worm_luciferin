@@ -50,6 +50,7 @@ class LedManager {
       const String COLOR_MODE_FILENAME = "color_mode.json";
       const String COLOR_MODE_PARAM = "colorMode";
       const String LDR_FILENAME = "ldr.json";
+      const String LDR_CAL_FILENAME = "ldrCal.json";
       const String LDR_PARAM = "ldr";
       const String LDR_CONT_PARAM = "ldrCont";
       const String MIN_LDR_PARAM = "minLdr";
@@ -82,7 +83,8 @@ class LedManager {
       void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
       void setNumLed(int numLedFromLuciferin);
       void setWhiteTemp(int whiteTemp);
-      void setLdr(boolean ldrEnabled, boolean ldrContinuous, String minLdr, String maxLdr);
+      void setLdr(boolean ldrEnabled, boolean ldrContinuous, String minLdr);
+      void setLdr(int maxLdr);
 
 };
 

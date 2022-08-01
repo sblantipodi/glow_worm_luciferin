@@ -113,7 +113,7 @@ void setup() {
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
   String ldrContFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_CONT_PARAM);
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
-  String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MAX_LDR_PARAM);
+  String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
 
   if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
     ldrEnabled = ldrFromStorage == "1";
@@ -125,12 +125,15 @@ void setup() {
     ldrMin = ldrMinFromStorage.toInt();
   }
   if (!ldrMaxFromStorage.isEmpty() && ldrMaxFromStorage != ERROR && ldrMaxFromStorage.toInt() != 0) {
-    ldrMax = ldrMaxFromStorage.toInt();
+    ldrDivider = ldrMaxFromStorage.toInt();
+    if (ldrDivider == -1) {
+      ldrDivider = LDR_DIVIDER;
+    }
   }
   Serial.println(ldrEnabled);
   Serial.println(ldrContinuous);
   Serial.println(ldrMin);
-  Serial.println(ldrMax);
+  Serial.println(ldrDivider);
 
 #if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);
@@ -394,7 +397,6 @@ void loop() {
         previousMillisLDR = currentMillisLDR;
       }
     } else {
-
       // TODO
       EVERY_N_MINUTES(1) {
         ldrReading = true;
@@ -411,13 +413,12 @@ void loop() {
         if (tmpLdrVal > ldrValue) ldrValue = tmpLdrVal;
 #endif
         uint8_t minBright = (ldrMin * 255) / 100;
-        uint8_t maxBright = (ldrMax * 255) / 100;
-        brightness = (ldrValue * 255) / LDR_DIVIDER;
+        brightness = (ldrValue * 255) / ldrDivider;
         if (brightness <= minBright) {
           brightness = minBright;
         }
-        if (brightness >= maxBright) {
-          brightness = maxBright;
+        if (brightness > 255) {
+          brightness = 255;
         }
         ldrReading = false;
       }

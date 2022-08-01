@@ -67,7 +67,8 @@ extern int ldrValue;
 extern bool ldrEnabled;
 extern bool ldrContinuous;
 extern uint8_t ldrMin;
-extern uint8_t ldrMax;
+extern int ldrDivider;
+extern const unsigned int LDR_RECOVER_TIME;
 
 extern uint8_t baudRateInUse;
 extern bool relayState;

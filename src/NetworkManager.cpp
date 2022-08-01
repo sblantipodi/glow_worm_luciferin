@@ -133,6 +133,7 @@ void NetworkManager::manageQueueSubscription() {
   bootstrapManager.subscribe(networkManager.updateStateTopic.c_str());
   bootstrapManager.subscribe(networkManager.unsubscribeTopic.c_str());
   bootstrapManager.subscribe(networkManager.firmwareConfigTopic.c_str());
+  bootstrapManager.subscribe(networkManager.ldrTopic.c_str());
 
 }
 
@@ -172,7 +173,7 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += framerate;
       if (ldrEnabled) {
         prefsData += F("\",\"ldr\":\"");
-        prefsData += ((ldrValue * 100) / LDR_DIVIDER);
+        prefsData += ((ldrValue * 100) / ldrDivider);
       }
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
@@ -211,7 +212,7 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += F("\",\"ldrMin\":\"");
       prefsData += ldrMin;
       prefsData += F("\",\"ldrMax\":\"");
-      prefsData += ldrMax;
+      prefsData += ((ldrValue * 100) / ldrDivider);
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
   });
@@ -257,44 +258,12 @@ void NetworkManager::listenOnHttpGet() {
   server.onNotFound([]() {
       server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
-  server.on("/setsettings", []() {
-      server.send(200, "text/html", setSettingsPage);
-  });
   server.on("/setldr", []() {
-      server.send(200, "text/html", setLdrPage);
+      server.send(200, F("text/html"), setLdrPage);
   });
-  server.on("/ldr", [this]() {
-      stopUDP();
-      String ldrEnabled = server.arg("ldrEnabled");
-      String ldrContinuous = server.arg("ldrContinuous");
-      String ldrMin = server.arg("ldrMin");
-      String ldrMax = server.arg("ldrMax");
-      DynamicJsonDocument doc(1024);
-      Serial.println("ldrEnabled");
-      Serial.println(ldrEnabled);
-      Serial.println("ldrContinuous");
-      Serial.println(ldrContinuous);
-      Serial.println("ldrMin");
-      Serial.println(ldrMin);
-      Serial.println("ldrMax");
-      Serial.println(ldrMax);
-      doc["ldrEnabled"] = ldrEnabled;
-      doc["ldrContinuous"] = ldrContinuous;
-      doc["ldrMin"] = ldrMin;
-      doc["ldrMax"] = ldrMax;
-      content = F("Success: rebooting the microcontroller using your credentials.");
-      statusCode = 200;
-      delay(DELAY_500);
-      server.sendHeader("Access-Control-Allow-Origin", "*");
-      server.send(statusCode, "text/plain", content);
-      delay(DELAY_500);
-      ledManager.setLdr(ldrEnabled == "true", ldrContinuous == "true", ldrMin, ldrMax);
-      delay(DELAY_1000);
-#if defined(ESP8266) || defined(ESP32)
-      ESP.restart();
-#endif
+  server.on(("/" + networkManager.ldrTopic).c_str(), [this]() {
+      httpCallback(processLDR);
   });
-
   server.on("/setting", [this]() {
       stopUDP();
       String deviceName = server.arg("deviceName");
@@ -481,6 +450,8 @@ void NetworkManager::callback(char *topic, byte *payload, unsigned int length) {
       processFirmwareConfig();
     } else if (networkManager.unsubscribeTopic.equals(topic)) {
       processUnSubscribeStream();
+    } else if (networkManager.ldrTopic.equals(topic)) {
+      processLDR();
     }
     if (ledManager.stateOn) {
       ledManager.setColor(map(ledManager.red, 0, 255, 0, brightness), map(ledManager.green, 0, 255, 0, brightness),
@@ -837,7 +808,7 @@ void NetworkManager::sendStatus() {
     fpsData += F("\",\"wifi\":\"");
     fpsData += bootstrapManager.getWifiQuality();
     fpsData += F("\",\"ldr\":\"");
-    fpsData += ((ldrValue * 100) / LDR_DIVIDER);
+    fpsData += ((ldrValue * 100) / ldrDivider);
     fpsData += F("\"}");
     if (mqttIP.length() > 0) {
       bootstrapManager.publish(networkManager.fpsTopic.c_str(), fpsData.c_str(), false);
@@ -869,7 +840,7 @@ void NetworkManager::sendStatus() {
     root[F("MAC")] = MAC;
     root[F("ver")] = VERSION;
     root[F("framerate")] = framerate;
-    root[F("ldr")] = ((ldrValue * 100) / LDR_DIVIDER);
+    root[F("ldr")] = ((ldrValue * 100) / ldrDivider);
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
     root[F("board")] = F("ESP8266");
@@ -998,6 +969,38 @@ bool NetworkManager::processGlowWormLuciferinRebootCmnd() {
 
 }
 
+/**
+ * Process LDR settings
+ * @return true if message is correctly processed
+ */
+bool NetworkManager::processLDR() {
+
+  if (bootstrapManager.jsonDoc.containsKey(F("ldrEnabled"))) {
+    stopUDP();
+    String ldrEnabledMqtt = bootstrapManager.jsonDoc[F("ldrEnabled")];
+    String ldrContinuousMqtt = bootstrapManager.jsonDoc[F("ldrContinuous")];
+    String ldrMinMqtt = bootstrapManager.jsonDoc[F("ldrMin")];
+    String ldrMax = bootstrapManager.jsonDoc[F("ldrMax")];
+    ldrEnabled = ldrEnabledMqtt == "true";
+    ldrContinuous = ldrContinuousMqtt == "true";
+    ldrMin = ldrMinMqtt.toInt();
+    if (ldrMax.toInt() == 1) {
+      ldrDivider = ldrValue;
+      ledManager.setLdr(ldrDivider);
+      delay(DELAY_500);
+    } else if (ldrMax.toInt() == -1) {
+      ldrDivider = LDR_DIVIDER;
+      ledManager.setLdr(-1);
+      delay(DELAY_500);
+    }
+    ledManager.setLdr(ldrEnabledMqtt == "true", ldrContinuousMqtt == "true", ldrMinMqtt);
+    delay(DELAY_1000);
+    startUDP();
+  }
+  return true;
+
+}
+
 
 
 /**
@@ -1026,6 +1029,7 @@ void NetworkManager::swapTopicUnsubscribe() {
   bootstrapManager.unsubscribe(networkManager.baseStreamTopic.c_str());
   bootstrapManager.unsubscribe(networkManager.streamTopic.c_str());
   bootstrapManager.unsubscribe(networkManager.unsubscribeTopic.c_str());
+  bootstrapManager.unsubscribe(networkManager.ldrTopic.c_str());
 
 }
 
@@ -1043,6 +1047,7 @@ void NetworkManager::swapTopicReplace(String customtopic) {
   networkManager.streamTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.unsubscribeTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.fpsTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.ldrTopic.replace(networkManager.BASE_TOPIC, customtopic);
 
 }
 
@@ -1058,6 +1063,7 @@ void NetworkManager::swapTopicSubscribe() {
   bootstrapManager.subscribe(networkManager.baseStreamTopic.c_str());
   bootstrapManager.subscribe(networkManager.streamTopic.c_str(), 0);
   bootstrapManager.subscribe(networkManager.unsubscribeTopic.c_str());
+  bootstrapManager.subscribe(networkManager.ldrTopic.c_str());
 
 }
 

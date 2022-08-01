@@ -526,17 +526,15 @@ void LedManager::setColorMode(int colorModeToUse) {
  * @param ldrEnabled LDR enabled or disabled
  * @param ldrContinuous LDR continuous readings
  * @param minLdr min brightness when using LDR
- * @param maxLdr max brightness when using LDR
  */
-void LedManager::setLdr(boolean ldrEnabled, boolean ldrContinuous, String minLdr, String maxLdr) {
+void LedManager::setLdr(boolean ldrEnabled, boolean ldrContinuous, String minLdr) {
 
-  Serial.println("CHANGING LDR");
+  Serial.println(F("CHANGING LDR"));
 #if defined(ESP8266)
   DynamicJsonDocument ldrDoc(1024);
   ldrDoc[LDR_PARAM] = ldrEnabled;
   ldrDoc[LDR_CONT_PARAM] = ldrContinuous;
   ldrDoc[MIN_LDR_PARAM] = minLdr;
-  ldrDoc[MAX_LDR_PARAM] = maxLdr;
   bootstrapManager.writeToLittleFS(ldrDoc, LDR_FILENAME);
 #endif
 #if defined(ESP32)
@@ -544,8 +542,29 @@ void LedManager::setLdr(boolean ldrEnabled, boolean ldrContinuous, String minLdr
   ldrDoc[LDR_PARAM] = ldrEnabled;
   ldrDoc[LDR_CONT_PARAM] = ldrContinuous;
   ldrDoc[MIN_LDR_PARAM] = minLdr;
-  ldrDoc[MAX_LDR_PARAM] = maxLdr;
   bootstrapManager.writeToSPIFFS(ldrDoc, LDR_FILENAME);
+#endif
+  delay(20);
+
+}
+
+
+/**
+ * Set LDR params received by the Firefly Luciferin software
+ * @param maxLdr value used during the calibration
+ */
+void LedManager::setLdr(int maxLdr) {
+
+  Serial.println(F("CHANGING LDR"));
+#if defined(ESP8266)
+  DynamicJsonDocument ldrDoc(1024);
+  ldrDoc[MAX_LDR_PARAM] = maxLdr;
+  bootstrapManager.writeToLittleFS(ldrDoc, LDR_CAL_FILENAME);
+#endif
+#if defined(ESP32)
+  DynamicJsonDocument ldrDoc(1024);
+  ldrDoc[MAX_LDR_PARAM] = maxLdr;
+  bootstrapManager.writeToSPIFFS(ldrDoc, LDR_CAL_FILENAME);
 #endif
   delay(20);
 
