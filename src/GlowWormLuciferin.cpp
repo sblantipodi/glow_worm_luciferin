@@ -30,11 +30,7 @@ void setup() {
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
   // BaudRate from configuration storage
-#if defined(ESP32)
-  String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM, false);
-#else
   String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
-#endif
   if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
     baudRateInUse = baudRateFromStorage.toInt();
   }
@@ -111,15 +107,19 @@ void setup() {
 
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
-  String ldrContFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_CONT_PARAM);
+  String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
+  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_INTER_PARAM);
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
 
   if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
     ldrEnabled = ldrFromStorage == "1";
   }
-  if (!ldrContFromStorage.isEmpty() && ldrContFromStorage != ERROR) {
-    ldrContinuous = ldrContFromStorage == "1";
+  if (!ldrTurnOffFromStorage.isEmpty() && ldrTurnOffFromStorage != ERROR) {
+    ldrTurnOff = ldrTurnOffFromStorage == "1";
+  }
+  if (!ldrIntervalFromStorage.isEmpty() && ldrIntervalFromStorage != ERROR) {
+    ldrInterval = ldrIntervalFromStorage.toInt();
   }
   if (!ldrMinFromStorage.isEmpty() && ldrMinFromStorage != ERROR && ldrMinFromStorage.toInt() != 0) {
     ldrMin = ldrMinFromStorage.toInt();
@@ -130,10 +130,6 @@ void setup() {
       ldrDivider = LDR_DIVIDER;
     }
   }
-  Serial.println(ldrEnabled);
-  Serial.println(ldrContinuous);
-  Serial.println(ldrMin);
-  Serial.println(ldrDivider);
 
 #if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);
@@ -363,6 +359,7 @@ void mainLoop() {
  */
 void loop() {
 
+  currentMillis = millis();
   mainLoop();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -390,21 +387,20 @@ void loop() {
 #endif
 
   if (ldrEnabled) {
-    currentMillisLDR = millis();
-    if (ldrContinuous) {
-      EVERY_N_SECONDS(1) {
+    if (ldrInterval == 0) {
+      if ((currentMillis - previousMillisLDR) >= (1 * 1000)) {
         ldrReading = true;
-        previousMillisLDR = currentMillisLDR;
+        previousMillisLDR = currentMillis;
       }
     } else {
       // TODO
-      EVERY_N_MINUTES(1) {
+      if ((currentMillis - previousMillisLDR) >= (ldrInterval * 1000)) {
         ldrReading = true;
-        previousMillisLDR = currentMillisLDR;
+        previousMillisLDR = currentMillis;
       }
     }
     if (ldrReading) {
-      if (ldrContinuous || (currentMillisLDR - previousMillisLDR >= LDR_RECOVER_TIME)) {
+      if ((ldrInterval == 0) || ((currentMillis - previousMillisLDR) >= LDR_RECOVER_TIME)) {
 #if defined(ESP8266)
         ldrValue = analogRead(LDR_PIN);
 #elif defined(ESP32)
@@ -413,12 +409,14 @@ void loop() {
         if (tmpLdrVal > ldrValue) ldrValue = tmpLdrVal;
 #endif
         uint8_t minBright = (ldrMin * 255) / 100;
-        brightness = (ldrValue * 255) / ldrDivider;
+        int br = ((((ldrValue * 100) / ldrDivider) * 255) / 100);
+        if (br > 255) {
+          brightness = 255;
+        } else {
+          brightness = br;
+        }
         if (brightness <= minBright) {
           brightness = minBright;
-        }
-        if (brightness > 255) {
-          brightness = 255;
         }
         ldrReading = false;
       }

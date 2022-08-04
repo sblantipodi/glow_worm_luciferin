@@ -52,7 +52,8 @@ class LedManager {
       const String LDR_FILENAME = "ldr.json";
       const String LDR_CAL_FILENAME = "ldrCal.json";
       const String LDR_PARAM = "ldr";
-      const String LDR_CONT_PARAM = "ldrCont";
+      const String LDR_TO_PARAM = "ldrTurnOff";
+      const String LDR_INTER_PARAM = "ldrInterval";
       const String MIN_LDR_PARAM = "minLdr";
       const String MAX_LDR_PARAM = "maxLdr";
       const String EFFECT_FILENAME = "effect.json";
@@ -83,7 +84,7 @@ class LedManager {
       void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
       void setNumLed(int numLedFromLuciferin);
       void setWhiteTemp(int whiteTemp);
-      void setLdr(boolean ldrEnabled, boolean ldrContinuous, String minLdr);
+      void setLdr(boolean ldrEnabled, boolean ldrTurnOff, int ldrInterval, String minLdr);
       void setLdr(int maxLdr);
 
 };

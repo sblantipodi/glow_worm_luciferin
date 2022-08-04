@@ -507,16 +507,9 @@ void LedManager::initLeds() {
 void LedManager::setColorMode(int colorModeToUse) {
 
   Serial.println("CHANGING COLOR MODE");
-#if defined(ESP8266)
   DynamicJsonDocument colorModeDoc(1024);
   colorModeDoc[COLOR_MODE_PARAM] = colorModeToUse;
   bootstrapManager.writeToLittleFS(colorModeDoc, COLOR_MODE_FILENAME);
-#endif
-#if defined(ESP32)
-  DynamicJsonDocument colorModeDoc(1024);
-  colorModeDoc[COLOR_MODE_PARAM] = colorModeToUse;
-  bootstrapManager.writeToSPIFFS(colorModeDoc, COLOR_MODE_FILENAME);
-#endif
   delay(20);
 
 }
@@ -524,26 +517,19 @@ void LedManager::setColorMode(int colorModeToUse) {
 /**
  * Set LDR params received by the Firefly Luciferin software
  * @param ldrEnabled LDR enabled or disabled
- * @param ldrContinuous LDR continuous readings
+ * @param ldrTurnOff Turn off LEDs before LDR readings
+ * @param ldrInterval Interval between readings
  * @param minLdr min brightness when using LDR
  */
-void LedManager::setLdr(boolean ldrEnabled, boolean ldrContinuous, String minLdr) {
+void LedManager::setLdr(boolean ldrEnabled, boolean ldrTurnOff, int ldrInterval, String minLdr) {
 
   Serial.println(F("CHANGING LDR"));
-#if defined(ESP8266)
   DynamicJsonDocument ldrDoc(1024);
   ldrDoc[LDR_PARAM] = ldrEnabled;
-  ldrDoc[LDR_CONT_PARAM] = ldrContinuous;
+  ldrDoc[LDR_TO_PARAM] = ldrTurnOff;
+  ldrDoc[LDR_INTER_PARAM] = ldrInterval;
   ldrDoc[MIN_LDR_PARAM] = minLdr;
   bootstrapManager.writeToLittleFS(ldrDoc, LDR_FILENAME);
-#endif
-#if defined(ESP32)
-  DynamicJsonDocument ldrDoc(1024);
-  ldrDoc[LDR_PARAM] = ldrEnabled;
-  ldrDoc[LDR_CONT_PARAM] = ldrContinuous;
-  ldrDoc[MIN_LDR_PARAM] = minLdr;
-  bootstrapManager.writeToSPIFFS(ldrDoc, LDR_FILENAME);
-#endif
   delay(20);
 
 }
@@ -556,16 +542,9 @@ void LedManager::setLdr(boolean ldrEnabled, boolean ldrContinuous, String minLdr
 void LedManager::setLdr(int maxLdr) {
 
   Serial.println(F("CHANGING LDR"));
-#if defined(ESP8266)
   DynamicJsonDocument ldrDoc(1024);
   ldrDoc[MAX_LDR_PARAM] = maxLdr;
   bootstrapManager.writeToLittleFS(ldrDoc, LDR_CAL_FILENAME);
-#endif
-#if defined(ESP32)
-  DynamicJsonDocument ldrDoc(1024);
-  ldrDoc[MAX_LDR_PARAM] = maxLdr;
-  bootstrapManager.writeToSPIFFS(ldrDoc, LDR_CAL_FILENAME);
-#endif
   delay(20);
 
 }
@@ -622,17 +601,9 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
 void LedManager::setNumLed(int numLedFromLuciferin) {
 
   ledManager.dynamicLedNum = numLedFromLuciferin;
-#if defined(ESP8266)
   DynamicJsonDocument numLedDoc(1024);
   numLedDoc[LED_NUM_PARAM] = ledManager.dynamicLedNum;
   bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
-#endif
-#if defined(ESP32)
-  DynamicJsonDocument numLedDoc(1024);
-  numLedDoc[LED_NUM_PARAM] = ledManager.dynamicLedNum;
-  bootstrapManager.writeToSPIFFS(numLedDoc, LED_NUM_FILENAME);
-  SPIFFS.end();
-#endif
   delay(20);
 
 }
@@ -647,13 +618,7 @@ void LedManager::setWhiteTemp(int wt) {
   whiteTempInUse = wt;
   DynamicJsonDocument whiteTempDoc(1024);
   whiteTempDoc[WHITE_TEMP_PARAM] = wt;
-#if defined(ESP8266)
   bootstrapManager.writeToLittleFS(whiteTempDoc, WHITE_TEMP_FILENAME);
-#endif
-#if defined(ESP32)
-  bootstrapManager.writeToSPIFFS(whiteTempDoc, WHITE_TEMP_FILENAME);
-  SPIFFS.end();
-#endif
   delay(20);
 
 }

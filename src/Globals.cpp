@@ -51,10 +51,12 @@ bool breakLoop = false;
 bool ldrReading = false;
 int ldrValue;
 bool ldrEnabled = false;
-bool ldrContinuous = false;
+int ldrInterval = 30;
+bool ldrTurnOff = false;
 uint8_t ldrMin = 20;
 int ldrDivider = LDR_DIVIDER;
 const unsigned int LDR_RECOVER_TIME = 4000;
+long currentMillis = 0;
 
 /**
  * Set gpio received by the Firefly Luciferin software
@@ -67,16 +69,9 @@ void Globals::setGpio(int gpio) {
     gpio = 2;
   }
   gpioInUse = gpio;
-#if defined(ESP8266)
   DynamicJsonDocument gpioDoc(1024);
   gpioDoc[GPIO_PARAM] = gpioInUse;
   bootstrapManager.writeToLittleFS(gpioDoc, GPIO_FILENAME);
-#endif
-#if defined(ESP32)
-  DynamicJsonDocument gpioDoc(1024);
-  gpioDoc[GPIO_PARAM] = gpioInUse;
-  bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
-#endif
   delay(20);
 
 }
@@ -114,13 +109,7 @@ void Globals::setBaudRate(int baudRate) {
   setBaudRateInUse(baudRate);
   DynamicJsonDocument baudrateDoc(1024);
   baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
-#if defined(ESP8266)
   bootstrapManager.writeToLittleFS(baudrateDoc, BAUDRATE_FILENAME);
-#endif
-#if defined(ESP32)
-  bootstrapManager.writeToSPIFFS(baudrateDoc, BAUDRATE_FILENAME);
-  SPIFFS.end();
-#endif
   delay(20);
 
 }

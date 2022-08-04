@@ -91,7 +91,7 @@ void NetworkManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) 
     }
     while (ptr != NULL) {
       myLeds = strtoul(ptr, &ptrAtoi, 10);
-      if (!ldrContinuous && ldrEnabled && ldrReading) {
+      if (!(ldrInterval == 0) && ldrEnabled && ldrReading && ldrTurnOff) {
         ledManager.setPixelColor(index, 0, 0, 0);
       } else {
         ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
@@ -207,8 +207,10 @@ void NetworkManager::listenOnHttpGet() {
   server.on(networkManager.GET_LDR, [this]() {
       prefsData = F("{\"ldrEnabled\":\"");
       prefsData += ldrEnabled;
-      prefsData += F("\",\"ldrContinuous\":\"");
-      prefsData += ldrContinuous;
+      prefsData += F("\",\"ldrInterval\":\"");
+      prefsData += ldrInterval;
+      prefsData += F("\",\"ldrTurnOff\":\"");
+      prefsData += ldrTurnOff;
       prefsData += F("\",\"ldrMin\":\"");
       prefsData += ldrMin;
       prefsData += F("\",\"ldrMax\":\"");
@@ -336,10 +338,9 @@ void NetworkManager::listenOnHttpGet() {
       server.sendHeader("Access-Control-Allow-Origin", "*");
       server.send(statusCode, "text/plain", content);
       delay(DELAY_500);
-#if defined(ESP8266)
       // Write to LittleFS
       Serial.println(F("Saving setup.json"));
-      File jsonFile = LittleFS.open("/setup.json", "w");
+      File jsonFile = LittleFS.open("/setup.json", FILE_WRITE);
       if (!jsonFile) {
         Serial.println(F("Failed to open [setup.json] file for writing"));
       } else {
@@ -354,29 +355,6 @@ void NetworkManager::listenOnHttpGet() {
       delay(DELAY_200);
       Serial.println(F("Saving gpio"));
       globals.setGpio(additionalParam.toInt());
-      delay(DELAY_200);
-#elif defined(ESP32)
-      if (SPIFFS.begin(false)) {
-        File configFile = SPIFFS.open("/setup.json", "w");
-        if (!configFile) {
-          Serial.println(F("Failed to open [setup.json] file for writing"));
-        } else {
-          serializeJsonPretty(doc, Serial);
-          serializeJson(doc, configFile);
-          configFile.close();
-          Serial.println("[setup.json] written correctly");
-        }
-        delay(DELAY_200);
-        Serial.println(F("Saving lednum"));
-        ledManager.setNumLed(lednum.toInt());
-        delay(DELAY_200);
-        Serial.println(F("Saving gpio"));
-        globals.setGpio(additionalParam.toInt());
-        delay(DELAY_200);
-      } else {
-        Serial.println(F("Failed to mount FS for write"));
-      }
-#endif
       delay(DELAY_500);
       ledManager.setColorMode(colorModeParam.toInt());
       delay(DELAY_500);
@@ -513,7 +491,7 @@ void NetworkManager::fromMqttStreamToStrip(char *payload) {
     }
     while (ptr != NULL) {
       myLeds = strtoul(ptr, &ptrAtoi, 10);
-      if (!ldrContinuous && ldrEnabled && ldrReading) {
+      if (!(ldrInterval == 0) && ldrEnabled && ldrReading && ldrTurnOff) {
         ledManager.setPixelColor(index, 0, 0, 0);
       } else {
         ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
@@ -632,13 +610,7 @@ boolean NetworkManager::swapMqttTopic() {
       topicInUse = customtopic;
       DynamicJsonDocument topicDoc(1024);
       topicDoc[MQTT_PARAM] = topicInUse;
-#if defined(ESP8266)
       bootstrapManager.writeToLittleFS(topicDoc, TOPIC_FILENAME);
-#endif
-#if defined(ESP32)
-      bootstrapManager.writeToSPIFFS(topicDoc, TOPIC_FILENAME);
-      SPIFFS.end();
-#endif
       delay(20);
       executeMqttSwap(customtopic);
       reboot = true;
@@ -978,11 +950,13 @@ bool NetworkManager::processLDR() {
   if (bootstrapManager.jsonDoc.containsKey(F("ldrEnabled"))) {
     stopUDP();
     String ldrEnabledMqtt = bootstrapManager.jsonDoc[F("ldrEnabled")];
-    String ldrContinuousMqtt = bootstrapManager.jsonDoc[F("ldrContinuous")];
+    String ldrTurnOffMqtt = bootstrapManager.jsonDoc[F("ldrTurnOff")];
+    String ldrIntervalMqtt = bootstrapManager.jsonDoc[F("ldrInterval")];
     String ldrMinMqtt = bootstrapManager.jsonDoc[F("ldrMin")];
     String ldrMax = bootstrapManager.jsonDoc[F("ldrMax")];
     ldrEnabled = ldrEnabledMqtt == "true";
-    ldrContinuous = ldrContinuousMqtt == "true";
+    ldrTurnOff = ldrTurnOffMqtt == "true";
+    ldrInterval = ldrIntervalMqtt.toInt();
     ldrMin = ldrMinMqtt.toInt();
     if (ldrMax.toInt() == 1) {
       ldrDivider = ldrValue;
@@ -993,7 +967,7 @@ bool NetworkManager::processLDR() {
       ledManager.setLdr(-1);
       delay(DELAY_500);
     }
-    ledManager.setLdr(ldrEnabledMqtt == "true", ldrContinuousMqtt == "true", ldrMinMqtt);
+    ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true", ldrInterval, ldrMinMqtt);
     delay(DELAY_1000);
     startUDP();
   }
