@@ -1,6 +1,6 @@
 add_custom_target(
     LIBS_UPDATE
-    COMMAND platformio lib update
+    COMMAND pio pkg update
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
