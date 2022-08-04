@@ -227,7 +227,7 @@ void mainLoop() {
     }
 #endif
 
-    if (usbBrightness != brightness& !ldrEnabled) {
+    if ((usbBrightness != brightness) & !ldrEnabled) {
       brightness = usbBrightness;
     }
 
@@ -237,7 +237,7 @@ void mainLoop() {
     }
 
     int numLedFromLuciferin = lo + loSecondPart + 1;
-    if (ledManager.dynamicLedNum != numLedFromLuciferin && numLedFromLuciferin < NUM_LEDS) {
+    if ((ledManager.dynamicLedNum != numLedFromLuciferin) && (numLedFromLuciferin < NUM_LEDS)) {
       ledManager.setNumLed(numLedFromLuciferin);
       ledManager.reinitLEDTriggered = true;
     }
