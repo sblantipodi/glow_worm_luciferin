@@ -359,7 +359,6 @@ void mainLoop() {
  */
 void loop() {
 
-  currentMillis = millis();
   mainLoop();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -388,19 +387,19 @@ void loop() {
 
   if (ldrEnabled) {
     if (ldrInterval == 0) {
-      if ((currentMillis - previousMillisLDR) >= (1 * 1000)) {
+      EVERY_N_SECONDS(1) {
         ldrReading = true;
-        previousMillisLDR = currentMillis;
+        previousMillisLDR = millis();
       }
     } else {
       // TODO
-      if ((currentMillis - previousMillisLDR) >= (ldrInterval * 1000)) {
+      if ((millis() - previousMillisLDR) >= (ldrInterval * 1000)) {
         ldrReading = true;
-        previousMillisLDR = currentMillis;
+        previousMillisLDR = millis();
       }
     }
     if (ldrReading) {
-      if ((ldrInterval == 0) || ((currentMillis - previousMillisLDR) >= LDR_RECOVER_TIME)) {
+      if ((ldrInterval == 0) || ((millis() - previousMillisLDR) >= LDR_RECOVER_TIME)) {
 #if defined(ESP8266)
         ldrValue = analogRead(LDR_PIN);
 #elif defined(ESP32)
