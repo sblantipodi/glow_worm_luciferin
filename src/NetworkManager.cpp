@@ -268,7 +268,7 @@ void NetworkManager::listenOnHttpGet() {
       httpCallback(processFirmwareConfig);
   });
   server.onNotFound([]() {
-      server.send(404, F("text/plain"), F("Glow Worm Luciferin: Uri not found ") + server.uri());
+      server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
   server.on(F("/setting"), []() {
       stopUDP();
