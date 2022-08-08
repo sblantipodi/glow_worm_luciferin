@@ -34,7 +34,7 @@ void setup() {
   if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
     baudRateInUse = baudRateFromStorage.toInt();
   }
-  int baudRateToUse = globals.setBaudRateInUse(baudRateInUse);
+  int baudRateToUse = Globals::setBaudRateInUse(baudRateInUse);
   Serial.begin(baudRateToUse);
   while (!Serial); // wait for serial attach
   Serial.print(F("BAUDRATE IN USE="));
@@ -67,7 +67,7 @@ void setup() {
   String topicToUse = bootstrapManager.readValueFromFile(networkManager.TOPIC_FILENAME, networkManager.MQTT_PARAM);
   if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != networkManager.topicInUse) {
     networkManager.topicInUse = topicToUse;
-    networkManager.executeMqttSwap(networkManager.topicInUse);
+    NetworkManager::executeMqttSwap(networkManager.topicInUse);
   }
   Serial.print(F("\nMQTT topic in use="));
   Serial.println(networkManager.topicInUse);
@@ -151,7 +151,7 @@ void setup() {
   networkManager.broadcastUDP.begin(UDP_BROADCAST_PORT);
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
-  networkManager.fpsData.reserve(200);
+  NetworkManager::fpsData.reserve(200);
   networkManager.prefsData.reserve(200);
   networkManager.listenOnHttpGet();
 #if defined(ESP8266)
@@ -179,7 +179,7 @@ int serialRead() {
 void mainLoop() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  networkManager.checkConnection();
+  NetworkManager::checkConnection();
 #endif
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
@@ -187,37 +187,37 @@ void mainLoop() {
   if (effect == Effect::GlowWorm) {
 #endif
     if (!ledManager.led_state) ledManager.led_state = true;
-
-    for (i = 0; i < prefixLength; ++i) {
+    int loopIdx;
+    for (loopIdx = 0; loopIdx < prefixLength; ++loopIdx) {
       waitLoop:
-      while (!breakLoop && !Serial.available()) networkManager.checkConnection();
-      if (breakLoop || prefix[i] == serialRead()) continue;
-      i = 0;
+      while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+      if (breakLoop || prefix[loopIdx] == serialRead()) continue;
+      loopIdx = 0;
       goto waitLoop;
     }
-    while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     hi = serialRead();
-    while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     lo = serialRead();
-    while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     loSecondPart = serialRead();
-    while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     usbBrightness = serialRead();
-    while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     gpio = serialRead();
-    while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     baudRate = serialRead();
-    while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     whiteTemp = serialRead();
-    while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     fireflyEffect = serialRead();
-    while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     fireflyColorMode = serialRead();
-    while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     chk = serialRead();
 
     if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect ^ fireflyColorMode ^ 0x55))) {
-      i = 0;
+      loopIdx = 0;
       goto waitLoop;
     }
 
@@ -232,13 +232,13 @@ void mainLoop() {
     }
 
     if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 3 || gpio == 5 || gpio == 16)) {
-      globals.setGpio(gpio);
+      Globals::setGpio(gpio);
       ledManager.reinitLEDTriggered = true;
     }
 
-    int numLedFromLuciferin = lo + loSecondPart + 1;
+    uint16_t numLedFromLuciferin = lo + loSecondPart + 1;
     if ((ledManager.dynamicLedNum != numLedFromLuciferin) && (numLedFromLuciferin < NUM_LEDS)) {
-      ledManager.setNumLed(numLedFromLuciferin);
+      LedManager::setNumLed(numLedFromLuciferin);
       ledManager.reinitLEDTriggered = true;
     }
 
@@ -249,12 +249,16 @@ void mainLoop() {
     }
 
     if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 8)) {
-      globals.setBaudRate(baudRate);
+      Globals::setBaudRate(baudRate);
+#if defined(ESP32)
       ESP.restart();
+#elif defined(ESP8266)
+      EspClass::restart();
+#endif
     }
 
     if (whiteTemp != 0 && whiteTempInUse != whiteTemp && (whiteTemp >= 20 && whiteTemp <= 110)) {
-      ledManager.setWhiteTemp(whiteTemp);
+      LedManager::setWhiteTemp(whiteTemp);
     }
 
     // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
@@ -287,11 +291,11 @@ void mainLoop() {
     // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
     for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
       byte r, g, b;
-      while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+      while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
       r = serialRead();
-      while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+      while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
       g = serialRead();
-      while (!breakLoop && !Serial.available()) networkManager.checkConnection();
+      while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
       b = serialRead();
       if (ledManager.fireflyEffectInUse <= 6) {
         ledManager.setPixelColor(i, r, g, b);
@@ -334,17 +338,17 @@ void mainLoop() {
 
   //FIRE
   if (effect == Effect::fire) {
-    effectsManager.fire(55, 120, 15, ledManager.dynamicLedNum);
+    EffectsManager::fire(55, 120, 15, ledManager.dynamicLedNum);
   }
 
   //TWINKLE
   if (effect == Effect::twinkle) {
-    effectsManager.twinkleRandom(20, 100, false, ledManager.dynamicLedNum);
+    EffectsManager::twinkleRandom(20, 100, false, ledManager.dynamicLedNum);
   }
 
   //CHASE RAINBOW
   if (effect == Effect::chase_rainbow) {
-    effectsManager.theaterChaseRainbow(ledManager.dynamicLedNum);
+    EffectsManager::theaterChaseRainbow(ledManager.dynamicLedNum);
   }
 
   //MIXED RAINBOW
@@ -363,7 +367,7 @@ void loop() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (relayState && !ledManager.stateOn) {
-    globals.turnOffRelay();
+    Globals::turnOffRelay();
   }
   networkManager.getUDPStream();
 #endif

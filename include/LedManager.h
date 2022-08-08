@@ -77,14 +77,14 @@ class LedManager {
       void initUartRgbw();
       void initDma();
       void initDmaRgbw();
-      void ledShow();
-      void setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b);
+      void ledShow() const;
+      void setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) const;
       void setColorMode(int colorModeToUse);
       void setColorModeInit(uint8_t newColorMode);
-      void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
-      void setNumLed(int numLedFromLuciferin);
-      void setWhiteTemp(int whiteTemp);
-      void setLdr(boolean ldrEnabled, boolean ldrTurnOff, int ldrInterval, String minLdr);
+      static void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
+      static void setNumLed(int numLedFromLuciferin);
+      static void setWhiteTemp(int whiteTemp);
+      void setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, int ldrIntervalToSet, const String& minLdr);
       void setLdr(int maxLdr);
 
 };

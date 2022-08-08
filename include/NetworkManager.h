@@ -66,7 +66,7 @@ class NetworkManager {
 
     IPAddress remoteBroadcastPort;
 
-    static boolean firmwareUpgrade;
+    [[maybe_unused]] static boolean firmwareUpgrade;
     static size_t updateSize;
     static String fpsData; // save space on default constructor
     String prefsData; // save space on default constructor
@@ -74,15 +74,15 @@ class NetworkManager {
     char STOP_FF[50] = "{\"state\":\"ON\",\"startStopInstances\":\"STOP\"}";
 
     void getUDPStream();
-    void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
+    static void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
     static void fromMqttStreamToStrip(char *payload);
-    void httpCallback(bool (*callback)());
+    static void httpCallback(bool (*callback)());
     void listenOnHttpGet();
     static void startUDP();
     static void stopUDP();
-    void swapTopicUnsubscribe();
-    void swapTopicReplace(String customtopic);
-    void swapTopicSubscribe();
+    static void swapTopicUnsubscribe();
+    static void swapTopicReplace(const String& customtopic);
+    static void swapTopicSubscribe();
     static bool processUpdate();
     static bool processMqttUpdate();
     static bool processJson();
@@ -94,11 +94,11 @@ class NetworkManager {
     static void jsonStream(byte *payload, unsigned int length);
     static void manageDisconnections();
     static void manageQueueSubscription();
-    void executeMqttSwap(String customtopic);
+    static void executeMqttSwap(const String& customtopic);
     static void callback(char* topic, byte* payload, unsigned int length);
     static void manageHardwareButton();
     static void sendStatus();
-    void checkConnection();
+    static void checkConnection();
 
 };
 

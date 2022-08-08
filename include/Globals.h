@@ -46,7 +46,7 @@ extern class NetworkManager networkManager;
 extern class Helpers helper;
 extern class Globals globals;
 
-extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, fireflyColorMode, i;
+extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, fireflyColorMode;
 extern uint8_t prefixLength;
 
 extern uint8_t gpioInUse;
@@ -65,7 +65,7 @@ const String BAUDRATE_FILENAME = "baudrate.json";
 extern bool ldrReading;
 extern int ldrValue;
 extern bool ldrEnabled;
-extern int ldrInterval;
+extern uint8_t ldrInterval;
 extern bool ldrTurnOff;
 extern uint8_t ldrMin;
 extern int ldrDivider;
@@ -78,13 +78,13 @@ extern bool breakLoop;
 class Globals {
 
 public:
-    void setGpio(int gpio);
-    void setBaudRate(int baudRate);
-    int setBaudRateInUse(int baudRate);
-    void turnOffRelay();
-    void turnOnRelay();
-    void sendSerialInfo();
-    const char* effectToString(Effect e);
+    static void setGpio(int gpio);
+    static void setBaudRate(int bdRate);
+    static int setBaudRateInUse(int bdrate);
+    static void turnOffRelay();
+    static void turnOnRelay();
+    static void sendSerialInfo();
+    static const char* effectToString(Effect e);
 
 };
 

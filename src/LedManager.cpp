@@ -1,3 +1,6 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#pragma ide diagnostic ignored "hicpp-multiway-paths-covered"
 /*
   LedManager.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
@@ -23,7 +26,7 @@
 /**
  * Show LEDs
  */
-void LedManager::ledShow() {
+void LedManager::ledShow() const {
 
 #if defined(ESP32)
   switch (colorMode) {
@@ -80,18 +83,18 @@ void LedManager::ledShow() {
 byte* colorKtoRGB(byte* rgb) {
 
   float r, g, b;
-  float temp = whiteTempInUse - 10;
+  float temp = (float) whiteTempInUse - 10;
   if (temp <= 66) {
     r = 255;
-    g = round(99.4708025861 * log(temp) - 161.1195681661);
+    g = (float) round(99.4708025861 * log(temp) - 161.1195681661);
     if (temp <= 19) {
       b = 0;
     } else {
-      b = round(138.5177312231 * log((temp - 10)) - 305.0447927307);
+      b = (float) round(138.5177312231 * log((temp - 10)) - 305.0447927307);
     }
   } else {
-    r = round(329.698727446 * pow((temp - 60), -0.1332047592));
-    g = round(288.1221695283 * pow((temp - 60), -0.0755148492));
+    r = (float) round(329.698727446 * pow((temp - 60), -0.1332047592));
+    g = (float) round(288.1221695283 * pow((temp - 60), -0.0755148492));
     b = 255;
   }
   rgb[0] = (uint8_t) constrain(r, 0, 255);
@@ -133,9 +136,9 @@ RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
     rgb[0] = ((uint16_t) colorCorrectionRGB[0] * r) / 255; // correct R
     rgb[1] = ((uint16_t) colorCorrectionRGB[1] * g) / 255; // correct G
     rgb[2] = ((uint16_t) colorCorrectionRGB[2] * b) / 255; // correct B
-    return RgbColor(applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2]));
+    return {applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2])};
   } else {
-    return RgbColor(applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b));
+    return {applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b)};
   }
 
 }
@@ -168,9 +171,9 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
     rgb[0] = ((uint16_t) colorCorrectionRGB[0] * r) /255; // correct R
     rgb[1] = ((uint16_t) colorCorrectionRGB[1] * g) /255; // correct G
     rgb[2] = ((uint16_t) colorCorrectionRGB[2] * b) /255; // correct B
-    return RgbwColor(applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2]), applyBrightnessCorrection(w));
+    return {applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2]), applyBrightnessCorrection(w)};
   } else {
-    return RgbwColor(applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b), applyBrightnessCorrection(w));
+    return {applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b), applyBrightnessCorrection(w)};
   }
 
 }
@@ -182,7 +185,7 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
  * @param g green channel
  * @param b blu channel
  */
-void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) {
+void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) const {
 
   RgbColor rgbColor;
   RgbwColor rgbwColor;
@@ -246,41 +249,41 @@ void LedManager::cleanLEDs() {
   }
 #endif
 #if defined(ESP8266)
-  if (ledsDma != NULL) {
+  if (ledsDma != nullptr) {
     while (!ledsDma->CanShow()) { yield(); }
     cleared = true;
     delete ledsDma;
-    ledsDma = NULL;
+    ledsDma = nullptr;
   }
-  if (ledsDmaRgbw != NULL) {
+  if (ledsDmaRgbw != nullptr) {
     while (!ledsDmaRgbw->CanShow()) { yield(); }
     cleared = true;
     delete ledsDmaRgbw;
-    ledsDmaRgbw = NULL;
+    ledsDmaRgbw = nullptr;
   }
-  if (ledsUart != NULL) {
+  if (ledsUart != nullptr) {
     while (!ledsUart->CanShow()) { yield(); }
     cleared = true;
     delete ledsUart;
-    ledsUart = NULL;
+    ledsUart = nullptr;
   }
-  if (ledsUartRgbw != NULL) {
+  if (ledsUartRgbw != nullptr) {
     while (!ledsUartRgbw->CanShow()) { yield(); }
     cleared = true;
     delete ledsUartRgbw;
-    ledsUartRgbw = NULL;
+    ledsUartRgbw = nullptr;
   }
-  if (ledsStandard != NULL) {
+  if (ledsStandard != nullptr) {
     while (!ledsStandard->CanShow()) { yield(); }
     cleared = true;
     delete ledsStandard;
-    ledsStandard = NULL;
+    ledsStandard = nullptr;
   }
-  if (ledsStandardRgbw != NULL) {
+  if (ledsStandardRgbw != nullptr) {
     while (!ledsStandardRgbw->CanShow()) { yield(); }
     cleared = true;
     delete ledsStandardRgbw;
-    ledsStandardRgbw = NULL;
+    ledsStandardRgbw = nullptr;
   }
 #endif
   if (cleared) {
@@ -298,7 +301,7 @@ void LedManager::initStandard() {
   Serial.println(F("Using Standard"));
   cleanLEDs();
   ledsStandard = new NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, 5); // and recreate with new count
-  if (ledsStandard == NULL) {
+  if (ledsStandard == nullptr) {
     Serial.println(F("OUT OF MEMORY"));
   }
   while (!Serial); // wait for serial attach
@@ -320,7 +323,7 @@ void LedManager::initStandardRgbw() {
   Serial.println(F("Using Standard RGBW"));
   cleanLEDs();
   ledsStandardRgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, 5); // and recreate with new count
-  if (ledsStandardRgbw == NULL) {
+  if (ledsStandardRgbw == nullptr) {
     Serial.println(F("OUT OF MEMORY"));
   }
   while (!Serial); // wait for serial attach
@@ -343,7 +346,7 @@ void LedManager::initUart() {
   Serial.println(F("Using UART"));
   cleanLEDs();
   ledsUart = new NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
-  if (ledsUart == NULL) {
+  if (ledsUart == nullptr) {
     Serial.println(F("OUT OF MEMORY"));
   }
   while (!Serial); // wait for serial attach
@@ -365,7 +368,7 @@ void LedManager::initUartRgbw() {
   Serial.println(F("Using UART RGBW"));
   cleanLEDs();
   ledsUartRgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
-  if (ledsUartRgbw == NULL) {
+  if (ledsUartRgbw == nullptr) {
     Serial.println(F("OUT OF MEMORY"));
   }
   while (!Serial); // wait for serial attach
@@ -387,7 +390,7 @@ void LedManager::initDma() {
   Serial.println(F("Using DMA"));
   cleanLEDs();
   ledsDma = new NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
-  if (ledsDma == NULL) {
+  if (ledsDma == nullptr) {
     Serial.println(F("OUT OF MEMORY"));
   }
   Serial.println();
@@ -408,7 +411,7 @@ void LedManager::initDmaRgbw() {
   Serial.println(F("Using DMA RGBW"));
   cleanLEDs();
   ledsDmaRgbw = new NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
-  if (ledsDmaRgbw == NULL) {
+  if (ledsDmaRgbw == nullptr) {
     Serial.println(F("OUT OF MEMORY"));
   }
   Serial.println();
@@ -509,27 +512,27 @@ void LedManager::setColorMode(int colorModeToUse) {
   Serial.println("CHANGING COLOR MODE");
   DynamicJsonDocument colorModeDoc(1024);
   colorModeDoc[COLOR_MODE_PARAM] = colorModeToUse;
-  bootstrapManager.writeToLittleFS(colorModeDoc, COLOR_MODE_FILENAME);
+  BootstrapManager::writeToLittleFS(colorModeDoc, COLOR_MODE_FILENAME);
   delay(20);
 
 }
 
 /**
  * Set LDR params received by the Firefly Luciferin software
- * @param ldrEnabled LDR enabled or disabled
- * @param ldrTurnOff Turn off LEDs before LDR readings
- * @param ldrInterval Interval between readings
+ * @param ldrEnabledToSet LDR enabled or disabled
+ * @param ldrTurnOffToSet Turn off LEDs before LDR readings
+ * @param ldrIntervalToSet Interval between readings
  * @param minLdr min brightness when using LDR
  */
-void LedManager::setLdr(boolean ldrEnabled, boolean ldrTurnOff, int ldrInterval, String minLdr) {
+void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, int ldrIntervalToSet, const String& minLdr) {
 
   Serial.println(F("CHANGING LDR"));
   DynamicJsonDocument ldrDoc(1024);
-  ldrDoc[LDR_PARAM] = ldrEnabled;
-  ldrDoc[LDR_TO_PARAM] = ldrTurnOff;
-  ldrDoc[LDR_INTER_PARAM] = ldrInterval;
+  ldrDoc[LDR_PARAM] = ldrEnabledToSet;
+  ldrDoc[LDR_TO_PARAM] = ldrTurnOffToSet;
+  ldrDoc[LDR_INTER_PARAM] = ldrIntervalToSet;
   ldrDoc[MIN_LDR_PARAM] = minLdr;
-  bootstrapManager.writeToLittleFS(ldrDoc, LDR_FILENAME);
+  BootstrapManager::writeToLittleFS(ldrDoc, LDR_FILENAME);
   delay(20);
 
 }
@@ -544,7 +547,7 @@ void LedManager::setLdr(int maxLdr) {
   Serial.println(F("CHANGING LDR"));
   DynamicJsonDocument ldrDoc(1024);
   ldrDoc[MAX_LDR_PARAM] = maxLdr;
-  bootstrapManager.writeToLittleFS(ldrDoc, LDR_CAL_FILENAME);
+  BootstrapManager::writeToLittleFS(ldrDoc, LDR_CAL_FILENAME);
   delay(20);
 
 }
@@ -603,7 +606,7 @@ void LedManager::setNumLed(int numLedFromLuciferin) {
   ledManager.dynamicLedNum = numLedFromLuciferin;
   DynamicJsonDocument numLedDoc(1024);
   numLedDoc[LED_NUM_PARAM] = ledManager.dynamicLedNum;
-  bootstrapManager.writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
+  BootstrapManager::writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
   delay(20);
 
 }
@@ -618,7 +621,7 @@ void LedManager::setWhiteTemp(int wt) {
   whiteTempInUse = wt;
   DynamicJsonDocument whiteTempDoc(1024);
   whiteTempDoc[WHITE_TEMP_PARAM] = wt;
-  bootstrapManager.writeToLittleFS(whiteTempDoc, WHITE_TEMP_FILENAME);
+  BootstrapManager::writeToLittleFS(whiteTempDoc, WHITE_TEMP_FILENAME);
   delay(20);
 
 }
