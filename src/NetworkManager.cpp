@@ -142,17 +142,17 @@ void NetworkManager::manageQueueSubscription() {
  */
 void NetworkManager::listenOnHttpGet() {
 
-  server.on("/", [this]() {
+  server.on(F("/"), [this]() {
       stopUDP();
       server.send(200, F("text/html"), settingsPage);
       startUDP();
   });
-  server.on("/setsettings", [this]() {
+  server.on(F("/setsettings"), [this]() {
       stopUDP();
       server.send(200, F("text/html"), setSettingsPage);
       startUDP();
   });
-  server.on(networkManager.prefsTopic.c_str(), [this]() {
+  server.on(F("/prefs"), [this]() {
       prefsData = F("{\"VERSION\":\"");
       prefsData += VERSION;
       prefsData += F("\",\"cp\":\"");
@@ -178,7 +178,7 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
   });
-  server.on(networkManager.GET_SETTINGS, [this]() {
+  server.on(F("/getsettings"), [this]() {
       prefsData = F("{\"deviceName\":\"");
       prefsData += deviceName;
       prefsData += F("\",\"dhcp\":\"");
@@ -204,7 +204,7 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
   });
-  server.on(networkManager.GET_LDR, [this]() {
+  server.on(F("/getLdr"), [this]() {
       prefsData = F("{\"ldrEnabled\":\"");
       prefsData += ldrEnabled;
       prefsData += F("\",\"ldrInterval\":\"");
@@ -214,9 +214,19 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += F("\",\"ldrMin\":\"");
       prefsData += ldrMin;
       prefsData += F("\",\"ldrMax\":\"");
-      prefsData += ((ldrValue * 100) / ldrDivider);
+      if (ldrEnabled) {
+        prefsData += ((ldrValue * 100) / ldrDivider);
+      } else {
+        prefsData += 0;
+      }
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
+  });
+  server.on(F("/setldr"), []() {
+      server.send(200, F("text/html"), setLdrPage);
+  });
+  server.on(("/" + networkManager.ldrTopic).c_str(), [this]() {
+      httpCallback(processLDR);
   });
   server.on(("/" + networkManager.lightSetTopic).c_str(), [this]() {
       httpCallback(processJson);
@@ -260,13 +270,7 @@ void NetworkManager::listenOnHttpGet() {
   server.onNotFound([]() {
       server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
-  server.on("/setldr", []() {
-      server.send(200, F("text/html"), setLdrPage);
-  });
-  server.on(("/" + networkManager.ldrTopic).c_str(), [this]() {
-      httpCallback(processLDR);
-  });
-  server.on("/setting", [this]() {
+  server.on(F("/setting"), [this]() {
       stopUDP();
       String deviceName = server.arg("deviceName");
       String microcontrollerIP = server.arg("microcontrollerIP");
@@ -779,8 +783,10 @@ void NetworkManager::sendStatus() {
     fpsData += framerate;
     fpsData += F("\",\"wifi\":\"");
     fpsData += bootstrapManager.getWifiQuality();
-    fpsData += F("\",\"ldr\":\"");
-    fpsData += ((ldrValue * 100) / ldrDivider);
+    if (ldrEnabled) {
+      fpsData += F("\",\"ldr\":\"");
+      fpsData += ((ldrValue * 100) / ldrDivider);
+    }
     fpsData += F("\"}");
     if (mqttIP.length() > 0) {
       bootstrapManager.publish(networkManager.fpsTopic.c_str(), fpsData.c_str(), false);
@@ -812,7 +818,9 @@ void NetworkManager::sendStatus() {
     root[F("MAC")] = MAC;
     root[F("ver")] = VERSION;
     root[F("framerate")] = framerate;
-    root[F("ldr")] = ((ldrValue * 100) / ldrDivider);
+    if (ldrEnabled) {
+      root[F("ldr")] = ((ldrValue * 100) / ldrDivider);
+    }
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
     root[F("board")] = F("ESP8266");

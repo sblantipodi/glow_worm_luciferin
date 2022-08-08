@@ -45,7 +45,6 @@ class NetworkManager {
     static const uint16_t THIRD_CHUNK = 510;
     static uint16_t part;
 
-    String prefsTopic = "/prefs";
     String lightStateTopic = "lights/glowwormluciferin";
     String updateStateTopic = "lights/glowwormluciferin/update";
     String updateResultStateTopic = "lights/glowwormluciferin/update/result";
@@ -53,18 +52,12 @@ class NetworkManager {
     String baseStreamTopic = "lights/glowwormluciferin/set/stream";
     String streamTopic = "lights/glowwormluciferin/set/stream";
     String unsubscribeTopic = "lights/glowwormluciferin/unsubscribe";
-    String setSettings = "/setsettings";
-    String setting = "setting";
-    String setLdr = "setldr";
-    String ldr = "ldr";
     String cmndReboot = "cmnd/glowwormluciferin/reboot";
     String fpsTopic = "lights/glowwormluciferin/fps";
     String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
     String ldrTopic = "lights/glowwormluciferin/ldr";
     String deviceTopic = "lights/glowwormluciferin/device";
     const char *BASE_TOPIC = "glowwormluciferin";
-    const char *GET_SETTINGS = "/getsettings";
-    const char *GET_LDR = "/getLdr";
     String topicInUse = "glowwormluciferin";
     const String MQTT_PARAM = "mqttopic";
     const String TOPIC_FILENAME = "topic.json";
