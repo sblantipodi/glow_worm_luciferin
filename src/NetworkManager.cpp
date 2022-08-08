@@ -230,7 +230,7 @@ void NetworkManager::listenOnHttpGet() {
   });
   server.on(("/" + networkManager.lightSetTopic).c_str(), [this]() {
       httpCallback(processJson);
-      JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
+      JsonVariant requestedEffect = bootstrapManager.jsonDoc[F("effect")];
       if (mqttIP.length() > 0) {
         if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
           BootstrapManager::publish(networkManager.lightStateTopic.c_str(), START_FF, true);
@@ -268,43 +268,43 @@ void NetworkManager::listenOnHttpGet() {
       httpCallback(processFirmwareConfig);
   });
   server.onNotFound([]() {
-      server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
+      server.send(404, F("text/plain"), F("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
   server.on(F("/setting"), []() {
       stopUDP();
-      String deviceName = server.arg("deviceName");
-      String microcontrollerIP = server.arg("microcontrollerIP");
+      String deviceName = server.arg(F("deviceName"));
+      String microcontrollerIP = server.arg(F("microcontrollerIP"));
       String mqttCheckbox = server.arg("mqttCheckbox");
-      String mqttIP = server.arg("mqttIP");
-      String mqttPort = server.arg("mqttPort");
-      String mqttuser = server.arg("mqttuser");
-      String mqttpass = server.arg("mqttpass");
-      String additionalParam = server.arg("additionalParam");
-      String colorModeParam = server.arg("colorMode");
-      String lednum = server.arg("lednum");
-      String br = server.arg("br");
+      String mqttIP = server.arg(F("mqttIP"));
+      String mqttPort = server.arg(F("mqttPort"));
+      String mqttuser = server.arg(F("mqttuser"));
+      String mqttpass = server.arg(F("mqttpass"));
+      String additionalParam = server.arg(F("additionalParam"));
+      String colorModeParam = server.arg(F("colorMode"));
+      String lednum = server.arg(F("lednum"));
+      String br = server.arg(F("br"));
       DynamicJsonDocument doc(1024);
       if (deviceName.length() > 0 && ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0))) {
         if (microcontrollerIP.length() == 0) {
           microcontrollerIP = "DHCP";
         }
-        doc["deviceName"] = deviceName;
-        doc["microcontrollerIP"] = microcontrollerIP;
-        doc["qsid"] = qsid;
-        doc["qpass"] = qpass;
-        doc["OTApass"] = OTApass;
+        doc[F("deviceName")] = deviceName;
+        doc[F("microcontrollerIP")] = microcontrollerIP;
+        doc[F("qsid")] = qsid;
+        doc[F("qpass")] = qpass;
+        doc[F("OTApass")] = OTApass;
         if (mqttCheckbox.equals("true")) {
-          doc["mqttIP"] = mqttIP;
-          doc["mqttPort"] = mqttPort;
-          doc["mqttuser"] = mqttuser;
-          doc["mqttpass"] = mqttpass;
+          doc[F("mqttIP")] = mqttIP;
+          doc[F("mqttPort")] = mqttPort;
+          doc[F("mqttuser")] = mqttuser;
+          doc[F("mqttpass")] = mqttpass;
         } else {
-          doc["mqttIP"] = "";
-          doc["mqttPort"] = "";
-          doc["mqttuser"] = "";
-          doc["mqttpass"] = "";
+          doc[F("mqttIP")] = "";
+          doc[F("mqttPort")] = "";
+          doc[F("mqttuser")] = "";
+          doc[F("mqttpass")] = "";
         }
-        doc["additionalParam"] = additionalParam;
+        doc[F("additionalParam")] = additionalParam;
         content = F("Success: rebooting the microcontroller using your credentials.");
         statusCode = 200;
       } else {
@@ -313,8 +313,8 @@ void NetworkManager::listenOnHttpGet() {
         Serial.println(F("Sending 404"));
       }
       delay(DELAY_500);
-      server.sendHeader("Access-Control-Allow-Origin", "*");
-      server.send(statusCode, "text/plain", content);
+      server.sendHeader(F("Access-Control-Allow-Origin"), "*");
+      server.send(statusCode, F("text/plain"), content);
       delay(DELAY_500);
       // Write to LittleFS
       Serial.println(F("Saving setup.json"));
