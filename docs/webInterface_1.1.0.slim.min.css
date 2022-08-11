@@ -11,10 +11,6 @@
     background-color: orange !important;
     border-color: orange !important;
 }
-#toggleLED:hover {
-    background-color: darkorange !important;
-    border-color: darkorange !important;
-}
 body {
     background-color: #f8f8f8;
     font-wight: bold;
