@@ -225,10 +225,10 @@ void NetworkManager::listenOnHttpGet() {
   server.on(F("/setldr"), []() {
       server.send(200, F("text/html"), setLdrPage);
   });
-  server.on(("/" + networkManager.ldrTopic).c_str(), []() {
+  server.on(F("/ldr"), []() {
       httpCallback(processLDR);
   });
-  server.on(("/" + networkManager.lightSetTopic).c_str(), [this]() {
+  server.on(F("/set"), [this]() {
       httpCallback(processJson);
       JsonVariant requestedEffect = bootstrapManager.jsonDoc[F("effect")];
       if (mqttIP.length() > 0) {
@@ -949,21 +949,21 @@ bool NetworkManager::processLDR() {
     String ldrTurnOffMqtt = bootstrapManager.jsonDoc[F("ldrTurnOff")];
     String ldrIntervalMqtt = bootstrapManager.jsonDoc[F("ldrInterval")];
     String ldrMinMqtt = bootstrapManager.jsonDoc[F("ldrMin")];
-    String ldrMax = bootstrapManager.jsonDoc[F("ldrMax")];
+    String ldrAction = bootstrapManager.jsonDoc[F("ldrAction")];
     ldrEnabled = ldrEnabledMqtt == "true";
     ldrTurnOff = ldrTurnOffMqtt == "true";
     ldrInterval = ldrIntervalMqtt.toInt();
     ldrMin = ldrMinMqtt.toInt();
-    if (ldrMax.toInt() == 1) {
+    if (ldrAction.toInt() == 2) {
       ldrDivider = ldrValue;
       ledManager.setLdr(ldrDivider);
       delay(DELAY_500);
-    } else if (ldrMax.toInt() == -1) {
+    } else if (ldrAction.toInt() == 3) {
       ldrDivider = LDR_DIVIDER;
       ledManager.setLdr(-1);
       delay(DELAY_500);
     }
-    ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true", ldrInterval, ldrMinMqtt);
+    ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true", ldrInterval, ldrMinMqtt.toInt());
     delay(DELAY_1000);
     startUDP();
   }

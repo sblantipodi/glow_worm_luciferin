@@ -46,7 +46,8 @@ extern class NetworkManager networkManager;
 extern class Helpers helper;
 extern class Globals globals;
 
-extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, fireflyColorMode;
+extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
+  fireflyColorMode, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction;
 extern uint8_t prefixLength;
 
 extern uint8_t gpioInUse;

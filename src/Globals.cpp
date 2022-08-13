@@ -32,7 +32,7 @@ Globals globals;
 
 // DPsoftware checksum for serial
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
-                    fireflyEffect, fireflyColorMode, prefixLength = 6;
+                    fireflyEffect, fireflyColorMode, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, prefixLength = 6;
 uint8_t gpioInUse = 2;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
 uint8_t colorMode = 1;

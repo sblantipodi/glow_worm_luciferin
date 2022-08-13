@@ -524,7 +524,7 @@ void LedManager::setColorMode(int colorModeToUse) {
  * @param ldrIntervalToSet Interval between readings
  * @param minLdr min brightness when using LDR
  */
-void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, int ldrIntervalToSet, const String& minLdr) {
+void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr) {
 
   Serial.println(F("CHANGING LDR"));
   DynamicJsonDocument ldrDoc(1024);

@@ -84,7 +84,7 @@ class LedManager {
       static void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
       static void setNumLed(int numLedFromLuciferin);
       static void setWhiteTemp(int whiteTemp);
-      void setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, int ldrIntervalToSet, const String& minLdr);
+      void setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr);
       void setLdr(int maxLdr);
 
 };
