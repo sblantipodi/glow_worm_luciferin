@@ -228,32 +228,11 @@ void NetworkManager::listenOnHttpGet() {
   server.on(F("/ldr"), []() {
       httpCallback(processLDR);
   });
+  server.on(("/" + networkManager.lightSetTopic).c_str(), [this]() {
+      setLeds();
+  });
   server.on(F("/set"), [this]() {
-      httpCallback(processJson);
-      JsonVariant requestedEffect = bootstrapManager.jsonDoc[F("effect")];
-      if (mqttIP.length() > 0) {
-        if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
-          BootstrapManager::publish(networkManager.lightStateTopic.c_str(), START_FF, true);
-        } else {
-          BootstrapManager::publish(networkManager.lightStateTopic.c_str(), STOP_FF, true);
-          framerate = framerateCounter = 0;
-        }
-      } else {
-#if defined(ESP8266)
-        if (networkManager.remoteBroadcastPort.isSet()) {
-#elif defined(ESP32)
-          if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
-#endif
-          networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
-          if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
-            networkManager.broadcastUDP.print(START_FF);
-          } else {
-            networkManager.broadcastUDP.print(STOP_FF);
-            framerate = framerateCounter = 0;
-          }
-          networkManager.broadcastUDP.endPacket();
-        }
-      }
+      setLeds();
   });
   server.on(("/" + networkManager.cmndReboot).c_str(), []() {
       httpCallback(processGlowWormLuciferinRebootCmnd);
@@ -348,6 +327,38 @@ void NetworkManager::listenOnHttpGet() {
 
   server.begin();
 
+}
+
+/**
+ * Set LEDs state, used by HTTP and MQTT requests
+ */
+void NetworkManager::setLeds() const {
+  httpCallback(processJson);
+  JsonVariant requestedEffect = bootstrapManager.jsonDoc[F("effect")];
+
+  if (mqttIP.length() > 0) {
+    if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
+      BootstrapManager::publish(networkManager.lightStateTopic.c_str(), START_FF, true);
+    } else {
+      BootstrapManager::publish(networkManager.lightStateTopic.c_str(), STOP_FF, true);
+      framerate = framerateCounter = 0;
+    }
+  } else {
+#if defined(ESP8266)
+    if (networkManager.remoteBroadcastPort.isSet()) {
+#elif defined(ESP32)
+      if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
+#endif
+      networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
+      if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
+        networkManager.broadcastUDP.print(START_FF);
+      } else {
+        networkManager.broadcastUDP.print(STOP_FF);
+        framerate = framerateCounter = 0;
+      }
+      networkManager.broadcastUDP.endPacket();
+    }
+  }
 }
 
 /**
@@ -949,16 +960,16 @@ bool NetworkManager::processLDR() {
     String ldrTurnOffMqtt = bootstrapManager.jsonDoc[F("ldrTurnOff")];
     String ldrIntervalMqtt = bootstrapManager.jsonDoc[F("ldrInterval")];
     String ldrMinMqtt = bootstrapManager.jsonDoc[F("ldrMin")];
-    String ldrAction = bootstrapManager.jsonDoc[F("ldrAction")];
+    String ldrActionMqtt = bootstrapManager.jsonDoc[F("ldrAction")];
     ldrEnabled = ldrEnabledMqtt == "true";
     ldrTurnOff = ldrTurnOffMqtt == "true";
     ldrInterval = ldrIntervalMqtt.toInt();
     ldrMin = ldrMinMqtt.toInt();
-    if (ldrAction.toInt() == 2) {
+    if (ldrActionMqtt.toInt() == 2) {
       ldrDivider = ldrValue;
       ledManager.setLdr(ldrDivider);
       delay(DELAY_500);
-    } else if (ldrAction.toInt() == 3) {
+    } else if (ldrActionMqtt.toInt() == 3) {
       ldrDivider = LDR_DIVIDER;
       ledManager.setLdr(-1);
       delay(DELAY_500);

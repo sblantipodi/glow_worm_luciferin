@@ -99,7 +99,7 @@ class NetworkManager {
     static void manageHardwareButton();
     static void sendStatus();
     static void checkConnection();
-
+    void setLeds() const;
 };
 
 #endif //GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H
