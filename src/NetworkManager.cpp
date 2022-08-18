@@ -223,7 +223,9 @@ void NetworkManager::listenOnHttpGet() {
       server.send(200, F("application/json"), prefsData);
   });
   server.on(F("/setldr"), []() {
+      stopUDP();
       server.send(200, F("text/html"), setLdrPage);
+      startUDP();
   });
   server.on(F("/ldr"), []() {
       httpCallback(processLDR);
