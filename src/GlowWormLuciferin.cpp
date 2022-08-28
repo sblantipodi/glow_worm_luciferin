@@ -288,7 +288,9 @@ void mainLoop() {
       case 3:
       case 4:
       case 5:
-          effect = Effect::GlowWorm; break;
+          effect = Effect::GlowWorm;
+          previousMillisLDR = 0;
+          break;
 #endif
       case 6: effect = Effect::solid; break;
       case 7: effect = Effect::fire; break;

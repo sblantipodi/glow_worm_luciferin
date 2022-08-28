@@ -745,9 +745,11 @@ bool NetworkManager::processJson() {
       }
       if (skipMacCheck) {
         if (requestedEffect == "GlowWorm") {
+          previousMillisLDR = 0;
           effect = Effect::GlowWorm;
           ledManager.lastLedUpdate = millis();
         } else if (requestedEffect == "GlowWormWifi") {
+          previousMillisLDR = 0;
           effect = Effect::GlowWormWifi;
           lastStream = millis();
         }
