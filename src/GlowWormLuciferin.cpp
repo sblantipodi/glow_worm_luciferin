@@ -416,8 +416,7 @@ void loop() {
         previousMillisLDR = millis();
       }
     } else {
-      // TODO
-      if ((millis() - previousMillisLDR) >= (ldrInterval * 1000)) {
+      if (((millis() - previousMillisLDR) >= ((ldrInterval * 1000) * 60)) || previousMillisLDR == 0) {
         ldrReading = true;
         previousMillisLDR = millis();
       }
