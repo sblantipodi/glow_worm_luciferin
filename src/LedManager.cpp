@@ -527,6 +527,7 @@ void LedManager::setColorMode(int colorModeToUse) {
 void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr) {
 
   Serial.println(F("CHANGING LDR"));
+  previousMillisLDR = 0;
   DynamicJsonDocument ldrDoc(1024);
   ldrDoc[LDR_PARAM] = ldrEnabledToSet;
   ldrDoc[LDR_TO_PARAM] = ldrTurnOffToSet;

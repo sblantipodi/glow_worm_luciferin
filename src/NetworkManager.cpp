@@ -731,6 +731,7 @@ bool NetworkManager::processJson() {
       }
     }
     if (bootstrapManager.jsonDoc.containsKey("effect")) {
+      boolean effectIsDifferent = (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi);
       JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
       if (requestedEffect == "bpm") effect = Effect::bpm;
       else if (requestedEffect == "fire") effect = Effect::fire;
@@ -745,11 +746,15 @@ bool NetworkManager::processJson() {
       }
       if (skipMacCheck) {
         if (requestedEffect == "GlowWorm") {
-          previousMillisLDR = 0;
+          if (effectIsDifferent) {
+            previousMillisLDR = 0;
+          }
           effect = Effect::GlowWorm;
           ledManager.lastLedUpdate = millis();
         } else if (requestedEffect == "GlowWormWifi") {
-          previousMillisLDR = 0;
+          if (effectIsDifferent) {
+            previousMillisLDR = 0;
+          }
           effect = Effect::GlowWormWifi;
           lastStream = millis();
         }

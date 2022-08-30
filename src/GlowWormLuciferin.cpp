@@ -288,8 +288,10 @@ void mainLoop() {
       case 3:
       case 4:
       case 5:
+          if (effect != Effect::GlowWorm) {
+            previousMillisLDR = 0;
+          }
           effect = Effect::GlowWorm;
-          previousMillisLDR = 0;
           break;
 #endif
       case 6: effect = Effect::solid; break;
