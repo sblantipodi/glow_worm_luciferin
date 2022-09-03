@@ -29,12 +29,12 @@
 #if defined(ESP32)
 #define RELAY_PIN_DIG 32 // equals to Q4
 #define RELAY_PIN_PICO 22
-#define LDR_PIN_DIG 36 (ADC analog pin)
-#define LDR_PIN_PICO 33 (ADC analog pin)
+#define LDR_PIN_DIG 36 // (ADC analog pin)
+#define LDR_PIN_PICO 33 // (ADC analog pin)
 #define LDR_DIVIDER 4096
 #elif defined(ESP8266)
 #define RELAY_PIN 12
-#define LDR_PIN A0 (ADC analog pin)
+#define LDR_PIN A0 // (ADC analog pin)
 #define LDR_DIVIDER 1024
 #endif
 #define DATA_PIN 5 // Wemos D1 Mini Lite PIN D5
