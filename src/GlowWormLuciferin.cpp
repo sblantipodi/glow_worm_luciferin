@@ -400,10 +400,11 @@ void loop() {
 #if defined(ESP8266)
   EVERY_N_SECONDS(30) {
     // Hey gateway, GlowWorm is here
-    bool res = pingESP.ping(WiFi.gatewayIP());
-    if (!res) {
-      WiFi.reconnect();
-    }
+    // TODO dada
+//    bool res = pingESP.ping(WiFi.gatewayIP());
+//    if (!res) {
+//      WiFi.reconnect();
+//    }
   }
 #endif
 #endif
