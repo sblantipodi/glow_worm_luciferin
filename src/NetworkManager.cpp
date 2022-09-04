@@ -1080,8 +1080,7 @@ void NetworkManager::checkConnection() {
     }
     framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;
-    // TODO
-//    NetworkManager::sendStatus();
+    NetworkManager::sendStatus();
   }
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
   EVERY_N_SECONDS(15) {
