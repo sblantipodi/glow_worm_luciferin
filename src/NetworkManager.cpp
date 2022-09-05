@@ -1091,7 +1091,6 @@ void NetworkManager::checkConnection() {
     }
   }
 #endif
-// TODO dada
-//  Globals::sendSerialInfo();
+  Globals::sendSerialInfo();
 
 }

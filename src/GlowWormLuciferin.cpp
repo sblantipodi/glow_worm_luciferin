@@ -169,7 +169,9 @@ void setup() {
  */
 int serialRead() {
 
-  return !breakLoop ? Serial.read() : -1;
+  // TODO dada
+  return -1;
+//  return !breakLoop ? Serial.read() : -1;
 
 }
 
@@ -400,11 +402,10 @@ void loop() {
 #if defined(ESP8266)
   EVERY_N_SECONDS(30) {
     // Hey gateway, GlowWorm is here
-    // TODO dada
-//    bool res = pingESP.ping(WiFi.gatewayIP());
-//    if (!res) {
-//      WiFi.reconnect();
-//    }
+    bool res = pingESP.ping(WiFi.gatewayIP());
+    if (!res) {
+      WiFi.reconnect();
+    }
   }
 #endif
 #endif
