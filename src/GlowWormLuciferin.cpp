@@ -169,9 +169,7 @@ void setup() {
  */
 int serialRead() {
 
-  // TODO dada
-  return -1;
-//  return !breakLoop ? Serial.read() : -1;
+  return !breakLoop ? Serial.read() : -1;
 
 }
 
