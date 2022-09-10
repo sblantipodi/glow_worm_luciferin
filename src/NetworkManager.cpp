@@ -326,7 +326,6 @@ void NetworkManager::listenOnHttpGet() {
 
       // TODO dada
       EspClass::reset();
-      EspClass::restart();
       Serial.println(F("saved"));
 
 
