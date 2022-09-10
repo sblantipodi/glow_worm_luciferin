@@ -399,6 +399,8 @@ void loop() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 #if defined(ESP8266)
   EVERY_N_SECONDS(30) {
+    //TODO dada
+    Serial.println("pingingaaaaaaaaaaa");
     // Hey gateway, GlowWorm is here
     bool res = pingESP.ping(WiFi.gatewayIP());
     if (!res) {

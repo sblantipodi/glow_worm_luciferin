@@ -323,7 +323,14 @@ void NetworkManager::listenOnHttpGet() {
 #if defined(ESP32)
       ESP.restart();
 #elif defined(ESP8266)
+
+      // TODO dada
       EspClass::reset();
+      EspClass::restart();
+      Serial.println(F("saved"));
+
+
+
 #endif
   });
 
