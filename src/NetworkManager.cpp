@@ -323,7 +323,7 @@ void NetworkManager::listenOnHttpGet() {
 #if defined(ESP32)
       ESP.restart();
 #elif defined(ESP8266)
-      EspClass::restart();
+      EspClass::reset();
 #endif
   });
 
