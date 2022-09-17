@@ -27,11 +27,17 @@
 #include "NetworkManager.h"
 
 #if defined(ESP32)
-#define RELAY_PIN_DIG 23 // equals to Q4
+#define RELAY_PIN_DIG 32 // equals to Q4
 #define RELAY_PIN_PICO 22
+#define LDR_PIN_DIG 36 // (ADC analog pin)
+#define LDR_PIN_PICO 33 // (ADC analog pin)
+#define LDR_DIVIDER 4096
 #elif defined(ESP8266)
 #define RELAY_PIN 12
+#define LDR_PIN A0 // (ADC analog pin)
+#define LDR_DIVIDER 1024
 #endif
+#define DATA_PIN 5 // Wemos D1 Mini Lite PIN D5
 
 extern class BootstrapManager bootstrapManager;
 extern class EffectsManager effectsManager;
@@ -40,7 +46,8 @@ extern class NetworkManager networkManager;
 extern class Helpers helper;
 extern class Globals globals;
 
-extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect, fireflyColorMode, i;
+extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
+  fireflyColorMode, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction;
 extern uint8_t prefixLength;
 
 extern uint8_t gpioInUse;
@@ -56,6 +63,15 @@ const String GPIO_PARAM = "gpio";
 const String GPIO_FILENAME = "gpio.json";
 const String BAUDRATE_PARAM = "baudrate";
 const String BAUDRATE_FILENAME = "baudrate.json";
+extern bool ldrReading;
+extern int ldrValue;
+extern bool ldrEnabled;
+extern uint8_t ldrInterval;
+extern bool ldrTurnOff;
+extern uint8_t ldrMin;
+extern int ldrDivider;
+extern const unsigned int LDR_RECOVER_TIME;
+extern unsigned long previousMillisLDR;
 
 extern uint8_t baudRateInUse;
 extern bool relayState;
@@ -64,13 +80,13 @@ extern bool breakLoop;
 class Globals {
 
 public:
-    void setGpio(int gpio);
-    void setBaudRate(int baudRate);
-    int setBaudRateInUse(int baudRate);
-    void turnOffRelay();
-    void turnOnRelay();
-    void sendSerialInfo();
-    const char* effectToString(Effect e);
+    static void setGpio(int gpio);
+    static void setBaudRate(int bdRate);
+    static int setBaudRateInUse(int bdrate);
+    static void turnOffRelay();
+    static void turnOnRelay();
+    static void sendSerialInfo();
+    static const char* effectToString(Effect e);
 
 };
 

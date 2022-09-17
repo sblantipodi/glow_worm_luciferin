@@ -40,8 +40,6 @@ TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
 PingESP pingESP;
 #endif
 
-#define DATA_PIN    5 // Wemos D1 Mini Lite PIN D5
-//#define CLOCK_PIN 5
 #define CHIPSET     WS2812B
 #define COLOR_ORDER GRB
 

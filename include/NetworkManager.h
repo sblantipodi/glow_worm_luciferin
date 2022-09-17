@@ -45,7 +45,6 @@ class NetworkManager {
     static const uint16_t THIRD_CHUNK = 510;
     static uint16_t part;
 
-    String prefsTopic = "/prefs";
     String lightStateTopic = "lights/glowwormluciferin";
     String updateStateTopic = "lights/glowwormluciferin/update";
     String updateResultStateTopic = "lights/glowwormluciferin/update/result";
@@ -56,9 +55,9 @@ class NetworkManager {
     String cmndReboot = "cmnd/glowwormluciferin/reboot";
     String fpsTopic = "lights/glowwormluciferin/fps";
     String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
+    String ldrTopic = "lights/glowwormluciferin/ldr";
     String deviceTopic = "lights/glowwormluciferin/device";
     const char *BASE_TOPIC = "glowwormluciferin";
-    const char *GET_SETTINGS = "/getsettings";
     String topicInUse = "glowwormluciferin";
     const String MQTT_PARAM = "mqttopic";
     const String TOPIC_FILENAME = "topic.json";
@@ -67,7 +66,7 @@ class NetworkManager {
 
     IPAddress remoteBroadcastPort;
 
-    static boolean firmwareUpgrade;
+    [[maybe_unused]] static boolean firmwareUpgrade;
     static size_t updateSize;
     static String fpsData; // save space on default constructor
     String prefsData; // save space on default constructor
@@ -75,31 +74,32 @@ class NetworkManager {
     char STOP_FF[50] = "{\"state\":\"ON\",\"startStopInstances\":\"STOP\"}";
 
     void getUDPStream();
-    void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
+    static void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
     static void fromMqttStreamToStrip(char *payload);
-    void httpCallback(bool (*callback)());
+    static void httpCallback(bool (*callback)());
     void listenOnHttpGet();
-    void startUDP();
-    void stopUDP();
-    void swapTopicUnsubscribe();
-    void swapTopicReplace(String customtopic);
-    void swapTopicSubscribe();
+    static void startUDP();
+    static void stopUDP();
+    static void swapTopicUnsubscribe();
+    static void swapTopicReplace(const String& customtopic);
+    static void swapTopicSubscribe();
     static bool processUpdate();
     static bool processMqttUpdate();
     static bool processJson();
     static bool processFirmwareConfig();
     static bool processGlowWormLuciferinRebootCmnd();
+    static bool processLDR();
     static bool processUnSubscribeStream();
     bool swapMqttTopic();
     static void jsonStream(byte *payload, unsigned int length);
     static void manageDisconnections();
     static void manageQueueSubscription();
-    void executeMqttSwap(String customtopic);
+    static void executeMqttSwap(const String& customtopic);
     static void callback(char* topic, byte* payload, unsigned int length);
     static void manageHardwareButton();
     static void sendStatus();
-    void checkConnection();
-
+    static void checkConnection();
+    void setLeds() const;
 };
 
 #endif //GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H

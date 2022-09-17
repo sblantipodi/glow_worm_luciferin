@@ -53,7 +53,7 @@ void EffectsManager::fire(int cooling, int sparking, int speedDelay, int dynamic
   // Step 4.  Convert heat to LED colors
   for (int j = 0; j < dynamicLedNum; j++) {
     // Scale 'heat' down from 0-255 to 0-191
-    byte t192 = round((heat[j] / 255.0) * 191);
+    byte t192 = (byte) round((heat[j] / 255.0) * 191);
     // calculate ramp up from
     byte heatramp = t192 & 0x3F; // 0..63
     heatramp <<= 2; // scale up to 0..252
@@ -80,13 +80,13 @@ void EffectsManager::fire(int cooling, int sparking, int speedDelay, int dynamic
  */
 void EffectsManager::twinkleRandom(int count, int speedDelay, boolean onlyOne, int dynamicLedNum) {
 
-  ledManager.setColor(1, 1, 1);
+  LedManager::setColor(1, 1, 1);
   for (int i = 0; i < count; i++) {
     ledManager.setPixelColor(random(dynamicLedNum), random(0, 255), random(0, 255), random(0, 255));
     ledManager.ledShow();
     delay(speedDelay);
     if (onlyOne) {
-      ledManager.setColor(1, 1, 1);
+      LedManager::setColor(1, 1, 1);
     }
   }
   delay(speedDelay);
@@ -152,7 +152,7 @@ void EffectsManager::mixedRainbow(int dynamicLedNum) {
       ledManager.leds[i] = scroll((i * 256 / dynamicLedNum + mixedRainboxIndex) % 256);
       ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-      networkManager.checkConnection();
+      NetworkManager::checkConnection();
 #endif
     }
     ledManager.ledShow();
@@ -171,14 +171,14 @@ CRGB EffectsManager::scroll(int pos) {
   CRGB color(0, 0, 0);
   if (pos < 85) {
     color.g = 0;
-    color.r = ((float) pos / 85.0f) * 255.0f;
+    color.r = (uint8_t) (((float) pos / 85.0f) * 255.0f);
     color.b = 255 - color.r;
   } else if (pos < 170) {
-    color.g = ((float) (pos - 85) / 85.0f) * 255.0f;
+    color.g = (uint8_t) (((float) (pos - 85) / 85.0f) * 255.0f);
     color.r = 255 - color.g;
     color.b = 0;
   } else if (pos < 256) {
-    color.b = ((float) (pos - 170) / 85.0f) * 255.0f;
+    color.b = (uint8_t) (((float) (pos - 170) / 85.0f) * 255.0f);
     color.g = 255 - color.b;
     color.r = 1;
   }

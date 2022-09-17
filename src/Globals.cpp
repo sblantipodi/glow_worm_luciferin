@@ -32,7 +32,7 @@ Globals globals;
 
 // DPsoftware checksum for serial
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
-                    fireflyEffect, fireflyColorMode, i, prefixLength = 6;
+                    fireflyEffect, fireflyColorMode, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, prefixLength = 6;
 uint8_t gpioInUse = 2;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
 uint8_t colorMode = 1;
@@ -48,42 +48,44 @@ uint8_t baudRateInUse = 3;
 #endif
 bool relayState = false;
 bool breakLoop = false;
+bool ldrReading = false;
+int ldrValue;
+bool ldrEnabled = false;
+uint8_t ldrInterval = 30;
+bool ldrTurnOff = false;
+uint8_t ldrMin = 20;
+int ldrDivider = LDR_DIVIDER;
+const unsigned int LDR_RECOVER_TIME = 4000;
+unsigned long previousMillisLDR = 0;
 
 /**
  * Set gpio received by the Firefly Luciferin software
  * @param gpio gpio to use
  */
-void Globals::setGpio(int gpio) {
+void Globals::setGpio(int gpioToUse) {
 
   Serial.println("CHANGING GPIO");
-  if (gpio == 0) {
-    gpio = 2;
+  if (gpioToUse == 0) {
+    gpioToUse = 2;
   }
-  gpioInUse = gpio;
-#if defined(ESP8266)
+  gpioInUse = gpioToUse;
   DynamicJsonDocument gpioDoc(1024);
   gpioDoc[GPIO_PARAM] = gpioInUse;
-  bootstrapManager.writeToLittleFS(gpioDoc, GPIO_FILENAME);
-#endif
-#if defined(ESP32)
-  DynamicJsonDocument gpioDoc(1024);
-  gpioDoc[GPIO_PARAM] = gpioInUse;
-  bootstrapManager.writeToSPIFFS(gpioDoc, GPIO_FILENAME);
-#endif
+  BootstrapManager::writeToLittleFS(gpioDoc, GPIO_FILENAME);
   delay(20);
 
 }
 
 /**
  * Set the baudrate on the microcontroller
- * @param baudRate supported baud rate
+ * @param bdrate supported baud rate
  * @return baudrate index
  */
-int Globals::setBaudRateInUse(int baudRate) {
+int Globals::setBaudRateInUse(int bdrate) {
 
-  baudRateInUse = baudRate;
-  int baudRateToUse = 0;
-  switch (baudRate) {
+  baudRateInUse = bdrate;
+  int baudRateToUse;
+  switch (bdrate) {
     case 1: baudRateToUse = 230400; break;
     case 2: baudRateToUse = 460800; break;
     case 4: baudRateToUse = 921600; break;
@@ -98,22 +100,16 @@ int Globals::setBaudRateInUse(int baudRate) {
 }
 
 /**
- * Set baudRate received by the Firefly Luciferin software
- * @param baudRate int
+ * Set bdRate received by the Firefly Luciferin software
+ * @param bdRate int
  */
-void Globals::setBaudRate(int baudRate) {
+void Globals::setBaudRate(int bdRate) {
 
   Serial.println(F("CHANGING BAUDRATE"));
-  setBaudRateInUse(baudRate);
+  setBaudRateInUse(bdRate);
   DynamicJsonDocument baudrateDoc(1024);
   baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
-#if defined(ESP8266)
-  bootstrapManager.writeToLittleFS(baudrateDoc, BAUDRATE_FILENAME);
-#endif
-#if defined(ESP32)
-  bootstrapManager.writeToSPIFFS(baudrateDoc, BAUDRATE_FILENAME);
-  SPIFFS.end();
-#endif
+  BootstrapManager::writeToLittleFS(baudrateDoc, BAUDRATE_FILENAME);
   delay(20);
 
 }
@@ -182,6 +178,9 @@ void Globals::sendSerialInfo() {
     Serial.printf("effect:%d\n", effect);
     Serial.printf("colorMode:%d\n", colorMode);
     Serial.printf("white:%d\n", whiteTempInUse);
+    if (ldrEnabled) {
+      Serial.printf("ldr:%d\n", ((ldrValue * 100) / ldrDivider));
+    }
   }
 
 }
