@@ -196,18 +196,6 @@ automation:
         data_template:
           topic: lights/glowwormluciferin/set
           payload: '{"transition":{{ trigger.to_state.state | int }}}'
-  - id: '1598969517535'
-    alias: Glowworm Alive
-    trigger:
-      platform: time_pattern
-      minutes: '/5'
-    condition:
-      condition: template
-      value_template: "{{ (not (as_timestamp(now()) < (as_timestamp(states.sensor.glowworm_version.last_updated) + 300))) and (states.input_boolean.solideffect.state == 'on') }}"
-    action:
-      - data:
-          message: "Glowworm stopped responding!"
-        service: notify.telegram_notifier
   - alias: Set Luciferin Gamma
     trigger:
       - entity_id: input_select.gamma_select
