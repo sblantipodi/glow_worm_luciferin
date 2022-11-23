@@ -1,7 +1,7 @@
-light:
-  - platform: mqtt
+mqtt: 
+  light:
+  - name: "GlowWorm"
     schema: json
-    name: "GlowWorm"
     state_topic: "lights/glowwormluciferin"
     command_topic: "lights/glowwormluciferin/set"
     effect: true
@@ -20,6 +20,47 @@ light:
     rgb: true
     optimistic: true
     #transition: 1000
+  sensor:
+    - name: 'Firefly Luciferin Producing'
+      state_topic: 'lights/firelyluciferin/framerate'
+      unit_of_measurement: 'FPS'
+      value_template: '{{ value_json.producing }}'
+    - name: 'Firefly Luciferin Consuming'
+      state_topic: 'lights/firelyluciferin/framerate'
+      unit_of_measurement: 'FPS'
+      value_template: '{{ value_json.consuming }}'
+    - name: 'GlowWorm Version'
+      state_topic: 'lights/glowwormluciferin'
+      unit_of_measurement: ' '
+      value_template: '{{ value_json.ver }}'
+      force_update: true
+    - name: 'Glow Worm Luciferin FPS idle'
+      state_topic: 'lights/glowwormluciferin'
+      unit_of_measurement: 'FPS'
+      value_template: '{{ value_json.framerate }}'
+      force_update: true
+    - name: 'Glow Worm Luciferin FPS running'
+      state_topic: 'lights/glowwormluciferin/fps'
+      unit_of_measurement: 'FPS'
+      value_template: '{{ value_json.framerate }}'
+      force_update: true    
+    - name: '# of LEDs'
+      state_topic: 'lights/glowwormluciferin'
+      unit_of_measurement: ''
+      value_template: '{{ value_json.lednum }}'
+    - name: 'Last Update GlowWorm'
+      state_topic: 'lights/glowwormluciferin'
+      value_template: '{{ as_timestamp(now()) | timestamp_custom("%Y-%m-%d ~ %H:%M:%S") }}'
+    - name: 'Aspect Ratio'      
+      state_topic: 'lights/firelyluciferin/aspectratio'
+  switch:
+    - name: "rebootglowworm"
+      command_topic: "cmnd/glowwormluciferin/reboot"
+      state_topic: "stat/glowwormluciferin/reboot"
+      qos: 1
+      retain: false
+      payload_on: "ON"
+      payload_off: "OFF"      
 
 input_select:
   gamma_select:
@@ -45,7 +86,7 @@ input_number:
     initial: 6500
     min: 2000
     max: 11000
-    step: 100
+    step: 100       
 
 input_boolean:
   solideffect:
@@ -56,34 +97,6 @@ input_boolean:
     initial: false
 
 sensor:
-  - platform: mqtt
-    state_topic: 'lights/firelyluciferin/framerate'
-    name: 'Firefly Luciferin Producing'
-    unit_of_measurement: 'FPS'
-    value_template: '{{ value_json.producing }}'
-  - platform: mqtt
-    state_topic: 'lights/firelyluciferin/framerate'
-    name: 'Firefly Luciferin Consuming'
-    unit_of_measurement: 'FPS'
-    value_template: '{{ value_json.consuming }}'
-  - platform: mqtt
-    state_topic: 'lights/glowwormluciferin'
-    name: 'GlowWorm Version'
-    unit_of_measurement: ' '
-    value_template: '{{ value_json.ver }}'
-    force_update: true
-  - platform: mqtt
-    state_topic: 'lights/glowwormluciferin'
-    name: 'Glow Worm Luciferin FPS idle'
-    unit_of_measurement: 'FPS'
-    value_template: '{{ value_json.framerate }}'
-    force_update: true
-  - platform: mqtt
-    state_topic: 'lights/glowwormluciferin/fps'
-    name: 'Glow Worm Luciferin FPS running'
-    unit_of_measurement: 'FPS'
-    value_template: '{{ value_json.framerate }}'
-    force_update: true
   - platform: template
     sensors:
       gw_fps:
@@ -95,33 +108,21 @@ sensor:
             {{ states.sensor.glow_worm_luciferin_fps_running.state }}
           {% endif %}
         unit_of_measurement: 'FPS'
-  - platform: mqtt
-    state_topic: 'lights/glowwormluciferin'
-    name: '# of LEDs'
-    unit_of_measurement: ''
-    value_template: '{{ value_json.lednum }}'
-  - platform: mqtt
-    state_topic: 'lights/glowwormluciferin'
-    name: 'Last Update GlowWorm'
-    value_template: '{{ as_timestamp(now()) | timestamp_custom("%Y-%m-%d ~ %H:%M:%S") }}'
-  - platform: mqtt
-    state_topic: 'lights/firelyluciferin/aspectratio'
-    name: 'Aspect Ratio'
 
 automation:
   - id: '1547896325521'
     alias: White Temp Auto
     trigger:
-      - platform: state
-        entity_id: input_number.white_temp_slider
+    - platform: state
+      entity_id: input_number.white_temp_slider
     condition: []
     action:
-      - service: mqtt.publish
-        data_template:
-          topic: "lights/glowwormluciferin/set"
-          qos: 0
-          retain: false
-          payload: '{"state":"ON","effect":"solid","whitetemp":"{{ ((states.input_number.white_temp_slider.state | int) / 100) }}","allInstances":"1"}}'
+    - service: mqtt.publish
+      data_template:
+        topic: "lights/glowwormluciferin/set"
+        qos: 0
+        retain: false
+        payload: '{"state":"ON","effect":"solid","whitetemp":"{{ ((states.input_number.white_temp_slider.state | int) / 100) }}","allInstances":"1"}}'                   
   - id: '1548456985521'
     alias: Solid Effect ON
     trigger:
@@ -196,6 +197,18 @@ automation:
         data_template:
           topic: lights/glowwormluciferin/set
           payload: '{"transition":{{ trigger.to_state.state | int }}}'
+  - id: '1598969517535'
+    alias: Glowworm Alive
+    trigger:
+      platform: time_pattern
+      minutes: '/5'
+    condition:
+      condition: template
+      value_template: "{{ (not (as_timestamp(now()) < (as_timestamp(states.sensor.glowworm_version.last_updated) + 300))) and (states.input_boolean.solideffect.state == 'on') }}"
+    action:
+      - data:
+          message: "Glowworm stopped responding!"
+        service: notify.telegram_notifier
   - alias: Set Luciferin Gamma
     trigger:
       - entity_id: input_select.gamma_select
@@ -215,15 +228,6 @@ automation:
       data:
         entity_id: input_select.gamma_select
         option: "{{ trigger.payload_json.gamma }}"
-switch:
-  - platform: mqtt
-    name: "rebootglowworm"
-    command_topic: "cmnd/glowwormluciferin/reboot"
-    state_topic: "stat/glowwormluciferin/reboot"
-    qos: 1
-    retain: false
-    payload_on: "ON"
-    payload_off: "OFF"
 
 homeassistant:
   customize:
