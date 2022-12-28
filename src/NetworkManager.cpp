@@ -1038,6 +1038,7 @@ void NetworkManager::swapTopicReplace(const String& customtopic) {
   networkManager.unsubscribeTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.fpsTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.ldrTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.cmndReboot.replace(networkManager.BASE_TOPIC, customtopic);
 
 }
 
