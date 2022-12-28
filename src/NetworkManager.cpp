@@ -193,6 +193,8 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += mqttpass;
       prefsData += F("\",\"mqttPort\":\"");
       prefsData += mqttPort;
+      prefsData += F("\",\"mqttTopic\":\"");
+      prefsData += topicInUse;
       prefsData += F("\",\"lednum\":\"");
       prefsData += ledManager.dynamicLedNum;
       prefsData += F("\",\"gpio\":\"");
@@ -251,13 +253,14 @@ void NetworkManager::listenOnHttpGet() {
   server.onNotFound([]() {
       server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
-  server.on(F("/setting"), []() {
+  server.on(F("/setting"), [this]() {
       stopUDP();
       String deviceName = server.arg(F("deviceName"));
       String microcontrollerIP = server.arg(F("microcontrollerIP"));
       String mqttCheckbox = server.arg("mqttCheckbox");
       String mqttIP = server.arg(F("mqttIP"));
       String mqttPort = server.arg(F("mqttPort"));
+      String mqttTopic = server.arg(F("mqttTopic"));
       String mqttuser = server.arg(F("mqttuser"));
       String mqttpass = server.arg(F("mqttpass"));
       String additionalParam = server.arg(F("additionalParam"));
@@ -265,7 +268,7 @@ void NetworkManager::listenOnHttpGet() {
       String lednum = server.arg(F("lednum"));
       String br = server.arg(F("br"));
       DynamicJsonDocument doc(1024);
-      if (deviceName.length() > 0 && ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0))) {
+      if (deviceName.length() > 0 && ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0 && mqttTopic.length() > 0))) {
         if (microcontrollerIP.length() == 0) {
           microcontrollerIP = "DHCP";
         }
@@ -277,11 +280,13 @@ void NetworkManager::listenOnHttpGet() {
         if (mqttCheckbox.equals("true")) {
           doc[F("mqttIP")] = mqttIP;
           doc[F("mqttPort")] = mqttPort;
+          doc[F("mqttTopic")] = mqttTopic;
           doc[F("mqttuser")] = mqttuser;
           doc[F("mqttpass")] = mqttpass;
         } else {
           doc[F("mqttIP")] = "";
           doc[F("mqttPort")] = "";
+          doc[F("mqttTopic")] = "";
           doc[F("mqttuser")] = "";
           doc[F("mqttpass")] = "";
         }
@@ -314,6 +319,10 @@ void NetworkManager::listenOnHttpGet() {
       delay(DELAY_200);
       Serial.println(F("Saving gpio"));
       Globals::setGpio(additionalParam.toInt());
+      delay(DELAY_500);
+      DynamicJsonDocument topicDoc(1024);
+      topicDoc[MQTT_PARAM] = mqttTopic;
+      BootstrapManager::writeToLittleFS(topicDoc, TOPIC_FILENAME);
       delay(DELAY_500);
       ledManager.setColorMode(colorModeParam.toInt());
       delay(DELAY_500);
