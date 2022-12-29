@@ -1,25 +1,25 @@
-mqtt: 
+mqtt:
   light:
-  - name: "GlowWorm"
-    schema: json
-    state_topic: "lights/glowwormluciferin"
-    command_topic: "lights/glowwormluciferin/set"
-    effect: true
-    effect_list:
-      - GlowWorm
-      - GlowWormWifi
-      - bpm
-      - fire
-      - twinkle
-      - rainbow
-      - chase rainbow
-      - solid rainbow
-      - mixed rainbow
-      - solid
-    brightness: true
-    rgb: true
-    optimistic: true
-    #transition: 1000
+    - name: "GlowWorm"
+      schema: json
+      state_topic: "lights/glowwormluciferin"
+      command_topic: "lights/glowwormluciferin/set"
+      effect: true
+      effect_list:
+        - GlowWorm
+        - GlowWormWifi
+        - bpm
+        - fire
+        - twinkle
+        - rainbow
+        - chase rainbow
+        - solid rainbow
+        - mixed rainbow
+        - solid
+      brightness: true
+      rgb: true
+      optimistic: true
+      #transition: 1000
   sensor:
     - name: 'Firefly Luciferin Producing'
       state_topic: 'lights/firelyluciferin/framerate'
@@ -43,7 +43,7 @@ mqtt:
       state_topic: 'lights/glowwormluciferin/fps'
       unit_of_measurement: 'FPS'
       value_template: '{{ value_json.framerate }}'
-      force_update: true    
+      force_update: true
     - name: '# of LEDs'
       state_topic: 'lights/glowwormluciferin'
       unit_of_measurement: ''
@@ -51,7 +51,7 @@ mqtt:
     - name: 'Last Update GlowWorm'
       state_topic: 'lights/glowwormluciferin'
       value_template: '{{ as_timestamp(now()) | timestamp_custom("%Y-%m-%d ~ %H:%M:%S") }}'
-    - name: 'Aspect Ratio'      
+    - name: 'Aspect Ratio'
       state_topic: 'lights/firelyluciferin/aspectratio'
   switch:
     - name: "rebootglowworm"
@@ -60,7 +60,7 @@ mqtt:
       qos: 1
       retain: false
       payload_on: "ON"
-      payload_off: "OFF"      
+      payload_off: "OFF"
 
 input_select:
   gamma_select:
@@ -86,7 +86,7 @@ input_number:
     initial: 6500
     min: 2000
     max: 11000
-    step: 100       
+    step: 100
 
 input_boolean:
   solideffect:
@@ -113,16 +113,16 @@ automation:
   - id: '1547896325521'
     alias: White Temp Auto
     trigger:
-    - platform: state
-      entity_id: input_number.white_temp_slider
+      - platform: state
+        entity_id: input_number.white_temp_slider
     condition: []
     action:
-    - service: mqtt.publish
-      data_template:
-        topic: "lights/glowwormluciferin/set"
-        qos: 0
-        retain: false
-        payload: '{"state":"ON","effect":"solid","whitetemp":"{{ ((states.input_number.white_temp_slider.state | int) / 100) }}","allInstances":"1"}}'                   
+      - service: mqtt.publish
+        data_template:
+          topic: "lights/glowwormluciferin/set"
+          qos: 0
+          retain: false
+          payload: '{"state":"ON","effect":"solid","whitetemp":"{{ ((states.input_number.white_temp_slider.state | int) / 100) }}","allInstances":"1"}}'
   - id: '1548456985521'
     alias: Solid Effect ON
     trigger:

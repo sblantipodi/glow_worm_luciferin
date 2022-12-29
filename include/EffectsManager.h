@@ -2,7 +2,7 @@
   EffectsManager.h - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright (C) 2020 - 2022  Davide Perini
+  Copyright © 2020 - 2023  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
