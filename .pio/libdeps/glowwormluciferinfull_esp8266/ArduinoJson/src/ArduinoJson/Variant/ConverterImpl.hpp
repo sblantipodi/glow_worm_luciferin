@@ -5,20 +5,20 @@
 #pragma once
 
 #include <ArduinoJson/Json/JsonSerializer.hpp>
-#include <ArduinoJson/Variant/JsonVariantConst.hpp>
 #include <ArduinoJson/Variant/VariantFunctions.hpp>
+#include <ArduinoJson/Variant/VariantRef.hpp>
 
 namespace ARDUINOJSON_NAMESPACE {
 
 template <typename T, typename Enable>
 struct Converter {
-  static void toJson(const T& src, JsonVariant dst) {
+  static void toJson(const T& src, VariantRef dst) {
     // clang-format off
     convertToJson(src, dst); // Error here? See https://arduinojson.org/v6/unsupported-set/
     // clang-format on
   }
 
-  static T fromJson(JsonVariantConst src) {
+  static T fromJson(VariantConstRef src) {
     // clang-format off
     T result; // Error here? See https://arduinojson.org/v6/non-default-constructible/
     convertFromJson(src, result);  // Error here? See https://arduinojson.org/v6/unsupported-as/
@@ -26,7 +26,7 @@ struct Converter {
     return result;
   }
 
-  static bool checkJson(JsonVariantConst src) {
+  static bool checkJson(VariantConstRef src) {
     T dummy = T();
     // clang-format off
     return canConvertFromJson(src, dummy);  // Error here? See https://arduinojson.org/v6/unsupported-is/
@@ -37,113 +37,112 @@ struct Converter {
 template <typename T>
 struct Converter<
     T, typename enable_if<is_integral<T>::value && !is_same<bool, T>::value &&
-                          !is_same<char, T>::value>::type>
-    : private VariantAttorney {
-  static void toJson(T src, JsonVariant dst) {
+                          !is_same<char, T>::value>::type> {
+  static void toJson(T src, VariantRef dst) {
     VariantData* data = getData(dst);
     ARDUINOJSON_ASSERT_INTEGER_TYPE_IS_SUPPORTED(T);
     if (data)
       data->setInteger(src);
   }
 
-  static T fromJson(JsonVariantConst src) {
+  static T fromJson(VariantConstRef src) {
     ARDUINOJSON_ASSERT_INTEGER_TYPE_IS_SUPPORTED(T);
     const VariantData* data = getData(src);
     return data ? data->asIntegral<T>() : T();
   }
 
-  static bool checkJson(JsonVariantConst src) {
+  static bool checkJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data && data->isInteger<T>();
   }
 };
 
 template <typename T>
-struct Converter<T, typename enable_if<is_enum<T>::value>::type>
-    : private VariantAttorney {
-  static void toJson(T src, JsonVariant dst) {
-    dst.set(static_cast<JsonInteger>(src));
+struct Converter<T, typename enable_if<is_enum<T>::value>::type> {
+  static void toJson(T src, VariantRef dst) {
+    dst.set(static_cast<Integer>(src));
   }
 
-  static T fromJson(JsonVariantConst src) {
+  static T fromJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data ? static_cast<T>(data->asIntegral<int>()) : T();
   }
 
-  static bool checkJson(JsonVariantConst src) {
+  static bool checkJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data && data->isInteger<int>();
   }
 };
 
 template <>
-struct Converter<bool> : private VariantAttorney {
-  static void toJson(bool src, JsonVariant dst) {
+struct Converter<bool> {
+  static void toJson(bool src, VariantRef dst) {
     VariantData* data = getData(dst);
     if (data)
       data->setBoolean(src);
   }
 
-  static bool fromJson(JsonVariantConst src) {
+  static bool fromJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data ? data->asBoolean() : false;
   }
 
-  static bool checkJson(JsonVariantConst src) {
+  static bool checkJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data && data->isBoolean();
   }
 };
 
 template <typename T>
-struct Converter<T, typename enable_if<is_floating_point<T>::value>::type>
-    : private VariantAttorney {
-  static void toJson(T src, JsonVariant dst) {
+struct Converter<T, typename enable_if<is_floating_point<T>::value>::type> {
+  static void toJson(T src, VariantRef dst) {
     VariantData* data = getData(dst);
     if (data)
-      data->setFloat(static_cast<JsonFloat>(src));
+      data->setFloat(static_cast<Float>(src));
   }
 
-  static T fromJson(JsonVariantConst src) {
+  static T fromJson(VariantConstRef src) {
     const VariantData* data = getData(src);
-    return data ? data->asFloat<T>() : 0;
+    return data ? data->asFloat<T>() : false;
   }
 
-  static bool checkJson(JsonVariantConst src) {
+  static bool checkJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data && data->isFloat();
   }
 };
 
 template <>
-struct Converter<const char*> : private VariantAttorney {
-  static void toJson(const char* src, JsonVariant dst) {
-    variantSetString(getData(dst), adaptString(src), getPool(dst));
+struct Converter<const char*> {
+  static void toJson(const char* src, VariantRef dst) {
+    variantSetString(getData(dst), adaptString(src), getPool(dst),
+                     getStringStoragePolicy(src));
   }
 
-  static const char* fromJson(JsonVariantConst src) {
+  static const char* fromJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data ? data->asString().c_str() : 0;
   }
 
-  static bool checkJson(JsonVariantConst src) {
+  static bool checkJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data && data->isString();
   }
 };
 
 template <>
-struct Converter<JsonString> : private VariantAttorney {
-  static void toJson(JsonString src, JsonVariant dst) {
-    variantSetString(getData(dst), adaptString(src), getPool(dst));
+struct Converter<String> {
+  static void toJson(String src, VariantRef dst) {
+    variantSetString(getData(dst), adaptString(src), getPool(dst),
+                     getStringStoragePolicy(src));
   }
 
-  static JsonString fromJson(JsonVariantConst src) {
+  static String fromJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data ? data->asString() : 0;
   }
 
-  static bool checkJson(JsonVariantConst src) {
+  static bool checkJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data && data->isString();
   }
@@ -151,16 +150,17 @@ struct Converter<JsonString> : private VariantAttorney {
 
 template <typename T>
 inline typename enable_if<IsString<T>::value, bool>::type convertToJson(
-    const T& src, JsonVariant dst) {
-  VariantData* data = VariantAttorney::getData(dst);
-  MemoryPool* pool = VariantAttorney::getPool(dst);
-  return variantSetString(data, adaptString(src), pool);
+    const T& src, VariantRef dst) {
+  VariantData* data = getData(dst);
+  MemoryPool* pool = getPool(dst);
+  return variantSetString(data, adaptString(src), pool,
+                          getStringStoragePolicy(src));
 }
 
 template <>
 struct Converter<SerializedValue<const char*> > {
-  static void toJson(SerializedValue<const char*> src, JsonVariant dst) {
-    VariantData* data = VariantAttorney::getData(dst);
+  static void toJson(SerializedValue<const char*> src, VariantRef dst) {
+    VariantData* data = getData(dst);
     if (data)
       data->setLinkedRaw(src);
   }
@@ -171,9 +171,8 @@ struct Converter<SerializedValue<const char*> > {
 // SerializedValue<const __FlashStringHelper*>
 template <typename T>
 struct Converter<SerializedValue<T>,
-                 typename enable_if<!is_same<const char*, T>::value>::type>
-    : private VariantAttorney {
-  static void toJson(SerializedValue<T> src, JsonVariant dst) {
+                 typename enable_if<!is_same<const char*, T>::value>::type> {
+  static void toJson(SerializedValue<T> src, VariantRef dst) {
     VariantData* data = getData(dst);
     MemoryPool* pool = getPool(dst);
     if (data)
@@ -184,14 +183,14 @@ struct Converter<SerializedValue<T>,
 #if ARDUINOJSON_HAS_NULLPTR
 
 template <>
-struct Converter<decltype(nullptr)> : private VariantAttorney {
-  static void toJson(decltype(nullptr), JsonVariant dst) {
+struct Converter<decltype(nullptr)> {
+  static void toJson(decltype(nullptr), VariantRef dst) {
     variantSetNull(getData(dst));
   }
-  static decltype(nullptr) fromJson(JsonVariantConst) {
+  static decltype(nullptr) fromJson(VariantConstRef) {
     return nullptr;
   }
-  static bool checkJson(JsonVariantConst src) {
+  static bool checkJson(VariantConstRef src) {
     const VariantData* data = getData(src);
     return data == 0 || data->isNull();
   }
@@ -207,10 +206,9 @@ class MemoryPoolPrint : public Print {
     pool->getFreeZone(&_string, &_capacity);
   }
 
-  JsonString str() {
+  String str() {
     ARDUINOJSON_ASSERT(_size < _capacity);
-    return JsonString(_pool->saveStringFromFreeZone(_size), _size,
-                      JsonString::Copied);
+    return String(_pool->saveStringFromFreeZone(_size), _size, String::Copied);
   }
 
   size_t write(uint8_t c) {
@@ -242,9 +240,9 @@ class MemoryPoolPrint : public Print {
   size_t _capacity;
 };
 
-inline void convertToJson(const ::Printable& src, JsonVariant dst) {
-  MemoryPool* pool = VariantAttorney::getPool(dst);
-  VariantData* data = VariantAttorney::getData(dst);
+inline void convertToJson(const ::Printable& src, VariantRef dst) {
+  MemoryPool* pool = getPool(dst);
+  VariantData* data = getData(dst);
   if (!pool || !data)
     return;
   MemoryPoolPrint print(pool);
@@ -261,59 +259,48 @@ inline void convertToJson(const ::Printable& src, JsonVariant dst) {
 
 #if ARDUINOJSON_ENABLE_ARDUINO_STRING
 
-inline void convertFromJson(JsonVariantConst src, ::String& dst) {
-  JsonString str = src.as<JsonString>();
+inline void convertFromJson(VariantConstRef src, ::String& dst) {
+  String str = src.as<String>();
   if (str)
     dst = str.c_str();
   else
     serializeJson(src, dst);
 }
 
-inline bool canConvertFromJson(JsonVariantConst src, const ::String&) {
-  return src.is<JsonString>();
+inline bool canConvertFromJson(VariantConstRef src, const ::String&) {
+  return src.is<String>();
 }
 
 #endif
 
 #if ARDUINOJSON_ENABLE_STD_STRING
 
-inline void convertFromJson(JsonVariantConst src, std::string& dst) {
-  JsonString str = src.as<JsonString>();
+inline void convertFromJson(VariantConstRef src, std::string& dst) {
+  String str = src.as<String>();
   if (str)
     dst.assign(str.c_str(), str.size());
   else
     serializeJson(src, dst);
 }
 
-inline bool canConvertFromJson(JsonVariantConst src, const std::string&) {
-  return src.is<JsonString>();
+inline bool canConvertFromJson(VariantConstRef src, const std::string&) {
+  return src.is<String>();
 }
 
 #endif
 
 #if ARDUINOJSON_ENABLE_STRING_VIEW
 
-inline void convertFromJson(JsonVariantConst src, std::string_view& dst) {
-  JsonString str = src.as<JsonString>();
+inline void convertFromJson(VariantConstRef src, std::string_view& dst) {
+  String str = src.as<String>();
   if (str)  // the standard doesn't allow passing null to the constructor
     dst = std::string_view(str.c_str(), str.size());
 }
 
-inline bool canConvertFromJson(JsonVariantConst src, const std::string_view&) {
-  return src.is<JsonString>();
+inline bool canConvertFromJson(VariantConstRef src, const std::string_view&) {
+  return src.is<String>();
 }
 
 #endif
-
-template <typename T>
-struct ConverterNeedsWriteableRef {
- protected:  // <- to avoid GCC's "all member functions in class are private"
-  static int probe(T (*f)(JsonVariant));
-  static char probe(T (*f)(JsonVariantConst));
-
- public:
-  static const bool value =
-      sizeof(probe(Converter<T>::fromJson)) == sizeof(int);
-};
 
 }  // namespace ARDUINOJSON_NAMESPACE

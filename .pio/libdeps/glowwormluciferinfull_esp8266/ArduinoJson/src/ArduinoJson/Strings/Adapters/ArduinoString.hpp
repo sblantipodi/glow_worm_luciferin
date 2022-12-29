@@ -7,19 +7,18 @@
 #include <Arduino.h>
 
 #include <ArduinoJson/Strings/Adapters/RamString.hpp>
-#include <ArduinoJson/Strings/StringAdapter.hpp>
+#include <ArduinoJson/Strings/IsString.hpp>
 
 namespace ARDUINOJSON_NAMESPACE {
 
-template <typename T>
-struct StringAdapter<
-    T, typename enable_if<is_same<T, ::String>::value ||
-                          is_same<T, ::StringSumHelper>::value>::type> {
-  typedef SizedRamString AdaptedString;
+inline SizedRamString adaptString(const ::String& s) {
+  return SizedRamString(s.c_str(), s.length());
+}
 
-  static AdaptedString adapt(const ::String& s) {
-    return AdaptedString(s.c_str(), s.length());
-  }
-};
+template <>
+struct IsString< ::String> : true_type {};
+
+template <>
+struct IsString< ::StringSumHelper> : true_type {};
 
 }  // namespace ARDUINOJSON_NAMESPACE

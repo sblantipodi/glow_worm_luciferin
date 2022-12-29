@@ -10,8 +10,8 @@
 namespace ARDUINOJSON_NAMESPACE {
 
 #if ARDUINOJSON_USE_DOUBLE
-typedef double JsonFloat;
+typedef double Float;
 #else
-typedef float JsonFloat;
+typedef float Float;
 #endif
 }  // namespace ARDUINOJSON_NAMESPACE

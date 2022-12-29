@@ -4,21 +4,19 @@
 
 #pragma once
 
-#include <ArduinoJson/Array/JsonArray.hpp>
+#include <ArduinoJson/Array/ArrayRef.hpp>
 #include <ArduinoJson/Document/JsonDocument.hpp>
 
 namespace ARDUINOJSON_NAMESPACE {
 
-// Copies a value to a JsonVariant.
-// This is a degenerated form of copyArray() to stop the recursion.
+// Trivial form to stop the recursion
 template <typename T>
 inline typename enable_if<!is_array<T>::value, bool>::type copyArray(
-    const T& src, JsonVariant dst) {
+    const T& src, VariantRef dst) {
   return dst.set(src);
 }
 
-// Copies values from an array to a JsonArray or a JsonVariant.
-// https://arduinojson.org/v6/api/misc/copyarray/
+// Copy array to a JsonArray/JsonVariant/MemberProxy/ElementProxy
 template <typename T, size_t N, typename TDestination>
 inline typename enable_if<!is_base_of<JsonDocument, TDestination>::value,
                           bool>::type
@@ -26,72 +24,64 @@ copyArray(T (&src)[N], const TDestination& dst) {
   return copyArray(src, N, dst);
 }
 
-// Copies values from an array to a JsonArray or a JsonVariant.
-// https://arduinojson.org/v6/api/misc/copyarray/
+// Copy ptr+size to a JsonArray/JsonVariant/MemberProxy/ElementProxy
 template <typename T, typename TDestination>
 inline typename enable_if<!is_base_of<JsonDocument, TDestination>::value,
                           bool>::type
 copyArray(const T* src, size_t len, const TDestination& dst) {
   bool ok = true;
   for (size_t i = 0; i < len; i++) {
-    ok &= copyArray(src[i], dst.add());
+    ok &= copyArray(src[i], dst.addElement());
   }
   return ok;
 }
 
-// Copies a string to a JsonVariant.
-// This is a degenerated form of copyArray() to handle strings.
+// Special case for char[] which much be treated as const char*
 template <typename TDestination>
 inline bool copyArray(const char* src, size_t, const TDestination& dst) {
   return dst.set(src);
 }
 
-// Copies values from an array to a JsonDocument.
-// https://arduinojson.org/v6/api/misc/copyarray/
+// Copy array to a JsonDocument
 template <typename T>
 inline bool copyArray(const T& src, JsonDocument& dst) {
-  return copyArray(src, dst.to<JsonArray>());
+  return copyArray(src, dst.to<ArrayRef>());
 }
 
-// Copies an array to a JsonDocument.
-// https://arduinojson.org/v6/api/misc/copyarray/
+// Copy a ptr+size array to a JsonDocument
 template <typename T>
 inline bool copyArray(const T* src, size_t len, JsonDocument& dst) {
-  return copyArray(src, len, dst.to<JsonArray>());
+  return copyArray(src, len, dst.to<ArrayRef>());
 }
 
-// Copies a value from a JsonVariant.
-// This is a degenerated form of copyArray() to stop the recursion.
+// Trivial case form to stop the recursion
 template <typename T>
 inline typename enable_if<!is_array<T>::value, size_t>::type copyArray(
-    JsonVariantConst src, T& dst) {
+    VariantConstRef src, T& dst) {
   dst = src.as<T>();
   return 1;
 }
 
-// Copies values from a JsonArray or JsonVariant to an array.
-// https://arduinojson.org/v6/api/misc/copyarray/
+// Copy a JsonArray to array
 template <typename T, size_t N>
-inline size_t copyArray(JsonArrayConst src, T (&dst)[N]) {
+inline size_t copyArray(ArrayConstRef src, T (&dst)[N]) {
   return copyArray(src, dst, N);
 }
 
-// Copies values from a JsonArray or JsonVariant to an array.
-// https://arduinojson.org/v6/api/misc/copyarray/
+// Copy a JsonArray to ptr+size
 template <typename T>
-inline size_t copyArray(JsonArrayConst src, T* dst, size_t len) {
+inline size_t copyArray(ArrayConstRef src, T* dst, size_t len) {
   size_t i = 0;
-  for (JsonArrayConst::iterator it = src.begin(); it != src.end() && i < len;
+  for (ArrayConstRef::iterator it = src.begin(); it != src.end() && i < len;
        ++it)
     copyArray(*it, dst[i++]);
   return i;
 }
 
-// Copies a string from a JsonVariant.
-// This is a degenerated form of copyArray() to handle strings.
+// Special case for char[] which must be treated as a string
 template <size_t N>
-inline size_t copyArray(JsonVariantConst src, char (&dst)[N]) {
-  JsonString s = src;
+inline size_t copyArray(VariantConstRef src, char (&dst)[N]) {
+  String s = src;
   size_t len = N - 1;
   if (len > s.size())
     len = s.size();
@@ -100,14 +90,14 @@ inline size_t copyArray(JsonVariantConst src, char (&dst)[N]) {
   return 1;
 }
 
-// Copies values from a JsonDocument to an array.
-// https://arduinojson.org/v6/api/misc/copyarray/
+// Copy a JsonDocument to an array
+// (JsonDocument doesn't implicitly convert to JsonArrayConst)
 template <typename TSource, typename T>
 inline typename enable_if<is_array<T>::value &&
                               is_base_of<JsonDocument, TSource>::value,
                           size_t>::type
 copyArray(const TSource& src, T& dst) {
-  return copyArray(src.template as<JsonArrayConst>(), dst);
+  return copyArray(src.template as<ArrayConstRef>(), dst);
 }
 
 }  // namespace ARDUINOJSON_NAMESPACE

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <ArduinoJson/Json/TextFormatter.hpp>
+#include <ArduinoJson/Misc/Visitable.hpp>
 #include <ArduinoJson/Serialization/measure.hpp>
 #include <ArduinoJson/Serialization/serialize.hpp>
 #include <ArduinoJson/Variant/Visitor.hpp>
@@ -18,10 +19,10 @@ class JsonSerializer : public Visitor<size_t> {
 
   JsonSerializer(TWriter writer) : _formatter(writer) {}
 
-  FORCE_INLINE size_t visitArray(const CollectionData& array) {
+  FORCE_INLINE size_t visitArray(const CollectionData &array) {
     write('[');
 
-    const VariantSlot* slot = array.head();
+    VariantSlot *slot = array.head();
 
     while (slot != 0) {
       slot->data()->accept(*this);
@@ -37,10 +38,10 @@ class JsonSerializer : public Visitor<size_t> {
     return bytesWritten();
   }
 
-  size_t visitObject(const CollectionData& object) {
+  size_t visitObject(const CollectionData &object) {
     write('{');
 
-    const VariantSlot* slot = object.head();
+    VariantSlot *slot = object.head();
 
     while (slot != 0) {
       _formatter.writeString(slot->key());
@@ -58,32 +59,32 @@ class JsonSerializer : public Visitor<size_t> {
     return bytesWritten();
   }
 
-  size_t visitFloat(JsonFloat value) {
+  size_t visitFloat(Float value) {
     _formatter.writeFloat(value);
     return bytesWritten();
   }
 
-  size_t visitString(const char* value) {
+  size_t visitString(const char *value) {
     _formatter.writeString(value);
     return bytesWritten();
   }
 
-  size_t visitString(const char* value, size_t n) {
+  size_t visitString(const char *value, size_t n) {
     _formatter.writeString(value, n);
     return bytesWritten();
   }
 
-  size_t visitRawJson(const char* data, size_t n) {
+  size_t visitRawJson(const char *data, size_t n) {
     _formatter.writeRaw(data, n);
     return bytesWritten();
   }
 
-  size_t visitSignedInteger(JsonInteger value) {
+  size_t visitSignedInteger(Integer value) {
     _formatter.writeInteger(value);
     return bytesWritten();
   }
 
-  size_t visitUnsignedInteger(JsonUInt value) {
+  size_t visitUnsignedInteger(UInt value) {
     _formatter.writeInteger(value);
     return bytesWritten();
   }
@@ -107,7 +108,7 @@ class JsonSerializer : public Visitor<size_t> {
     _formatter.writeRaw(c);
   }
 
-  void write(const char* s) {
+  void write(const char *s) {
     _formatter.writeRaw(s);
   }
 
@@ -115,31 +116,25 @@ class JsonSerializer : public Visitor<size_t> {
   TextFormatter<TWriter> _formatter;
 };
 
-// Produces a minified JSON document.
-// https://arduinojson.org/v6/api/json/serializejson/
-template <typename TDestination>
-size_t serializeJson(JsonVariantConst source, TDestination& destination) {
+template <typename TSource, typename TDestination>
+size_t serializeJson(const TSource &source, TDestination &destination) {
   return serialize<JsonSerializer>(source, destination);
 }
 
-// Produces a minified JSON document.
-// https://arduinojson.org/v6/api/json/serializejson/
-inline size_t serializeJson(JsonVariantConst source, void* buffer,
-                            size_t bufferSize) {
+template <typename TSource>
+size_t serializeJson(const TSource &source, void *buffer, size_t bufferSize) {
   return serialize<JsonSerializer>(source, buffer, bufferSize);
 }
 
-// Computes the length of the document that serializeJson() produces.
-// https://arduinojson.org/v6/api/json/measurejson/
-inline size_t measureJson(JsonVariantConst source) {
+template <typename TSource>
+size_t measureJson(const TSource &source) {
   return measure<JsonSerializer>(source);
 }
 
 #if ARDUINOJSON_ENABLE_STD_STREAM
 template <typename T>
-inline typename enable_if<is_convertible<T, JsonVariantConst>::value,
-                          std::ostream&>::type
-operator<<(std::ostream& os, const T& source) {
+inline typename enable_if<IsVisitable<T>::value, std::ostream &>::type
+operator<<(std::ostream &os, const T &source) {
   serializeJson(source, os);
   return os;
 }

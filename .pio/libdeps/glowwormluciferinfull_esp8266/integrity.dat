@@ -1,4 +1,4 @@
-knolleary/PubSubClient
-ArduinoJson
-fastled/FastLED
 makuna/NeoPixelBus
+knolleary/PubSubClient
+ArduinoJson@6.19.4
+fastled/FastLED

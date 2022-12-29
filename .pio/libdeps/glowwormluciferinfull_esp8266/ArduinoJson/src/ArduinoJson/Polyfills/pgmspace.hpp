@@ -23,8 +23,7 @@ struct pgm_p {
 inline size_t strlen_P(ARDUINOJSON_NAMESPACE::pgm_p s) {
   const char* p = s.address;
   ARDUINOJSON_ASSERT(p != NULL);
-  while (pgm_read_byte(p))
-    p++;
+  while (pgm_read_byte(p)) p++;
   return size_t(p - s.address);
 }
 #endif

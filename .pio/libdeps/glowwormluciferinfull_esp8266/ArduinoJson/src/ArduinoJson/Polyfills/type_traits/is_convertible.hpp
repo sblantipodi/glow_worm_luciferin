@@ -24,13 +24,14 @@ namespace ARDUINOJSON_NAMESPACE {
 template <typename From, typename To>
 struct is_convertible {
  protected:  // <- to avoid GCC's "all member functions in class are private"
-  static int probe(To);
-  static char probe(...);
+  typedef char Yes[1];
+  typedef char No[2];
 
-  static From& _from;
+  static Yes &probe(To);
+  static No &probe(...);
 
  public:
-  static const bool value = sizeof(probe(_from)) == sizeof(int);
+  static const bool value = sizeof(probe(declval<From>())) == sizeof(Yes);
 };
 
 }  // namespace ARDUINOJSON_NAMESPACE

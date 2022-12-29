@@ -10,7 +10,6 @@
 
 namespace ARDUINOJSON_NAMESPACE {
 
-// The allocator of DynamicJsonDocument.
 struct DefaultAllocator {
   void* allocate(size_t size) {
     return malloc(size);
@@ -25,8 +24,6 @@ struct DefaultAllocator {
   }
 };
 
-// A JsonDocument with a memory pool in the heap.
-// https://arduinojson.org/v6/api/dynamicjsondocument/
 typedef BasicJsonDocument<DefaultAllocator> DynamicJsonDocument;
 
 }  // namespace ARDUINOJSON_NAMESPACE

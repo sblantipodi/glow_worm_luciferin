@@ -10,18 +10,18 @@ namespace ARDUINOJSON_NAMESPACE {
 
 class Filter {
  public:
-  explicit Filter(JsonVariantConst v) : _variant(v) {}
+  explicit Filter(VariantConstRef v) : _variant(v) {}
 
   bool allow() const {
     return _variant;
   }
 
   bool allowArray() const {
-    return _variant == true || _variant.is<JsonArrayConst>();
+    return _variant == true || _variant.is<ArrayConstRef>();
   }
 
   bool allowObject() const {
-    return _variant == true || _variant.is<JsonObjectConst>();
+    return _variant == true || _variant.is<ObjectConstRef>();
   }
 
   bool allowValue() const {
@@ -32,12 +32,12 @@ class Filter {
   Filter operator[](const TKey& key) const {
     if (_variant == true)  // "true" means "allow recursively"
       return *this;
-    JsonVariantConst member = _variant[key];
+    VariantConstRef member = _variant[key];
     return Filter(member.isNull() ? _variant["*"] : member);
   }
 
  private:
-  JsonVariantConst _variant;
+  VariantConstRef _variant;
 };
 
 struct AllowAllFilter {

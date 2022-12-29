@@ -7,8 +7,8 @@
 #include <stddef.h>  // size_t
 
 #include <ArduinoJson/Collection/CollectionData.hpp>
-#include <ArduinoJson/Numbers/JsonFloat.hpp>
-#include <ArduinoJson/Numbers/JsonInteger.hpp>
+#include <ArduinoJson/Numbers/Float.hpp>
+#include <ArduinoJson/Numbers/Integer.hpp>
 
 namespace ARDUINOJSON_NAMESPACE {
 
@@ -39,18 +39,18 @@ enum {
 };
 
 struct RawData {
-  const char* data;
+  const char *data;
   size_t size;
 };
 
 union VariantContent {
-  JsonFloat asFloat;
+  Float asFloat;
   bool asBoolean;
-  JsonUInt asUnsignedInteger;
-  JsonInteger asSignedInteger;
+  UInt asUnsignedInteger;
+  Integer asSignedInteger;
   CollectionData asCollection;
   struct {
-    const char* data;
+    const char *data;
     size_t size;
   } asString;
 };

@@ -5,7 +5,7 @@
 #pragma once
 
 #include <ArduinoJson/Namespace.hpp>
-#include <ArduinoJson/Strings/JsonString.hpp>
+#include <ArduinoJson/Strings/String.hpp>
 
 namespace ARDUINOJSON_NAMESPACE {
 
@@ -17,8 +17,8 @@ class StringMover {
     _startPtr = _writePtr;
   }
 
-  FORCE_INLINE JsonString save() {
-    JsonString s = str();
+  FORCE_INLINE String save() {
+    String s = str();
     _writePtr++;
     return s;
   }
@@ -31,9 +31,9 @@ class StringMover {
     return true;
   }
 
-  JsonString str() const {
+  String str() const {
     _writePtr[0] = 0;  // terminator
-    return JsonString(_startPtr, size(), JsonString::Linked);
+    return String(_startPtr, size(), String::Linked);
   }
 
   size_t size() const {

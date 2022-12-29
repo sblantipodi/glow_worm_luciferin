@@ -20,27 +20,28 @@ void setup() {
   // WARNING: the strings in the input will be duplicated in the JsonDocument.
   deserializeJson(doc, F("{\"sensor\":\"gps\",\"time\":1351824120,"
                          "\"data\":[48.756080,2.302038]}"));
+  JsonObject obj = doc.as<JsonObject>();
 
-  // You can use a Flash String as a key to get a member from JsonDocument
+  // You can use a Flash String to get an element of a JsonObject
   // No duplication is done.
-  long time = doc[F("time")];
+  long time = obj[F("time")];
 
-  // You can use a Flash String as a key to set a member of a JsonDocument
+  // You can use a Flash String to set an element of a JsonObject
   // WARNING: the content of the Flash String will be duplicated in the
   // JsonDocument.
-  doc[F("time")] = time;
+  obj[F("time")] = time;
 
-  // You can set a Flash String as the content of a JsonVariant
+  // You can set a Flash String to a JsonObject or JsonArray:
   // WARNING: the content of the Flash String will be duplicated in the
   // JsonDocument.
-  doc["sensor"] = F("gps");
+  obj["sensor"] = F("gps");
 
   // It works with serialized() too:
-  doc["sensor"] = serialized(F("\"gps\""));
-  doc["sensor"] = serialized(F("\xA3gps"), 3);
+  obj["sensor"] = serialized(F("\"gps\""));
+  obj["sensor"] = serialized(F("\xA3gps"), 3);
 
   // You can compare the content of a JsonVariant to a Flash String
-  if (doc["sensor"] == F("gps")) {
+  if (obj["sensor"] == F("gps")) {
     // ...
   }
 }
