@@ -1,4 +1,4 @@
-PubSubClient
-ArduinoJson
-makuna/NeoPixelBus
+ArduinoJson@6.20.0
 fastled/FastLED
+PubSubClient
+makuna/NeoPixelBus
