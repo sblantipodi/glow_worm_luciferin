@@ -50,7 +50,7 @@ jobs:
       - id: get-id
         run: |
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
-          echo "::set-output name=id::$id"
+          echo "id=$id" >> $GITHUB_OUTPUT
       - name: Set up Python
         uses: actions/setup-python@v4
       - name: Install dependencies
@@ -114,7 +114,7 @@ jobs:
       - id: get-id
         run: |
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
-          echo "::set-output name=id::$id"
+          echo "id=$id" >> $GITHUB_OUTPUT
       - name: Set up Python
         uses: actions/setup-python@v4
       - name: Install dependencies
@@ -181,7 +181,7 @@ jobs:
       - name: Retrieve version
         id: vars
         run: |
-          echo "::set-output name=TAG_NAME::$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/version)"
+          echo "TAG_NAME=$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/version)" >> $GITHUB_OUTPUT
       - name: Set property version in a ESP Web Tools json file
         uses: benday-inc/set-property-value-in-appsettings@v1.3
         with:
@@ -221,7 +221,7 @@ jobs:
       - id: get-id
         run: |
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
-          echo "::set-output name=id::$id"
+          echo "id=$id" >> $GITHUB_OUTPUT
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
