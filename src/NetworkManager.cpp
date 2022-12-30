@@ -129,7 +129,7 @@ void NetworkManager::manageQueueSubscription() {
 
   BootstrapManager::subscribe(networkManager.lightSetTopic.c_str());
   BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
-  BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
+//  BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
   BootstrapManager::subscribe(networkManager.updateStateTopic.c_str());
   BootstrapManager::subscribe(networkManager.unsubscribeTopic.c_str());
   BootstrapManager::subscribe(networkManager.firmwareConfigTopic.c_str());
