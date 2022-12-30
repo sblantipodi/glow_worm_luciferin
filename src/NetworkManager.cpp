@@ -127,12 +127,15 @@ void NetworkManager::manageDisconnections() {
  */
 void NetworkManager::manageQueueSubscription() {
 
+  // Note: Add another topic subscription can cause performance issues on ESP8266
+  // Double check it with 60FPS, 100 LEDs, with MQTT enabled.
   BootstrapManager::subscribe(networkManager.lightSetTopic.c_str());
-  BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
   BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
   BootstrapManager::subscribe(networkManager.updateStateTopic.c_str());
-  BootstrapManager::subscribe(networkManager.unsubscribeTopic.c_str());
   BootstrapManager::subscribe(networkManager.firmwareConfigTopic.c_str());
+  // TODO remove subscription to topic that doesn't need MQTT, some topics can be managed via HTTP only
+  BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
+  BootstrapManager::subscribe(networkManager.unsubscribeTopic.c_str());
 
 }
 
@@ -141,12 +144,12 @@ void NetworkManager::manageQueueSubscription() {
  */
 void NetworkManager::swapTopicUnsubscribe() {
 
+  // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
   BootstrapManager::unsubscribe(networkManager.lightSetTopic.c_str());
   BootstrapManager::unsubscribe(networkManager.streamTopic.c_str());
   BootstrapManager::unsubscribe(networkManager.cmndReboot.c_str());
   BootstrapManager::unsubscribe(networkManager.updateStateTopic.c_str());
   BootstrapManager::unsubscribe(networkManager.unsubscribeTopic.c_str());
-  // TODO manca il firmwareConfigTopic, anche firefly usa sempre lo stesso topic, perchè?
 
 }
 
@@ -156,6 +159,7 @@ void NetworkManager::swapTopicUnsubscribe() {
  */
 void NetworkManager::swapTopicReplace(const String& customtopic) {
 
+  // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
   networkManager.lightStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.updateStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.updateResultStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
@@ -173,6 +177,7 @@ void NetworkManager::swapTopicReplace(const String& customtopic) {
  */
 void NetworkManager::swapTopicSubscribe() {
 
+  // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
   BootstrapManager::subscribe(networkManager.lightSetTopic.c_str());
   BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
   BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
