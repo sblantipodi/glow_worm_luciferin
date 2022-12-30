@@ -55,7 +55,6 @@ class NetworkManager {
     String cmndReboot = "cmnd/glowwormluciferin/reboot";
     String fpsTopic = "lights/glowwormluciferin/fps";
     String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
-    String ldrTopic = "lights/glowwormluciferin/ldr";
     String deviceTopic = "lights/glowwormluciferin/device";
     const char *BASE_TOPIC = "glowwormluciferin";
     String topicInUse = "glowwormluciferin";

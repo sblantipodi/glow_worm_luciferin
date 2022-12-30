@@ -129,11 +129,55 @@ void NetworkManager::manageQueueSubscription() {
 
   BootstrapManager::subscribe(networkManager.lightSetTopic.c_str());
   BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
-//  BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
+  BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
   BootstrapManager::subscribe(networkManager.updateStateTopic.c_str());
   BootstrapManager::subscribe(networkManager.unsubscribeTopic.c_str());
   BootstrapManager::subscribe(networkManager.firmwareConfigTopic.c_str());
-  BootstrapManager::subscribe(networkManager.ldrTopic.c_str());
+
+}
+
+/**
+ * Unsubscribe from the default MQTT topic
+ */
+void NetworkManager::swapTopicUnsubscribe() {
+
+  BootstrapManager::unsubscribe(networkManager.lightSetTopic.c_str());
+  BootstrapManager::unsubscribe(networkManager.streamTopic.c_str());
+  BootstrapManager::unsubscribe(networkManager.cmndReboot.c_str());
+  BootstrapManager::unsubscribe(networkManager.updateStateTopic.c_str());
+  BootstrapManager::unsubscribe(networkManager.unsubscribeTopic.c_str());
+  // TODO manca il firmwareConfigTopic, anche firefly usa sempre lo stesso topic, perchè?
+
+}
+
+/**
+ * Swap MQTT topi with the custom one
+ * @param customtopic custom MQTT topic to use, received by Firefly Luciferin
+ */
+void NetworkManager::swapTopicReplace(const String& customtopic) {
+
+  networkManager.lightStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.updateStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.updateResultStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.lightSetTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.baseStreamTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.streamTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.unsubscribeTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.fpsTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.cmndReboot.replace(networkManager.BASE_TOPIC, customtopic);
+
+}
+
+/**
+ * Subscribe to custom MQTT topic
+ */
+void NetworkManager::swapTopicSubscribe() {
+
+  BootstrapManager::subscribe(networkManager.lightSetTopic.c_str());
+  BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
+  BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
+  BootstrapManager::subscribe(networkManager.updateStateTopic.c_str());
+  BootstrapManager::subscribe(networkManager.unsubscribeTopic.c_str());
 
 }
 
@@ -430,8 +474,6 @@ void NetworkManager::callback(char *topic, byte *payload, unsigned int length) {
       processFirmwareConfig();
     } else if (networkManager.unsubscribeTopic.equals(topic)) {
       processUnSubscribeStream();
-    } else if (networkManager.ldrTopic.equals(topic)) {
-      processLDR();
     }
     if (ledManager.stateOn) {
       LedManager::setColor(map(ledManager.red, 0, 255, 0, brightness), map(ledManager.green, 0, 255, 0, brightness),
@@ -1013,57 +1055,6 @@ void NetworkManager::executeMqttSwap(const String& customtopic) {
   swapTopicUnsubscribe();
   swapTopicReplace(customtopic);
   swapTopicSubscribe();
-
-}
-
-/**
- * Unsubscribe from the default MQTT topic
- */
-void NetworkManager::swapTopicUnsubscribe() {
-
-  BootstrapManager::unsubscribe(networkManager.lightStateTopic.c_str());
-  BootstrapManager::unsubscribe(networkManager.updateStateTopic.c_str());
-  BootstrapManager::unsubscribe(networkManager.updateResultStateTopic.c_str());
-  BootstrapManager::unsubscribe(networkManager.lightSetTopic.c_str());
-  BootstrapManager::unsubscribe(networkManager.baseStreamTopic.c_str());
-  BootstrapManager::unsubscribe(networkManager.streamTopic.c_str());
-  BootstrapManager::unsubscribe(networkManager.unsubscribeTopic.c_str());
-  BootstrapManager::unsubscribe(networkManager.ldrTopic.c_str());
-
-}
-
-/**
- * Swap MQTT topi with the custom one
- * @param customtopic custom MQTT topic to use, received by Firefly Luciferin
- */
-void NetworkManager::swapTopicReplace(const String& customtopic) {
-
-  networkManager.lightStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.updateStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.updateResultStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.lightSetTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.baseStreamTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.streamTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.unsubscribeTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.fpsTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.ldrTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.cmndReboot.replace(networkManager.BASE_TOPIC, customtopic);
-
-}
-
-/**
- * Subscribe to custom MQTT topic
- */
-void NetworkManager::swapTopicSubscribe() {
-
-  BootstrapManager::subscribe(networkManager.lightStateTopic.c_str());
-  BootstrapManager::subscribe(networkManager.updateStateTopic.c_str());
-  BootstrapManager::subscribe(networkManager.updateResultStateTopic.c_str());
-  BootstrapManager::subscribe(networkManager.lightSetTopic.c_str());
-  BootstrapManager::subscribe(networkManager.baseStreamTopic.c_str());
-  BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
-  BootstrapManager::subscribe(networkManager.unsubscribeTopic.c_str());
-  BootstrapManager::subscribe(networkManager.ldrTopic.c_str());
 
 }
 
