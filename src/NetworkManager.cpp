@@ -830,7 +830,11 @@ void NetworkManager::sendStatus() {
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
     fpsData = F("{\"deviceName\":\"");
     fpsData += deviceName;
-    fpsData += F("\",\"MAC\":\"");
+    fpsData += F("\",\"state\":\"");
+    fpsData += (ledManager.stateOn) ? ON_CMD : OFF_CMD;
+    fpsData += F("\",\"brightness\":");
+    fpsData += brightness;
+    fpsData += F(",\"MAC\":\"");
     fpsData += MAC;
     fpsData += F("\",\"lednum\":\"");
     fpsData += ledManager.dynamicLedNum;
