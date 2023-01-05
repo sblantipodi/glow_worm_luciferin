@@ -167,7 +167,6 @@ void NetworkManager::swapTopicReplace(const String& customtopic) {
   networkManager.baseStreamTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.streamTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.unsubscribeTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.fpsTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.cmndReboot.replace(networkManager.BASE_TOPIC, customtopic);
 
 }
@@ -845,7 +844,7 @@ void NetworkManager::sendStatus() {
     }
     fpsData += F("\"}");
     if (mqttIP.length() > 0) {
-      BootstrapManager::publish(networkManager.fpsTopic.c_str(), fpsData.c_str(), false);
+      BootstrapManager::publish(networkManager.lightStateTopic.c_str(), fpsData.c_str(), false);
     } else {
 #if defined(ESP8266)
       if (networkManager.remoteBroadcastPort.isSet()) {

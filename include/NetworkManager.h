@@ -53,7 +53,6 @@ class NetworkManager {
     String streamTopic = "lights/glowwormluciferin/set/stream";
     String unsubscribeTopic = "lights/glowwormluciferin/unsubscribe";
     String cmndReboot = "cmnd/glowwormluciferin/reboot";
-    String fpsTopic = "lights/glowwormluciferin/fps";
     String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
     String deviceTopic = "lights/glowwormluciferin/device";
     const char *BASE_TOPIC = "glowwormluciferin";
