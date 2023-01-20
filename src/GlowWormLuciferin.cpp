@@ -157,7 +157,7 @@ void setup() {
 #if defined(ESP8266)
   // Hey gateway, GlowWorm is here
   delay(DELAY_500);
-  pingESP.ping(WiFi.gatewayIP());
+  pingESP.ping();
 #endif
 #endif
 
@@ -400,8 +400,7 @@ void loop() {
 #if defined(ESP8266)
   EVERY_N_SECONDS(30) {
     // Hey gateway, GlowWorm is here
-    bool res = pingESP.ping(WiFi.gatewayIP());
-    if (!res) {
+    if (!pingESP.ping()) {
       WiFi.reconnect();
     }
   }
