@@ -60,6 +60,14 @@ void setup() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   MAC = WiFi.macAddress();
+#if defined(ESP8266)
+  if (!LittleFS.begin()) {
+#elif defined(ESP32)
+  if (!LittleFS.begin(true)) {
+#endif
+    Serial.println("LittleFS mount failed");
+    return;
+  }
 #endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
