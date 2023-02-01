@@ -85,6 +85,7 @@ class NetworkManager {
     static bool processMqttUpdate();
     static bool processJson();
     static bool processFirmwareConfig();
+    static bool processFirmwareConfigWithReboot();
     static bool processGlowWormLuciferinRebootCmnd();
     static bool processLDR();
     static bool processUnSubscribeStream();

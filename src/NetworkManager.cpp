@@ -305,85 +305,7 @@ void NetworkManager::listenOnHttpGet() {
   });
   server.on(F("/setting"), [this]() {
       stopUDP();
-      String deviceName = server.arg(F("deviceName"));
-      String microcontrollerIP = server.arg(F("microcontrollerIP"));
-      String mqttCheckbox = server.arg("mqttCheckbox");
-      String mqttIP = server.arg(F("mqttIP"));
-      String mqttPort = server.arg(F("mqttPort"));
-      String mqttTopic = server.arg(F("mqttTopic"));
-      String mqttuser = server.arg(F("mqttuser"));
-      String mqttpass = server.arg(F("mqttpass"));
-      String additionalParam = server.arg(F("additionalParam"));
-      String colorModeParam = server.arg(F("colorMode"));
-      String lednum = server.arg(F("lednum"));
-      String br = server.arg(F("br"));
-      DynamicJsonDocument doc(1024);
-      if (deviceName.length() > 0 && ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0 && mqttTopic.length() > 0))) {
-        if (microcontrollerIP.length() == 0) {
-          microcontrollerIP = "DHCP";
-        }
-        doc[F("deviceName")] = deviceName;
-        doc[F("microcontrollerIP")] = microcontrollerIP;
-        doc[F("qsid")] = qsid;
-        doc[F("qpass")] = qpass;
-        doc[F("OTApass")] = OTApass;
-        if (mqttCheckbox.equals("true")) {
-          doc[F("mqttIP")] = mqttIP;
-          doc[F("mqttPort")] = mqttPort;
-          doc[F("mqttTopic")] = mqttTopic;
-          doc[F("mqttuser")] = mqttuser;
-          doc[F("mqttpass")] = mqttpass;
-        } else {
-          doc[F("mqttIP")] = "";
-          doc[F("mqttPort")] = "";
-          doc[F("mqttTopic")] = "";
-          doc[F("mqttuser")] = "";
-          doc[F("mqttpass")] = "";
-        }
-        doc[F("additionalParam")] = additionalParam;
-        content = F("Success: rebooting the microcontroller using your credentials.");
-        statusCode = 200;
-      } else {
-        content = F("Error: missing required fields.");
-        statusCode = 404;
-        Serial.println(F("Sending 404"));
-      }
-      delay(DELAY_500);
-      server.sendHeader(F("Access-Control-Allow-Origin"), "*");
-      server.send(statusCode, F("text/plain"), content);
-      delay(DELAY_500);
-      // Write to LittleFS
-      Serial.println(F("Saving setup.json"));
-      File jsonFile = LittleFS.open("/setup.json", FILE_WRITE);
-      if (!jsonFile) {
-        Serial.println(F("Failed to open [setup.json] file for writing"));
-      } else {
-        serializeJsonPretty(doc, Serial);
-        serializeJson(doc, jsonFile);
-        jsonFile.close();
-        Serial.println(F("[setup.json] written correctly"));
-      }
-      delay(DELAY_200);
-      Serial.println(F("Saving lednum"));
-      LedManager::setNumLed(lednum.toInt());
-      delay(DELAY_200);
-      Serial.println(F("Saving gpio"));
-      Globals::setGpio(additionalParam.toInt());
-      delay(DELAY_500);
-      DynamicJsonDocument topicDoc(1024);
-      topicDoc[MQTT_PARAM] = mqttTopic;
-      BootstrapManager::writeToLittleFS(topicDoc, TOPIC_FILENAME);
-      delay(DELAY_500);
-      ledManager.setColorMode(colorModeParam.toInt());
-      delay(DELAY_500);
-      Globals::setBaudRateInUse(br.toInt());
-      Globals::setBaudRate(baudRateInUse);
-      delay(DELAY_1000);
-#if defined(ESP32)
-      ESP.restart();
-#elif defined(ESP8266)
-      EspClass::restart();
-#endif
+      httpCallback(processFirmwareConfigWithReboot);
   });
 
   server.begin();
@@ -645,28 +567,92 @@ void NetworkManager::jsonStream(byte *payload, unsigned int length) {
 }
 
 /**
- * Swap MQTT topic with a custom one received from Firefly Luciferin
+ * Process Firmware Configuration sent from Firefly Luciferin, this config requires reboot
  * @param json StaticJsonDocument
- * @return true if mqtt has been swapper and need reboot
+ * @return true if message is correctly processed
  */
-boolean NetworkManager::swapMqttTopic() {
+bool NetworkManager::processFirmwareConfigWithReboot() {
 
-  boolean reboot = false;
-  if (bootstrapManager.jsonDoc.containsKey(MQTT_PARAM)) {
-    String customtopic = bootstrapManager.jsonDoc[MQTT_PARAM];
-    if (customtopic != topicInUse) {
-      // Write to storage
-      Serial.println("SWAPPING MQTT_TOPIC");
-      topicInUse = customtopic;
-      DynamicJsonDocument topicDoc(1024);
-      topicDoc[MQTT_PARAM] = topicInUse;
-      BootstrapManager::writeToLittleFS(topicDoc, TOPIC_FILENAME);
-      delay(20);
-      executeMqttSwap(customtopic);
-      reboot = true;
+  String deviceName = bootstrapManager.jsonDoc[F("deviceName")];
+  String microcontrollerIP = bootstrapManager.jsonDoc[F("microcontrollerIP")];
+  String mqttCheckbox = bootstrapManager.jsonDoc[F("mqttCheckbox")];
+  String mqttIP = bootstrapManager.jsonDoc[F("mqttIP")];
+  String mqttPort = bootstrapManager.jsonDoc[F("mqttPort")];
+  String mqttTopic = bootstrapManager.jsonDoc[F("mqttTopic")];
+  String mqttuser = bootstrapManager.jsonDoc[F("mqttuser")];
+  String mqttpass = bootstrapManager.jsonDoc[F("mqttpass")];
+  String additionalParam = bootstrapManager.jsonDoc[F("additionalParam")];
+  String colorModeParam = bootstrapManager.jsonDoc[F("colorMode")];
+  String lednum = bootstrapManager.jsonDoc[F("lednum")];
+  String br = bootstrapManager.jsonDoc[F("br")];
+  DynamicJsonDocument doc(1024);
+  if (deviceName.length() > 0 && ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0 && mqttTopic.length() > 0))) {
+    if (microcontrollerIP.length() == 0) {
+      microcontrollerIP = "DHCP";
     }
+    doc[F("deviceName")] = deviceName;
+    doc[F("microcontrollerIP")] = microcontrollerIP;
+    doc[F("qsid")] = qsid;
+    doc[F("qpass")] = qpass;
+    doc[F("OTApass")] = OTApass;
+    if (mqttCheckbox.equals("true")) {
+      doc[F("mqttIP")] = mqttIP;
+      doc[F("mqttPort")] = mqttPort;
+      doc[F("mqttTopic")] = mqttTopic;
+      doc[F("mqttuser")] = mqttuser;
+      doc[F("mqttpass")] = mqttpass;
+    } else {
+      doc[F("mqttIP")] = "";
+      doc[F("mqttPort")] = "";
+      doc[F("mqttTopic")] = "";
+      doc[F("mqttuser")] = "";
+      doc[F("mqttpass")] = "";
+    }
+    doc[F("additionalParam")] = additionalParam;
+    content = F("Success: rebooting the microcontroller using your credentials.");
+    statusCode = 200;
+  } else {
+    content = F("Error: missing required fields.");
+    statusCode = 404;
+    Serial.println(F("Sending 404"));
   }
-  return reboot;
+  delay(DELAY_500);
+  server.sendHeader(F("Access-Control-Allow-Origin"), "*");
+  server.send(statusCode, F("text/plain"), content);
+  delay(DELAY_500);
+  // Write to LittleFS
+  Serial.println(F("Saving setup.json"));
+  File jsonFile = LittleFS.open("/setup.json", FILE_WRITE);
+  if (!jsonFile) {
+    Serial.println(F("Failed to open [setup.json] file for writing"));
+  } else {
+    serializeJsonPretty(doc, Serial);
+    serializeJson(doc, jsonFile);
+    jsonFile.close();
+    Serial.println(F("[setup.json] written correctly"));
+  }
+  delay(DELAY_200);
+  Serial.println(F("Saving lednum"));
+  LedManager::setNumLed(lednum.toInt());
+  delay(DELAY_200);
+  Serial.println(F("Saving gpio"));
+  Globals::setGpio(additionalParam.toInt());
+  delay(DELAY_500);
+  DynamicJsonDocument topicDoc(1024);
+  topicDoc[networkManager.MQTT_PARAM] = mqttTopic;
+  BootstrapManager::writeToLittleFS(topicDoc, networkManager.TOPIC_FILENAME);
+  delay(DELAY_500);
+  ledManager.setColorMode(colorModeParam.toInt());
+  delay(DELAY_500);
+  Globals::setBaudRateInUse(br.toInt());
+  Globals::setBaudRate(baudRateInUse);
+  delay(DELAY_1000);
+#if defined(ESP32)
+  ESP.restart();
+#elif defined(ESP8266)
+  EspClass::restart();
+#endif
+  return true;
 
 }
 
@@ -690,14 +676,6 @@ bool NetworkManager::processFirmwareConfig() {
           ledManager.reinitLEDTriggered = true;
         }
       }
-      // BAUDRATE
-      if (bootstrapManager.jsonDoc.containsKey(BAUDRATE_PARAM)) {
-        int baudrate = (int) bootstrapManager.jsonDoc[BAUDRATE_PARAM];
-        if (baudrate != 0 && baudRateInUse != baudrate) {
-          Globals::setBaudRate(baudrate);
-          espRestart = true;
-        }
-      }
       // COLOR_MODE
       if (bootstrapManager.jsonDoc.containsKey(ledManager.COLOR_MODE_PARAM)) {
         int colorModeParam = (int) bootstrapManager.jsonDoc[ledManager.COLOR_MODE_PARAM];
@@ -707,9 +685,6 @@ bool NetworkManager::processFirmwareConfig() {
           ledManager.reinitLEDTriggered = true;
         }
       }
-      // SWAP TOPIC
-      boolean topicRestart = networkManager.swapMqttTopic();
-      if (topicRestart) espRestart = true;
       // Restart if needed
       if (ledManager.reinitLEDTriggered) {
         ledManager.reinitLEDTriggered = false;
