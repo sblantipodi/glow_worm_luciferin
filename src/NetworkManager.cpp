@@ -233,6 +233,8 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += dhcpInUse;
       prefsData += F("\",\"ip\":\"");
       prefsData += microcontrollerIP;
+      prefsData += F("\",\"dhcp\":\"");
+      prefsData += dhcpInUse;
       prefsData += F("\",\"mqttuser\":\"");
       prefsData += mqttuser;
       prefsData += F("\",\"mqttIp\":\"");
@@ -873,6 +875,7 @@ void NetworkManager::sendStatus() {
     root[F("effect")] = Globals::effectToString(effect);
     root[F("deviceName")] = deviceName;
     root[F("IP")] = microcontrollerIP;
+    root[F("dhcp")] = dhcpInUse;
     root[F("wifi")] = BootstrapManager::getWifiQuality();
     root[F("MAC")] = MAC;
     root[F("ver")] = VERSION;
