@@ -56,6 +56,7 @@ extern uint8_t colorMode;
 extern byte brightness;
 enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
 extern Effect effect;
+extern String ffeffect;
 extern float framerate;
 extern float framerateCounter;
 extern uint lastStream;

@@ -49,6 +49,8 @@ class NetworkManager {
     String updateStateTopic = "lights/glowwormluciferin/update";
     String updateResultStateTopic = "lights/glowwormluciferin/update/result";
     String lightSetTopic = "lights/glowwormluciferin/set";
+    String effectToGw = "lights/glowwormluciferin/effectToGw";
+    String effectToFw = "lights/glowwormluciferin/effectToFf";
     String baseStreamTopic = "lights/glowwormluciferin/set/stream";
     String streamTopic = "lights/glowwormluciferin/set/stream";
     String unsubscribeTopic = "lights/glowwormluciferin/unsubscribe";
@@ -68,7 +70,6 @@ class NetworkManager {
     static size_t updateSize;
     static String fpsData; // save space on default constructor
     String prefsData; // save space on default constructor
-    char START_FF[50] = "{\"state\":\"ON\",\"startStopInstances\":\"PLAY\"}";
     char STOP_FF[50] = "{\"state\":\"ON\",\"startStopInstances\":\"STOP\"}";
 
     void getUDPStream();
@@ -89,7 +90,6 @@ class NetworkManager {
     static bool processGlowWormLuciferinRebootCmnd();
     static bool processLDR();
     static bool processUnSubscribeStream();
-    bool swapMqttTopic();
     static void jsonStream(byte *payload, unsigned int length);
     static void manageDisconnections();
     static void manageQueueSubscription();
@@ -98,7 +98,8 @@ class NetworkManager {
     static void manageHardwareButton();
     static void sendStatus();
     static void checkConnection();
-    void setLeds() const;
+    static void setLeds();
+    void setColor() const;
 };
 
 #endif //GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H

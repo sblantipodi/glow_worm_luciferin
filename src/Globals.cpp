@@ -38,6 +38,7 @@ uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
 uint8_t colorMode = 1;
 byte brightness = 255;
 Effect effect;
+String ffeffect;
 float framerate = 0;
 float framerateCounter = 0;
 uint lastStream = 0;
@@ -193,16 +194,16 @@ void Globals::sendSerialInfo() {
 const char* Globals::effectToString(Effect e) {
 
   switch (e) {
-    case Effect::bpm: return "bpm";
-    case Effect::fire: return "fire";
-    case Effect::twinkle: return "twinkle";
-    case Effect::rainbow: return "rainbow";
-    case Effect::chase_rainbow: return "chase rainbow";
-    case Effect::solid_rainbow: return "solid rainbow";
-    case Effect::mixed_rainbow: return "mixed rainbow";
+    case Effect::bpm: return "Bpm";
+    case Effect::fire: return "Fire";
+    case Effect::twinkle: return "Twinkle";
+    case Effect::rainbow: return "Rainbow";
+    case Effect::chase_rainbow: return "Chase rainbow";
+    case Effect::solid_rainbow: return "Solid rainbow";
+    case Effect::mixed_rainbow: return "Mixed rainbow";
     case Effect::GlowWorm: return "GlowWorm";
     case Effect::GlowWormWifi: return "GlowWormWifi";
-    default: return "solid";
+    default: return "Solid";
   }
 
 }

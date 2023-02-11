@@ -133,6 +133,7 @@ void NetworkManager::manageQueueSubscription() {
   BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
   BootstrapManager::subscribe(networkManager.updateStateTopic.c_str());
   BootstrapManager::subscribe(networkManager.firmwareConfigTopic.c_str());
+  BootstrapManager::subscribe(networkManager.effectToGw.c_str());
   // TODO remove subscription to topic that doesn't need MQTT, some topics can be managed via HTTP only
   BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
   BootstrapManager::subscribe(networkManager.unsubscribeTopic.c_str());
@@ -146,6 +147,7 @@ void NetworkManager::swapTopicUnsubscribe() {
 
   // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
   BootstrapManager::unsubscribe(networkManager.lightSetTopic.c_str());
+  BootstrapManager::unsubscribe(networkManager.effectToGw.c_str());
   BootstrapManager::unsubscribe(networkManager.streamTopic.c_str());
   BootstrapManager::unsubscribe(networkManager.cmndReboot.c_str());
   BootstrapManager::unsubscribe(networkManager.updateStateTopic.c_str());
@@ -161,6 +163,8 @@ void NetworkManager::swapTopicReplace(const String& customtopic) {
 
   // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
   networkManager.lightStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.effectToGw.replace(networkManager.BASE_TOPIC, customtopic);
+  networkManager.effectToFw.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.updateStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.updateResultStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
   networkManager.lightSetTopic.replace(networkManager.BASE_TOPIC, customtopic);
@@ -178,6 +182,7 @@ void NetworkManager::swapTopicSubscribe() {
 
   // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
   BootstrapManager::subscribe(networkManager.lightSetTopic.c_str());
+  BootstrapManager::subscribe(networkManager.effectToGw.c_str());
   BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
   BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
   BootstrapManager::subscribe(networkManager.updateStateTopic.c_str());
@@ -211,6 +216,8 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += ledManager.stateOn;
       prefsData += F("\",\"effect\":\"");
       prefsData += Globals::effectToString(effect);
+      prefsData += F("\",\"ffeffect\":\"");
+      prefsData += ffeffect;
       prefsData += F("\",\"whiteTemp\":\"");
       prefsData += whiteTempInUse;
       prefsData += F("\",\"brightness\":\"");
@@ -283,10 +290,14 @@ void NetworkManager::listenOnHttpGet() {
       httpCallback(processLDR);
   });
   server.on(("/" + networkManager.lightSetTopic).c_str(), [this]() {
+      httpCallback(NULL);
       setLeds();
+      setColor();
   });
   server.on(F("/set"), [this]() {
+      httpCallback(NULL);
       setLeds();
+      setColor();
   });
   server.on(("/" + networkManager.cmndReboot).c_str(), []() {
       httpCallback(processGlowWormLuciferinRebootCmnd);
@@ -313,17 +324,35 @@ void NetworkManager::listenOnHttpGet() {
 }
 
 /**
+ * Set color
+ */
+void NetworkManager::setColor() const {
+  if (ledManager.stateOn) {
+    LedManager::setColor(map(ledManager.red, 0, 255, 0, brightness), map(ledManager.green, 0, 255, 0, brightness),
+                         map(ledManager.blue, 0, 255, 0, brightness));
+  } else {
+    LedManager::setColor(0,0,0);
+  }
+}
+
+/**
  * Set LEDs state, used by HTTP and MQTT requests
  */
-void NetworkManager::setLeds() const {
-  httpCallback(processJson);
-  JsonVariant requestedEffect = bootstrapManager.jsonDoc[F("effect")];
+void NetworkManager::setLeds() {
 
+  String requestedEffect = bootstrapManager.jsonDoc[F("effect")];
+  ffeffect = bootstrapManager.jsonDoc[F("effect")].as<String>();
+  if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")
+      || requestedEffect.indexOf("Music") > -1 || requestedEffect.indexOf("Bias") > -1) {
+    bootstrapManager.jsonDoc[F("effect")].set(F("GlowWormWifi"));
+    requestedEffect = "GlowWormWifi";
+  }
+  processJson();
   if (mqttIP.length() > 0) {
-    if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
-      BootstrapManager::publish(networkManager.lightStateTopic.c_str(), START_FF, true);
+    if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
+      BootstrapManager::publish(networkManager.effectToFw.c_str(), ffeffect.c_str(), false);
     } else {
-      BootstrapManager::publish(networkManager.lightStateTopic.c_str(), STOP_FF, true);
+      BootstrapManager::publish(networkManager.lightStateTopic.c_str(), networkManager.STOP_FF, true);
       framerate = framerateCounter = 0;
     }
   } else {
@@ -333,10 +362,10 @@ void NetworkManager::setLeds() const {
       if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
       networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
-      if (requestedEffect == "GlowWorm" || requestedEffect == "GlowWormWifi") {
-        networkManager.broadcastUDP.print(START_FF);
+      if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
+        networkManager.broadcastUDP.print(ffeffect.c_str());
       } else {
-        networkManager.broadcastUDP.print(STOP_FF);
+        networkManager.broadcastUDP.print(networkManager.STOP_FF);
         framerate = framerateCounter = 0;
       }
       networkManager.broadcastUDP.endPacket();
@@ -396,6 +425,8 @@ void NetworkManager::callback(char *topic, byte *payload, unsigned int length) {
       processGlowWormLuciferinRebootCmnd();
     } else if (networkManager.lightSetTopic.equals(topic)) {
       processJson();
+    } else if (networkManager.effectToGw.equals(topic)) {
+      setLeds();
     } else if (networkManager.updateStateTopic.equals(topic)) {
       processMqttUpdate();
     } else if (networkManager.firmwareConfigTopic.equals(topic)) {
@@ -422,12 +453,9 @@ void NetworkManager::httpCallback(bool (*callback)()) {
   bootstrapManager.jsonDoc.clear();
   String payload = server.arg(F("payload"));
   bootstrapManager.parseHttpMsg(payload, payload.length());
-  callback();
-  if (ledManager.stateOn) {
-    LedManager::setColor(map(ledManager.red, 0, 255, 0, brightness), map(ledManager.green, 0, 255, 0, brightness),
-                        map(ledManager.blue, 0, 255, 0, brightness));
-  } else {
-    LedManager::setColor(0,0,0);
+  if (callback != NULL) {
+    callback();
+    networkManager.setColor();
   }
   server.send(200, F("text/plain"), F("OK"));
 
@@ -762,16 +790,19 @@ bool NetworkManager::processJson() {
         }
       }
     }
+    if (bootstrapManager.jsonDoc.containsKey("ffeffect")) {
+      ffeffect = bootstrapManager.jsonDoc["ffeffect"].as<String>();
+    }
     if (bootstrapManager.jsonDoc.containsKey("effect")) {
       boolean effectIsDifferent = (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi);
       JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
-      if (requestedEffect == "bpm") effect = Effect::bpm;
-      else if (requestedEffect == "fire") effect = Effect::fire;
-      else if (requestedEffect == "twinkle") effect = Effect::twinkle;
-      else if (requestedEffect == "rainbow") effect = Effect::rainbow;
-      else if (requestedEffect == "chase rainbow") effect = Effect::chase_rainbow;
-      else if (requestedEffect == "solid rainbow") effect = Effect::solid_rainbow;
-      else if (requestedEffect == "mixed rainbow") effect = Effect::mixed_rainbow;
+      if (requestedEffect == "Bpm") effect = Effect::bpm;
+      else if (requestedEffect == "Fire") effect = Effect::fire;
+      else if (requestedEffect == "Twinkle") effect = Effect::twinkle;
+      else if (requestedEffect == "Rainbow") effect = Effect::rainbow;
+      else if (requestedEffect == "Chase rainbow") effect = Effect::chase_rainbow;
+      else if (requestedEffect == "Solid rainbow") effect = Effect::solid_rainbow;
+      else if (requestedEffect == "Mixed rainbow") effect = Effect::mixed_rainbow;
       else {
         effect = Effect::solid;
         breakLoop = true;

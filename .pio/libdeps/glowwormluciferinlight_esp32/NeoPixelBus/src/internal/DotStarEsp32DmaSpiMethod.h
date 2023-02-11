@@ -29,6 +29,8 @@ License along with NeoPixel.  If not, see
 
 #include "driver/spi_master.h"
 
+// API and type use require newer IDF versions
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 1)
 
 template<typename T_SPISPEED, typename T_SPIBUS> class _DotStarEsp32DmaSpiMethod
 {
@@ -36,8 +38,9 @@ public:
     typedef typename T_SPISPEED::SettingsObject SettingsObject;
 
     _DotStarEsp32DmaSpiMethod(uint16_t pixelCount, size_t elementSize, size_t settingsSize) :
+        _sizeStartFrame(4 * T_SPIBUS::ParallelBits),
         _sizePixelData(pixelCount * elementSize + settingsSize),
-        _sizeEndFrame((pixelCount + 15) / 16) // 16 = div 2 (bit for every two pixels) div 8 (bits to bytes)
+        _sizeEndFrame((pixelCount + 15) / 16 * T_SPIBUS::ParallelBits) // 16 = div 2 (bit for every two pixels) div 8 (bits to bytes)
     {
         _spiBufferSize = _sizeStartFrame + _sizePixelData + _sizeEndFrame;
 
@@ -233,7 +236,7 @@ private:
         ESP_ERROR_CHECK(ret);
     }
 
-    const size_t             _sizeStartFrame = 4;
+    const size_t             _sizeStartFrame;
     const size_t             _sizePixelData;   // Size of '_data' buffer below, minus (_sizeStartFrame + _sizeEndFrame)
     const size_t             _sizeEndFrame;
 
@@ -323,3 +326,5 @@ typedef DotStarEsp32DmaSpi24BitMethod DotStarEsp32DmaSpi4BitMethod;
 #if SOC_SPI_SUPPORT_OCT
 typedef DotStarEsp32DmaSpi28BitMethod DotStarEsp32DmaSpi8BitMethod;
 #endif
+
+#endif // ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 1)
