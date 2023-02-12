@@ -289,13 +289,13 @@ void NetworkManager::listenOnHttpGet() {
   server.on(F("/ldr"), []() {
       httpCallback(processLDR);
   });
-  server.on(("/" + networkManager.lightSetTopic).c_str(), [this]() {
-      httpCallback(NULL);
+  server.on(("/" + networkManager.lightSetTopic).c_str(), []() {
+      httpCallback(nullptr);
       setLeds();
       setColor();
   });
-  server.on(F("/set"), [this]() {
-      httpCallback(NULL);
+  server.on(F("/set"), []() {
+      httpCallback(nullptr);
       setLeds();
       setColor();
   });
@@ -314,7 +314,7 @@ void NetworkManager::listenOnHttpGet() {
   server.onNotFound([]() {
       server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
-  server.on(F("/setting"), [this]() {
+  server.on(F("/setting"), []() {
       stopUDP();
       httpCallback(processFirmwareConfigWithReboot);
   });
@@ -326,7 +326,7 @@ void NetworkManager::listenOnHttpGet() {
 /**
  * Set color
  */
-void NetworkManager::setColor() const {
+void NetworkManager::setColor() {
   if (ledManager.stateOn) {
     LedManager::setColor(map(ledManager.red, 0, 255, 0, brightness), map(ledManager.green, 0, 255, 0, brightness),
                          map(ledManager.blue, 0, 255, 0, brightness));
@@ -352,7 +352,11 @@ void NetworkManager::setLeds() {
     if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
       BootstrapManager::publish(networkManager.effectToFw.c_str(), ffeffect.c_str(), false);
     } else {
-      BootstrapManager::publish(networkManager.lightStateTopic.c_str(), networkManager.STOP_FF, true);
+      if (ledManager.stateOn) {
+        BootstrapManager::publish(networkManager.effectToFw.c_str(), ffeffect.c_str(), false);
+      } else {
+        BootstrapManager::publish(networkManager.effectToFw.c_str(), OFF_CMD.c_str(), false);
+      }
       framerate = framerateCounter = 0;
     }
   } else {
@@ -453,7 +457,7 @@ void NetworkManager::httpCallback(bool (*callback)()) {
   bootstrapManager.jsonDoc.clear();
   String payload = server.arg(F("payload"));
   bootstrapManager.parseHttpMsg(payload, payload.length());
-  if (callback != NULL) {
+  if (callback != nullptr) {
     callback();
     networkManager.setColor();
   }
