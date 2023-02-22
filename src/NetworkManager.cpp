@@ -129,7 +129,7 @@ void NetworkManager::manageQueueSubscription() {
 
   // Note: Add another topic subscription can cause performance issues on ESP8266
   // Double check it with 60FPS, 100 LEDs, with MQTT enabled.
-  BootstrapManager::subscribe(networkManager.lightSetTopic.c_str());
+  BootstrapManager::subscribe(networkManager.lightSetTopic.c_str(), 1);
   BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
   BootstrapManager::subscribe(networkManager.updateStateTopic.c_str());
   BootstrapManager::subscribe(networkManager.firmwareConfigTopic.c_str());
@@ -181,7 +181,7 @@ void NetworkManager::swapTopicReplace(const String& customtopic) {
 void NetworkManager::swapTopicSubscribe() {
 
   // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
-  BootstrapManager::subscribe(networkManager.lightSetTopic.c_str());
+  BootstrapManager::subscribe(networkManager.lightSetTopic.c_str(), 1);
   BootstrapManager::subscribe(networkManager.effectToGw.c_str());
   BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
   BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
