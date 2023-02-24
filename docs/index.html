@@ -1,11 +1,11 @@
-
 <html>
 <head>
-    <meta charset="utf-8"/>
+    <meta charSet="utf-8"/>
     <title>Luciferin</title>
     <meta name="description" content="Bias Lighting and Ambient Light firmware, designed for Firefly Luciferin"/>
     <meta name="viewport" content="width=device-width"/>
-    <link rel="icon" type="image/png" href="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png" >
+    <link rel="icon" type="image/png"
+          href="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png">
 
     <meta property="og:title" content="Luciferin"/>
     <meta property="og:site_name" content="Luciferin"/>
@@ -13,7 +13,8 @@
     <meta property="og:type" content="website"/>
     <meta property="og:description"
           content="Easily allow users to install Luciferin firmware for their ESP-devices on the web."/>
-    <meta property="og:image" content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
+    <meta property="og:image"
+          content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" content="Luciferin"/>
     <meta name="twitter:description"
@@ -22,10 +23,10 @@
           content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
     <script module>
         import(
-            "https://unpkg.com/esp-web-tools@9.0.3/dist/web/install-button.js?module"
+            "https://unpkg.com/esp-web-tools@9.2.0/dist/web/install-button.js?module"
             );
-        window.addEventListener("load", function(event) {
-            try{
+        window.addEventListener("load", function (event) {
+            try {
                 const button = document.querySelector("esp-web-install-button");
                 button.overrides = {
                     checkSameFirmware(manifest, improvInfo) {
@@ -34,11 +35,10 @@
                         return (manifestFirmware.includes("glow worm") && deviceFirmware.includes("firm"));
                     }
                 };
-            }
-            catch(e){
+            } catch (e) {
                 console.log(e);
             }
-        },{ once: true });
+        }, {once: true});
     </script>
     <style>
         body {
@@ -50,42 +50,52 @@
             background-color: #f8f8f8;
             color: #212529;
         }
+
         .content {
             max-width: 600px;
             margin: 0 auto;
             padding: 12px;
         }
+
         .logo {
             float: right;
             margin: 0px 0px 15px 15px;
         }
+
         .project .logo img {
             max-height: 50px;
         }
+
         a {
             color: orange;
         }
+
         .content pre {
             max-width: 100%;
             overflow-y: scroll;
         }
+
         .footer {
             margin-top: 24px;
             border-top: 1px solid #ccc;
             padding-top: 24px;
             text-align: center;
         }
+
         .footer .initiative {
             font-style: italic;
             margin-top: 16px;
         }
+
         table {
             border-spacing: 0;
         }
+
         td {
             padding: 8px;
             border-bottom: 1px solid #ccc;
         }
+
         button {
             position: relative;
             cursor: pointer;
@@ -98,6 +108,7 @@
             box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .12), 0 1px 5px 0 rgba(0, 0, 0, .2);
             width: 290px;
         }
+
         button::before {
             content: " ";
             position: absolute;
@@ -108,21 +119,27 @@
             opacity: 0.2;
             border-radius: 4px;
         }
+
         button:hover {
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .14), 0 1px 7px 0 rgba(0, 0, 0, .12), 0 3px 1px -1px rgba(0, 0, 0, .2);
         }
+
         button:hover::before {
             background-color: rgba(255, 255, 255, .8);
         }
+
         button:focus {
             outline: none;
         }
+
         button:focus::before {
             background-color: white;
         }
+
         button:active::before {
             background-color: grey;
         }
+
         :host([active]) button {
             color: rgba(0, 0, 0, 0.38);
             background-color: rgba(0, 0, 0, 0.12);
@@ -130,10 +147,12 @@
             cursor: unset;
             pointer-events: none;
         }
+
         improv-wifi-launch-button {
             display: block;
             margin-top: 16px;
         }
+
         input[type="checkbox"] {
             height: 10px;
             width: 10px;
@@ -142,6 +161,7 @@
             cursor: pointer;
             margin-right: 10px;
         }
+
         input[type="checkbox"]:before {
             content: "";
             display: inline-block;
@@ -153,15 +173,19 @@
             border: 2px solid orange;
             background-color: #ffdca7;
         }
+
         input[type="checkbox"]:hover::before {
             border: 1px solid #4f4f4f;
         }
+
         input[type="checkbox"]:checked:hover::before {
             filter: brightness(90%);
         }
+
         input[type="checkbox"]:checked:disabled:hover::before {
             filter: none;
         }
+
         input[type="checkbox"]:checked:before {
             content: "";
             display: inline-block;
@@ -173,6 +197,7 @@
             border: 1px solid #ffdca7;
             background-color: #ffdca7;
         }
+
         input[type="checkbox"]:checked:after {
             content: "";
             display: inline-block;
@@ -187,24 +212,29 @@
             -webkit-transform: translateY(-1.5px) rotate(-45deg);
             transform: translateY(-1.5px) rotate(-45deg);
         }
+
         input[type="checkbox"]:disabled::before {
             border: 2px solid orange;
             border-radius: 2px;
             background-color: orange;
         }
+
         input[type="checkbox"]:checked:disabled::before {
             border: 3px solid orange;
             border-radius: 2px;
             background-color: orange;
         }
+
         .action_btn {
             display: inline-block;
             width: calc(50% - 4px);
             margin: 0 auto;
         }
+
         :root {
             --mdc-theme-primary: #795548;
         }
+
         ewt-install-dialog, ewt-no-port-picked-dialog {
             --mdc-theme-primary: orange;
             --esp-tools-button-color: orange;
@@ -215,8 +245,9 @@
 
 </head>
 <body>
-<div class="content">
-    <h1>Glow Worm Luciferin</h1><a href="https://github.com/sblantipodi/firefly_luciferin" class="logo"><img
+<div className="content">
+    <h1>Glow Worm Luciferin</h1><a href="https://github.com/sblantipodi/firefly_luciferin"
+                                                  className="logo"><img
         src="static/logos/luciferin_logo.png" alt="Luciferin"/></a>
 
     <p>
@@ -261,12 +292,14 @@
         <b>PLEASE DISABLE ADD BLOCKER TO INSTALL FIRMWARE</b>
         <br>
     </p>
-    <div class="footer">
+    <div className="footer">
         <div>
-            <a href="https://github.com/sblantipodi/glow_worm_luciferin">Glow Worm Luciferin</a> | <a href="https://github.com/sblantipodi/firefly_luciferin">Firefly Luciferin</a>
+            <a href="https://github.com/sblantipodi/glow_worm_luciferin">Glow Worm Luciferin</a> | <a
+                href="https://github.com/sblantipodi/firefly_luciferin">Firefly Luciferin</a>
         </div>
         <div>
-            <p><a href="https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A"><img src="https://img.shields.io/badge/donate-PayPal-blue"></a></p>
+            <p><a href="https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A"><img
+                    src="https://img.shields.io/badge/donate-PayPal-blue"></a></p>
         </div>
     </div>
 </div>

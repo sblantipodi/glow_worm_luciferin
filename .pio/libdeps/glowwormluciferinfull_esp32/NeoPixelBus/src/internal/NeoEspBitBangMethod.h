@@ -308,6 +308,12 @@ public:
         _endTime = micros();
     }
 
+    bool AlwaysUpdate()
+    {
+        // this method requires update to be called only if changes to buffer
+        return false;
+    }
+
     uint8_t* getData() const
     {
         return _data;
@@ -344,6 +350,7 @@ typedef NeoEspBitBangMethodBase<NeoEspBitBangSpeedApa106, NeoEspPinset> NeoEsp32
 
 typedef NeoEsp32BitBangWs2812xMethod NeoEsp32BitBangWs2813Method;
 typedef NeoEsp32BitBang800KbpsMethod NeoEsp32BitBangWs2812Method;
+typedef NeoEsp32BitBangWs2812xMethod NeoEsp32BitBangWs2816Method;
 typedef NeoEsp32BitBangTm1814Method NeoEsp32BitBangTm1914Method;
 typedef NeoEsp32BitBangSk6812Method NeoEsp32BitBangLc8812Method;
 
@@ -358,6 +365,7 @@ typedef NeoEspBitBangMethodBase<NeoEspBitBangInvertedSpeedApa106, NeoEspPinsetIn
 
 typedef NeoEsp32BitBangWs2812xInvertedMethod NeoEsp32BitBangWs2813InvertedMethod;
 typedef NeoEsp32BitBang800KbpsInvertedMethod NeoEsp32BitBangWs2812InvertedMethod;
+typedef NeoEsp32BitBangWs2812xInvertedMethod NeoEsp32BitBangWs2816InvertedMethod;
 typedef NeoEsp32BitBangTm1814InvertedMethod NeoEsp32BitBangTm1914InvertedMethod;
 typedef NeoEsp32BitBangSk6812InvertedMethod NeoEsp32BitBangLc8812InvertedMethod;
 
@@ -374,6 +382,7 @@ typedef NeoEspBitBangMethodBase<NeoEspBitBangSpeedApa106, NeoEspPinset> NeoEsp82
 
 typedef NeoEsp8266BitBangWs2812xMethod NeoEsp8266BitBangWs2813Method;
 typedef NeoEsp8266BitBang800KbpsMethod NeoEsp8266BitBangWs2812Method;
+typedef NeoEsp8266BitBangWs2812xMethod NeoEsp8266BitBangWs2816Method;
 typedef NeoEsp8266BitBangTm1814Method NeoEsp8266BitBangTm1914Method;
 typedef NeoEsp8266BitBangSk6812Method NeoEsp8266BitBangLc8812Method;
 
@@ -388,6 +397,7 @@ typedef NeoEspBitBangMethodBase<NeoEspBitBangInvertedSpeedApa106, NeoEspPinsetIn
 
 typedef NeoEsp8266BitBangWs2812xInvertedMethod NeoEsp8266BitBangWs2813InvertedMethod;
 typedef NeoEsp8266BitBang800KbpsInvertedMethod NeoEsp8266BitBangWs2812InvertedMethod;
+typedef NeoEsp8266BitBangWs2812xInvertedMethod NeoEsp8266BitBangWs2816InvertedMethod;
 typedef NeoEsp8266BitBangTm1814InvertedMethod NeoEsp8266BitBangTm1914InvertedMethod;
 typedef NeoEsp8266BitBangSk6812InvertedMethod NeoEsp8266BitBangLc8812InvertedMethod;
 

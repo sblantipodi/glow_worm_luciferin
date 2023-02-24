@@ -2,7 +2,7 @@
   NetworkManager.h - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright (C) 2020 - 2022  Davide Perini
+  Copyright © 2020 - 2023  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -49,13 +49,13 @@ class NetworkManager {
     String updateStateTopic = "lights/glowwormluciferin/update";
     String updateResultStateTopic = "lights/glowwormluciferin/update/result";
     String lightSetTopic = "lights/glowwormluciferin/set";
+    String effectToGw = "lights/glowwormluciferin/effectToGw";
+    String effectToFw = "lights/glowwormluciferin/effectToFf";
     String baseStreamTopic = "lights/glowwormluciferin/set/stream";
     String streamTopic = "lights/glowwormluciferin/set/stream";
     String unsubscribeTopic = "lights/glowwormluciferin/unsubscribe";
     String cmndReboot = "cmnd/glowwormluciferin/reboot";
-    String fpsTopic = "lights/glowwormluciferin/fps";
     String firmwareConfigTopic = "lights/glowwormluciferin/firmwareconfig";
-    String ldrTopic = "lights/glowwormluciferin/ldr";
     String deviceTopic = "lights/glowwormluciferin/device";
     const char *BASE_TOPIC = "glowwormluciferin";
     String topicInUse = "glowwormluciferin";
@@ -70,7 +70,6 @@ class NetworkManager {
     static size_t updateSize;
     static String fpsData; // save space on default constructor
     String prefsData; // save space on default constructor
-    char START_FF[50] = "{\"state\":\"ON\",\"startStopInstances\":\"PLAY\"}";
     char STOP_FF[50] = "{\"state\":\"ON\",\"startStopInstances\":\"STOP\"}";
 
     void getUDPStream();
@@ -87,10 +86,10 @@ class NetworkManager {
     static bool processMqttUpdate();
     static bool processJson();
     static bool processFirmwareConfig();
+    static bool processFirmwareConfigWithReboot();
     static bool processGlowWormLuciferinRebootCmnd();
     static bool processLDR();
     static bool processUnSubscribeStream();
-    bool swapMqttTopic();
     static void jsonStream(byte *payload, unsigned int length);
     static void manageDisconnections();
     static void manageQueueSubscription();
@@ -99,7 +98,8 @@ class NetworkManager {
     static void manageHardwareButton();
     static void sendStatus();
     static void checkConnection();
-    void setLeds() const;
+    static void setLeds();
+    static void setColor();
 };
 
 #endif //GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H

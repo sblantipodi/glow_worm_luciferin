@@ -1,7 +1,7 @@
 /*
   Globals.h - Helper classes
   
-  Copyright (C) 2020 - 2022  Davide Perini
+  Copyright © 2020 - 2023  Davide Perini
   
   Permission is hereby granted, free of charge, to any person obtaining a copy of 
   this software and associated documentation files (the "Software"), to deal
@@ -56,6 +56,7 @@ extern uint8_t colorMode;
 extern byte brightness;
 enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
 extern Effect effect;
+extern String ffeffect;
 extern float framerate;
 extern float framerateCounter;
 extern uint lastStream;

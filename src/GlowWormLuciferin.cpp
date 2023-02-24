@@ -2,7 +2,7 @@
   GlowWormLuciferin.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright (C) 2020 - 2022  Davide Perini
+  Copyright © 2020 - 2023  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -60,6 +60,14 @@ void setup() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   MAC = WiFi.macAddress();
+#if defined(ESP8266)
+  if (!LittleFS.begin()) {
+#elif defined(ESP32)
+  if (!LittleFS.begin(true)) {
+#endif
+    Serial.println("LittleFS mount failed");
+    return;
+  }
 #endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -157,7 +165,7 @@ void setup() {
 #if defined(ESP8266)
   // Hey gateway, GlowWorm is here
   delay(DELAY_500);
-  pingESP.ping(WiFi.gatewayIP());
+  pingESP.ping();
 #endif
 #endif
 
@@ -400,8 +408,7 @@ void loop() {
 #if defined(ESP8266)
   EVERY_N_SECONDS(30) {
     // Hey gateway, GlowWorm is here
-    bool res = pingESP.ping(WiFi.gatewayIP());
-    if (!res) {
+    if (!pingESP.ping()) {
       WiFi.reconnect();
     }
   }

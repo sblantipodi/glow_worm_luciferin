@@ -261,6 +261,12 @@ public:
         _dmaState = NeoDmaState_Pending;
     }
 
+    bool AlwaysUpdate()
+    {
+        // this method requires update to be called only if changes to buffer
+        return false;
+    }
+
     uint8_t* getData() const
     {
         return _data;
@@ -328,6 +334,7 @@ typedef NeoEsp8266DmaWs2812xMethod NeoWs2813Method;
 typedef NeoEsp8266DmaWs2812xMethod NeoWs2812xMethod;
 typedef NeoEsp8266Dma800KbpsMethod NeoWs2812Method;
 typedef NeoEsp8266DmaWs2812xMethod NeoWs2811Method;
+typedef NeoEsp8266DmaWs2812xMethod NeoWs2816Method;
 typedef NeoEsp8266DmaSk6812Method NeoSk6812Method;
 typedef NeoEsp8266DmaTm1814Method NeoTm1814Method;
 typedef NeoEsp8266DmaTm1829Method NeoTm1829Method;
@@ -343,6 +350,7 @@ typedef NeoEsp8266DmaInvertedWs2812xMethod NeoWs2813InvertedMethod;
 typedef NeoEsp8266DmaInvertedWs2812xMethod NeoWs2812xInvertedMethod;
 typedef NeoEsp8266DmaInverted800KbpsMethod NeoWs2812InvertedMethod;
 typedef NeoEsp8266DmaInvertedWs2812xMethod NeoWs2811InvertedMethod;
+typedef NeoEsp8266DmaInvertedWs2812xMethod NeoWs2816InvertedMethod;
 typedef NeoEsp8266DmaInvertedSk6812Method NeoSk6812InvertedMethod;
 typedef NeoEsp8266DmaInvertedTm1814Method NeoTm1814InvertedMethod;
 typedef NeoEsp8266DmaInvertedTm1829Method NeoTm1829InvertedMethod;

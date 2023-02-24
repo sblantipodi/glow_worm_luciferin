@@ -91,6 +91,12 @@ public:
         _endTime = micros();
     }
 
+    bool AlwaysUpdate()
+    {
+        // this method requires update to be called only if changes to buffer
+        return false;
+    }
+
     uint8_t* getData() const
     {
         return _data;
@@ -849,6 +855,7 @@ typedef NeoArmTm1814InvertedMethod NeoArmTm1914InvertedMethod;
 typedef NeoArmWs2812xMethod NeoWs2813Method;
 typedef NeoArmWs2812xMethod NeoWs2812xMethod;
 typedef NeoArmWs2812xMethod NeoWs2811Method;
+typedef NeoArmWs2812xMethod NeoWs2816Method;
 typedef NeoArmSk6812Method NeoSk6812Method;
 typedef NeoArmSk6812Method NeoLc8812Method;
 typedef NeoArm800KbpsMethod NeoWs2812Method;

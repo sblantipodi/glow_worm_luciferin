@@ -1,4 +1,4 @@
-ArduinoJson
-fastled/FastLED
+bblanchon/ArduinoJson
 makuna/NeoPixelBus
-PubSubClient
+fastled/FastLED
+knolleary/PubSubClient
