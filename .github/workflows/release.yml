@@ -29,7 +29,7 @@ jobs:
           body: |
             Changes in this Release
             ${{ env.commitmsg }}
-          draft: true
+          draft: false
           prerelease: false
       
   build_esp8266_firmware:
