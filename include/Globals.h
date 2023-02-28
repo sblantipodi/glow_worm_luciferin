@@ -54,6 +54,10 @@ extern uint8_t gpioInUse;
 extern uint8_t whiteTempInUse;
 extern uint8_t colorMode;
 extern byte brightness;
+extern byte rStored;
+extern byte gStored;
+extern byte bStored;
+extern byte brightnessStored;
 enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
 extern Effect effect;
 extern String ffeffect;
@@ -62,6 +66,7 @@ extern float framerateCounter;
 extern uint lastStream;
 const String GPIO_PARAM = "gpio";
 const String GPIO_FILENAME = "gpio.json";
+const String COLOR_BRIGHT_FILENAME = "cb.json";
 const String BAUDRATE_PARAM = "baudrate";
 const String BAUDRATE_FILENAME = "baudrate.json";
 extern bool ldrReading;
@@ -82,6 +87,7 @@ class Globals {
 
 public:
     static void setGpio(int gpio);
+    static void saveColorBrightnessInfo(int r, int g, int b, int brightness);
     static void setBaudRate(int bdRate);
     static int setBaudRateInUse(int bdrate);
     static void turnOffRelay();

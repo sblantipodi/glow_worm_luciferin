@@ -138,6 +138,17 @@ void setup() {
       ldrDivider = LDR_DIVIDER;
     }
   }
+  String r = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r"));
+  if (!r.isEmpty() && r != ERROR && r.toInt() != -1) {
+    ledManager.red = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r")).toInt();
+    rStored = ledManager.red;
+    ledManager.green = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("g")).toInt();
+    gStored = ledManager.green;
+    ledManager.blue  = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("b")).toInt();
+    bStored = ledManager.blue;
+    brightness  = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
+    brightnessStored = brightness;
+  }
 
 #if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);

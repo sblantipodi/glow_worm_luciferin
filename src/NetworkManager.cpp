@@ -786,6 +786,9 @@ bool NetworkManager::processJson() {
     if (bootstrapManager.jsonDoc.containsKey("brightness")) {
       brightness = bootstrapManager.jsonDoc["brightness"];
     }
+    if (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored || brightness != brightnessStored) {
+      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness);
+    }
     if (skipMacCheck) {
       if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
         uint8_t wt = bootstrapManager.jsonDoc["whitetemp"];

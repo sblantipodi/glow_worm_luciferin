@@ -37,6 +37,10 @@ uint8_t gpioInUse = 2;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
 uint8_t colorMode = 1;
 byte brightness = 255;
+byte rStored;
+byte gStored;
+byte bStored;
+byte brightnessStored;
 Effect effect;
 String ffeffect;
 float framerate = 0;
@@ -73,6 +77,23 @@ void Globals::setGpio(int gpioToUse) {
   DynamicJsonDocument gpioDoc(1024);
   gpioDoc[GPIO_PARAM] = gpioInUse;
   BootstrapManager::writeToLittleFS(gpioDoc, GPIO_FILENAME);
+  delay(20);
+
+}
+
+/**
+ * Store color and brightness info
+ * @param gpio gpio to use
+ */
+void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness) {
+
+  Serial.println(F("Saving color and brightness info"));
+  DynamicJsonDocument gpioDoc(1024);
+  gpioDoc[F("r")] = rStored = r;
+  gpioDoc[F("g")] = gStored = g;
+  gpioDoc[F("b")] = bStored = b;
+  gpioDoc[F("brightness")] = brightnessStored = brightness;
+  BootstrapManager::writeToLittleFS(gpioDoc, COLOR_BRIGHT_FILENAME);
   delay(20);
 
 }
