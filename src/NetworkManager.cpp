@@ -226,6 +226,8 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += BootstrapManager::getWifiQuality();
       prefsData += F("\",\"framerate\":\"");
       prefsData += framerate;
+      prefsData += F("\",\"autosave\":\"");
+      prefsData += autoSave;
       if (ldrEnabled) {
         prefsData += F("\",\"ldr\":\"");
         prefsData += ((ldrValue * 100) / ldrDivider);
@@ -284,6 +286,16 @@ void NetworkManager::listenOnHttpGet() {
   server.on(F("/setldr"), []() {
       stopUDP();
       server.send(200, F("text/html"), setLdrPage);
+      startUDP();
+  });
+  server.on(F("/setAutoSave"), []() {
+      stopUDP();
+      autoSave = server.arg(F("autosave")).toInt();
+      DynamicJsonDocument asDoc(1024);
+      asDoc[F("autosave")] = autoSave;
+      BootstrapManager::writeToLittleFS(asDoc, AUTO_SAVE_FILENAME);
+      delay(20);
+      server.send(200, F("text/html"), F("Stored"));
       startUDP();
   });
   server.on(F("/ldr"), []() {
@@ -786,7 +798,7 @@ bool NetworkManager::processJson() {
     if (bootstrapManager.jsonDoc.containsKey("brightness")) {
       brightness = bootstrapManager.jsonDoc["brightness"];
     }
-    if (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored || brightness != brightnessStored) {
+    if (autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored || brightness != brightnessStored)) {
       Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness);
     }
     if (skipMacCheck) {

@@ -149,6 +149,10 @@ void setup() {
     brightness  = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
     brightnessStored = brightness;
   }
+  String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
+  if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
+    autoSave = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave")).toInt();
+  }
 
 #if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);

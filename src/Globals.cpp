@@ -41,6 +41,7 @@ byte rStored;
 byte gStored;
 byte bStored;
 byte brightnessStored;
+boolean autoSave;
 Effect effect;
 String ffeffect;
 float framerate = 0;
