@@ -117,8 +117,10 @@ void NetworkManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) 
  */
 void NetworkManager::manageDisconnections() {
 
-  LedManager::setColor(0, 0, 0);
-  delay(500);
+  if (!ledManager.ledInitialized) {
+    ledManager.initLeds();
+  }
+  ledManager.setColor(0, 0, 0);
 
 }
 
