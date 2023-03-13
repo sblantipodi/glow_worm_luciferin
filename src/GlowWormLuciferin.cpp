@@ -448,7 +448,7 @@ void mainLoop() {
  */
 void loop() {
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
+//#ifdef TARGET_GLOWWORMLUCIFERINFULL
 //  if (!apFileRead) {
 //    apFileRead = true;
 //    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
