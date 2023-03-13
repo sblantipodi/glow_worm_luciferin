@@ -143,6 +143,8 @@ void NetworkManager::manageDisconnections() {
 //    }
 //    ledManager.setColor(0, 0, 0);
 //  }
+  delay(500);
+
 
 }
 
