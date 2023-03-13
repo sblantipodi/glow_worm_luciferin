@@ -29,7 +29,6 @@ void setup() {
   firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
-
   // BaudRate from configuration storage
   String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
   if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
@@ -61,7 +60,14 @@ void setup() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   MAC = WiFi.macAddress();
-  bootstrapManager.littleFsInit();
+#if defined(ESP8266)
+  if (!LittleFS.begin()) {
+#elif defined(ESP32)
+  if (!LittleFS.begin(true)) {
+#endif
+    Serial.println("LittleFS mount failed");
+    return;
+  }
 #endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -106,29 +112,6 @@ void setup() {
   Serial.print(F("COLOR_MODE IN USE="));
   Serial.println(colorMode);
   ledManager.initLeds();
-//  delay(DELAY_500);
-
-//#ifdef TARGET_GLOWWORMLUCIFERINFULL
-//  String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
-//    setApState(11);
-//    ledManager.setColor(0,255,0);
-//  }
-//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
-//    setApState(12);
-//    ledManager.setColor(0,0,255);
-//  }
-//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
-//    bootstrapManager.littleFsInit();
-//    bootstrapManager.isWifiConfigured();
-//    setApState(13);
-//    ledManager.setColor(255, 75, 0);
-//    bootstrapManager.launchWebServerCustom(false, manageApRoot);
-//  }
-//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
-//    setApState(0);
-//  }
-//#endif
 
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
@@ -154,21 +137,6 @@ void setup() {
     if (ldrDivider == -1) {
       ldrDivider = LDR_DIVIDER;
     }
-  }
-  String r = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r"));
-  if (!r.isEmpty() && r != ERROR && r.toInt() != -1) {
-    ledManager.red = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r")).toInt();
-    rStored = ledManager.red;
-    ledManager.green = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("g")).toInt();
-    gStored = ledManager.green;
-    ledManager.blue  = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("b")).toInt();
-    bStored = ledManager.blue;
-    brightness  = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
-    brightnessStored = brightness;
-  }
-  String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
-  if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
-    autoSave = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave")).toInt();
   }
 
 #if defined(ESP8266)
@@ -212,19 +180,6 @@ int serialRead() {
   return !breakLoop ? Serial.read() : -1;
 
 }
-
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-void manageApRoot() {
-  networkManager.manageAPSetting(true);
-}
-void setApState(byte state) {
-  DynamicJsonDocument asDoc(1024);
-  asDoc[AP_PARAM] = state;
-  BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
-  effect = Effect::solid;
-  ledManager.stateOn = true;
-}
-#endif
 
 /**
  * Main loop
@@ -440,17 +395,6 @@ void mainLoop() {
  */
 void loop() {
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (!apFileRead) {
-    apFileRead = true;
-    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-    if (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0) {
-      setApState(0);
-      ledManager.setColor(0, 0, 0);
-    }
-    disconnectionCounter = 0;
-  }
-#endif
   mainLoop();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
