@@ -81,7 +81,7 @@ void setup() {
   Serial.println(networkManager.topicInUse);
 
   // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback);
+  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback, true, manageApRoot);
 #endif
 
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
