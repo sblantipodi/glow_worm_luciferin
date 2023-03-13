@@ -117,32 +117,32 @@ void NetworkManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) 
  */
 void NetworkManager::manageDisconnections() {
 
-  Serial.print(F("disconnection counter="));
-  Serial.println(disconnectionCounter);
-  if (disconnectionCounter < MAX_RECONNECT) {
-    disconnectionCounter++;
-  } else if (disconnectionCounter >= MAX_RECONNECT && disconnectionCounter < 254) {
-    disconnectionCounter++;
-    ledManager.stateOn = true;
-    effect = Effect::solid;
-    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 10)) {
-      DynamicJsonDocument asDoc(1024);
-      asDoc[AP_PARAM] = 10;
-      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
-    }
-    ledManager.setColor(255, 0, 0);
-  } else if (disconnectionCounter >= 254) {
-    ledManager.stateOn = true;
-    effect = Effect::solid;
-    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0)) {
-      DynamicJsonDocument asDoc(1024);
-      asDoc[AP_PARAM] = 0;
-      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
-    }
-    ledManager.setColor(0, 0, 0);
-  }
+//  Serial.print(F("disconnection counter="));
+//  Serial.println(disconnectionCounter);
+//  if (disconnectionCounter < MAX_RECONNECT) {
+//    disconnectionCounter++;
+//  } else if (disconnectionCounter >= MAX_RECONNECT && disconnectionCounter < 254) {
+//    disconnectionCounter++;
+//    ledManager.stateOn = true;
+//    effect = Effect::solid;
+//    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+//    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 10)) {
+//      DynamicJsonDocument asDoc(1024);
+//      asDoc[AP_PARAM] = 10;
+//      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
+//    }
+//    ledManager.setColor(255, 0, 0);
+//  } else if (disconnectionCounter >= 254) {
+//    ledManager.stateOn = true;
+//    effect = Effect::solid;
+//    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+//    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0)) {
+//      DynamicJsonDocument asDoc(1024);
+//      asDoc[AP_PARAM] = 0;
+//      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
+//    }
+//    ledManager.setColor(0, 0, 0);
+//  }
 
 }
 
