@@ -448,6 +448,17 @@ void mainLoop() {
  */
 void loop() {
 
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  if (!apFileRead) {
+    apFileRead = true;
+    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+    if (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0) {
+      setApState(0);
+      ledManager.setColor(0, 0, 0);
+    }
+    disconnectionCounter = 0;
+  }
+#endif
   mainLoop();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
