@@ -89,10 +89,10 @@ void setup() {
   if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
     colorMode = colorModeFromStorage.toInt();
   }
-  Serial.print(F("COLOR_MODE IN USE="));
-  Serial.println(colorMode);
+//  Serial.print(F("COLOR_MODE IN USE="));
+//  Serial.println(colorMode);
   ledManager.initLeds();
-  delay(DELAY_500);
+//  delay(DELAY_500);
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
