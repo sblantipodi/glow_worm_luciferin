@@ -181,6 +181,19 @@ int serialRead() {
 
 }
 
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+void manageApRoot() {
+  networkManager.manageAPSetting(true);
+}
+void setApState(byte state) {
+  DynamicJsonDocument asDoc(1024);
+  asDoc[AP_PARAM] = state;
+  BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
+  effect = Effect::solid;
+  ledManager.stateOn = true;
+}
+#endif
+
 /**
  * Main loop
  */
