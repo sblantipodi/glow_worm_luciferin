@@ -70,20 +70,6 @@ void setup() {
   }
 #endif
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-  // LED number from configuration storage
-  String topicToUse = bootstrapManager.readValueFromFile(networkManager.TOPIC_FILENAME, networkManager.MQTT_PARAM);
-  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != networkManager.topicInUse) {
-    networkManager.topicInUse = topicToUse;
-    NetworkManager::executeMqttSwap(networkManager.topicInUse);
-  }
-  Serial.print(F("\nMQTT topic in use="));
-  Serial.println(networkManager.topicInUse);
-
-  // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback, true, manageApRoot);
-#endif
-
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
   int gpioToUse = 0;
@@ -112,6 +98,20 @@ void setup() {
   Serial.print(F("COLOR_MODE IN USE="));
   Serial.println(colorMode);
   ledManager.initLeds();
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  // LED number from configuration storage
+  String topicToUse = bootstrapManager.readValueFromFile(networkManager.TOPIC_FILENAME, networkManager.MQTT_PARAM);
+  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != networkManager.topicInUse) {
+    networkManager.topicInUse = topicToUse;
+    NetworkManager::executeMqttSwap(networkManager.topicInUse);
+  }
+  Serial.print(F("\nMQTT topic in use="));
+  Serial.println(networkManager.topicInUse);
+
+  // Bootsrap setup() with Wifi and MQTT functions
+  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback, true, manageApRoot);
+#endif
 
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
