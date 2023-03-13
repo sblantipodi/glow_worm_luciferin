@@ -472,7 +472,6 @@ void LedManager::initEsp32Rgbw() {
  */
 void LedManager::initLeds() {
 
-  ledInitialized = true;
   switch (colorMode) {
     case 1: initEsp32(); break;
     case 2:

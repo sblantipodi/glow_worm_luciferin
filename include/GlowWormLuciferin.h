@@ -48,3 +48,5 @@ CRGBPalette16 targetPalette(OceanColors_p);
 CRGBPalette16 currentPalette(CRGB::Black);
 
 void mainLoop();
+static void manageApRoot();
+void setApState(byte state);

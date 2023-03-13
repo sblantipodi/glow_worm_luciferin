@@ -66,7 +66,6 @@ class LedManager {
       uint lastLedUpdate = 10000;
       bool led_state = true;
       uint8_t fireflyEffectInUse;
-      bool ledInitialized = false;
 
       void cleanLEDs();
       void initEsp32();

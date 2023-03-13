@@ -100,6 +100,7 @@ class NetworkManager {
     static void checkConnection();
     static void setLeds();
     static void setColor();
+    void manageAPSetting(bool isSettingRoot);
 };
 
 #endif //GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H

@@ -29,6 +29,7 @@ void setup() {
   firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
+
   // BaudRate from configuration storage
   String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
   if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
@@ -60,28 +61,7 @@ void setup() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   MAC = WiFi.macAddress();
-#if defined(ESP8266)
-  if (!LittleFS.begin()) {
-#elif defined(ESP32)
-  if (!LittleFS.begin(true)) {
-#endif
-    Serial.println("LittleFS mount failed");
-    return;
-  }
-#endif
-
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-  // LED number from configuration storage
-  String topicToUse = bootstrapManager.readValueFromFile(networkManager.TOPIC_FILENAME, networkManager.MQTT_PARAM);
-  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != networkManager.topicInUse) {
-    networkManager.topicInUse = topicToUse;
-    NetworkManager::executeMqttSwap(networkManager.topicInUse);
-  }
-  Serial.print(F("\nMQTT topic in use="));
-  Serial.println(networkManager.topicInUse);
-
-  // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback);
+  bootstrapManager.littleFsInit();
 #endif
 
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
@@ -112,6 +92,43 @@ void setup() {
   Serial.print(F("COLOR_MODE IN USE="));
   Serial.println(colorMode);
   ledManager.initLeds();
+  delay(DELAY_500);
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
+    setApState(11);
+    ledManager.setColor(0,255,0);
+  }
+  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
+    setApState(12);
+    ledManager.setColor(0,0,255);
+  }
+  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
+    bootstrapManager.littleFsInit();
+    bootstrapManager.isWifiConfigured();
+    setApState(13);
+    ledManager.setColor(255, 75, 0);
+    bootstrapManager.launchWebServerCustom(false, manageApRoot);
+  }
+  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
+    setApState(0);
+  }
+#endif
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  // LED number from configuration storage
+  String topicToUse = bootstrapManager.readValueFromFile(networkManager.TOPIC_FILENAME, networkManager.MQTT_PARAM);
+  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != networkManager.topicInUse) {
+    networkManager.topicInUse = topicToUse;
+    NetworkManager::executeMqttSwap(networkManager.topicInUse);
+  }
+  Serial.print(F("\nMQTT topic in use="));
+  Serial.println(networkManager.topicInUse);
+
+  // Bootsrap setup() with Wifi and MQTT functions
+  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback, true, manageApRoot);
+#endif
 
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
@@ -195,6 +212,19 @@ int serialRead() {
   return !breakLoop ? Serial.read() : -1;
 
 }
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+void manageApRoot() {
+  networkManager.manageAPSetting(true);
+}
+void setApState(byte state) {
+  DynamicJsonDocument asDoc(1024);
+  asDoc[AP_PARAM] = state;
+  BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
+  effect = Effect::solid;
+  ledManager.stateOn = true;
+}
+#endif
 
 /**
  * Main loop
@@ -410,6 +440,17 @@ void mainLoop() {
  */
 void loop() {
 
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  if (!apFileRead) {
+    apFileRead = true;
+    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+    if (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0) {
+      setApState(0);
+      ledManager.setColor(0, 0, 0);
+    }
+    disconnectionCounter = 0;
+  }
+#endif
   mainLoop();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL

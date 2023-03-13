@@ -63,6 +63,8 @@ uint8_t ldrMin = 20;
 int ldrDivider = LDR_DIVIDER;
 const unsigned int LDR_RECOVER_TIME = 4000;
 unsigned long previousMillisLDR = 0;
+bool apFileRead;
+byte disconnectionCounter;
 
 /**
  * Set gpio received by the Firefly Luciferin software

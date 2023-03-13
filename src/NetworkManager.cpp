@@ -117,10 +117,32 @@ void NetworkManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) 
  */
 void NetworkManager::manageDisconnections() {
 
-  if (!ledManager.ledInitialized) {
-    ledManager.initLeds();
+  Serial.print(F("disconnection counter="));
+  Serial.println(disconnectionCounter);
+  if (disconnectionCounter < MAX_RECONNECT) {
+    disconnectionCounter++;
+  } else if (disconnectionCounter >= MAX_RECONNECT && disconnectionCounter < 254) {
+    disconnectionCounter++;
+    ledManager.stateOn = true;
+    effect = Effect::solid;
+    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 10)) {
+      DynamicJsonDocument asDoc(1024);
+      asDoc[AP_PARAM] = 10;
+      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
+    }
+    ledManager.setColor(255, 0, 0);
+  } else if (disconnectionCounter >= 254) {
+    ledManager.stateOn = true;
+    effect = Effect::solid;
+    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0)) {
+      DynamicJsonDocument asDoc(1024);
+      asDoc[AP_PARAM] = 0;
+      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
+    }
+    ledManager.setColor(0, 0, 0);
   }
-  ledManager.setColor(0, 0, 0);
 
 }
 
@@ -139,6 +161,7 @@ void NetworkManager::manageQueueSubscription() {
   // TODO remove subscription to topic that doesn't need MQTT, some topics can be managed via HTTP only
   BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
   BootstrapManager::subscribe(networkManager.unsubscribeTopic.c_str());
+  apFileRead = false;
 
 }
 
@@ -202,11 +225,6 @@ void NetworkManager::listenOnHttpGet() {
       server.send(200, F("text/html"), settingsPage);
       startUDP();
   });
-  server.on(F("/setsettings"), []() {
-      stopUDP();
-      server.send(200, F("text/html"), setSettingsPage);
-      startUDP();
-  });
   server.on(F("/prefs"), [this]() {
       prefsData = F("{\"VERSION\":\"");
       prefsData += VERSION;
@@ -234,36 +252,6 @@ void NetworkManager::listenOnHttpGet() {
         prefsData += F("\",\"ldr\":\"");
         prefsData += ((ldrValue * 100) / ldrDivider);
       }
-      prefsData += F("\"}");
-      server.send(200, F("application/json"), prefsData);
-  });
-  server.on(F("/getsettings"), [this]() {
-      prefsData = F("{\"deviceName\":\"");
-      prefsData += deviceName;
-      prefsData += F("\",\"dhcp\":\"");
-      prefsData += dhcpInUse;
-      prefsData += F("\",\"ip\":\"");
-      prefsData += microcontrollerIP;
-      prefsData += F("\",\"dhcp\":\"");
-      prefsData += dhcpInUse;
-      prefsData += F("\",\"mqttuser\":\"");
-      prefsData += mqttuser;
-      prefsData += F("\",\"mqttIp\":\"");
-      prefsData += mqttIP;
-      prefsData += F("\",\"mqttpass\":\"");
-      prefsData += mqttpass;
-      prefsData += F("\",\"mqttPort\":\"");
-      prefsData += mqttPort;
-      prefsData += F("\",\"mqttTopic\":\"");
-      prefsData += topicInUse;
-      prefsData += F("\",\"lednum\":\"");
-      prefsData += ledManager.dynamicLedNum;
-      prefsData += F("\",\"gpio\":\"");
-      prefsData += gpioInUse;
-      prefsData += F("\",\"colorMode\":\"");
-      prefsData += colorMode;
-      prefsData += F("\",\"br\":\"");
-      prefsData += baudRateInUse;
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
   });
@@ -328,13 +316,59 @@ void NetworkManager::listenOnHttpGet() {
   server.onNotFound([]() {
       server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
+  manageAPSetting(false);
+
+  server.begin();
+
+}
+
+/**
+ * Manage AP Settings
+ */
+void NetworkManager::manageAPSetting(bool isSettingRoot) {
+  server.on(isSettingRoot ? F("/") : F("/setsettings"), []() {
+      stopUDP();
+      server.send(200, F("text/html"), setSettingsPage);
+      startUDP();
+  });
+  server.on(F("/getsettings"), [this]() {
+    stopUDP();
+    prefsData = F("{\"deviceName\":\"");
+    prefsData += deviceName;
+    prefsData += F("\",\"dhcp\":\"");
+    prefsData += dhcpInUse;
+    prefsData += F("\",\"ip\":\"");
+    prefsData += microcontrollerIP;
+    prefsData += F("\",\"dhcp\":\"");
+    prefsData += dhcpInUse;
+    prefsData += F("\",\"mqttuser\":\"");
+    prefsData += mqttuser;
+    prefsData += F("\",\"mqttIp\":\"");
+    prefsData += mqttIP;
+    prefsData += F("\",\"mqttpass\":\"");
+    prefsData += mqttpass;
+    prefsData += F("\",\"mqttPort\":\"");
+    prefsData += mqttPort;
+    prefsData += F("\",\"mqttTopic\":\"");
+    prefsData += networkManager.topicInUse;
+    prefsData += F("\",\"lednum\":\"");
+    prefsData += ledManager.dynamicLedNum;
+    prefsData += F("\",\"gpio\":\"");
+    prefsData += gpioInUse;
+    prefsData += F("\",\"colorMode\":\"");
+    prefsData += colorMode;
+    prefsData += F("\",\"br\":\"");
+    prefsData += baudRateInUse;
+    prefsData += F("\",\"ssid\":\"");
+    prefsData += qsid.c_str();
+    prefsData += F("\"}");
+    server.send(200, F("application/json"), prefsData);
+    startUDP();
+  });
   server.on(F("/setting"), []() {
       stopUDP();
       httpCallback(processFirmwareConfigWithReboot);
   });
-
-  server.begin();
-
 }
 
 /**
@@ -622,6 +656,8 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   String deviceName = bootstrapManager.jsonDoc[F("deviceName")];
   String microcontrollerIP = bootstrapManager.jsonDoc[F("microcontrollerIP")];
   String mqttCheckbox = bootstrapManager.jsonDoc[F("mqttCheckbox")];
+  String setSsid = bootstrapManager.jsonDoc[F("ssid")];
+  String wifipwd = bootstrapManager.jsonDoc[F("wifipwd")];
   String mqttIP = bootstrapManager.jsonDoc[F("mqttIP")];
   String mqttPort = bootstrapManager.jsonDoc[F("mqttPort")];
   String mqttTopic = bootstrapManager.jsonDoc[F("mqttTopic")];
@@ -638,8 +674,8 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
     }
     doc[F("deviceName")] = deviceName;
     doc[F("microcontrollerIP")] = microcontrollerIP;
-    doc[F("qsid")] = qsid;
-    doc[F("qpass")] = qpass;
+    doc[F("qsid")] = (setSsid != NULL && !setSsid.isEmpty()) ? setSsid : qsid;
+    doc[F("qpass")] = (wifipwd != NULL && !wifipwd.isEmpty()) ? wifipwd : qpass;
     doc[F("OTApass")] = OTApass;
     if (mqttCheckbox.equals("true")) {
       doc[F("mqttIP")] = mqttIP;

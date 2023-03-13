@@ -69,7 +69,9 @@ const String GPIO_PARAM = "gpio";
 const String GPIO_FILENAME = "gpio.json";
 const String AUTO_SAVE_FILENAME = "as.json";
 const String COLOR_BRIGHT_FILENAME = "cb.json";
+const String AP_FILENAME = "ap.json";
 const String BAUDRATE_PARAM = "baudrate";
+const String AP_PARAM = "ap";
 const String BAUDRATE_FILENAME = "baudrate.json";
 extern bool ldrReading;
 extern int ldrValue;
@@ -84,6 +86,8 @@ extern unsigned long previousMillisLDR;
 extern uint8_t baudRateInUse;
 extern bool relayState;
 extern bool breakLoop;
+extern bool apFileRead;
+extern byte disconnectionCounter;
 
 class Globals {
 
