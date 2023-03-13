@@ -138,6 +138,21 @@ void setup() {
       ldrDivider = LDR_DIVIDER;
     }
   }
+  String r = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r"));
+  if (!r.isEmpty() && r != ERROR && r.toInt() != -1) {
+    ledManager.red = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r")).toInt();
+    rStored = ledManager.red;
+    ledManager.green = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("g")).toInt();
+    gStored = ledManager.green;
+    ledManager.blue  = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("b")).toInt();
+    bStored = ledManager.blue;
+    brightness  = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
+    brightnessStored = brightness;
+  }
+  String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
+  if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
+    autoSave = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave")).toInt();
+  }
 
 #if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);
@@ -408,6 +423,17 @@ void mainLoop() {
  */
 void loop() {
 
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  if (!apFileRead) {
+    apFileRead = true;
+    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+    if (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0) {
+      setApState(0);
+      ledManager.setColor(0, 0, 0);
+    }
+    disconnectionCounter = 0;
+  }
+#endif
   mainLoop();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
