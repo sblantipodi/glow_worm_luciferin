@@ -37,8 +37,8 @@ void setup() {
   int baudRateToUse = Globals::setBaudRateInUse(baudRateInUse);
   Serial.begin(baudRateToUse);
   while (!Serial); // wait for serial attach
-  Serial.print(F("BAUDRATE IN USE="));
-  Serial.println(baudRateToUse);
+//  Serial.print(F("BAUDRATE IN USE="));
+//  Serial.println(baudRateToUse);
 
   // LED number from configuration storage
   String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
@@ -47,16 +47,16 @@ void setup() {
   } else {
     ledManager.dynamicLedNum = 100;
   }
-  Serial.print(F("\nUsing LEDs="));
-  Serial.println(ledManager.dynamicLedNum);
+//  Serial.print(F("\nUsing LEDs="));
+//  Serial.println(ledManager.dynamicLedNum);
 
   // White temp to use
   String whiteTempToUse = bootstrapManager.readValueFromFile(WHITE_TEMP_FILENAME, WHITE_TEMP_PARAM);
   if (!whiteTempToUse.isEmpty() && whiteTempToUse != ERROR && whiteTempToUse.toInt() != 0) {
     whiteTempInUse = whiteTempToUse.toInt();
   }
-  Serial.print(F("\nUsing White temp="));
-  Serial.println(whiteTempToUse);
+//  Serial.print(F("\nUsing White temp="));
+//  Serial.println(whiteTempToUse);
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   MAC = WiFi.macAddress();
@@ -87,17 +87,39 @@ void setup() {
     case 16: gpioInUse = 16; break;
     default: gpioInUse = 2; break;
   }
-  Serial.print(F("GPIO IN USE="));
-  Serial.println(gpioInUse);
+//  Serial.print(F("GPIO IN USE="));
+//  Serial.println(gpioInUse);
 
   // Color mode from configuration storage
   String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME, ledManager.COLOR_MODE_PARAM);
   if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
     colorMode = colorModeFromStorage.toInt();
   }
-  Serial.print(F("COLOR_MODE IN USE="));
-  Serial.println(colorMode);
+//  Serial.print(F("COLOR_MODE IN USE="));
+//  Serial.println(colorMode);
   ledManager.initLeds();
+
+//#ifdef TARGET_GLOWWORMLUCIFERINFULL
+//  String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
+//    setApState(11);
+//    ledManager.setColor(0,255,0);
+//  }
+//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
+//    setApState(12);
+//    ledManager.setColor(0,0,255);
+//  }
+//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
+//    bootstrapManager.littleFsInit();
+//    bootstrapManager.isWifiConfigured();
+//    setApState(13);
+//    ledManager.setColor(255, 75, 0);
+//    bootstrapManager.launchWebServerCustom(false, manageApRoot);
+//  }
+//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
+//    setApState(0);
+//  }
+//#endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // LED number from configuration storage
@@ -106,8 +128,8 @@ void setup() {
     networkManager.topicInUse = topicToUse;
     NetworkManager::executeMqttSwap(networkManager.topicInUse);
   }
-  Serial.print(F("\nMQTT topic in use="));
-  Serial.println(networkManager.topicInUse);
+//  Serial.print(F("\nMQTT topic in use="));
+//  Serial.println(networkManager.topicInUse);
 
   // Bootsrap setup() with Wifi and MQTT functions
   bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback, true, manageApRoot);
