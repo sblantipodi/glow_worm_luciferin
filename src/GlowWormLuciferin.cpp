@@ -64,57 +64,57 @@ void setup() {
   bootstrapManager.littleFsInit();
 #endif
 
-  // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
-  String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
-  int gpioToUse = 0;
-  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
-    gpioToUse = gpioFromStorage.toInt();
-  }
-  if (gpioToUse == 0) {
-    if (!additionalParam.isEmpty()) {
-      gpioToUse = additionalParam.toInt();
-    }
-  }
-  switch (gpioToUse) {
-    case 5: gpioInUse = 5; break;
-    case 3: gpioInUse = 3; break;
-    case 16: gpioInUse = 16; break;
-    default: gpioInUse = 2; break;
-  }
-  Serial.print(F("GPIO IN USE="));
-  Serial.println(gpioInUse);
-
-  // Color mode from configuration storage
-  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME, ledManager.COLOR_MODE_PARAM);
-  if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
-    colorMode = colorModeFromStorage.toInt();
-  }
+//  // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
+//  String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
+//  int gpioToUse = 0;
+//  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
+//    gpioToUse = gpioFromStorage.toInt();
+//  }
+//  if (gpioToUse == 0) {
+//    if (!additionalParam.isEmpty()) {
+//      gpioToUse = additionalParam.toInt();
+//    }
+//  }
+//  switch (gpioToUse) {
+//    case 5: gpioInUse = 5; break;
+//    case 3: gpioInUse = 3; break;
+//    case 16: gpioInUse = 16; break;
+//    default: gpioInUse = 2; break;
+//  }
+//  Serial.print(F("GPIO IN USE="));
+//  Serial.println(gpioInUse);
+//
+//  // Color mode from configuration storage
+//  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME, ledManager.COLOR_MODE_PARAM);
+//  if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
+//    colorMode = colorModeFromStorage.toInt();
+//  }
 //  Serial.print(F("COLOR_MODE IN USE="));
 //  Serial.println(colorMode);
-  ledManager.initLeds();
+//  ledManager.initLeds();
 //  delay(DELAY_500);
-
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-  String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
-    setApState(11);
-    ledManager.setColor(0,255,0);
-  }
-  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
-    setApState(12);
-    ledManager.setColor(0,0,255);
-  }
-  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
-    bootstrapManager.littleFsInit();
-    bootstrapManager.isWifiConfigured();
-    setApState(13);
-    ledManager.setColor(255, 75, 0);
-    bootstrapManager.launchWebServerCustom(false, manageApRoot);
-  }
-  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
-    setApState(0);
-  }
-#endif
+//
+//#ifdef TARGET_GLOWWORMLUCIFERINFULL
+//  String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
+//    setApState(11);
+//    ledManager.setColor(0,255,0);
+//  }
+//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
+//    setApState(12);
+//    ledManager.setColor(0,0,255);
+//  }
+//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
+//    bootstrapManager.littleFsInit();
+//    bootstrapManager.isWifiConfigured();
+//    setApState(13);
+//    ledManager.setColor(255, 75, 0);
+//    bootstrapManager.launchWebServerCustom(false, manageApRoot);
+//  }
+//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
+//    setApState(0);
+//  }
+//#endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // LED number from configuration storage
@@ -127,7 +127,8 @@ void setup() {
   Serial.println(networkManager.topicInUse);
 
   // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback, true, manageApRoot);
+  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback);
+//  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback, true, manageApRoot);
 #endif
 
   // Color mode from configuration storage
