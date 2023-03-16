@@ -40,11 +40,11 @@ class LedManager {
       NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>* ledsEsp32Rgbw = NULL; // Hardware, ALL GPIO, yes serial read/write
 #else
       NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *ledsDma = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
-      NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod> *ledsDmaRgbw = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
+      NeoPixelBus<NeoGrbwFeature, NeoSk6812Method> *ledsDmaRgbw = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
       NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod> *ledsUart = NULL; // Hardware UART, GPIO2, yes serial read/write
-      NeoPixelBus<NeoGrbwFeature, NeoEsp8266Uart1800KbpsMethod> *ledsUartRgbw = NULL; // Hardware UART, GPIO2, yes serial read/write
+      NeoPixelBus<NeoGrbwFeature, NeoEsp8266Uart1Sk6812Method> *ledsUartRgbw = NULL; // Hardware UART, GPIO2, yes serial read/write
       NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
-      NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandardRgbw = NULL; // No hardware, ALL GPIO, yes serial read/write
+      NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangSk6812Method> *ledsStandardRgbw = NULL; // No hardware, ALL GPIO, yes serial read/write
 #endif
       CRGB leds[511];
       const String COLOR_MODE_FILENAME = "color_mode.json";
