@@ -54,12 +54,10 @@ void LedManager::ledShow() const {
   } else if (colorOrder == 3) {
     switch (colorMode) {
       case 1:
-        ledsEsp32Grb->Show();
-        break;
       case 2:
       case 3:
       case 4:
-        ledsEsp32RgbwGrb->Show();
+        ledsEsp32Bgr->Show();
         break;
     }
   }
@@ -334,12 +332,10 @@ void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) 
   } else if (colorOrder == 3) {
     switch (colorMode) {
       case 1:
-        ledsEsp32Bgr->SetPixelColor(index, rgbColor);
-        break;
       case 2:
       case 3:
       case 4:
-        ledsEsp32RgbwBgr->SetPixelColor(index, rgbwColor);
+        ledsEsp32Bgr->SetPixelColor(index, rgbColor);
         break;
     }
   }
@@ -558,11 +554,6 @@ void LedManager::cleanBgr() {
     cleared = true;
     delete ledsEsp32Bgr;
     ledsEsp32Bgr = NULL;
-  } else if (ledsEsp32RgbwBgr != NULL) {
-    while (!ledsEsp32RgbwBgr->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsEsp32RgbwBgr;
-    ledsEsp32RgbwBgr = NULL;
   }
 #endif
 #if defined(ESP8266)

@@ -43,7 +43,9 @@ public:
     NeoPixelBus<NeoRgbFeature, NeoEsp32I2s1Ws2812xMethod> *ledsEsp32Inverted = NULL; // Hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<NeoRgbwFeature, NeoEsp32I2s1Ws2812xMethod> *ledsEsp32RgbwInverted = NULL; // Hardware, ALL GPIO, yes serial read/write
     // BGR
-    NeoPixelBus<NeoBgrFeature, NeoEsp32I2s1Ws2812xMethod> *ledsEsp32Bgr = NULL; // Hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<NeoBgrFeature, NeoEsp32I2s1Ws2812xMethod> *
+
+    ledsEsp32Bgr = NULL; // Hardware, ALL GPIO, yes serial read/write
 #else
     // GRB
     NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *ledsDma = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
