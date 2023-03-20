@@ -244,7 +244,7 @@ void EffectsManager::solidRainbow(int dynamicLedNum) {
   for (int i = 0; i < dynamicLedNum; i++) {
     ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
   }
-  if (millis()-lastAnimSolidRainbow >= 90) {
+  if (millis() - lastAnimSolidRainbow >= 90) {
     lastAnimSolidRainbow = millis();
     thishue++;
   }

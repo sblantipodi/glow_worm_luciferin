@@ -32,10 +32,11 @@ Globals globals;
 
 // DPsoftware checksum for serial
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
-                    fireflyEffect, fireflyColorMode, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, prefixLength = 6;
+        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, prefixLength = 7;
 uint8_t gpioInUse = 2;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
 uint8_t colorMode = 1;
+uint8_t colorOrder = 1;
 byte brightness = 255;
 byte rStored;
 byte gStored;
@@ -111,14 +112,30 @@ int Globals::setBaudRateInUse(int bdrate) {
   baudRateInUse = bdrate;
   int baudRateToUse;
   switch (bdrate) {
-    case 1: baudRateToUse = 230400; break;
-    case 2: baudRateToUse = 460800; break;
-    case 4: baudRateToUse = 921600; break;
-    case 5: baudRateToUse = 1000000; break;
-    case 6: baudRateToUse = 1500000; break;
-    case 7: baudRateToUse = 2000000; break;
-    case 8: baudRateToUse = 115200; break;
-    default: baudRateToUse = 500000; break;
+    case 1:
+      baudRateToUse = 230400;
+      break;
+    case 2:
+      baudRateToUse = 460800;
+      break;
+    case 4:
+      baudRateToUse = 921600;
+      break;
+    case 5:
+      baudRateToUse = 1000000;
+      break;
+    case 6:
+      baudRateToUse = 1500000;
+      break;
+    case 7:
+      baudRateToUse = 2000000;
+      break;
+    case 8:
+      baudRateToUse = 115200;
+      break;
+    default:
+      baudRateToUse = 500000;
+      break;
   }
   return baudRateToUse;
 
@@ -202,6 +219,7 @@ void Globals::sendSerialInfo() {
     Serial.printf("baudrate:%d\n", baudRateInUse);
     Serial.printf("effect:%d\n", effect);
     Serial.printf("colorMode:%d\n", colorMode);
+    Serial.printf("colorOrder:%d\n", colorOrder);
     Serial.printf("white:%d\n", whiteTempInUse);
     if (ldrEnabled) {
       Serial.printf("ldr:%d\n", ((ldrValue * 100) / ldrDivider));
@@ -215,19 +233,29 @@ void Globals::sendSerialInfo() {
  * @param e effect enum
  * @return  effect string
  */
-const char* Globals::effectToString(Effect e) {
+const char *Globals::effectToString(Effect e) {
 
   switch (e) {
-    case Effect::bpm: return "Bpm";
-    case Effect::fire: return "Fire";
-    case Effect::twinkle: return "Twinkle";
-    case Effect::rainbow: return "Rainbow";
-    case Effect::chase_rainbow: return "Chase rainbow";
-    case Effect::solid_rainbow: return "Solid rainbow";
-    case Effect::mixed_rainbow: return "Mixed rainbow";
-    case Effect::GlowWorm: return "GlowWorm";
-    case Effect::GlowWormWifi: return "GlowWormWifi";
-    default: return "Solid";
+    case Effect::bpm:
+      return "Bpm";
+    case Effect::fire:
+      return "Fire";
+    case Effect::twinkle:
+      return "Twinkle";
+    case Effect::rainbow:
+      return "Rainbow";
+    case Effect::chase_rainbow:
+      return "Chase rainbow";
+    case Effect::solid_rainbow:
+      return "Solid rainbow";
+    case Effect::mixed_rainbow:
+      return "Mixed rainbow";
+    case Effect::GlowWorm:
+      return "GlowWorm";
+    case Effect::GlowWormWifi:
+      return "GlowWormWifi";
+    default:
+      return "Solid";
   }
 
 }

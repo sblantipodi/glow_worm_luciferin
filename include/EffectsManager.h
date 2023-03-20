@@ -30,29 +30,36 @@ const int NUM_LEDS = 511;
 
 class EffectsManager {
 
-  private:
+private:
 
-      static CRGB scroll(int pos);
-      byte red = 255;
-      byte green = 255;
-      byte blue = 255;
-      unsigned long lastAnim = 0;
-      int mixedRainboxIndex = 0;
-      uint16_t maxChanges = 48;
-      uint16_t gHue = 0;
-      uint16_t thishue = 0;
-      uint16_t deltahue = 10;
-      unsigned long lastAnimSolidRainbow = 0;
+    static CRGB scroll(int pos);
 
-  public:
+    byte red = 255;
+    byte green = 255;
+    byte blue = 255;
+    unsigned long lastAnim = 0;
+    int mixedRainboxIndex = 0;
+    uint16_t maxChanges = 48;
+    uint16_t gHue = 0;
+    uint16_t thishue = 0;
+    uint16_t deltahue = 10;
+    unsigned long lastAnimSolidRainbow = 0;
 
-      static void fire(int cooling, int sparking, int speedDelay, int dynamicLedNum);
-      static void twinkleRandom(int count, int speedDelay, boolean onlyOne, int dynamicLedNum);
-      static void theaterChaseRainbow(int dynamicLedNum);
-      void mixedRainbow(int dynamicLedNum);
-      void bpm(CRGBPalette16 currentPalette, CRGBPalette16 targetPalette);
-      void rainbow(int dynamicLedNum);
-      void solidRainbow(int dynamicLedNum);
+public:
+
+    static void fire(int cooling, int sparking, int speedDelay, int dynamicLedNum);
+
+    static void twinkleRandom(int count, int speedDelay, boolean onlyOne, int dynamicLedNum);
+
+    static void theaterChaseRainbow(int dynamicLedNum);
+
+    void mixedRainbow(int dynamicLedNum);
+
+    void bpm(CRGBPalette16 currentPalette, CRGBPalette16 targetPalette);
+
+    void rainbow(int dynamicLedNum);
+
+    void solidRainbow(int dynamicLedNum);
 
 };
 

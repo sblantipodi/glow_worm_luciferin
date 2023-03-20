@@ -40,26 +40,34 @@
 #define DATA_PIN 5 // Wemos D1 Mini Lite PIN D5
 
 extern class BootstrapManager bootstrapManager;
+
 extern class EffectsManager effectsManager;
+
 extern class LedManager ledManager;
+
 extern class NetworkManager networkManager;
+
 extern class Helpers helper;
+
 extern class Globals globals;
 
 extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
-  fireflyColorMode, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction;
+        fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction;
 extern uint8_t prefixLength;
 
 extern uint8_t gpioInUse;
 extern uint8_t whiteTempInUse;
 extern uint8_t colorMode;
+extern uint8_t colorOrder;
 extern byte brightness;
 extern byte rStored;
 extern byte gStored;
 extern byte bStored;
 extern byte brightnessStored;
 extern boolean autoSave;
-enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
+enum class Effect {
+    GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow
+};
 extern Effect effect;
 extern String ffeffect;
 extern float framerate;
@@ -93,13 +101,20 @@ class Globals {
 
 public:
     static void setGpio(int gpio);
+
     static void saveColorBrightnessInfo(int r, int g, int b, int brightness);
+
     static void setBaudRate(int bdRate);
+
     static int setBaudRateInUse(int bdrate);
+
     static void turnOffRelay();
+
     static void turnOnRelay();
+
     static void sendSerialInfo();
-    static const char* effectToString(Effect e);
+
+    static const char *effectToString(Effect e);
 
 };
 

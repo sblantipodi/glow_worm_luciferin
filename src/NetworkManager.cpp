@@ -184,7 +184,7 @@ void NetworkManager::swapTopicUnsubscribe() {
  * Swap MQTT topi with the custom one
  * @param customtopic custom MQTT topic to use, received by Firefly Luciferin
  */
-void NetworkManager::swapTopicReplace(const String& customtopic) {
+void NetworkManager::swapTopicReplace(const String &customtopic) {
 
   // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
   networkManager.lightStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
@@ -229,8 +229,10 @@ void NetworkManager::listenOnHttpGet() {
       prefsData = F("{\"VERSION\":\"");
       prefsData += VERSION;
       prefsData += F("\",\"cp\":\"");
-      prefsData += ledManager.red; prefsData += F(",");
-      prefsData += ledManager.green; prefsData += F(",");
+      prefsData += ledManager.red;
+      prefsData += F(",");
+      prefsData += ledManager.green;
+      prefsData += F(",");
       prefsData += ledManager.blue;
       prefsData += F("\",\"toggle\":\"");
       prefsData += ledManager.stateOn;
@@ -332,38 +334,40 @@ void NetworkManager::manageAPSetting(bool isSettingRoot) {
       startUDP();
   });
   server.on(F("/getsettings"), [this]() {
-    stopUDP();
-    prefsData = F("{\"deviceName\":\"");
-    prefsData += deviceName;
-    prefsData += F("\",\"dhcp\":\"");
-    prefsData += dhcpInUse;
-    prefsData += F("\",\"ip\":\"");
-    prefsData += microcontrollerIP;
-    prefsData += F("\",\"dhcp\":\"");
-    prefsData += dhcpInUse;
-    prefsData += F("\",\"mqttuser\":\"");
-    prefsData += mqttuser;
-    prefsData += F("\",\"mqttIp\":\"");
-    prefsData += mqttIP;
-    prefsData += F("\",\"mqttpass\":\"");
-    prefsData += mqttpass;
-    prefsData += F("\",\"mqttPort\":\"");
-    prefsData += mqttPort;
-    prefsData += F("\",\"mqttTopic\":\"");
-    prefsData += networkManager.topicInUse;
-    prefsData += F("\",\"lednum\":\"");
-    prefsData += ledManager.dynamicLedNum;
-    prefsData += F("\",\"gpio\":\"");
-    prefsData += gpioInUse;
-    prefsData += F("\",\"colorMode\":\"");
-    prefsData += colorMode;
-    prefsData += F("\",\"br\":\"");
-    prefsData += baudRateInUse;
-    prefsData += F("\",\"ssid\":\"");
-    prefsData += qsid.c_str();
-    prefsData += F("\"}");
-    server.send(200, F("application/json"), prefsData);
-    startUDP();
+      stopUDP();
+      prefsData = F("{\"deviceName\":\"");
+      prefsData += deviceName;
+      prefsData += F("\",\"dhcp\":\"");
+      prefsData += dhcpInUse;
+      prefsData += F("\",\"ip\":\"");
+      prefsData += microcontrollerIP;
+      prefsData += F("\",\"dhcp\":\"");
+      prefsData += dhcpInUse;
+      prefsData += F("\",\"mqttuser\":\"");
+      prefsData += mqttuser;
+      prefsData += F("\",\"mqttIp\":\"");
+      prefsData += mqttIP;
+      prefsData += F("\",\"mqttpass\":\"");
+      prefsData += mqttpass;
+      prefsData += F("\",\"mqttPort\":\"");
+      prefsData += mqttPort;
+      prefsData += F("\",\"mqttTopic\":\"");
+      prefsData += networkManager.topicInUse;
+      prefsData += F("\",\"lednum\":\"");
+      prefsData += ledManager.dynamicLedNum;
+      prefsData += F("\",\"gpio\":\"");
+      prefsData += gpioInUse;
+      prefsData += F("\",\"colorMode\":\"");
+      prefsData += colorMode;
+      prefsData += F("\",\"colorOrder\":\"");
+      prefsData += colorOrder;
+      prefsData += F("\",\"br\":\"");
+      prefsData += baudRateInUse;
+      prefsData += F("\",\"ssid\":\"");
+      prefsData += qsid.c_str();
+      prefsData += F("\"}");
+      server.send(200, F("application/json"), prefsData);
+      startUDP();
   });
   server.on(F("/setting"), []() {
       stopUDP();
@@ -379,7 +383,7 @@ void NetworkManager::setColor() {
     LedManager::setColor(map(ledManager.red, 0, 255, 0, brightness), map(ledManager.green, 0, 255, 0, brightness),
                          map(ledManager.blue, 0, 255, 0, brightness));
   } else {
-    LedManager::setColor(0,0,0);
+    LedManager::setColor(0, 0, 0);
   }
 }
 
@@ -411,7 +415,7 @@ void NetworkManager::setLeds() {
 #if defined(ESP8266)
     if (networkManager.remoteBroadcastPort.isSet()) {
 #elif defined(ESP32)
-      if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
+    if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
       networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
       if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
@@ -488,9 +492,9 @@ void NetworkManager::callback(char *topic, byte *payload, unsigned int length) {
     }
     if (ledManager.stateOn) {
       LedManager::setColor(map(ledManager.red, 0, 255, 0, brightness), map(ledManager.green, 0, 255, 0, brightness),
-                          map(ledManager.blue, 0, 255, 0, brightness));
+                           map(ledManager.blue, 0, 255, 0, brightness));
     } else {
-      LedManager::setColor(0,0,0);
+      LedManager::setColor(0, 0, 0);
     }
   }
 
@@ -570,7 +574,7 @@ void NetworkManager::fromMqttStreamToStrip(char *payload) {
 void NetworkManager::jsonStream(byte *payload, unsigned int length) {
 
   bootstrapManager.jsonDocBigSize.clear();
-  deserializeJson(bootstrapManager.jsonDocBigSize, (const byte*) payload, length);
+  deserializeJson(bootstrapManager.jsonDocBigSize, (const byte *) payload, length);
   int numLedFromLuciferin = bootstrapManager.jsonDocBigSize[LED_NUM_PARAM];
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
@@ -665,10 +669,12 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   String mqttpass = bootstrapManager.jsonDoc[F("mqttpass")];
   String additionalParam = bootstrapManager.jsonDoc[F("additionalParam")];
   String colorModeParam = bootstrapManager.jsonDoc[F("colorMode")];
+  String colorOrderParam = bootstrapManager.jsonDoc[F("colorOrder")];
   String lednum = bootstrapManager.jsonDoc[F("lednum")];
   String br = bootstrapManager.jsonDoc[F("br")];
   DynamicJsonDocument doc(1024);
-  if (deviceName.length() > 0 && ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0 && mqttTopic.length() > 0))) {
+  if (deviceName.length() > 0 &&
+      ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0 && mqttTopic.length() > 0))) {
     if (microcontrollerIP.length() == 0) {
       microcontrollerIP = "DHCP";
     }
@@ -726,6 +732,10 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   delay(DELAY_500);
   ledManager.setColorMode(colorModeParam.toInt());
   delay(DELAY_500);
+  if (colorOrderParam != NULL && colorOrderParam.toInt() != 0) {
+    ledManager.setColorOrder(colorOrderParam.toInt());
+    delay(DELAY_500);
+  }
   Globals::setBaudRateInUse(br.toInt());
   Globals::setBaudRate(baudRateInUse);
   delay(DELAY_1000);
@@ -764,6 +774,15 @@ bool NetworkManager::processFirmwareConfig() {
         if (colorMode != colorModeParam) {
           colorMode = colorModeParam;
           ledManager.setColorMode(colorMode);
+          ledManager.reinitLEDTriggered = true;
+        }
+      }
+      // COLOR_ORDER
+      if (bootstrapManager.jsonDoc.containsKey(ledManager.COLOR_ORDER_PARAM)) {
+        int colorOrderParam = (int) bootstrapManager.jsonDoc[ledManager.COLOR_ORDER_PARAM];
+        if (colorOrder != colorOrderParam) {
+          colorOrder = colorOrderParam;
+          ledManager.setColorOrder(colorOrder);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -817,7 +836,7 @@ bool NetworkManager::processJson() {
 
   ledManager.lastLedUpdate = millis();
   boolean skipMacCheck = ((bootstrapManager.jsonDoc.containsKey("MAC") && bootstrapManager.jsonDoc["MAC"] == MAC)
-          || bootstrapManager.jsonDoc.containsKey("allInstances"));
+                          || bootstrapManager.jsonDoc.containsKey("allInstances"));
   if (!bootstrapManager.jsonDoc.containsKey("MAC") || skipMacCheck) {
     if (bootstrapManager.jsonDoc.containsKey("state")) {
       String state = bootstrapManager.jsonDoc["state"];
@@ -836,7 +855,8 @@ bool NetworkManager::processJson() {
     if (bootstrapManager.jsonDoc.containsKey("brightness")) {
       brightness = bootstrapManager.jsonDoc["brightness"];
     }
-    if (autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored || brightness != brightnessStored)) {
+    if (autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
+                     brightness != brightnessStored)) {
       Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness);
     }
     if (skipMacCheck) {
@@ -918,7 +938,7 @@ void NetworkManager::sendStatus() {
 #if defined(ESP8266)
       if (networkManager.remoteBroadcastPort.isSet()) {
 #elif defined(ESP32)
-        if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
+      if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
         networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
         networkManager.broadcastUDP.print(fpsData.c_str());
@@ -934,6 +954,7 @@ void NetworkManager::sendStatus() {
     color[F("g")] = ledManager.green;
     color[F("b")] = ledManager.blue;
     color[F("colorMode")] = colorMode;
+    color[F("colorOrder")] = colorOrder;
     root[F("brightness")] = brightness;
     root[F("effect")] = Globals::effectToString(effect);
     root[F("deviceName")] = deviceName;
@@ -970,7 +991,7 @@ void NetworkManager::sendStatus() {
 #if defined(ESP8266)
       if (networkManager.remoteBroadcastPort.isSet()) {
 #elif defined(ESP32)
-        if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
+      if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
         networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
         networkManager.broadcastUDP.print(output.c_str());
@@ -1014,7 +1035,7 @@ bool NetworkManager::processUpdate() {
 #if defined(ESP8266)
           if (networkManager.remoteBroadcastPort.isSet()) {
 #elif defined(ESP32)
-            if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
+          if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
             networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
             networkManager.broadcastUDP.print(deviceName.c_str());
@@ -1028,7 +1049,7 @@ bool NetworkManager::processUpdate() {
 #elif defined(ESP8266)
       EspClass::restart();
 #endif
-      }, []() {
+  }, []() {
       HTTPUpload &upload = server.upload();
       if (upload.status == UPLOAD_FILE_START) {
         Serial.printf("Update: %s\n", upload.filename.c_str());
@@ -1117,12 +1138,11 @@ bool NetworkManager::processLDR() {
 }
 
 
-
 /**
  * Execute the MQTT topic swap
  * @param customtopic new topic to use
  */
-void NetworkManager::executeMqttSwap(const String& customtopic) {
+void NetworkManager::executeMqttSwap(const String &customtopic) {
 
   Serial.println("Swapping topic=" + customtopic);
   networkManager.topicInUse = customtopic;

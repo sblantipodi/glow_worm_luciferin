@@ -70,10 +70,10 @@ void setup() {
   String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
   if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
     setApState(11);
-    ledManager.setColor(0,255,0);
+    ledManager.setColor(0, 255, 0);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
     setApState(12);
-    ledManager.setColor(0,0,255);
+    ledManager.setColor(0, 0, 255);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
     bootstrapManager.littleFsInit();
     bootstrapManager.isWifiConfigured();
@@ -98,13 +98,15 @@ void setup() {
   Serial.println(networkManager.topicInUse);
 
   // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback, true, manageApRoot);
+  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton,
+                                  NetworkManager::callback, true, manageApRoot);
 #endif
 
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
   String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
-  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_INTER_PARAM);
+  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME,
+                                                                     ledManager.LDR_INTER_PARAM);
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
 
@@ -132,9 +134,9 @@ void setup() {
     rStored = ledManager.red;
     ledManager.green = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("g")).toInt();
     gStored = ledManager.green;
-    ledManager.blue  = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("b")).toInt();
+    ledManager.blue = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("b")).toInt();
     bStored = ledManager.blue;
-    brightness  = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
+    brightness = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
     brightnessStored = brightness;
   }
   String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
@@ -190,23 +192,41 @@ void configureLeds() {
     }
   }
   switch (gpioToUse) {
-    case 5: gpioInUse = 5; break;
-    case 3: gpioInUse = 3; break;
-    case 16: gpioInUse = 16; break;
-    default: gpioInUse = 2; break;
+    case 5:
+      gpioInUse = 5;
+      break;
+    case 3:
+      gpioInUse = 3;
+      break;
+    case 16:
+      gpioInUse = 16;
+      break;
+    default:
+      gpioInUse = 2;
+      break;
   }
   Serial.print(F("GPIO IN USE="));
 
   Serial.println(gpioInUse);
 
   // Color mode from configuration storage
-  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME, ledManager.COLOR_MODE_PARAM);
+  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME,
+                                                                   ledManager.COLOR_MODE_PARAM);
   if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
     colorMode = colorModeFromStorage.toInt();
   }
   Serial.print(F("COLOR_MODE IN USE="));
-
   Serial.println(colorMode);
+
+  // Color order from configuration storage
+  String colorOrderFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_ORDER_FILENAME,
+                                                                    ledManager.COLOR_ORDER_PARAM);
+  if (!colorOrderFromStorage.isEmpty() && colorOrderFromStorage != ERROR && colorOrderFromStorage.toInt() != 0) {
+    colorOrder = colorOrderFromStorage.toInt();
+  }
+  Serial.print(F("COLOR_ORDER IN USE="));
+  Serial.println(colorOrder);
+
   ledManager.initLeds();
 }
 
@@ -221,9 +241,11 @@ int serialRead() {
 }
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
+
 void manageApRoot() {
   networkManager.manageAPSetting(true);
 }
+
 void setApState(byte state) {
   configureLeds();
   DynamicJsonDocument asDoc(1024);
@@ -232,6 +254,7 @@ void setApState(byte state) {
   effect = Effect::solid;
   ledManager.stateOn = true;
 }
+
 #endif
 
 /**
@@ -285,9 +308,11 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     fireflyColorMode = serialRead();
     while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+    fireflyColorOrder = serialRead();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     chk = serialRead();
     if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
-                               ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ 0x55))) {
+                               ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder ^ 0x55))) {
       loopIdx = 0;
       goto waitLoop;
     }
@@ -355,19 +380,40 @@ void mainLoop() {
           effect = Effect::GlowWorm;
           break;
 #endif
-        case 6: effect = Effect::solid; break;
-        case 7: effect = Effect::fire; break;
-        case 8: effect = Effect::twinkle; break;
-        case 9: effect = Effect::bpm; break;
-        case 10: effect = Effect::mixed_rainbow; break;
-        case 11: effect = Effect::rainbow; break;
-        case 12: effect = Effect::chase_rainbow; break;
-        case 13: effect = Effect::solid_rainbow; break;
-        case 100: ledManager.fireflyEffectInUse = 0; break;
+        case 6:
+          effect = Effect::solid;
+          break;
+        case 7:
+          effect = Effect::fire;
+          break;
+        case 8:
+          effect = Effect::twinkle;
+          break;
+        case 9:
+          effect = Effect::bpm;
+          break;
+        case 10:
+          effect = Effect::mixed_rainbow;
+          break;
+        case 11:
+          effect = Effect::rainbow;
+          break;
+        case 12:
+          effect = Effect::chase_rainbow;
+          break;
+        case 13:
+          effect = Effect::solid_rainbow;
+          break;
+        case 100:
+          ledManager.fireflyEffectInUse = 0;
+          break;
       }
     }
     if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 4)) {
       ledManager.setColorModeInit(fireflyColorMode);
+    }
+    if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 2)) {
+      ledManager.setColorOrderInit(fireflyColorOrder);
     }
     // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
     // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);

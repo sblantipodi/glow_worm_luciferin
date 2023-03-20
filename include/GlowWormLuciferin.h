@@ -22,13 +22,17 @@
 //#define FASTLED_ALLOW_INTERRUPTS 0
 #define FASTLED_ESP32_I2S true
 #endif
+
 #include <FastLED.h>
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include "Version.h"
 #include "Globals.h"
+
 #if defined(ESP32)
+
 #include <esp_task_wdt.h>
+
 #elif defined(ESP8266)
 #include "PingESP.h"
 #endif
@@ -48,5 +52,7 @@ CRGBPalette16 targetPalette(OceanColors_p);
 CRGBPalette16 currentPalette(CRGB::Black);
 
 void mainLoop();
+
 static void manageApRoot();
+
 void setApState(byte state);
