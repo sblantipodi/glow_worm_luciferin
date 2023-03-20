@@ -1108,9 +1108,8 @@ void LedManager::setColorOrderInit(uint8_t newColorOrder) {
 
   if (colorOrder != newColorOrder) {
     setColorOrder(newColorOrder);
+    initLeds();
   }
-  colorOrder = newColorOrder;
-  initLeds();
   colorOrder = newColorOrder;
 
 }

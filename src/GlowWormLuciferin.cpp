@@ -412,7 +412,7 @@ void mainLoop() {
     if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 4)) {
       ledManager.setColorModeInit(fireflyColorMode);
     }
-    if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 2)) {
+    if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 3)) {
       ledManager.setColorOrderInit(fireflyColorOrder);
     }
     // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
