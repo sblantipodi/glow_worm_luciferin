@@ -8,9 +8,9 @@
 [![Continuous Integration](https://ci.appveyor.com/api/projects/status/m7s53wav1l0abssg/branch/6.x?svg=true)](https://ci.appveyor.com/project/bblanchon/arduinojson/branch/6.x)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/arduinojson.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:arduinojson)
 [![Coveralls branch](https://img.shields.io/coveralls/github/bblanchon/ArduinoJson/6.x?logo=coveralls)](https://coveralls.io/github/bblanchon/ArduinoJson?branch=6.x)  
-[![Arduino Library Manager](https://img.shields.io/static/v1?label=Arduino&message=v6.21.0&logo=arduino&logoColor=white&color=blue)](https://www.ardu-badge.com/ArduinoJson/6.21.0)
-[![PlatformIO Registry](https://badges.registry.platformio.org/packages/bblanchon/library/ArduinoJson.svg?version=6.21.0)](https://registry.platformio.org/packages/libraries/bblanchon/ArduinoJson?version=6.21.0) 
-[![ESP IDF](https://img.shields.io/static/v1?label=ESP+IDF&message=v6.21.0&logo=cpu&logoColor=white&color=blue)](https://components.espressif.com/components/bblanchon/arduinojson)  
+[![Arduino Library Manager](https://img.shields.io/static/v1?label=Arduino&message=v6.21.1&logo=arduino&logoColor=white&color=blue)](https://www.ardu-badge.com/ArduinoJson/6.21.1)
+[![PlatformIO Registry](https://badges.registry.platformio.org/packages/bblanchon/library/ArduinoJson.svg?version=6.21.1)](https://registry.platformio.org/packages/libraries/bblanchon/ArduinoJson?version=6.21.1) 
+[![ESP IDF](https://img.shields.io/static/v1?label=ESP+IDF&message=v6.21.1&logo=cpu&logoColor=white&color=blue)](https://components.espressif.com/components/bblanchon/arduinojson)  
 [![GitHub stars](https://img.shields.io/github/stars/bblanchon/ArduinoJson?style=flat&logo=github&color=orange)](https://github.com/bblanchon/ArduinoJson/stargazers)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/bblanchon?logo=github&color=orange)](https://github.com/sponsors/bblanchon)
 
@@ -85,7 +85,7 @@ ArduinoJson is a C++ JSON library for Arduino and IoT (Internet Of Things).
     * [Unit test coverage close to 100%](https://coveralls.io/github/bblanchon/ArduinoJson?branch=6.x)
     * Continuously tested on
         * [Visual Studio 2017, 2019, 2022](https://ci.appveyor.com/project/bblanchon/arduinojson/branch/6.x)
-        * [GCC 6, 7, 8, 9, 10, 11](https://github.com/bblanchon/ArduinoJson/actions?query=workflow%3A%22Continuous+Integration%22)
+        * [GCC 5, 6, 7, 8, 9, 10, 11](https://github.com/bblanchon/ArduinoJson/actions?query=workflow%3A%22Continuous+Integration%22)
         * [Clang 3.8, 3.9, 4.0, 5.0, 6.0, 7, 8, 9, 10](https://github.com/bblanchon/ArduinoJson/actions?query=workflow%3A%22Continuous+Integration%22)
     * [Continuously fuzzed with Google OSS Fuzz](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:arduinojson)
     * Passes all default checks of [clang-tidy](https://releases.llvm.org/10.0.0/tools/clang/tools/extra/docs/clang-tidy/)
