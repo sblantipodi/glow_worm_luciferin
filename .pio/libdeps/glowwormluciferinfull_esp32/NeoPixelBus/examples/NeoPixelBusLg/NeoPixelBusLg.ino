@@ -29,6 +29,9 @@ NeoPixelBusLg<NeoRgbFeature, NeoWs2812xMethod> strip(PixelCount, PixelPin);
 // If you want to turn gamma correction off, then you can use the null gamma method
 // NeoPixelBusLg<NeoRgbFeature, NeoWs2812xMethod, NeoGammaNullMethod> strip(PixelCount, PixelPin);
 
+// If you use a LED driver between the NeoPixel chip and the LEDs that require the PWM range inverted
+// NeoPixelBusLg<NeoRgbFeature, NeoWs2812xMethod, NeoGammaInvertMethod<NeoGammaNullMethod>> strip(PixelCount, PixelPin);
+
 void setup()
 {
     Serial.begin(115200);
@@ -82,14 +85,14 @@ void loop()
     // draw something
     //
     uint16_t half = strip.PixelCount() / 2;
-    DrawGradiant(green, black, 0, half - 1);
-    DrawGradiant(black, red, half, strip.PixelCount() - 1);
+    DrawGradient(green, black, 0, half - 1);
+    DrawGradient(black, red, half, strip.PixelCount() - 1);
 
     // show the results
     strip.Show();
 }
 
-void DrawGradiant(RgbColor startColor, 
+void DrawGradient(RgbColor startColor, 
         RgbColor finishColor, 
         uint16_t startIndex, 
         uint16_t finishIndex)

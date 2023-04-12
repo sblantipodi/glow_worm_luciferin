@@ -27,93 +27,20 @@ License along with NeoPixel.  If not, see
 
 #include <Arduino.h>
 
-// '_state' flags for internal state
-#define NEO_DIRTY   0x80 // a change was made to pixel data that requires a show
+// standard neo definitions
+// 
+const uint8_t NEO_DIRTY = 0x80; // a change was made to pixel data that requires a show
+const uint16_t PixelIndex_OutOfBounds = 0xffff;
 
 #include "internal/NeoUtil.h"
-
-#include "internal/NeoHueBlend.h"
-
+#include "internal/animations/NeoEase.h"
 #include "internal/NeoSettings.h"
-
-#include "internal/RgbColor.h"
-#include "internal/Rgb16Color.h"
-#include "internal/Rgb48Color.h"
-
-#include "internal/HslColor.h"
-#include "internal/HsbColor.h"
-#include "internal/HtmlColor.h"
-
-#include "internal/RgbwColor.h"
-#include "internal/Rgbw64Color.h"
-
-#include "internal/SegmentDigit.h"
-
+#include "internal/NeoColors.h"
 #include "internal/NeoColorFeatures.h"
-#include "internal/NeoTm1814ColorFeatures.h"
-#include "internal/NeoTm1914ColorFeatures.h"
-#include "internal/NeoSm168xxColorFeatures.h"
-#include "internal/DotStarColorFeatures.h"
-#include "internal/Lpd8806ColorFeatures.h"
-#include "internal/Lpd6803ColorFeatures.h"
-#include "internal/P9813ColorFeatures.h"
-#include "internal/NeoSegmentFeatures.h"
-
-#include "internal/Layouts.h"
-#include "internal/NeoTopology.h"
-#include "internal/NeoRingTopology.h"
-#include "internal/NeoTiles.h"
-#include "internal/NeoMosaic.h"
-
-#include "internal/NeoBufferContext.h"
-#include "internal/NeoBufferMethods.h"
-#include "internal/NeoBuffer.h"
-#include "internal/NeoSpriteSheet.h"
-#include "internal/NeoDib.h"
-#include "internal/NeoBitmapFile.h"
-
-#include "internal/NeoEase.h"
-#include "internal/NeoGamma.h"
-
+#include "internal/NeoTopologies.h"
+#include "internal/NeoBuffers.h"
 #include "internal/NeoBusChannel.h"
-
-#include "internal/DotStarGenericMethod.h"
-#include "internal/Lpd8806GenericMethod.h"
-#include "internal/Lpd6803GenericMethod.h"
-#include "internal/Ws2801GenericMethod.h"
-#include "internal/P9813GenericMethod.h"
-#include "internal/Tlc5947GenericMethod.h"
-
-#if defined(ARDUINO_ARCH_ESP8266)
-
-#include "internal/NeoEsp8266DmaMethod.h"
-#include "internal/NeoEsp8266I2sDmx512Method.h"
-#include "internal/NeoEsp8266UartMethod.h"
-#include "internal/NeoEspBitBangMethod.h"
-
-#elif defined(ARDUINO_ARCH_ESP32)
-
-#include "internal/NeoEsp32I2sMethod.h"
-#include "internal/NeoEsp32RmtMethod.h"
-#include "internal/NeoEspBitBangMethod.h"
-#include "internal/DotStarEsp32DmaSpiMethod.h"
-#include "internal/NeoEsp32I2sXMethod.h"
-
-#elif defined(ARDUINO_ARCH_NRF52840) // must be before __arm__
-
-#include "internal/NeoNrf52xMethod.h"
-
-#elif defined(__arm__) // must be before ARDUINO_ARCH_AVR due to Teensy incorrectly having it set
-
-#include "internal/NeoArmMethod.h"
-
-#elif defined(ARDUINO_ARCH_AVR) || defined(ARDUINO_ARCH_MEGAAVR)
-
-#include "internal/NeoAvrMethod.h"
-
-#else
-#error "Platform Currently Not Supported, please add an Issue at Github/Makuna/NeoPixelBus"
-#endif
+#include "internal/NeoMethods.h"
 
 
 template<typename T_COLOR_FEATURE, typename T_METHOD> class NeoPixelBus
