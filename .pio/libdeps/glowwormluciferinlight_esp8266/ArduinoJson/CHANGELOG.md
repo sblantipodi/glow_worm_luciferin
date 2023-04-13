@@ -1,6 +1,13 @@
 ArduinoJson: change log
 =======================
 
+v6.21.2 (2023-04-12)
+-------
+
+* Fix compatibility with the Zephyr Project (issue #1905)
+* Allow using PROGMEM outside of Arduino (issue #1903)
+* Set default for `ARDUINOJSON_ENABLE_PROGMEM` to `1` on AVR
+
 v6.21.1 (2023-03-27)
 -------
 
