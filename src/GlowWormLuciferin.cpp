@@ -211,8 +211,8 @@ void configureLeds() {
   if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
     colorMode = colorModeFromStorage.toInt();
   }
-//  Serial.print(F("COLOR_MODE IN USE="));
-//  Serial.println(colorMode);
+  Serial.print(F("COLOR_MODE IN USE="));
+  Serial.println(colorMode);
 
   // Color order from configuration storage
   String colorOrderFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_ORDER_FILENAME,
@@ -220,8 +220,8 @@ void configureLeds() {
   if (!colorOrderFromStorage.isEmpty() && colorOrderFromStorage != ERROR && colorOrderFromStorage.toInt() != 0) {
     colorOrder = colorOrderFromStorage.toInt();
   }
-//  Serial.print(F("COLOR_ORDER IN USE="));
-//  Serial.println(colorOrder);
+  Serial.print(F("COLOR_ORDER IN USE="));
+  Serial.println(colorOrder);
 
 //  ledManager.initLeds();
 }
