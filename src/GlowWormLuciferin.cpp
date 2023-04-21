@@ -99,20 +99,42 @@ void setup() {
   Serial.println(networkManager.topicInUse);
 
   // Bootsrap setup() with Wifi and MQTT functions
-
-  // TODO decomment right
-//  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton,
-//                                  NetworkManager::callback, true, manageApRoot);
-
   bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback);
-
 #endif
+
+  // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
+  String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
+  int gpioToUse = 0;
+  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
+    gpioToUse = gpioFromStorage.toInt();
+  }
+  if (gpioToUse == 0) {
+    if (!additionalParam.isEmpty()) {
+      gpioToUse = additionalParam.toInt();
+    }
+  }
+  switch (gpioToUse) {
+    case 5: gpioInUse = 5; break;
+    case 3: gpioInUse = 3; break;
+    case 16: gpioInUse = 16; break;
+    default: gpioInUse = 2; break;
+  }
+  Serial.print(F("GPIO IN USE="));
+  Serial.println(gpioInUse);
+
+  // Color mode from configuration storage
+  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME, ledManager.COLOR_MODE_PARAM);
+  if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
+    colorMode = colorModeFromStorage.toInt();
+  }
+  Serial.print(F("COLOR_MODE IN USE="));
+  Serial.println(colorMode);
+  ledManager.initLeds();
 
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
   String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
-  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME,
-                                                                     ledManager.LDR_INTER_PARAM);
+  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_INTER_PARAM);
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
 
