@@ -101,9 +101,10 @@ void setup() {
   // Bootsrap setup() with Wifi and MQTT functions
 
   // TODO decomment right
-  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton,
-                                  NetworkManager::callback, true, manageApRoot);
+//  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton,
+//                                  NetworkManager::callback, true, manageApRoot);
 
+  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback);
 
 #endif
 
