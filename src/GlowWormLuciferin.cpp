@@ -223,7 +223,7 @@ void configureLeds() {
 //  Serial.print(F("COLOR_ORDER IN USE="));
 //  Serial.println(colorOrder);
 
-  ledManager.initLeds();
+//  ledManager.initLeds();
 }
 
 /**
