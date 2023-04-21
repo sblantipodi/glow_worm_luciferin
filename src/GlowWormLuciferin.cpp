@@ -60,15 +60,33 @@ void setup() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   MAC = WiFi.macAddress();
-#if defined(ESP8266)
-  if (!LittleFS.begin()) {
-#elif defined(ESP32)
-  if (!LittleFS.begin(true)) {
+  bootstrapManager.littleFsInit();
+  configureLeds();
 #endif
-    Serial.println("LittleFS mount failed");
-    return;
-  }
-#endif
+
+//#ifdef TARGET_GLOWWORMLUCIFERINFULL
+//  String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
+//    setApState(11);
+//    ledManager.setColor(0, 255, 0);
+//  } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
+//    setApState(12);
+//    ledManager.setColor(0, 0, 255);
+//  } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
+//    // TODO decomment
+////    bootstrapManager.littleFsInit();
+//    bootstrapManager.isWifiConfigured();
+//    setApState(13);
+//    ledManager.setColor(255, 75, 0);
+//    // TODO decomment
+//
+////    bootstrapManager.launchWebServerCustom(false, manageApRoot);
+//  } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
+//    setApState(0);
+//  } else {
+    configureLeds();
+//  }
+//#endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // LED number from configuration storage
@@ -81,42 +99,20 @@ void setup() {
   Serial.println(networkManager.topicInUse);
 
   // Bootsrap setup() with Wifi and MQTT functions
+
+  // TODO decomment right
+//  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton,
+//                                  NetworkManager::callback, true, manageApRoot);
+
   bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton, NetworkManager::callback);
+
 #endif
-
-  // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
-  String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
-  int gpioToUse = 0;
-  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
-    gpioToUse = gpioFromStorage.toInt();
-  }
-  if (gpioToUse == 0) {
-    if (!additionalParam.isEmpty()) {
-      gpioToUse = additionalParam.toInt();
-    }
-  }
-  switch (gpioToUse) {
-    case 5: gpioInUse = 5; break;
-    case 3: gpioInUse = 3; break;
-    case 16: gpioInUse = 16; break;
-    default: gpioInUse = 2; break;
-  }
-  Serial.print(F("GPIO IN USE="));
-  Serial.println(gpioInUse);
-
-  // Color mode from configuration storage
-  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME, ledManager.COLOR_MODE_PARAM);
-  if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
-    colorMode = colorModeFromStorage.toInt();
-  }
-  Serial.print(F("COLOR_MODE IN USE="));
-  Serial.println(colorMode);
-  ledManager.initLeds();
 
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
   String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
-  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_INTER_PARAM);
+  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME,
+                                                                     ledManager.LDR_INTER_PARAM);
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
 
@@ -137,6 +133,21 @@ void setup() {
     if (ldrDivider == -1) {
       ldrDivider = LDR_DIVIDER;
     }
+  }
+  String r = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r"));
+  if (!r.isEmpty() && r != ERROR && r.toInt() != -1) {
+    ledManager.red = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r")).toInt();
+    rStored = ledManager.red;
+    ledManager.green = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("g")).toInt();
+    gStored = ledManager.green;
+    ledManager.blue = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("b")).toInt();
+    bStored = ledManager.blue;
+    brightness = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
+    brightnessStored = brightness;
+  }
+  String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
+  if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
+    autoSave = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave")).toInt();
   }
 
 #if defined(ESP8266)
@@ -172,6 +183,60 @@ void setup() {
 }
 
 /**
+ * Configure LEDs using the stored params
+ */
+void configureLeds() {
+  // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
+  String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
+  int gpioToUse = 0;
+  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
+    gpioToUse = gpioFromStorage.toInt();
+  }
+  if (gpioToUse == 0) {
+    if (!additionalParam.isEmpty()) {
+      gpioToUse = additionalParam.toInt();
+    }
+  }
+  switch (gpioToUse) {
+    case 5:
+      gpioInUse = 5;
+      break;
+    case 3:
+      gpioInUse = 3;
+      break;
+    case 16:
+      gpioInUse = 16;
+      break;
+    default:
+      gpioInUse = 2;
+      break;
+  }
+  Serial.print(F("GPIO IN USE="));
+
+  Serial.println(gpioInUse);
+
+  // Color mode from configuration storage
+  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME,
+                                                                   ledManager.COLOR_MODE_PARAM);
+  if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
+    colorMode = colorModeFromStorage.toInt();
+  }
+  Serial.print(F("COLOR_MODE IN USE="));
+  Serial.println(colorMode);
+
+  // Color order from configuration storage
+  String colorOrderFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_ORDER_FILENAME,
+                                                                    ledManager.COLOR_ORDER_PARAM);
+  if (!colorOrderFromStorage.isEmpty() && colorOrderFromStorage != ERROR && colorOrderFromStorage.toInt() != 0) {
+    colorOrder = colorOrderFromStorage.toInt();
+  }
+  Serial.print(F("COLOR_ORDER IN USE="));
+  Serial.println(colorOrder);
+
+  ledManager.initLeds();
+}
+
+/**
  * Read serial or break the reading
  * @return -1 if loop must break
  */
@@ -180,6 +245,23 @@ int serialRead() {
   return !breakLoop ? Serial.read() : -1;
 
 }
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+
+void manageApRoot() {
+  networkManager.manageAPSetting(true);
+}
+
+void setApState(byte state) {
+  configureLeds();
+  DynamicJsonDocument asDoc(1024);
+  asDoc[AP_PARAM] = state;
+  BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
+  effect = Effect::solid;
+  ledManager.stateOn = true;
+}
+
+#endif
 
 /**
  * Main loop
@@ -232,9 +314,11 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     fireflyColorMode = serialRead();
     while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+    fireflyColorOrder = serialRead();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     chk = serialRead();
     if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
-                               ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ 0x55))) {
+                               ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder ^ 0x55))) {
       loopIdx = 0;
       goto waitLoop;
     }
@@ -302,19 +386,40 @@ void mainLoop() {
           effect = Effect::GlowWorm;
           break;
 #endif
-        case 6: effect = Effect::solid; break;
-        case 7: effect = Effect::fire; break;
-        case 8: effect = Effect::twinkle; break;
-        case 9: effect = Effect::bpm; break;
-        case 10: effect = Effect::mixed_rainbow; break;
-        case 11: effect = Effect::rainbow; break;
-        case 12: effect = Effect::chase_rainbow; break;
-        case 13: effect = Effect::solid_rainbow; break;
-        case 100: ledManager.fireflyEffectInUse = 0; break;
+        case 6:
+          effect = Effect::solid;
+          break;
+        case 7:
+          effect = Effect::fire;
+          break;
+        case 8:
+          effect = Effect::twinkle;
+          break;
+        case 9:
+          effect = Effect::bpm;
+          break;
+        case 10:
+          effect = Effect::mixed_rainbow;
+          break;
+        case 11:
+          effect = Effect::rainbow;
+          break;
+        case 12:
+          effect = Effect::chase_rainbow;
+          break;
+        case 13:
+          effect = Effect::solid_rainbow;
+          break;
+        case 100:
+          ledManager.fireflyEffectInUse = 0;
+          break;
       }
     }
     if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 4)) {
       ledManager.setColorModeInit(fireflyColorMode);
+    }
+    if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 3)) {
+      ledManager.setColorOrderInit(fireflyColorOrder);
     }
     // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
     // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
@@ -396,6 +501,18 @@ void mainLoop() {
 void loop() {
 
   mainLoop();
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  if (!apFileRead) {
+    apFileRead = true;
+    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+    if (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0) {
+      setApState(0);
+      ledManager.setColor(0, 0, 0);
+    }
+    disconnectionCounter = 0;
+  }
+#endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (relayState && !ledManager.stateOn) {
