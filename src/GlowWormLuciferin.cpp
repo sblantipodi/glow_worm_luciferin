@@ -81,7 +81,10 @@ void setup() {
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
     setApState(0);
   } else {
-    configureLeds();
+    bootstrapManager.littleFsInit();
+    if (bootstrapManager.isWifiConfigured()) {
+      configureLeds();
+    }
   }
 #endif
 
