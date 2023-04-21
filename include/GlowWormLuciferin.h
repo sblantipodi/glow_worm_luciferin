@@ -56,3 +56,6 @@ void mainLoop();
 static void manageApRoot();
 
 void setApState(byte state);
+
+void configureLeds();
+
