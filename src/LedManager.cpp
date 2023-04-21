@@ -847,15 +847,15 @@ void LedManager::initEsp32() {
 
 #if defined(ESP32)
   if (colorOrder == 1) {
-    Serial.println(F("Using DMA"));
+//    Serial.println(F("Using DMA"));
     cleanLEDs();
     ledsEsp32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
     if (ledsEsp32 == NULL) {
       Serial.println(F("OUT OF MEMORY"));
     } else {
-      Serial.println();
-      Serial.println(F("Initializing..."));
-      Serial.flush();
+//      Serial.println();
+//      Serial.println(F("Initializing..."));
+//      Serial.flush();
       ledsEsp32->Begin();
       ledsEsp32->Show();
     }

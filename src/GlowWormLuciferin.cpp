@@ -100,8 +100,6 @@ void setup() {
                                   NetworkManager::callback, true, manageApRoot);
 #endif
 
-  ledManager.initLeds();
-
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
   String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
@@ -225,7 +223,7 @@ void configureLeds() {
   Serial.print(F("COLOR_ORDER IN USE="));
   Serial.println(colorOrder);
 
-//  ledManager.initLeds();
+  ledManager.initLeds();
 }
 
 /**
