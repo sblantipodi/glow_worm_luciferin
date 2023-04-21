@@ -64,29 +64,29 @@ void setup() {
   configureLeds();
 #endif
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-  String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
-    setApState(11);
-    ledManager.setColor(0, 255, 0);
-  } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
-    setApState(12);
-    ledManager.setColor(0, 0, 255);
-  } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
-    // TODO decomment
-//    bootstrapManager.littleFsInit();
-    bootstrapManager.isWifiConfigured();
-    setApState(13);
-    ledManager.setColor(255, 75, 0);
-    // TODO decomment
-
-//    bootstrapManager.launchWebServerCustom(false, manageApRoot);
-  } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
-    setApState(0);
-  } else {
-    configureLeds();
-  }
-#endif
+//#ifdef TARGET_GLOWWORMLUCIFERINFULL
+//  String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+//  if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
+//    setApState(11);
+//    ledManager.setColor(0, 255, 0);
+//  } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
+//    setApState(12);
+//    ledManager.setColor(0, 0, 255);
+//  } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
+//    // TODO decomment
+////    bootstrapManager.littleFsInit();
+//    bootstrapManager.isWifiConfigured();
+//    setApState(13);
+//    ledManager.setColor(255, 75, 0);
+//    // TODO decomment
+//
+////    bootstrapManager.launchWebServerCustom(false, manageApRoot);
+//  } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
+//    setApState(0);
+//  } else {
+//    configureLeds();
+//  }
+//#endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // LED number from configuration storage
