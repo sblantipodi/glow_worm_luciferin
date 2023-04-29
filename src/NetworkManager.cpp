@@ -121,7 +121,7 @@ void NetworkManager::manageDisconnections() {
   Serial.println(disconnectionCounter);
   if (disconnectionCounter < MAX_RECONNECT) {
     disconnectionCounter++;
-  } else if (disconnectionCounter >= MAX_RECONNECT && disconnectionCounter < 254) {
+  } else if (disconnectionCounter >= MAX_RECONNECT && disconnectionCounter < (MAX_RECONNECT * 2)) {
     disconnectionCounter++;
     ledManager.stateOn = true;
     effect = Effect::solid;
@@ -132,7 +132,7 @@ void NetworkManager::manageDisconnections() {
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
     ledManager.setColor(255, 0, 0);
-  } else if (disconnectionCounter >= 254) {
+  } else if (disconnectionCounter >= (MAX_RECONNECT * 2)) {
     ledManager.stateOn = true;
     effect = Effect::solid;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);

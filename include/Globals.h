@@ -95,7 +95,7 @@ extern uint8_t baudRateInUse;
 extern bool relayState;
 extern bool breakLoop;
 extern bool apFileRead;
-extern byte disconnectionCounter;
+extern int disconnectionCounter;
 
 class Globals {
 
