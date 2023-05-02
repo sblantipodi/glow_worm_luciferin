@@ -202,7 +202,12 @@ void configureLeds() {
       gpioInUse = 16;
       break;
     default:
+#if defined(ESP8266)
       gpioInUse = 2;
+#endif
+#if defined(ESP32)
+      gpioInUse = 16;
+#endif
       break;
   }
   Serial.print(F("GPIO IN USE="));
