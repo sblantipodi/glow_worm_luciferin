@@ -39,7 +39,9 @@ void setup() {
   while (!Serial); // wait for serial attach
   Serial.print(F("BAUDRATE IN USE="));
   Serial.println(baudRateToUse);
-
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  pinMode(SMART_BUTTON, INPUT_PULLUP);
+#endif
   // LED number from configuration storage
   String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
   if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
@@ -496,6 +498,20 @@ void loop() {
   mainLoop();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
+  last_button_state = button_state;      // save the last state
+  button_state = digitalRead(SMART_BUTTON); // read new state
+  if (last_button_state == HIGH && button_state == LOW) {
+    if (!ledManager.stateOn) {
+      Globals::turnOnRelay();
+      ledManager.stateOn = true;
+      networkManager.setColor();
+    } else {
+      ledManager.stateOn = false;
+      networkManager.setColor();
+      Globals::turnOffRelay();
+    }
+  }
+
   if (!apFileRead) {
     apFileRead = true;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);

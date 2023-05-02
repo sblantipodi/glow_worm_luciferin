@@ -50,6 +50,8 @@ PingESP pingESP;
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
 CRGBPalette16 targetPalette(OceanColors_p);
 CRGBPalette16 currentPalette(CRGB::Black);
+int button_state;
+int last_button_state;
 
 void mainLoop();
 

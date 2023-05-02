@@ -38,7 +38,9 @@
 #define LDR_DIVIDER 1024
 #endif
 #define DATA_PIN 5 // Wemos D1 Mini Lite PIN D5
-
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+#define SMART_BUTTON 0 // Smart button to turn on/off light
+#endif
 extern class BootstrapManager bootstrapManager;
 
 extern class EffectsManager effectsManager;
