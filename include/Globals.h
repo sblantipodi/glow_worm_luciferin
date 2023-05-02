@@ -27,7 +27,7 @@
 #include "NetworkManager.h"
 
 #if defined(ESP32)
-#define RELAY_PIN_DIG 32 // equals to Q4
+#define RELAY_PIN_DIG 12 // equals to Q2
 #define RELAY_PIN_PICO 22
 #define LDR_PIN_DIG 36 // (ADC analog pin)
 #define LDR_PIN_PICO 33 // (ADC analog pin)
