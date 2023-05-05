@@ -50,8 +50,13 @@ PingESP pingESP;
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
 CRGBPalette16 targetPalette(OceanColors_p);
 CRGBPalette16 currentPalette(CRGB::Black);
-int button_state;
-int last_button_state;
+byte btnState = LOW;
+byte lastState = LOW;
+unsigned long pressedTime  = 0;
+unsigned long releasedTime = 0;
+unsigned long bootTime = 0;
+const int LONG_PRESS_TIME  = 20;
+const long SB_BTN_DELAY = 20000;
 
 void mainLoop();
 

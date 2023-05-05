@@ -175,6 +175,7 @@ void setup() {
   pingESP.ping();
 #endif
 #endif
+  bootTime = millis();
 
 }
 
@@ -229,6 +230,7 @@ void configureLeds() {
   Serial.println(colorOrder);
 
   ledManager.initLeds();
+
 }
 
 /**
@@ -498,19 +500,27 @@ void loop() {
   mainLoop();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  last_button_state = button_state;      // save the last state
-  button_state = digitalRead(SMART_BUTTON); // read new state
-  if (last_button_state == HIGH && button_state == LOW) {
-    if (!ledManager.stateOn) {
-      Globals::turnOnRelay();
-      ledManager.stateOn = true;
-      networkManager.setColor();
-    } else {
-      ledManager.stateOn = false;
-      networkManager.setColor();
-      Globals::turnOffRelay();
+  btnState = digitalRead(SMART_BUTTON);
+  if (lastState == HIGH && btnState == LOW) {
+    pressedTime = millis();
+  } else if (lastState == LOW && btnState == HIGH) {
+    releasedTime = millis();
+    long pressDuration = releasedTime - pressedTime;
+    if (pressDuration > LONG_PRESS_TIME) {
+      if ((millis() - bootTime) > SB_BTN_DELAY) {
+        if (!ledManager.stateOn) {
+          Globals::turnOnRelay();
+          ledManager.stateOn = true;
+          networkManager.setColor();
+        } else {
+          ledManager.stateOn = false;
+          networkManager.setColor();
+          Globals::turnOffRelay();
+        }
+      }
     }
   }
+  lastState = btnState;
 
   if (!apFileRead) {
     apFileRead = true;
