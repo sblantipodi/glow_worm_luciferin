@@ -54,9 +54,8 @@ byte btnState = LOW;
 byte lastState = LOW;
 unsigned long pressedTime  = 0;
 unsigned long releasedTime = 0;
-unsigned long bootTime = 0;
-const int LONG_PRESS_TIME  = 20;
-const long SB_BTN_DELAY = 20000;
+const int DEBOUNCE_PRESS_TIME  = 20;
+const int SHORT_PRESS_TIME  = 500;
 
 void mainLoop();
 

@@ -266,6 +266,8 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += ldrTurnOff;
       prefsData += F("\",\"ldrMin\":\"");
       prefsData += ldrMin;
+      prefsData += F("\",\"ledOn\":\"");
+      prefsData += ledOn;
       prefsData += F("\",\"ldrMax\":\"");
       if (ldrEnabled) {
         prefsData += ((ldrValue * 100) / ldrDivider);
@@ -1116,8 +1118,10 @@ bool NetworkManager::processLDR() {
     String ldrIntervalMqtt = bootstrapManager.jsonDoc[F("ldrInterval")];
     String ldrMinMqtt = bootstrapManager.jsonDoc[F("ldrMin")];
     String ldrActionMqtt = bootstrapManager.jsonDoc[F("ldrAction")];
+    String ledOnMqtt = bootstrapManager.jsonDoc[F("ledOn")];
     ldrEnabled = ldrEnabledMqtt == "true";
     ldrTurnOff = ldrTurnOffMqtt == "true";
+    ledOn = ledOnMqtt == "true";
     ldrInterval = ldrIntervalMqtt.toInt();
     ldrMin = ldrMinMqtt.toInt();
     if (ldrActionMqtt.toInt() == 2) {
@@ -1129,7 +1133,7 @@ bool NetworkManager::processLDR() {
       ledManager.setLdr(-1);
       delay(DELAY_500);
     }
-    ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true", ldrInterval, ldrMinMqtt.toInt());
+    ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true", ldrInterval, ldrMinMqtt.toInt(), ledOnMqtt == "true");
     delay(DELAY_1000);
     startUDP();
   }

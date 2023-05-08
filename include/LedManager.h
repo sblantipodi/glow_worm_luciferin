@@ -78,6 +78,7 @@ public:
     const String LDR_INTER_PARAM = "ldrInterval";
     const String MIN_LDR_PARAM = "minLdr";
     const String MAX_LDR_PARAM = "maxLdr";
+    const String LED_ON_PARAM = "ledOn";
     const String EFFECT_FILENAME = "effect.json";
     uint16_t dynamicLedNum = 511;
     byte red = 255;
@@ -133,7 +134,7 @@ public:
 
     static void setWhiteTemp(int whiteTemp);
 
-    void setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr);
+    void setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr, boolean ledOn);
 
     void setLdr(int maxLdr);
 

@@ -1053,7 +1053,7 @@ void LedManager::setColorOrder(int colorOrderToUse) {
  * @param ldrIntervalToSet Interval between readings
  * @param minLdr min brightness when using LDR
  */
-void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr) {
+void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr, boolean ledOn) {
 
   Serial.println(F("CHANGING LDR"));
   previousMillisLDR = 0;
@@ -1062,6 +1062,7 @@ void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_
   ldrDoc[LDR_TO_PARAM] = ldrTurnOffToSet;
   ldrDoc[LDR_INTER_PARAM] = ldrIntervalToSet;
   ldrDoc[MIN_LDR_PARAM] = minLdr;
+  ldrDoc[LED_ON_PARAM] = ledOn;
   BootstrapManager::writeToLittleFS(ldrDoc, LDR_FILENAME);
   delay(20);
 

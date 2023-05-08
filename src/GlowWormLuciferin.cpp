@@ -25,7 +25,6 @@
  * Setup function
  */
 void setup() {
-
   firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
@@ -111,7 +110,7 @@ void setup() {
   String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_INTER_PARAM);
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
-
+  String ledOnFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LED_ON_PARAM);
   if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
     ldrEnabled = ldrFromStorage == "1";
   }
@@ -175,8 +174,17 @@ void setup() {
   pingESP.ping();
 #endif
 #endif
-  bootTime = millis();
-
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  if (!ledOnFromStorage.isEmpty() && ledOnFromStorage != ERROR) {
+    ledOn = ledOnFromStorage == "1";
+    if (ledOn) {
+      Globals::turnOnRelay();
+      ledManager.stateOn = true;
+      effect = Effect::solid;
+      networkManager.setColor();
+    }
+  }
+#endif
 }
 
 /**
@@ -336,7 +344,7 @@ void mainLoop() {
       ldrTurnOff = ldrTo == 1;
       ldrInterval = ldrInt;
       ldrMin = ldrMn;
-      ledManager.setLdr(ldrEn == 1, ldrTo == 1, ldrInt, ldrMn);
+      ledManager.setLdr(ldrEn == 1, ldrTo == 1, ldrInt, ldrMn, ledOn);
       delay(DELAY_500);
       if (ldrAction == 2) {
         ldrDivider = ldrValue;
@@ -506,17 +514,15 @@ void loop() {
   } else if (lastState == LOW && btnState == HIGH) {
     releasedTime = millis();
     long pressDuration = releasedTime - pressedTime;
-    if (pressDuration > LONG_PRESS_TIME) {
-      if ((millis() - bootTime) > SB_BTN_DELAY) {
-        if (!ledManager.stateOn) {
-          Globals::turnOnRelay();
-          ledManager.stateOn = true;
-          networkManager.setColor();
-        } else {
-          ledManager.stateOn = false;
-          networkManager.setColor();
-          Globals::turnOffRelay();
-        }
+    if ((pressDuration > DEBOUNCE_PRESS_TIME) && (pressedTime > 0) && (pressDuration < SHORT_PRESS_TIME)) {
+      if (!ledManager.stateOn) {
+        Globals::turnOnRelay();
+        ledManager.stateOn = true;
+        networkManager.setColor();
+      } else {
+        ledManager.stateOn = false;
+        networkManager.setColor();
+        Globals::turnOffRelay();
       }
     }
   }
