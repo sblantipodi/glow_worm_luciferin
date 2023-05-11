@@ -899,7 +899,7 @@ void LedManager::initEsp32Rgbw() {
   if (colorOrder == 1) {
     Serial.println(F("Using DMA"));
     cleanLEDs();
-    ledsEsp32Rgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum,gpioInUse); // and recreate with new count
+    ledsEsp32Rgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Sk6812Method>(dynamicLedNum,gpioInUse); // and recreate with new count
     if (ledsEsp32Rgbw == NULL) {
       Serial.println(F("OUT OF MEMORY"));
     } else {
