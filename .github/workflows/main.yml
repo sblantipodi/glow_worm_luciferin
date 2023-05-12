@@ -64,7 +64,7 @@ jobs:
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
           
           
-          cp -R ./docs/static/firmware_build/* ./docs/static/firmware_build_previous/*;
+          cp -R ./docs/static/firmware_build/* ./docs/static/firmware_build_previous/;
           git add ./docs/static/firmware_build_previous/*;
           
           
