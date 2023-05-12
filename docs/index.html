@@ -1,6 +1,6 @@
 <html>
 <head>
-    <meta charSet="utf-8"/>
+    <meta charset="utf-8"/>
     <title>Luciferin</title>
     <meta name="description" content="Bias Lighting and Ambient Light firmware, designed for Firefly Luciferin"/>
     <meta name="viewport" content="width=device-width"/>
@@ -306,13 +306,13 @@
             fill: gray;
         }
 
-        .container {
+        .container{
             text-align: center;
             width: 100%;
         }
 
 
-        .dropdown-container {
+        .dropdown-container{
             text-align: center;
             width: 100%;
         }
@@ -321,8 +321,8 @@
 
 </head>
 <body>
-<div className="content">
-    <h1>Glow Worm Luciferin</h1><a href="https://github.com/sblantipodi/firefly_luciferin" className="logo"><img
+<div class="content">
+    <h1>Glow Worm Luciferin</h1><a href="https://github.com/sblantipodi/firefly_luciferin" class="logo"><img
         src="static/logos/luciferin_logo.png" alt="Luciferin"/></a>
 
     <p>
@@ -343,7 +343,7 @@
         To try it out and install <b>Glow Worm Luciferin firmware</b>, connect an ESP to
         your computer and hit the button:
     </p>
-    <div className="container">
+    <div class="container">
         <p>
             <esp-web-install-button id="inst_full"
                                     manifest="static/firmware_build/manifest_full.json">
@@ -359,9 +359,9 @@
                 <button slot="activate">INSTALL LIGHT</button>
             </esp-web-install-button>
         </p>
-        <div className="demo">
-            <div className="dropdown-container">
-                <select id="version" className="btn" onChange="setManifest()">
+        <div class="demo">
+            <div class="dropdown-container">
+                <select id="version" class="btn" onchange="setManifest()">
                     <option data-manifest="static/firmware_build/manifest_full.json"
                     >Latest version
                     </option>
@@ -372,14 +372,18 @@
                     >Previous version
                     </option>
                 </select>
-                <div className="select-icon">
-                    <svg focusable="false" viewBox="0 0 104 128" width="25" height="30" className="icon">
+                <div class="select-icon">
+                    <svg focusable="false" viewBox="0 0 104 128" width="25" height="30" class="icon">
                         <path d="m2e1 95a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm14 55h68v1e1h-68zm0-3e1h68v1e1h-68zm0-3e1h68v1e1h-68z"></path>
                     </svg>
                 </div>
             </div>
         </div>
+        <p>
+        <div id="firefly-download"><b>Firefly Luciferin <u>latest version</u> can be downloaded <a href="https://github.com/sblantipodi/glow_worm_luciferin">here</a></b></div>
+        </p>
     </div>
+
     <p>
         <i>
             This only works in desktop Chrome and Edge. If you don't see
@@ -390,7 +394,7 @@
         <b>PLEASE DISABLE ADD BLOCKER TO INSTALL FIRMWARE</b>
         <br>
     </p>
-    <div className="footer">
+    <div class="footer">
         <div>
             <a href="https://github.com/sblantipodi/glow_worm_luciferin">Glow Worm Luciferin</a> | <a
                 href="https://github.com/sblantipodi/firefly_luciferin">Firefly Luciferin</a>
@@ -406,10 +410,16 @@
         var sel = document.getElementById('version');
         var opt = sel.options[sel.selectedIndex];
         var full_manifest = opt.dataset.manifest;
+        console.log(full_manifest);
         var light_manifest = full_manifest;
         light_manifest = light_manifest.replace("manifest_full.json", "manifest_light.json");
-        console.log(full_manifest);
-        console.log(light_manifest);
+        if (full_manifest.includes("beta")) {
+            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>beta version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/actions\">here</a></b>";
+        } else if (full_manifest.includes("prev")) {
+            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>previous version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/releases\">here</a></b>";
+        } else {
+            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>latest version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/releases\">here</a></b>";
+        }
         document.getElementById('inst_full').setAttribute('manifest', full_manifest);
         document.getElementById('inst_light').setAttribute('manifest', light_manifest);
     }
