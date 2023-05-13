@@ -89,10 +89,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cp -R ./docs/static/firmware_build/* ./docs/static/firmware_build_previous/;
           mv ./GlowWormLuciferinFULL_ESP8266_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP8266_firmware.bin
           mv ./GlowWormLuciferinLIGHT_ESP8266_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP8266_firmware.bin
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
+          git add ./docs/static/firmware_build_previous/*;
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP8266_firmware.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP8266_firmware.bin;
           git commit -m "CI release for firmware web installer";

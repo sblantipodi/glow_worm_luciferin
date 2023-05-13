@@ -27,7 +27,7 @@
 #include "NetworkManager.h"
 
 #if defined(ESP32)
-#define RELAY_PIN_DIG 32 // equals to Q4
+#define RELAY_PIN_DIG 12 // equals to Q2
 #define RELAY_PIN_PICO 22
 #define LDR_PIN_DIG 36 // (ADC analog pin)
 #define LDR_PIN_PICO 33 // (ADC analog pin)
@@ -38,23 +38,38 @@
 #define LDR_DIVIDER 1024
 #endif
 #define DATA_PIN 5 // Wemos D1 Mini Lite PIN D5
-
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+#define SMART_BUTTON 0 // Smart button to turn on/off light
+#endif
 extern class BootstrapManager bootstrapManager;
+
 extern class EffectsManager effectsManager;
+
 extern class LedManager ledManager;
+
 extern class NetworkManager networkManager;
+
 extern class Helpers helper;
+
 extern class Globals globals;
 
 extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
-  fireflyColorMode, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction;
+        fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction;
 extern uint8_t prefixLength;
 
 extern uint8_t gpioInUse;
 extern uint8_t whiteTempInUse;
 extern uint8_t colorMode;
+extern uint8_t colorOrder;
 extern byte brightness;
-enum class Effect { GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow };
+extern byte rStored;
+extern byte gStored;
+extern byte bStored;
+extern byte brightnessStored;
+extern boolean autoSave;
+enum class Effect {
+    GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow
+};
 extern Effect effect;
 extern String ffeffect;
 extern float framerate;
@@ -62,11 +77,16 @@ extern float framerateCounter;
 extern uint lastStream;
 const String GPIO_PARAM = "gpio";
 const String GPIO_FILENAME = "gpio.json";
+const String AUTO_SAVE_FILENAME = "as.json";
+const String COLOR_BRIGHT_FILENAME = "cb.json";
+const String AP_FILENAME = "ap.json";
 const String BAUDRATE_PARAM = "baudrate";
+const String AP_PARAM = "ap";
 const String BAUDRATE_FILENAME = "baudrate.json";
 extern bool ldrReading;
 extern int ldrValue;
 extern bool ldrEnabled;
+extern bool ledOn;
 extern uint8_t ldrInterval;
 extern bool ldrTurnOff;
 extern uint8_t ldrMin;
@@ -77,17 +97,27 @@ extern unsigned long previousMillisLDR;
 extern uint8_t baudRateInUse;
 extern bool relayState;
 extern bool breakLoop;
+extern bool apFileRead;
+extern int disconnectionCounter;
 
 class Globals {
 
 public:
     static void setGpio(int gpio);
+
+    static void saveColorBrightnessInfo(int r, int g, int b, int brightness);
+
     static void setBaudRate(int bdRate);
+
     static int setBaudRateInUse(int bdrate);
+
     static void turnOffRelay();
+
     static void turnOnRelay();
+
     static void sendSerialInfo();
-    static const char* effectToString(Effect e);
+
+    static const char *effectToString(Effect e);
 
 };
 

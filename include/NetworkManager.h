@@ -31,13 +31,13 @@ const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one
 
 class NetworkManager {
 
-  public:
+public:
 
     WiFiUDP UDP;
     WiFiUDP broadcastUDP;
 
-    #define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
-    #define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
+#define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
+#define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
     char packet[UDP_MAX_BUFFER_SIZE];
     char packetBroadcast[UDP_MAX_BUFFER_SIZE];
     static const uint16_t FIRST_CHUNK = 170;
@@ -73,33 +73,62 @@ class NetworkManager {
     char STOP_FF[50] = "{\"state\":\"ON\",\"startStopInstances\":\"STOP\"}";
 
     void getUDPStream();
+
     static void fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]);
+
     static void fromMqttStreamToStrip(char *payload);
+
     static void httpCallback(bool (*callback)());
+
     void listenOnHttpGet();
+
     static void startUDP();
+
     static void stopUDP();
+
     static void swapTopicUnsubscribe();
-    static void swapTopicReplace(const String& customtopic);
+
+    static void swapTopicReplace(const String &customtopic);
+
     static void swapTopicSubscribe();
+
     static bool processUpdate();
+
     static bool processMqttUpdate();
+
     static bool processJson();
+
     static bool processFirmwareConfig();
+
     static bool processFirmwareConfigWithReboot();
+
     static bool processGlowWormLuciferinRebootCmnd();
+
     static bool processLDR();
+
     static bool processUnSubscribeStream();
+
     static void jsonStream(byte *payload, unsigned int length);
+
     static void manageDisconnections();
+
     static void manageQueueSubscription();
-    static void executeMqttSwap(const String& customtopic);
-    static void callback(char* topic, byte* payload, unsigned int length);
+
+    static void executeMqttSwap(const String &customtopic);
+
+    static void callback(char *topic, byte *payload, unsigned int length);
+
     static void manageHardwareButton();
+
     static void sendStatus();
+
     static void checkConnection();
+
     static void setLeds();
+
     static void setColor();
+
+    void manageAPSetting(bool isSettingRoot);
 };
 
 #endif //GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H

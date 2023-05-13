@@ -22,13 +22,17 @@
 //#define FASTLED_ALLOW_INTERRUPTS 0
 #define FASTLED_ESP32_I2S true
 #endif
+
 #include <FastLED.h>
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include "Version.h"
 #include "Globals.h"
+
 #if defined(ESP32)
+
 #include <esp_task_wdt.h>
+
 #elif defined(ESP8266)
 #include "PingESP.h"
 #endif
@@ -46,5 +50,18 @@ PingESP pingESP;
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
 CRGBPalette16 targetPalette(OceanColors_p);
 CRGBPalette16 currentPalette(CRGB::Black);
+byte btnState = LOW;
+byte lastState = LOW;
+unsigned long pressedTime  = 0;
+unsigned long releasedTime = 0;
+const int DEBOUNCE_PRESS_TIME  = 20;
+const int SHORT_PRESS_TIME  = 500;
 
 void mainLoop();
+
+static void manageApRoot();
+
+void setApState(byte state);
+
+void configureLeds();
+

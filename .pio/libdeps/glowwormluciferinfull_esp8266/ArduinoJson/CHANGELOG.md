@@ -1,6 +1,26 @@
 ArduinoJson: change log
 =======================
 
+v6.21.2 (2023-04-12)
+-------
+
+* Fix compatibility with the Zephyr Project (issue #1905)
+* Allow using PROGMEM outside of Arduino (issue #1903)
+* Set default for `ARDUINOJSON_ENABLE_PROGMEM` to `1` on AVR
+
+v6.21.1 (2023-03-27)
+-------
+
+* Double speed of `DynamicJsonDocument::garbageCollect()`
+* Fix compatibility with GCC 5.2 (issue #1897)
+
+v6.21.0 (2023-03-14)
+-------
+
+* Drop support for C++98/C++03. Minimum required is C++11.
+* Remove `ARDUINOJSON_NAMESPACE`; use `ArduinoJson` instead.
+* Make string support generic (issue #1807)
+
 v6.20.1 (2023-02-08)
 -------
 
