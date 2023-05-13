@@ -363,13 +363,13 @@
             <div class="dropdown-container">
                 <select id="version" class="btn" onchange="setManifest()">
                     <option data-manifest="static/firmware_build/manifest_full.json"
-                    >Latest version
+                    >Latest stable version
                     </option>
                     <option data-manifest="static/firmware_build_beta/manifest_full.json"
                     >Beta version
                     </option>
                     <option data-manifest="static/firmware_build_previous/manifest_full.json"
-                    >Previous version
+                    >Previous stable version
                     </option>
                 </select>
                 <div class="select-icon">
@@ -414,11 +414,11 @@
         var light_manifest = full_manifest;
         light_manifest = light_manifest.replace("manifest_full.json", "manifest_light.json");
         if (full_manifest.includes("beta")) {
-            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>beta version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/actions\">here</a></b>";
+            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>beta version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/actions\">here</a><br>NOTE: Using Glow Worm Luciferin beta version requires the latest Firefly Luciferin beta version. Please prefer the latest stable version unless you know exactly what you are doing.</b>";
         } else if (full_manifest.includes("prev")) {
-            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>previous version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/releases\">here</a></b>";
+            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>previous stable version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/releases\">here</a></b>";
         } else {
-            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>latest version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/releases\">here</a></b>";
+            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>latest stable version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/releases\">here</a></b>";
         }
         document.getElementById('inst_full').setAttribute('manifest', full_manifest);
         document.getElementById('inst_light').setAttribute('manifest', light_manifest);
