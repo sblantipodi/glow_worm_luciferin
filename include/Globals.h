@@ -120,6 +120,8 @@ public:
 
     static const char *effectToString(Effect e);
 
+    static const uint8_t effectToInt(Effect e);
+
 };
 
 

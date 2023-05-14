@@ -51,6 +51,8 @@ public:
 
     void colorWipe(int dynamicLedNum, byte red, byte green, byte blue);
 
+    static RgbColor Wheel(uint8_t WheelPos);
+
 };
 
 #endif //GLOW_WORM_LUCIFERIN_EFFECTSMANAGER_H

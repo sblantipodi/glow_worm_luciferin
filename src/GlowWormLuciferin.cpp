@@ -404,10 +404,10 @@ void mainLoop() {
           effect = Effect::bpm;
           break;
         case 10:
-          effect = Effect::mixed_rainbow;
+          effect = Effect::rainbow;
           break;
         case 11:
-          effect = Effect::rainbow;
+          effect = Effect::mixed_rainbow;
           break;
         case 12:
           effect = Effect::chase_rainbow;
@@ -445,8 +445,9 @@ void mainLoop() {
     }
     ledManager.lastLedUpdate = millis();
     framerateCounter++;
-    ledManager.ledShow();
-
+    if (effect != Effect::mixed_rainbow) {
+      ledManager.ledShow();
+    }
     // Flush serial buffer
     while (!breakLoop && Serial.available() > 0) {
       serialRead();

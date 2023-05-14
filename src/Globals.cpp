@@ -218,7 +218,7 @@ void Globals::sendSerialInfo() {
     Serial.printf("MAC:%s\n", MAC.c_str());
     Serial.printf("gpio:%d\n", gpioInUse);
     Serial.printf("baudrate:%d\n", baudRateInUse);
-    Serial.printf("effect:%s\n", effectToString(effect));
+    Serial.printf("effect:%d\n", Globals::effectToInt(effect));
     Serial.printf("colorMode:%d\n", colorMode);
     Serial.printf("colorOrder:%d\n", colorOrder);
     Serial.printf("white:%d\n", whiteTempInUse);
@@ -259,4 +259,29 @@ const char *Globals::effectToString(Effect e) {
       return "Solid";
   }
 
+}
+
+const uint8_t Globals::effectToInt(Effect e) {
+  switch (e) {
+    case Effect::bpm:
+      return 5;
+    case Effect::fire:
+      return 3;
+    case Effect::twinkle:
+      return 4;
+    case Effect::rainbow:
+      return 6;
+    case Effect::chase_rainbow:
+      return 7;
+    case Effect::solid_rainbow:
+      return 8;
+    case Effect::mixed_rainbow:
+      return 9;
+    case Effect::GlowWorm:
+      return 1;
+    case Effect::GlowWormWifi:
+      return 0;
+    default:
+      return 2;
+  }
 }
