@@ -21,12 +21,13 @@
 #define _DPSOFTWARE_GLOBALS_UTILS_H
 
 #include <Arduino.h>
+#include <lib8tion.h>
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
 #include "LedManager.h"
 #include "NetworkManager.h"
 
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
 #define RELAY_PIN_DIG 12 // equals to Q2
 #define RELAY_PIN_PICO 22
 #define LDR_PIN_DIG 36 // (ADC analog pin)

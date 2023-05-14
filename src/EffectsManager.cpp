@@ -20,6 +20,9 @@
 
 #include "EffectsManager.h"
 
+RgbColor color;
+uint8_t bmpPos = 0;
+
 /**
  * Fire effect
  * @param cooling config effect param
@@ -93,126 +96,153 @@ void EffectsManager::twinkleRandom(int count, int speedDelay, boolean onlyOne, i
 
 }
 
+byte * WheelByte(byte WheelPos) {
+  static byte c[3];
+
+  if(WheelPos < 85) {
+    c[0]=WheelPos * 3;
+    c[1]=255 - WheelPos * 3;
+    c[2]=0;
+  } else if(WheelPos < 170) {
+    WheelPos -= 85;
+    c[0]=255 - WheelPos * 3;
+    c[1]=0;
+    c[2]=WheelPos * 3;
+  } else {
+    WheelPos -= 170;
+    c[0]=0;
+    c[1]=WheelPos * 3;
+    c[2]=255 - WheelPos * 3;
+  }
+
+  return c;
+}
+
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+RgbColor Wheel(uint8_t WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if (WheelPos < 85) {
+    return RgbColor(255 - WheelPos * 3, 0, WheelPos * 3);
+  } else if (WheelPos < 170) {
+    WheelPos -= 85;
+    return RgbColor(0, WheelPos * 3, 255 - WheelPos * 3);
+  } else {
+    WheelPos -= 170;
+    return RgbColor(WheelPos * 3, 255 - WheelPos * 3, 0);
+  }
+}
+
+uint16_t iWipe;
+void EffectsManager::colorWipe(int dynamicLedNum, byte rw, byte gw, byte bw) {
+  if (iWipe < dynamicLedNum) {
+    if (millis() - lastAnim >= 15) {
+      lastAnim = millis();
+      ledManager.setPixelColor(iWipe, rw, gw, bw);
+      ledManager.ledShow();
+      iWipe++;
+
+    }
+  } else {
+    iWipe = 0;
+    if (bmpPos >= 5) {
+      bmpPos = -1;
+    }
+    bmpPos++;
+  }
+}
+
 /**
  * Theater chase rainbow effect
  * @param dynamicLedNum number of leds
  */
 void EffectsManager::theaterChaseRainbow(int dynamicLedNum) {
 
-  // cycle all 256 colors in the wheel
-  for (int j = 0; j < 256; j++) {
-    for (int q = 0; q < 3; q++) {
-      for (int i = 0; i < dynamicLedNum; i = i + 3) {
-        static byte c[3];
-        byte wheelPos = (i + j) % 255;
-        if (wheelPos < 85) {
-          c[0] = wheelPos * 3;
-          c[1] = 255 - wheelPos * 3;
-          c[2] = 0;
-        } else if (wheelPos < 170) {
-          wheelPos -= 85;
-          c[0] = 255 - wheelPos * 3;
-          c[1] = 0;
-          c[2] = wheelPos * 3;
-        } else {
-          wheelPos -= 170;
-          c[0] = 0;
-          c[1] = wheelPos * 3;
-          c[2] = 255 - wheelPos * 3;
-        }
-        //turn every third pixel on
-        ledManager.setPixelColor(i + q, *c, *(c + 1), *(c + 2));
-      }
-      ledManager.ledShow();
-      delay(1);
-      for (int i = 0; i < dynamicLedNum; i = i + 3) {
-        //turn every third pixel off
-        ledManager.setPixelColor(i + q, 0, 0, 0);
-      }
-    }
+  switch (bmpPos) {
+    case 0: colorWipe(dynamicLedNum, 0, 255, 255); break;
+    case 1: colorWipe(dynamicLedNum, 0, 255, 0); break;
+    case 2: colorWipe(dynamicLedNum, 255, 255, 0); break;
+    case 3: colorWipe(dynamicLedNum, 255, 0, 0); break;
+    case 4: colorWipe(dynamicLedNum, 255, 0, 255); break;
+    case 5: colorWipe(dynamicLedNum, 0, 0, 255); break;
   }
+
 }
 
 /**
  * Mixed Rainbow effect
  * @param dynamicLedNum number of leds
  */
+uint16_t jMixed = 0;
+uint16_t Mixed = 0;
 void EffectsManager::mixedRainbow(int dynamicLedNum) {
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (millis() - lastAnim >= 10) {
-    lastAnim = millis();
-    mixedRainboxIndex++;
+  byte *c;
+  if (Mixed == 3) {
+    jMixed++;
   }
-#elif TARGET_GLOWWORMLUCIFERINLIGHT
-  mixedRainboxIndex++;
-#endif
-  if (mixedRainboxIndex < 256) {
-    for (int i = 0; i < dynamicLedNum; i++) {
-      ledManager.leds[i] = scroll((i * 256 / dynamicLedNum + mixedRainboxIndex) % 256);
-      ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-      NetworkManager::checkConnection();
-#endif
+  if (jMixed < 256) {     // cycle all 256 colors in the wheel
+    if (Mixed < 3) {
+      if (millis() - lastAnim >= 50) {
+        lastAnim = millis();
+        for (int i = 0; i < dynamicLedNum; i = i + 3) {
+          c = WheelByte((i + jMixed) % 255);
+          ledManager.setPixelColor(i + Mixed, *c, *(c + 1), *(c + 2));    //turn every third pixel on
+        }
+        ledManager.ledShow();
+        for (int i = 0; i < dynamicLedNum; i = i + 3) {
+          ledManager.setPixelColor(i + Mixed, 0, 0, 0);        //turn every third pixel off
+        }
+        Mixed++;
+      }
+    } else {
+      Mixed = 0;
     }
-    ledManager.ledShow();
   } else {
-    mixedRainboxIndex = 0;
+    jMixed = 0;
   }
 
 }
 
-/**
- * Scroll effect WS2812B LED Strip switches Red and Green
- * @param pos config param
- * @return color
- */
-CRGB EffectsManager::scroll(int pos) {
-  CRGB color(0, 0, 0);
-  if (pos < 85) {
-    color.g = 0;
-    color.r = (uint8_t) (((float) pos / 85.0f) * 255.0f);
-    color.b = 255 - color.r;
-  } else if (pos < 170) {
-    color.g = (uint8_t) (((float) (pos - 85) / 85.0f) * 255.0f);
-    color.r = 255 - color.g;
-    color.b = 0;
-  } else if (pos < 256) {
-    color.b = (uint8_t) (((float) (pos - 170) / 85.0f) * 255.0f);
-    color.g = 255 - color.b;
-    color.r = 1;
+void setAll(int dynamicLedNum, byte red, byte green, byte blue) {
+  for(int i = 0; i < dynamicLedNum; i++ ) {
+    ledManager.setPixelColor(i, red, green, blue);
   }
-  return color;
+  ledManager.ledShow();
+}
+
+void FadeInOut(int dynamicLedNum, byte red, byte green, byte blue){
+  float r, g, b;
+
+  for(int k = 0; k < 256; k=k+1) {
+    r = (k/256.0)*red;
+    g = (k/256.0)*green;
+    b = (k/256.0)*blue;
+    setAll(dynamicLedNum, r,g,b);
+    ledManager.ledShow();
+  }
+
+  for(int k = 255; k >= 0; k=k-2) {
+    r = (k/256.0)*red;
+    g = (k/256.0)*green;
+    b = (k/256.0)*blue;
+    setAll(dynamicLedNum, r,g,b);
+    ledManager.ledShow();
+  }
+  bmpPos += 10;
+  if (bmpPos > 255) {
+    bmpPos = 0;
+  }
+
 }
 
 /**
  * BPM effect
- * @param currentPalette config param
- * @param targetPalette config param
  */
-void EffectsManager::bpm(CRGBPalette16 currentPalette, CRGBPalette16 targetPalette) {
+void EffectsManager::bpm(int dynamicLedNum) {
 
-  uint8_t BeatsPerMinute = 62;
-  CRGBPalette16 palette = PartyColors_p;
-  uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
-  for (int i = 0; i < NUM_LEDS; i++) { //9948
-    ledManager.leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-    ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
-  }
-  ledManager.ledShow();
-
-  EVERY_N_MILLISECONDS(10) {
-    nblendPaletteTowardPalette(currentPalette, targetPalette, maxChanges);  // FOR NOISE ANIMATIon
-    {
-      gHue++;
-    }
-  }
-  EVERY_N_SECONDS(5) {
-    targetPalette = CRGBPalette16(CHSV(random16(), 255, random16(128, 255)),
-                                  CHSV(random16(), 255, random16(128, 255)),
-                                  CHSV(random16(), 192, random16(128, 255)),
-                                  CHSV(random16(), 255, random16(128, 255)));
-  }
+  color = Wheel(bmpPos);
+  FadeInOut(dynamicLedNum, color.R, color.G, color.B);
 
 }
 
@@ -220,15 +250,23 @@ void EffectsManager::bpm(CRGBPalette16 currentPalette, CRGBPalette16 targetPalet
  * Rainbow effect
  * @param dynamicLedNum number of leds
  */
+byte *cT;
+uint16_t iT, jT;
 void EffectsManager::rainbow(int dynamicLedNum) {
 
-  // FastLED's built-in rainbow generator
-  thishue++;
-  fill_rainbow(ledManager.leds, dynamicLedNum, thishue, deltahue);
-  for (int i = 0; i < dynamicLedNum; i++) {
-    ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
+  if (jT<256*5) { // 5 cycles of all colors on wheel
+    if (millis() - lastAnim >= 2) {
+      lastAnim = millis();
+      for (iT = 0; iT < dynamicLedNum; iT++) {
+        cT = WheelByte(((iT * 256 / dynamicLedNum) + jT) & 255);
+        ledManager.setPixelColor(iT, *cT, *(cT + 1), *(cT + 2));
+      }
+      ledManager.ledShow();
+      jT++;
+    }
+  } else {
+    jT = 0;
   }
-  ledManager.ledShow();
 
 }
 
@@ -236,18 +274,27 @@ void EffectsManager::rainbow(int dynamicLedNum) {
  * Solid rainbow effect
  * @param dynamicLedNum number of leds
  */
+int xSolidRainbow = 0;
+int ySolidRainbow = 0;
 void EffectsManager::solidRainbow(int dynamicLedNum) {
 
-  // FastLED's built-in rainbow generator
-  fill_solid(ledManager.leds, dynamicLedNum, CHSV(thishue, 255, 255));
-  fill_solid(ledManager.leds, dynamicLedNum, CHSV(thishue, 255, 255));
-  for (int i = 0; i < dynamicLedNum; i++) {
-    ledManager.setPixelColor(i, ledManager.leds[i].r, ledManager.leds[i].g, ledManager.leds[i].b);
+  if (xSolidRainbow <= 9) { //9 cycles of rainbow color
+    if (ySolidRainbow < 360) {//360 shades - NeoPixelBus uses float
+      if (millis() - lastAnim >= 100) {
+        lastAnim = millis();
+        RgbColor rgb = RgbColor(HslColor(ySolidRainbow / 360.0f, 1.0f, 0.25f));
+        for (int i = 0; i < dynamicLedNum; i++) {
+          ledManager.setPixelColor(i, rgb.R, rgb.G, rgb.B);
+        }
+        ledManager.ledShow();
+        ySolidRainbow++;
+        xSolidRainbow++;
+      }
+    } else {
+      ySolidRainbow = 0;
+    }
+  } else {
+    xSolidRainbow = 0;
   }
-  if (millis() - lastAnimSolidRainbow >= 90) {
-    lastAnimSolidRainbow = millis();
-    thishue++;
-  }
-  ledManager.ledShow();
 
 }

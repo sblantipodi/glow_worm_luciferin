@@ -148,14 +148,14 @@ void setup() {
 #if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
-#elif defined(ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
   pinMode(RELAY_PIN_DIG, OUTPUT);
   digitalWrite(RELAY_PIN_DIG, LOW);
   pinMode(RELAY_PIN_PICO, OUTPUT);
   digitalWrite(RELAY_PIN_PICO, LOW);
 #endif
 
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
   esp_task_wdt_init(3000, true); //enable panic so ESP32 restarts
   esp_task_wdt_add(NULL); //add current thread to WDT watch
 #endif
@@ -366,7 +366,7 @@ void mainLoop() {
     }
     if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 8)) {
       Globals::setBaudRate(baudRate);
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
       ESP.restart();
 #elif defined(ESP8266)
       EspClass::restart();
@@ -465,7 +465,7 @@ void mainLoop() {
 
   //EFFECT BPM
   if (effect == Effect::bpm) {
-    effectsManager.bpm(currentPalette, targetPalette);
+    effectsManager.bpm(ledManager.dynamicLedNum);
   }
 
   //EFFECT RAINBOW
@@ -490,7 +490,7 @@ void mainLoop() {
 
   //CHASE RAINBOW
   if (effect == Effect::chase_rainbow) {
-    EffectsManager::theaterChaseRainbow(ledManager.dynamicLedNum);
+    effectsManager.theaterChaseRainbow(ledManager.dynamicLedNum);
   }
 
   //MIXED RAINBOW
@@ -556,7 +556,7 @@ void loop() {
   }
 #endif
 #endif
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
   EVERY_N_MILLISECONDS(3000) {
     esp_task_wdt_reset();
   }
@@ -578,7 +578,7 @@ void loop() {
       if ((ldrInterval == 0) || ((millis() - previousMillisLDR) >= LDR_RECOVER_TIME)) {
 #if defined(ESP8266)
         ldrValue = analogRead(LDR_PIN);
-#elif defined(ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
         int tmpLdrVal = analogRead(LDR_PIN_DIG);
         ldrValue = analogRead(LDR_PIN_PICO);
         if (tmpLdrVal > ldrValue) ldrValue = tmpLdrVal;

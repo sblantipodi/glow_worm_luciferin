@@ -61,7 +61,6 @@ public:
     String topicInUse = "glowwormluciferin";
     const String MQTT_PARAM = "mqttopic";
     const String TOPIC_FILENAME = "topic.json";
-    bool JSON_STREAM = false; // DEPRECATED
     bool servingWebPages = false;
 
     IPAddress remoteBroadcastPort;
@@ -107,8 +106,6 @@ public:
     static bool processLDR();
 
     static bool processUnSubscribeStream();
-
-    static void jsonStream(byte *payload, unsigned int length);
 
     static void manageDisconnections();
 

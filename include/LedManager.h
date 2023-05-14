@@ -35,7 +35,7 @@ class LedManager {
 
 public:
 
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
     // GRB
     NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1Ws2812xMethod> *ledsEsp32 = NULL; // Hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Sk6812Method> *ledsEsp32Rgbw = NULL; // Hardware, ALL GPIO, yes serial read/write
@@ -66,7 +66,6 @@ public:
     NeoPixelBus<NeoBgrFeature, NeoEsp8266Uart1800KbpsMethod> *ledsUartBgr = NULL; // Hardware UART, GPIO2, yes serial read/write
     NeoPixelBus<NeoBgrFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandardBgr = NULL; // No hardware, ALL GPIO, yes serial read/write
 #endif
-    CRGB leds[511];
     const String COLOR_MODE_FILENAME = "color_mode.json";
     const String COLOR_ORDER_FILENAME = "color_order.json";
     const String COLOR_MODE_PARAM = "colorMode";

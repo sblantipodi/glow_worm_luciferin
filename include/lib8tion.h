@@ -1,13 +1,8 @@
 #ifndef __INC_LIB8TION_H
 #define __INC_LIB8TION_H
 
-#include "FastLED.h"
-
-#ifndef __INC_LED_SYSDEFS_H
-#error WTH?  led_sysdefs needs to be included first
-#endif
-
-FASTLED_NAMESPACE_BEGIN
+#ifndef LIB8TION_H
+#define LIB8TION_H
 
 /*
 
@@ -1161,7 +1156,8 @@ typedef CEveryNTimePeriods<uint8_t,hours8> CEveryNHours;
 #define EVERY_N_MILLISECONDS(N) EVERY_N_MILLIS(N)
 #define EVERY_N_MILLISECONDS_I(NAME,N) EVERY_N_MILLIS_I(NAME,N)
 
-FASTLED_NAMESPACE_END
 ///@}
 
 #endif
+
+#endif //GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H

@@ -166,7 +166,7 @@ void Globals::turnOnRelay() {
     relayState = true;
 #if defined(ESP8266)
     digitalWrite(RELAY_PIN, HIGH);
-#elif defined(ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
     digitalWrite(RELAY_PIN_DIG, HIGH);
     digitalWrite(RELAY_PIN_PICO, HIGH);
 #endif
@@ -185,7 +185,7 @@ void Globals::turnOffRelay() {
     delay(100);
 #if defined(ESP8266)
     digitalWrite(RELAY_PIN, LOW);
-#elif defined(ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
     digitalWrite(RELAY_PIN_DIG, LOW);
     digitalWrite(RELAY_PIN_PICO, LOW);
 #endif
@@ -210,7 +210,7 @@ void Globals::sendSerialInfo() {
 #endif
     Serial.printf("ver:%s\n", VERSION);
     Serial.printf("lednum:%d\n", ledManager.dynamicLedNum);
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
     Serial.printf("board:%s\n", "ESP32");
 #elif defined(ESP8266)
     Serial.printf("board:%s\n", "ESP8266");
@@ -218,7 +218,7 @@ void Globals::sendSerialInfo() {
     Serial.printf("MAC:%s\n", MAC.c_str());
     Serial.printf("gpio:%d\n", gpioInUse);
     Serial.printf("baudrate:%d\n", baudRateInUse);
-    Serial.printf("effect:%d\n", effect);
+    Serial.printf("effect:%s\n", effectToString(effect));
     Serial.printf("colorMode:%d\n", colorMode);
     Serial.printf("colorOrder:%d\n", colorOrder);
     Serial.printf("white:%d\n", whiteTempInUse);

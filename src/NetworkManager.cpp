@@ -416,7 +416,7 @@ void NetworkManager::setLeds() {
   } else {
 #if defined(ESP8266)
     if (networkManager.remoteBroadcastPort.isSet()) {
-#elif defined(ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
     if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
       networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
@@ -470,11 +470,7 @@ void NetworkManager::callback(char *topic, byte *payload, unsigned int length) {
 
   if (networkManager.streamTopic.equals(topic)) {
     if (effect == Effect::GlowWormWifi) {
-      if (networkManager.JSON_STREAM) {
-        jsonStream(payload, length);
-      } else {
-        fromMqttStreamToStrip(reinterpret_cast<char *>(payload));
-      }
+      fromMqttStreamToStrip(reinterpret_cast<char *>(payload));
     }
   } else {
     bootstrapManager.jsonDoc.clear();
@@ -562,92 +558,6 @@ void NetworkManager::fromMqttStreamToStrip(char *payload) {
     framerateCounter++;
     lastStream = millis();
     ledManager.ledShow();
-  }
-
-}
-
-/**
- * [DEPRECATED] Stream RGB in JSON format
- * NOT: JSON stream requires:
- *  - '-D MAX_JSON_OBJECT_SIZE=200'
- *  - '-D SMALL_JSON_OBJECT_SIZE=50'
- *  - '-D MQTT_MAX_PACKET_SIZE=2048'
- */
-void NetworkManager::jsonStream(byte *payload, unsigned int length) {
-
-  bootstrapManager.jsonDocBigSize.clear();
-  deserializeJson(bootstrapManager.jsonDocBigSize, (const byte *) payload, length);
-  int numLedFromLuciferin = bootstrapManager.jsonDocBigSize[LED_NUM_PARAM];
-  if (numLedFromLuciferin == 0) {
-    effect = Effect::solid;
-  } else {
-    if (ledManager.dynamicLedNum != numLedFromLuciferin) {
-      LedManager::setNumLed(numLedFromLuciferin);
-    }
-    // (ledManager.leds, 0, (ledManager.dynamicLedNum) * sizeof(struct CRGB));
-    JsonArray stream = bootstrapManager.jsonDocBigSize["stream"];
-    if (ledManager.dynamicLedNum < FIRST_CHUNK) {
-      for (uint16_t i = 0; i < ledManager.dynamicLedNum; i++) {
-        int rgb = stream[i];
-        ledManager.leds[i].r = (rgb >> 16 & 0xFF);
-        ledManager.leds[i].g = (rgb >> 8 & 0xFF);
-        ledManager.leds[i].b = (rgb >> 0 & 0xFF);
-      }
-      FastLED.show();
-    } else {
-      if (ledManager.dynamicLedNum >= FIRST_CHUNK) {
-        part = bootstrapManager.jsonDocBigSize["part"];
-      }
-      if (part == 1) {
-        for (uint16_t i = 0; i < FIRST_CHUNK; i++) {
-          int rgb = stream[i];
-          ledManager.leds[i].r = (rgb >> 16 & 0xFF);
-          ledManager.leds[i].g = (rgb >> 8 & 0xFF);
-          ledManager.leds[i].b = (rgb >> 0 & 0xFF);
-        }
-      } else if (part == 2) {
-        int j = 0;
-        for (uint16_t i = FIRST_CHUNK; i >= FIRST_CHUNK && i < SECOND_CHUNK; i++) {
-          int rgb = stream[j];
-          ledManager.leds[i].r = (rgb >> 16 & 0xFF);
-          ledManager.leds[i].g = (rgb >> 8 & 0xFF);
-          ledManager.leds[i].b = (rgb >> 0 & 0xFF);
-          j++;
-        }
-        if (ledManager.dynamicLedNum < SECOND_CHUNK) {
-          FastLED.show();
-        }
-      } else if (part == 3) {
-        int j = 0;
-        for (uint16_t i = SECOND_CHUNK; i >= SECOND_CHUNK && i < THIRD_CHUNK; i++) {
-          int rgb = stream[j];
-          ledManager.leds[i].r = (rgb >> 16 & 0xFF);
-          ledManager.leds[i].g = (rgb >> 8 & 0xFF);
-          ledManager.leds[i].b = (rgb >> 0 & 0xFF);
-          j++;
-        }
-        if (ledManager.dynamicLedNum < THIRD_CHUNK) {
-          FastLED.show();
-        }
-      } else if (part == 4) {
-        int j = 0;
-        for (int16_t i = THIRD_CHUNK; i >= THIRD_CHUNK && i < NUM_LEDS; i++) {
-          int rgb = stream[j];
-          ledManager.leds[i].r = (rgb >> 16 & 0xFF);
-          ledManager.leds[i].g = (rgb >> 8 & 0xFF);
-          ledManager.leds[i].b = (rgb >> 0 & 0xFF);
-          j++;
-        }
-        FastLED.show();
-      }
-    }
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-    if ((ledManager.dynamicLedNum < FIRST_CHUNK) || (ledManager.dynamicLedNum < SECOND_CHUNK && part == 2)
-        || (ledManager.dynamicLedNum < THIRD_CHUNK && part == 3) || (part == 4)) {
-      framerateCounter++;
-    }
-#endif
-    lastStream = millis();
   }
 
 }
@@ -741,7 +651,7 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   Globals::setBaudRateInUse(br.toInt());
   Globals::setBaudRate(baudRateInUse);
   delay(DELAY_1000);
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
   ESP.restart();
 #elif defined(ESP8266)
   EspClass::restart();
@@ -794,7 +704,7 @@ bool NetworkManager::processFirmwareConfig() {
         ledManager.initLeds();
       }
       if (espRestart) {
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
         ESP.restart();
 #elif defined(ESP8266)
         EspClass::restart();
@@ -939,7 +849,7 @@ void NetworkManager::sendStatus() {
     } else {
 #if defined(ESP8266)
       if (networkManager.remoteBroadcastPort.isSet()) {
-#elif defined(ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
       if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
         networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
@@ -972,7 +882,7 @@ void NetworkManager::sendStatus() {
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
     root[F("board")] = F("ESP8266");
-#elif defined(ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
     root["board"] = "ESP32";
 #endif
     root[LED_NUM_PARAM] = String(ledManager.dynamicLedNum);
@@ -992,7 +902,7 @@ void NetworkManager::sendStatus() {
       serializeJson(root, output);
 #if defined(ESP8266)
       if (networkManager.remoteBroadcastPort.isSet()) {
-#elif defined(ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
       if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
         networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
@@ -1036,7 +946,7 @@ bool NetworkManager::processUpdate() {
         } else {
 #if defined(ESP8266)
           if (networkManager.remoteBroadcastPort.isSet()) {
-#elif defined(ESP32)
+#elif defined(ARDUINO_ARCH_ESP32)
           if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
 #endif
             networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
@@ -1046,7 +956,7 @@ bool NetworkManager::processUpdate() {
         }
       }
       delay(DELAY_500);
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
       ESP.restart();
 #elif defined(ESP8266)
       EspClass::restart();
@@ -1055,7 +965,7 @@ bool NetworkManager::processUpdate() {
       HTTPUpload &upload = server.upload();
       if (upload.status == UPLOAD_FILE_START) {
         Serial.printf("Update: %s\n", upload.filename.c_str());
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
         updateSize = UPDATE_SIZE_UNKNOWN;
 #elif defined(ESP8266)
         updateSize = 480000;
@@ -1095,7 +1005,7 @@ bool NetworkManager::processGlowWormLuciferinRebootCmnd() {
     ledManager.stateOn = false;
     sendStatus();
     delay(1500);
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
     ESP.restart();
 #elif defined(ESP8266)
     EspClass::restart();

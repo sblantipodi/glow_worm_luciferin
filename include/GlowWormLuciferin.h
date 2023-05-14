@@ -17,19 +17,19 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
 //#define FASTLED_INTERRUPT_RETRY_COUNT 0
 //#define FASTLED_ALLOW_INTERRUPTS 0
 #define FASTLED_ESP32_I2S true
 #endif
 
-#include <FastLED.h>
+#include <Arduino.h>
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include "Version.h"
 #include "Globals.h"
 
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
 
 #include <esp_task_wdt.h>
 
@@ -37,7 +37,7 @@
 #include "PingESP.h"
 #endif
 
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
 TaskHandle_t handleTcpTask = NULL; // fast TCP task pinned to CORE0
 TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
 #elif defined(ESP8266)
@@ -48,8 +48,6 @@ PingESP pingESP;
 #define COLOR_ORDER GRB
 
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
-CRGBPalette16 targetPalette(OceanColors_p);
-CRGBPalette16 currentPalette(CRGB::Black);
 byte btnState = LOW;
 byte lastState = LOW;
 unsigned long pressedTime  = 0;
@@ -59,7 +57,7 @@ const int SHORT_PRESS_TIME  = 500;
 
 void mainLoop();
 
-static void manageApRoot();
+void manageApRoot();
 
 void setApState(byte state);
 

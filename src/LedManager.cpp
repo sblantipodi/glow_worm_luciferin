@@ -1,6 +1,3 @@
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunknown-pragmas"
-#pragma ide diagnostic ignored "hicpp-multiway-paths-covered"
 /*
   LedManager.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
@@ -28,7 +25,7 @@
  */
 void LedManager::ledShow() const {
 
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
   if (colorOrder == 1) {
     switch (colorMode) {
       case 1:
@@ -306,7 +303,7 @@ void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) 
         break;
     }
   }
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
   if (colorOrder == 1) {
     switch (colorMode) {
       case 1:
@@ -428,7 +425,7 @@ void LedManager::cleanLEDs() {
 void LedManager::cleanGrb() {
 
   boolean cleared = false;
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
   if (ledsEsp32 != NULL) {
     while (!ledsEsp32->CanShow()) { yield(); }
     cleared = true;
@@ -488,7 +485,7 @@ void LedManager::cleanGrb() {
 void LedManager::cleanRgb() {
 
   boolean cleared = false;
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
   if (ledsEsp32Inverted != NULL) {
     while (!ledsEsp32Inverted->CanShow()) { yield(); }
     cleared = true;
@@ -548,7 +545,7 @@ void LedManager::cleanRgb() {
 void LedManager::cleanBgr() {
 
   boolean cleared = false;
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
   if (ledsEsp32Bgr != NULL) {
     while (!ledsEsp32Bgr->CanShow()) { yield(); }
     cleared = true;
@@ -845,7 +842,7 @@ void LedManager::initDmaRgbw() {
  */
 void LedManager::initEsp32() {
 
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
   if (colorOrder == 1) {
     Serial.println(F("Using DMA"));
     cleanLEDs();
@@ -895,7 +892,7 @@ void LedManager::initEsp32() {
  */
 void LedManager::initEsp32Rgbw() {
 
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_ESP32)
   if (colorOrder == 1) {
     Serial.println(F("Using DMA"));
     cleanLEDs();
