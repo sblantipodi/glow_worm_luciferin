@@ -148,9 +148,12 @@ void setup() {
 #if defined(ESP8266)
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW);
-#elif defined(ARDUINO_ARCH_ESP32)
-  pinMode(RELAY_PIN_DIG, OUTPUT);
-  digitalWrite(RELAY_PIN_DIG, LOW);
+#endif
+#if defined(ARDUINO_ARCH_ESP32)
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW);
+#endif
+#if CONFIG_IDF_TARGET_ESP32
   pinMode(RELAY_PIN_PICO, OUTPUT);
   digitalWrite(RELAY_PIN_PICO, LOW);
 #endif
@@ -211,6 +214,9 @@ void configureLeds() {
       break;
     case 16:
       gpioInUse = 16;
+      break;
+    case 6:
+      gpioInUse = 6;
       break;
     default:
       gpioInUse = 2;
@@ -335,7 +341,7 @@ void mainLoop() {
     if ((usbBrightness != brightness) & !ldrEnabled) {
       brightness = usbBrightness;
     }
-    if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 3 || gpio == 5 || gpio == 16)) {
+    if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 3 || gpio == 5 || gpio == 6 || gpio == 16)) {
       Globals::setGpio(gpio);
       ledManager.reinitLEDTriggered = true;
     }
@@ -579,8 +585,15 @@ void loop() {
       if ((ldrInterval == 0) || ((millis() - previousMillisLDR) >= LDR_RECOVER_TIME)) {
 #if defined(ESP8266)
         ldrValue = analogRead(LDR_PIN);
-#elif defined(ARDUINO_ARCH_ESP32)
-        int tmpLdrVal = analogRead(LDR_PIN_DIG);
+#endif
+#if CONFIG_IDF_TARGET_ESP32C3
+        ldrValue = analogRead(LDR_PIN);
+#elif CONFIG_IDF_TARGET_ESP32S2
+        ldrValue = analogRead(LDR_PIN);
+#elif CONFIG_IDF_TARGET_ESP32S3
+        ldrValue = analogRead(LDR_PIN);
+#elif CONFIG_IDF_TARGET_ESP32
+        int tmpLdrVal = analogRead(LDR_PIN);
         ldrValue = analogRead(LDR_PIN_PICO);
         if (tmpLdrVal > ldrValue) ldrValue = tmpLdrVal;
 #endif

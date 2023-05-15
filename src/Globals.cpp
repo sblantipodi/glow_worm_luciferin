@@ -166,8 +166,11 @@ void Globals::turnOnRelay() {
     relayState = true;
 #if defined(ESP8266)
     digitalWrite(RELAY_PIN, HIGH);
-#elif defined(ARDUINO_ARCH_ESP32)
-    digitalWrite(RELAY_PIN_DIG, HIGH);
+#endif
+#if defined(ARDUINO_ARCH_ESP32)
+    digitalWrite(RELAY_PIN, HIGH);
+#endif
+#if CONFIG_IDF_TARGET_ESP32
     digitalWrite(RELAY_PIN_PICO, HIGH);
 #endif
     delay(100);
@@ -185,8 +188,11 @@ void Globals::turnOffRelay() {
     delay(100);
 #if defined(ESP8266)
     digitalWrite(RELAY_PIN, LOW);
-#elif defined(ARDUINO_ARCH_ESP32)
-    digitalWrite(RELAY_PIN_DIG, LOW);
+#endif
+#if defined(ARDUINO_ARCH_ESP32)
+    digitalWrite(RELAY_PIN, LOW);
+#endif
+#if CONFIG_IDF_TARGET_ESP32
     digitalWrite(RELAY_PIN_PICO, LOW);
 #endif
   }
@@ -210,10 +216,17 @@ void Globals::sendSerialInfo() {
 #endif
     Serial.printf("ver:%s\n", VERSION);
     Serial.printf("lednum:%d\n", ledManager.dynamicLedNum);
-#if defined(ARDUINO_ARCH_ESP32)
-    Serial.printf("board:%s\n", "ESP32");
-#elif defined(ESP8266)
+#if defined(ESP8266)
     Serial.printf("board:%s\n", "ESP8266");
+#endif
+#if CONFIG_IDF_TARGET_ESP32C3
+    Serial.printf("board:%s\n", "ESP32_C3");
+#elif CONFIG_IDF_TARGET_ESP32S2
+    Serial.printf("board:%s\n", "ESP32_S2");
+#elif CONFIG_IDF_TARGET_ESP32S3
+    Serial.printf("board:%s\n", "ESP32_S3");
+#elif CONFIG_IDF_TARGET_ESP32
+    Serial.printf("board:%s\n", "ESP32");
 #endif
     Serial.printf("MAC:%s\n", MAC.c_str());
     Serial.printf("gpio:%d\n", gpioInUse);

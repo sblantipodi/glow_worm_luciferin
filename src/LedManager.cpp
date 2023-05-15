@@ -846,7 +846,7 @@ void LedManager::initEsp32() {
   if (colorOrder == 1) {
     Serial.println(F("Using DMA"));
     cleanLEDs();
-    ledsEsp32 = new NeoPixelBus<NeoGrbFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
+    ledsEsp32 = new NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
     if (ledsEsp32 == NULL) {
       Serial.println(F("OUT OF MEMORY"));
     } else {
@@ -859,7 +859,7 @@ void LedManager::initEsp32() {
   } else if (colorOrder == 2) {
     Serial.println(F("Using DMA"));
     cleanLEDs();
-    ledsEsp32Inverted = new NeoPixelBus<NeoRgbFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum,gpioInUse); // and recreate with new count
+    ledsEsp32Inverted = new NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod>(dynamicLedNum,gpioInUse); // and recreate with new count
     if (ledsEsp32Inverted == NULL) {
       Serial.println(F("OUT OF MEMORY"));
     } else {
@@ -872,7 +872,7 @@ void LedManager::initEsp32() {
   } else if (colorOrder == 3) {
     Serial.println(F("Using DMA"));
     cleanLEDs();
-    ledsEsp32Bgr = new NeoPixelBus<NeoBgrFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum,gpioInUse); // and recreate with new count
+    ledsEsp32Bgr = new NeoPixelBus<NeoBgrFeature, Neo800KbpsMethod>(dynamicLedNum,gpioInUse); // and recreate with new count
     if (ledsEsp32Bgr == NULL) {
       Serial.println(F("OUT OF MEMORY"));
     } else {
@@ -896,7 +896,7 @@ void LedManager::initEsp32Rgbw() {
   if (colorOrder == 1) {
     Serial.println(F("Using DMA"));
     cleanLEDs();
-    ledsEsp32Rgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp32I2s1Sk6812Method>(dynamicLedNum,gpioInUse); // and recreate with new count
+    ledsEsp32Rgbw = new NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod>(dynamicLedNum,gpioInUse); // and recreate with new count
     if (ledsEsp32Rgbw == NULL) {
       Serial.println(F("OUT OF MEMORY"));
     } else {
@@ -909,7 +909,7 @@ void LedManager::initEsp32Rgbw() {
   } else if (colorOrder == 2) {
     Serial.println(F("Using DMA"));
     cleanLEDs();
-    ledsEsp32RgbwInverted = new NeoPixelBus<NeoRgbwFeature, NeoEsp32I2s1Ws2812xMethod>(dynamicLedNum,gpioInUse); // and recreate with new count
+    ledsEsp32RgbwInverted = new NeoPixelBus<NeoRgbwFeature, Neo800KbpsMethod>(dynamicLedNum,gpioInUse); // and recreate with new count
     if (ledsEsp32RgbwInverted == NULL) {
       Serial.println(F("OUT OF MEMORY"));
     } else {

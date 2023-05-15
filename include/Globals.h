@@ -27,17 +27,32 @@
 #include "LedManager.h"
 #include "NetworkManager.h"
 
-#if defined(ARDUINO_ARCH_ESP32)
-#define RELAY_PIN_DIG 12 // equals to Q2
-#define RELAY_PIN_PICO 22
-#define LDR_PIN_DIG 36 // (ADC analog pin)
-#define LDR_PIN_PICO 33 // (ADC analog pin)
-#define LDR_DIVIDER 4096
-#elif defined(ESP8266)
+
+#if defined(ESP8266)
 #define RELAY_PIN 12
 #define LDR_PIN A0 // (ADC analog pin)
 #define LDR_DIVIDER 1024
 #endif
+#if CONFIG_IDF_TARGET_ESP32C3
+#define RELAY_PIN 0
+#define LDR_PIN 3
+#elif CONFIG_IDF_TARGET_ESP32S2
+#define RELAY_PIN 9
+#define LDR_PIN 3
+#elif CONFIG_IDF_TARGET_ESP32S3
+#define RELAY_PIN 13
+#define LDR_PIN 2
+#elif CONFIG_IDF_TARGET_ESP32
+#define RELAY_PIN 12 // equals to Q2
+#define RELAY_PIN_PICO 22
+#define LDR_PIN 36 // (ADC analog pin)
+#define LDR_PIN_PICO 33 // (ADC analog pin)
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32)
+#define LDR_DIVIDER 4096
+#endif
+
 #define DATA_PIN 5 // Wemos D1 Mini Lite PIN D5
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 #define SMART_BUTTON 0 // Smart button to turn on/off light

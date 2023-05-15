@@ -882,7 +882,14 @@ void NetworkManager::sendStatus() {
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
     root[F("board")] = F("ESP8266");
-#elif defined(ARDUINO_ARCH_ESP32)
+#endif
+#if CONFIG_IDF_TARGET_ESP32C3
+    root["board"] = "ESP32_C3";
+#elif CONFIG_IDF_TARGET_ESP32S2
+    root["board"] = "ESP32_S2";
+#elif CONFIG_IDF_TARGET_ESP32S3
+    root["board"] = "ESP32_S3";
+#elif CONFIG_IDF_TARGET_ESP32
     root["board"] = "ESP32";
 #endif
     root[LED_NUM_PARAM] = String(ledManager.dynamicLedNum);
