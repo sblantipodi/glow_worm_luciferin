@@ -48,15 +48,26 @@
 #define LDR_PIN 36 // (ADC analog pin)
 #define LDR_PIN_PICO 33 // (ADC analog pin)
 #endif
-
 #if defined(ARDUINO_ARCH_ESP32)
 #define LDR_DIVIDER 4096
 #endif
 
-#define DATA_PIN 5 // Wemos D1 Mini Lite PIN D5
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-#define SMART_BUTTON 0 // Smart button to turn on/off light
+// Smart button to turn on/off light
+#if defined(ESP8266)
+#define SMART_BUTTON 0
 #endif
+#if CONFIG_IDF_TARGET_ESP32C3
+#define SMART_BUTTON 7
+#elif CONFIG_IDF_TARGET_ESP32S2
+#define SMART_BUTTON 18
+#elif CONFIG_IDF_TARGET_ESP32S3
+#define SMART_BUTTON 18
+#elif CONFIG_IDF_TARGET_ESP32
+#define SMART_BUTTON 0
+#endif
+#endif
+
 extern class BootstrapManager bootstrapManager;
 
 extern class EffectsManager effectsManager;
