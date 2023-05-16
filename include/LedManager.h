@@ -37,13 +37,13 @@ public:
 
 #if defined(ARDUINO_ARCH_ESP32)
     // GRB
-    NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *ledsEsp32 = NULL; // Hardware, ALL GPIO, yes serial read/write
-    NeoPixelBus<NeoGrbwFeature, Neo800KbpsMethod> *ledsEsp32Rgbw = NULL; // Hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<NeoGrbFeature, NeoWs2812xMethod> *ledsEsp32 = NULL; // Hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<NeoGrbwFeature, NeoSk6812Method> *ledsEsp32Rgbw = NULL; // Hardware, ALL GPIO, yes serial read/write
     // RGB
-    NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> *ledsEsp32Inverted = NULL; // Hardware, ALL GPIO, yes serial read/write
-    NeoPixelBus<NeoRgbwFeature, Neo800KbpsMethod> *ledsEsp32RgbwInverted = NULL; // Hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<NeoRgbFeature, NeoWs2812xMethod> *ledsEsp32Inverted = NULL; // Hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<NeoRgbwFeature, NeoSk6812Method> *ledsEsp32RgbwInverted = NULL; // Hardware, ALL GPIO, yes serial read/write
     // BGR
-    NeoPixelBus<NeoBgrFeature, Neo800KbpsMethod> *
+    NeoPixelBus<NeoBgrFeature, NeoWs2812xMethod> *
 
     ledsEsp32Bgr = NULL; // Hardware, ALL GPIO, yes serial read/write
 #else
