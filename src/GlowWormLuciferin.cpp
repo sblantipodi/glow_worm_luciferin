@@ -35,7 +35,9 @@ void setup() {
   }
   int baudRateToUse = Globals::setBaudRateInUse(baudRateInUse);
   Serial.begin(baudRateToUse);
+#if CONFIG_IDF_TARGET_ESP32 || defined(ESP8266)
   while (!Serial); // wait for serial attach
+#endif
   Serial.print(F("BAUDRATE IN USE="));
   Serial.println(baudRateToUse);
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
