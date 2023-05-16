@@ -139,13 +139,28 @@ jobs:
         run: platformio check --verbose --severity=high --skip-packages
       - name: Run PlatformIO
         run: platformio run -e glowwormluciferinfull_esp32
+      - name: Run PlatformIO
+        run: platformio run -e glowwormluciferinfull_esp32c3
+      - name: Run PlatformIO
+        run: platformio run -e glowwormluciferinfull_esp32s2
+      - name: Run PlatformIO
+        run: platformio run -e glowwormluciferinfull_esp32s3
       - name: Save artifact (glowwormluciferinfull_esp32)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cp .pio/build/glowwormluciferinfull_esp32/firmware.bin ./GlowWormLuciferinFULL_ESP32_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32c3/firmware.bin ./GlowWormLuciferinFULL_ESP32_C3_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32s2/firmware.bin ./GlowWormLuciferinFULL_ESP32_S2_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32s3/firmware.bin ./GlowWormLuciferinFULL_ESP32_S3_firmware.bin
           cp .pio/build/glowwormluciferinfull_esp32/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_firmware-factory.bin
+          cp .pio/build/glowwormluciferinfull_esp32c3/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin
+          cp .pio/build/glowwormluciferinfull_esp32s2/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin
+          cp .pio/build/glowwormluciferinfull_esp32s3/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
           hub release edit -a GlowWormLuciferinFULL_ESP32_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          hub release edit -a GlowWormLuciferinFULL_ESP32_C3_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          hub release edit -a GlowWormLuciferinFULL_ESP32_S2_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          hub release edit -a GlowWormLuciferinFULL_ESP32_S3_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
       - name: Run PlatformIO
         run: platformio run -e glowwormluciferinlight_esp32
       - name: Save artifact (glowwormluciferinlight_esp32)
@@ -153,22 +168,55 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cp .pio/build/glowwormluciferinlight_esp32/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32c3/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32s2/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32s3/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
           cp .pio/build/glowwormluciferinlight_esp32/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin
+          cp .pio/build/glowwormluciferinlight_esp32c3/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin
+          cp .pio/build/glowwormluciferinlight_esp32s2/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin
+          cp .pio/build/glowwormluciferinlight_esp32s3/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin
           hub release edit -a GlowWormLuciferinLIGHT_ESP32_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          hub release edit -a GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          hub release edit -a GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          hub release edit -a GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
       - name: Commit firmware into GitHub.io docs folder
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cp ./GlowWormLuciferinFULL_ESP32_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware.bin
+          cp ./GlowWormLuciferinFULL_ESP32_C3_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C3_firmware.bin
+          cp ./GlowWormLuciferinFULL_ESP32_S2_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S2_firmware.bin
+          cp ./GlowWormLuciferinFULL_ESP32_S3_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_firmware.bin
           cp ./GlowWormLuciferinLIGHT_ESP32_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          cp ./GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin
+          cp ./GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
+          cp ./GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
           cp ./GlowWormLuciferinFULL_ESP32_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware-factory.bin
+          cp ./GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin
+          cp ./GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin
+          cp ./GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
           cp ./GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin
+          cp ./GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin
+          cp ./GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin
+          cp ./GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C3_firmware.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S2_firmware.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_firmware.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware-factory.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin;
           git add ./version;
           git add ./include/Version.h;
           git commit -m "CI release for firmware web installer";
