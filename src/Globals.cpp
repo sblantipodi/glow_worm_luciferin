@@ -74,7 +74,7 @@ uint8_t relayPin = 9;
 uint8_t ldrPin = 3;
 #elif CONFIG_IDF_TARGET_ESP32S3
 uint8_t relayPin = 13;
-uint8_t ldrPin = 2
+uint8_t ldrPin = 2;
 #elif CONFIG_IDF_TARGET_ESP32
 uint8_t relayPin = 12; // 22 for PICO
 uint8_t ldrPin = 36; // 33 for PICO
