@@ -327,138 +327,140 @@ void mainLoop() {
       loopIdx = 0;
       goto waitLoop;
     }
+    if (breakLoop == false) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-    if (!relayState) {
-    Globals::turnOnRelay();
-  }
+      if (!relayState) {
+      Globals::turnOnRelay();
+    }
 #endif
-    if ((usbBrightness != brightness) & !ldrEnabled) {
-      brightness = usbBrightness;
-    }
-    if (gpio != 0 && gpioInUse != gpio) {
-      Globals::setGpio(gpio);
-      ledManager.reinitLEDTriggered = true;
-    }
-    if (ldrAction == 2 || ldrAction == 3 || ldrAction == 4) {
-      ldrEnabled = ldrEn == 1;
-      ldrTurnOff = ldrTo == 1;
-      ldrInterval = ldrInt;
-      ldrMin = ldrMn;
-      ledManager.setLdr(ldrEn == 1, ldrTo == 1, ldrInt, ldrMn, ledOn);
-      delay(DELAY_500);
-      if (ldrAction == 2) {
-        ldrDivider = ldrValue;
-        ledManager.setLdr(ldrDivider);
-      } else if (ldrAction == 3) {
-        ldrDivider = LDR_DIVIDER;
-        ledManager.setLdr(-1);
+      if ((usbBrightness != brightness) & !ldrEnabled) {
+        brightness = usbBrightness;
       }
-    }
-    // Pins is set to +10 because null values are zero, so GPIO 0 is 10, GPIO 1 is 11.
-    if (relaySerialPin > 9 && sbSerialPin > 9 && ldrSerialPin > 9) {
-      relaySerialPin = relaySerialPin - 10;
-      sbSerialPin = sbSerialPin - 10;
-      ldrSerialPin = ldrSerialPin - 10;
-      if ((relayPin != relaySerialPin) || (sbPin != sbSerialPin) || (ldrPin != ldrSerialPin)) {
-        relayPin = relaySerialPin;
-        sbPin = sbSerialPin;
-        ldrPin = ldrSerialPin;
-        ledManager.setPins(relayPin, sbPin, ldrPin);
+      if (gpio != 0 && gpioInUse != gpio) {
+        Globals::setGpio(gpio);
+        ledManager.reinitLEDTriggered = true;
       }
-    }
-    uint16_t numLedFromLuciferin = lo + loSecondPart + 1;
-    if ((ledManager.dynamicLedNum != numLedFromLuciferin) && (numLedFromLuciferin < NUM_LEDS)) {
-      LedManager::setNumLed(numLedFromLuciferin);
-      ledManager.reinitLEDTriggered = true;
-    }
-    if (ledManager.reinitLEDTriggered) {
-      ledManager.reinitLEDTriggered = false;
-      ledManager.initLeds();
-      breakLoop = true;
-    }
-    if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 8)) {
-      Globals::setBaudRate(baudRate);
+      if (ldrAction == 2 || ldrAction == 3 || ldrAction == 4) {
+        ldrEnabled = ldrEn == 1;
+        ldrTurnOff = ldrTo == 1;
+        ldrInterval = ldrInt;
+        ldrMin = ldrMn;
+        ledManager.setLdr(ldrEn == 1, ldrTo == 1, ldrInt, ldrMn, ledOn);
+        delay(DELAY_500);
+        if (ldrAction == 2) {
+          ldrDivider = ldrValue;
+          ledManager.setLdr(ldrDivider);
+        } else if (ldrAction == 3) {
+          ldrDivider = LDR_DIVIDER;
+          ledManager.setLdr(-1);
+        }
+      }
+      // Pins is set to +10 because null values are zero, so GPIO 0 is 10, GPIO 1 is 11.
+      if (relaySerialPin > 9 && sbSerialPin > 9 && ldrSerialPin > 9) {
+        relaySerialPin = relaySerialPin - 10;
+        sbSerialPin = sbSerialPin - 10;
+        ldrSerialPin = ldrSerialPin - 10;
+        if ((relayPin != relaySerialPin) || (sbPin != sbSerialPin) || (ldrPin != ldrSerialPin)) {
+          relayPin = relaySerialPin;
+          sbPin = sbSerialPin;
+          ldrPin = ldrSerialPin;
+          ledManager.setPins(relayPin, sbPin, ldrPin);
+        }
+      }
+      uint16_t numLedFromLuciferin = lo + loSecondPart + 1;
+      if ((ledManager.dynamicLedNum != numLedFromLuciferin) && (numLedFromLuciferin < NUM_LEDS)) {
+        LedManager::setNumLed(numLedFromLuciferin);
+        ledManager.reinitLEDTriggered = true;
+      }
+      if (ledManager.reinitLEDTriggered) {
+        ledManager.reinitLEDTriggered = false;
+        ledManager.initLeds();
+        breakLoop = true;
+      }
+      if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 8)) {
+        Globals::setBaudRate(baudRate);
 #if defined(ARDUINO_ARCH_ESP32)
-      ESP.restart();
+        ESP.restart();
 #elif defined(ESP8266)
-      EspClass::restart();
+        EspClass::restart();
 #endif
-    }
-    if (whiteTemp != 0 && whiteTempInUse != whiteTemp && (whiteTemp >= 20 && whiteTemp <= 110)) {
-      LedManager::setWhiteTemp(whiteTemp);
-    }
-    // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
-    if (fireflyEffect != 0 && ledManager.fireflyEffectInUse != fireflyEffect) {
-      ledManager.fireflyEffectInUse = fireflyEffect;
-      switch (ledManager.fireflyEffectInUse) {
+      }
+      if (whiteTemp != 0 && whiteTempInUse != whiteTemp && (whiteTemp >= 20 && whiteTemp <= 110)) {
+        LedManager::setWhiteTemp(whiteTemp);
+      }
+      // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
+      if (fireflyEffect != 0 && ledManager.fireflyEffectInUse != fireflyEffect) {
+        ledManager.fireflyEffectInUse = fireflyEffect;
+        switch (ledManager.fireflyEffectInUse) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-        case 1:
-      case 2:
-      case 3:
-      case 4:
-      case 5:
-          if (effect != Effect::GlowWorm) {
-            previousMillisLDR = 0;
-          }
-          effect = Effect::GlowWorm;
-          break;
+          case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            if (effect != Effect::GlowWorm) {
+              previousMillisLDR = 0;
+            }
+            effect = Effect::GlowWorm;
+            break;
 #endif
-        case 6:
-          effect = Effect::solid;
-          break;
-        case 7:
-          effect = Effect::fire;
-          break;
-        case 8:
-          effect = Effect::twinkle;
-          break;
-        case 9:
-          effect = Effect::bpm;
-          break;
-        case 10:
-          effect = Effect::rainbow;
-          break;
-        case 11:
-          effect = Effect::mixed_rainbow;
-          break;
-        case 12:
-          effect = Effect::chase_rainbow;
-          break;
-        case 13:
-          effect = Effect::solid_rainbow;
-          break;
-        case 100:
-          ledManager.fireflyEffectInUse = 0;
-          break;
+          case 6:
+            effect = Effect::solid;
+            break;
+          case 7:
+            effect = Effect::fire;
+            break;
+          case 8:
+            effect = Effect::twinkle;
+            break;
+          case 9:
+            effect = Effect::bpm;
+            break;
+          case 10:
+            effect = Effect::rainbow;
+            break;
+          case 11:
+            effect = Effect::mixed_rainbow;
+            break;
+          case 12:
+            effect = Effect::chase_rainbow;
+            break;
+          case 13:
+            effect = Effect::solid_rainbow;
+            break;
+          case 100:
+            ledManager.fireflyEffectInUse = 0;
+            break;
+        }
       }
-    }
-    if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 4)) {
-      ledManager.setColorModeInit(fireflyColorMode);
-    }
-    if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 3)) {
-      ledManager.setColorOrderInit(fireflyColorOrder);
-    }
-    // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
-    // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
-    for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
-      byte r, g, b;
-      while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-      r = serialRead();
-      while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-      g = serialRead();
-      while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-      b = serialRead();
-      if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
-        r = g = b = 0;
+      if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 4)) {
+        ledManager.setColorModeInit(fireflyColorMode);
       }
-      if (ledManager.fireflyEffectInUse <= 6) {
-        ledManager.setPixelColor(i, r, g, b);
+      if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 3)) {
+        ledManager.setColorOrderInit(fireflyColorOrder);
       }
-    }
-    ledManager.lastLedUpdate = millis();
-    framerateCounter++;
-    if (effect != Effect::mixed_rainbow) {
-      ledManager.ledShow();
+      // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
+      // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
+      for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
+        byte r, g, b;
+        while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+        r = serialRead();
+        while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+        g = serialRead();
+        while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+        b = serialRead();
+        if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
+          r = g = b = 0;
+        }
+        if (ledManager.fireflyEffectInUse <= 6) {
+          ledManager.setPixelColor(i, r, g, b);
+        }
+      }
+      ledManager.lastLedUpdate = millis();
+      framerateCounter++;
+      if (effect != Effect::mixed_rainbow) {
+        ledManager.ledShow();
+      }
     }
     // Flush serial buffer
     while (!breakLoop && Serial.available() > 0) {
