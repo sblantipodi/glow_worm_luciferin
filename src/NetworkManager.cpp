@@ -268,6 +268,12 @@ void NetworkManager::listenOnHttpGet() {
       prefsData += ldrMin;
       prefsData += F("\",\"ledOn\":\"");
       prefsData += ledOn;
+      prefsData += F("\",\"relayPin\":\"");
+      prefsData += relayPin;
+      prefsData += F("\",\"sbPin\":\"");
+      prefsData += sbPin;
+      prefsData += F("\",\"ldrPin\":\"");
+      prefsData += ldrPin;
       prefsData += F("\",\"ldrMax\":\"");
       if (ldrEnabled) {
         prefsData += ((ldrValue * 100) / ldrDivider);
@@ -698,6 +704,33 @@ bool NetworkManager::processFirmwareConfig() {
           ledManager.reinitLEDTriggered = true;
         }
       }
+      // LDR_PIN_PARAM
+      if (bootstrapManager.jsonDoc.containsKey(ledManager.LDR_PIN_PARAM)) {
+        int ldrPinParam = (int) bootstrapManager.jsonDoc[ledManager.LDR_PIN_PARAM];
+        if (ldrPin != ldrPinParam) {
+          ldrPin = ldrPinParam;
+          ledManager.setPins(relayPin, sbPin, ldrPin);
+          ledManager.reinitLEDTriggered = true;
+        }
+      }
+      // RELAY_PIN_PARAM
+      if (bootstrapManager.jsonDoc.containsKey(ledManager.RELAY_PIN_PARAM)) {
+        int relayPinParam = (int) bootstrapManager.jsonDoc[ledManager.RELAY_PIN_PARAM];
+        if (relayPin != relayPinParam) {
+          relayPin = relayPinParam;
+          ledManager.setPins(relayPin, sbPin, ldrPin);
+          ledManager.reinitLEDTriggered = true;
+        }
+      }
+      // SB_PIN_PARAM
+      if (bootstrapManager.jsonDoc.containsKey(ledManager.SB_PIN_PARAM)) {
+        int sbrPinParam = (int) bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM];
+        if (sbPin != sbrPinParam) {
+          sbPin = sbrPinParam;
+          ledManager.setPins(relayPin, sbPin, ldrPin);
+          ledManager.reinitLEDTriggered = true;
+        }
+      }
       // Restart if needed
       if (ledManager.reinitLEDTriggered) {
         ledManager.reinitLEDTriggered = false;
@@ -879,6 +912,9 @@ void NetworkManager::sendStatus() {
     if (ldrEnabled) {
       root[F("ldr")] = ((ldrValue * 100) / ldrDivider);
     }
+    root[F("relayPin")] = relayPin;
+    root[F("sbPin")] = sbPin;
+    root[F("ldrPin")] = ldrPin;
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
     root[F("board")] = F("ESP8266");
@@ -1036,11 +1072,17 @@ bool NetworkManager::processLDR() {
     String ldrMinMqtt = bootstrapManager.jsonDoc[F("ldrMin")];
     String ldrActionMqtt = bootstrapManager.jsonDoc[F("ldrAction")];
     String ledOnMqtt = bootstrapManager.jsonDoc[F("ledOn")];
+    String rPin = bootstrapManager.jsonDoc[F("relayPin")];
+    String sPin = bootstrapManager.jsonDoc[F("sbPin")];
+    String lPin = bootstrapManager.jsonDoc[F("ldrPin")];
     ldrEnabled = ldrEnabledMqtt == "true";
     ldrTurnOff = ldrTurnOffMqtt == "true";
     ledOn = ledOnMqtt == "true";
     ldrInterval = ldrIntervalMqtt.toInt();
     ldrMin = ldrMinMqtt.toInt();
+    relayPin = rPin.toInt();
+    sbPin = sPin.toInt();
+    ldrPin = lPin.toInt();
     if (ldrActionMqtt.toInt() == 2) {
       ldrDivider = ldrValue;
       ledManager.setLdr(ldrDivider);
@@ -1050,8 +1092,11 @@ bool NetworkManager::processLDR() {
       ledManager.setLdr(-1);
       delay(DELAY_500);
     }
-    ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true", ldrInterval, ldrMinMqtt.toInt(), ledOnMqtt == "true");
-    delay(DELAY_1000);
+    ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true", ldrInterval, ldrMinMqtt.toInt(),
+                      ledOnMqtt == "true");
+    delay(DELAY_500);
+    ledManager.setPins(relayPin, sbPin, ldrPin);
+    delay(DELAY_500);
     startUDP();
   }
   return true;

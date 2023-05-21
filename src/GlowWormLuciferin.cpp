@@ -41,7 +41,7 @@ void setup() {
   Serial.print(F("BAUDRATE IN USE="));
   Serial.println(baudRateToUse);
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  pinMode(SMART_BUTTON, INPUT_PULLUP);
+  pinMode(sbPin, INPUT_PULLUP);
 #endif
   // LED number from configuration storage
   String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
@@ -113,6 +113,9 @@ void setup() {
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
   String ledOnFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LED_ON_PARAM);
+  String relayPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_PIN_PARAM);
+  String sbPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.SB_PIN_PARAM);
+  String ldrPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LDR_PIN_PARAM);
   if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
     ldrEnabled = ldrFromStorage == "1";
   }
@@ -124,6 +127,15 @@ void setup() {
   }
   if (!ldrMinFromStorage.isEmpty() && ldrMinFromStorage != ERROR && ldrMinFromStorage.toInt() != 0) {
     ldrMin = ldrMinFromStorage.toInt();
+  }
+  if (!relayPinFromStorage.isEmpty() && relayPinFromStorage != ERROR) {
+    relayPin = relayPinFromStorage.toInt();
+  }
+  if (!sbPinFromStorage.isEmpty() && sbPinFromStorage != ERROR) {
+    sbPin = sbPinFromStorage.toInt();
+  }
+  if (!ldrPinFromStorage.isEmpty() && ldrPinFromStorage != ERROR) {
+    ldrPin = ldrPinFromStorage.toInt();
   }
   if (!ldrMaxFromStorage.isEmpty() && ldrMaxFromStorage != ERROR && ldrMaxFromStorage.toInt() != 0) {
     ldrDivider = ldrMaxFromStorage.toInt();
@@ -147,18 +159,8 @@ void setup() {
     autoSave = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave")).toInt();
   }
 
-#if defined(ESP8266)
-  pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW);
-#endif
-#if defined(ARDUINO_ARCH_ESP32)
-  pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW);
-#endif
-#if CONFIG_IDF_TARGET_ESP32
-  pinMode(RELAY_PIN_PICO, OUTPUT);
-  digitalWrite(RELAY_PIN_PICO, LOW);
-#endif
+  pinMode(relayPin, OUTPUT);
+  digitalWrite(relayPin, LOW);
 
 #if defined(ARDUINO_ARCH_ESP32)
   esp_task_wdt_init(3000, true); //enable panic so ESP32 restarts
@@ -198,38 +200,22 @@ void setup() {
 void configureLeds() {
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
-  int gpioToUse = 0;
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
-    gpioToUse = gpioFromStorage.toInt();
+    gpioInUse = gpioFromStorage.toInt();
   }
-  if (gpioToUse == 0) {
+  if (gpioInUse == 0) {
     if (!additionalParam.isEmpty()) {
-      gpioToUse = additionalParam.toInt();
+      gpioInUse = additionalParam.toInt();
     }
   }
-  switch (gpioToUse) {
-    case 5:
-      gpioInUse = 5;
-      break;
-    case 3:
-      gpioInUse = 3;
-      break;
-    case 16:
-      gpioInUse = 16;
-      break;
-    case 6:
-      gpioInUse = 6;
-      break;
-    default:
-      gpioInUse = 2;
-      break;
+  if (gpioInUse == 0) {
+    gpioInUse = 2;
   }
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
 
   // Color mode from configuration storage
-  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME,
-                                                                   ledManager.COLOR_MODE_PARAM);
+  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME,ledManager.COLOR_MODE_PARAM);
   if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
     colorMode = colorModeFromStorage.toInt();
   }
@@ -237,8 +223,7 @@ void configureLeds() {
   Serial.println(colorMode);
 
   // Color order from configuration storage
-  String colorOrderFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_ORDER_FILENAME,
-                                                                    ledManager.COLOR_ORDER_PARAM);
+  String colorOrderFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_ORDER_FILENAME,ledManager.COLOR_ORDER_PARAM);
   if (!colorOrderFromStorage.isEmpty() && colorOrderFromStorage != ERROR && colorOrderFromStorage.toInt() != 0) {
     colorOrder = colorOrderFromStorage.toInt();
   }
@@ -329,9 +314,16 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     fireflyColorOrder = serialRead();
     while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+    relaySerialPin = serialRead();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+    sbSerialPin = serialRead();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+    ldrSerialPin = serialRead();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     chk = serialRead();
     if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
-                               ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder ^ 0x55))) {
+                               ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder
+                               ^ relaySerialPin ^ sbSerialPin ^ ldrSerialPin ^ 0x55))) {
       loopIdx = 0;
       goto waitLoop;
     }
@@ -343,7 +335,7 @@ void mainLoop() {
     if ((usbBrightness != brightness) & !ldrEnabled) {
       brightness = usbBrightness;
     }
-    if (gpio != 0 && gpioInUse != gpio && (gpio == 2 || gpio == 3 || gpio == 5 || gpio == 6 || gpio == 16)) {
+    if (gpio != 0 && gpioInUse != gpio) {
       Globals::setGpio(gpio);
       ledManager.reinitLEDTriggered = true;
     }
@@ -360,6 +352,18 @@ void mainLoop() {
       } else if (ldrAction == 3) {
         ldrDivider = LDR_DIVIDER;
         ledManager.setLdr(-1);
+      }
+    }
+    // Pins is set to +10 because null values are zero, so GPIO 0 is 10, GPIO 1 is 11.
+    if (relaySerialPin > 9 && sbSerialPin > 9 && ldrSerialPin > 9) {
+      relaySerialPin = relaySerialPin - 10;
+      sbSerialPin = sbSerialPin - 10;
+      ldrSerialPin = ldrSerialPin - 10;
+      if ((relayPin != relaySerialPin) || (sbPin != sbSerialPin) || (ldrPin != ldrSerialPin)) {
+        relayPin = relaySerialPin;
+        sbPin = sbSerialPin;
+        ldrPin = ldrSerialPin;
+        ledManager.setPins(relayPin, sbPin, ldrPin);
       }
     }
     uint16_t numLedFromLuciferin = lo + loSecondPart + 1;
@@ -517,7 +521,7 @@ void loop() {
   mainLoop();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  btnState = digitalRead(SMART_BUTTON);
+  btnState = digitalRead(sbPin);
   if (lastState == HIGH && btnState == LOW) {
     pressedTime = millis();
   } else if (lastState == LOW && btnState == HIGH) {
@@ -585,20 +589,7 @@ void loop() {
     }
     if (ldrReading) {
       if ((ldrInterval == 0) || ((millis() - previousMillisLDR) >= LDR_RECOVER_TIME)) {
-#if defined(ESP8266)
-        ldrValue = analogRead(LDR_PIN);
-#endif
-#if CONFIG_IDF_TARGET_ESP32C3
-        ldrValue = analogRead(LDR_PIN);
-#elif CONFIG_IDF_TARGET_ESP32S2
-        ldrValue = analogRead(LDR_PIN);
-#elif CONFIG_IDF_TARGET_ESP32S3
-        ldrValue = analogRead(LDR_PIN);
-#elif CONFIG_IDF_TARGET_ESP32
-        int tmpLdrVal = analogRead(LDR_PIN);
-        ldrValue = analogRead(LDR_PIN_PICO);
-        if (tmpLdrVal > ldrValue) ldrValue = tmpLdrVal;
-#endif
+        ldrValue = analogRead(ldrPin);
         uint8_t minBright = (ldrMin * 255) / 100;
         int br = ((((ldrValue * 100) / ldrDivider) * 255) / 100);
         if (br > 255) {

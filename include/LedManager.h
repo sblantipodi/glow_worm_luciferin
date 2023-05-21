@@ -71,6 +71,7 @@ public:
     const String COLOR_MODE_PARAM = "colorMode";
     const String COLOR_ORDER_PARAM = "colorOrder";
     const String LDR_FILENAME = "ldr.json";
+    const String PIN_FILENAME = "pin.json";
     const String LDR_CAL_FILENAME = "ldrCal.json";
     const String LDR_PARAM = "ldr";
     const String LDR_TO_PARAM = "ldrTurnOff";
@@ -78,6 +79,9 @@ public:
     const String MIN_LDR_PARAM = "minLdr";
     const String MAX_LDR_PARAM = "maxLdr";
     const String LED_ON_PARAM = "ledOn";
+    const String RELAY_PIN_PARAM = "relayPin";
+    const String SB_PIN_PARAM = "sbPin";
+    const String LDR_PIN_PARAM = "ldrPin";
     const String EFFECT_FILENAME = "effect.json";
     uint16_t dynamicLedNum = 511;
     byte red = 255;
@@ -136,6 +140,8 @@ public:
     void setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr, boolean ledOn);
 
     void setLdr(int maxLdr);
+
+    void setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam);
 
 };
 

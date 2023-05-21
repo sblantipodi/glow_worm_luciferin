@@ -27,45 +27,11 @@
 #include "LedManager.h"
 #include "NetworkManager.h"
 
-
 #if defined(ESP8266)
-#define RELAY_PIN 12
-#define LDR_PIN A0 // (ADC analog pin)
 #define LDR_DIVIDER 1024
-#endif
-#if CONFIG_IDF_TARGET_ESP32C3
-#define RELAY_PIN 0
-#define LDR_PIN 3
-#elif CONFIG_IDF_TARGET_ESP32S2
-#define RELAY_PIN 9
-#define LDR_PIN 3
-#elif CONFIG_IDF_TARGET_ESP32S3
-#define RELAY_PIN 13
-#define LDR_PIN 2
-#elif CONFIG_IDF_TARGET_ESP32
-#define RELAY_PIN 12 // equals to Q2
-#define RELAY_PIN_PICO 22
-#define LDR_PIN 36 // (ADC analog pin)
-#define LDR_PIN_PICO 33 // (ADC analog pin)
 #endif
 #if defined(ARDUINO_ARCH_ESP32)
 #define LDR_DIVIDER 4096
-#endif
-
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-// Smart button to turn on/off light
-#if defined(ESP8266)
-#define SMART_BUTTON 0
-#endif
-#if CONFIG_IDF_TARGET_ESP32C3
-#define SMART_BUTTON 7
-#elif CONFIG_IDF_TARGET_ESP32S2
-#define SMART_BUTTON 18
-#elif CONFIG_IDF_TARGET_ESP32S3
-#define SMART_BUTTON 18
-#elif CONFIG_IDF_TARGET_ESP32
-#define SMART_BUTTON 0
-#endif
 #endif
 
 extern class BootstrapManager bootstrapManager;
@@ -81,7 +47,7 @@ extern class Helpers helper;
 extern class Globals globals;
 
 extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
-        fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction;
+        fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin;
 extern uint8_t prefixLength;
 
 extern uint8_t gpioInUse;
@@ -117,6 +83,9 @@ extern bool ledOn;
 extern uint8_t ldrInterval;
 extern bool ldrTurnOff;
 extern uint8_t ldrMin;
+extern uint8_t relayPin;
+extern uint8_t sbPin;
+extern uint8_t ldrPin;
 extern int ldrDivider;
 extern const unsigned int LDR_RECOVER_TIME;
 extern unsigned long previousMillisLDR;

@@ -40,9 +40,6 @@ public:
 #define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
     char packet[UDP_MAX_BUFFER_SIZE];
     char packetBroadcast[UDP_MAX_BUFFER_SIZE];
-    static const uint16_t FIRST_CHUNK = 170;
-    static const uint16_t SECOND_CHUNK = 340;
-    static const uint16_t THIRD_CHUNK = 510;
     static uint16_t part;
 
     String lightStateTopic = "lights/glowwormluciferin";

@@ -1049,8 +1049,9 @@ void LedManager::setColorOrder(int colorOrderToUse) {
  * @param ldrTurnOffToSet Turn off LEDs before LDR readings
  * @param ldrIntervalToSet Interval between readings
  * @param minLdr min brightness when using LDR
+ * @param ledOnParam turn on LEDs automatically at boot
  */
-void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr, boolean ledOn) {
+void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr, boolean ledOnParam) {
 
   Serial.println(F("CHANGING LDR"));
   previousMillisLDR = 0;
@@ -1059,7 +1060,7 @@ void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_
   ldrDoc[LDR_TO_PARAM] = ldrTurnOffToSet;
   ldrDoc[LDR_INTER_PARAM] = ldrIntervalToSet;
   ldrDoc[MIN_LDR_PARAM] = minLdr;
-  ldrDoc[LED_ON_PARAM] = ledOn;
+  ldrDoc[LED_ON_PARAM] = ledOnParam;
   BootstrapManager::writeToLittleFS(ldrDoc, LDR_FILENAME);
   delay(20);
 
@@ -1077,6 +1078,30 @@ void LedManager::setLdr(int maxLdr) {
   ldrDoc[MAX_LDR_PARAM] = maxLdr;
   BootstrapManager::writeToLittleFS(ldrDoc, LDR_CAL_FILENAME);
   delay(20);
+
+}
+
+/**
+ * Set LDR params received by the Firefly Luciferin software
+ * @param ldrEnabledToSet LDR enabled or disabled
+ * @param ldrTurnOffToSet Turn off LEDs before LDR readings
+ * @param ldrIntervalToSet Interval between readings
+ * @param minLdr min brightness when using LDR
+ */
+void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam) {
+
+  Serial.println(F("CHANGING PINs"));
+  DynamicJsonDocument ldrDoc(1024);
+  ldrDoc[RELAY_PIN_PARAM] = relayPinParam;
+  ldrDoc[SB_PIN_PARAM] = sbPinParam;
+  ldrDoc[LDR_PIN_PARAM] = ldrPinParam;
+  BootstrapManager::writeToLittleFS(ldrDoc, PIN_FILENAME);
+  delay(200);
+#if defined(ARDUINO_ARCH_ESP32)
+  ESP.restart();
+#elif defined(ESP8266)
+  EspClass::restart();
+#endif
 
 }
 

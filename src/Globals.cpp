@@ -32,7 +32,7 @@ Globals globals;
 
 // DPsoftware checksum for serial
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
-        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, prefixLength = 6;
+        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, prefixLength = 6;
 uint8_t gpioInUse = 2;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
 uint8_t colorMode = 1;
@@ -61,6 +61,27 @@ bool ldrEnabled = false;
 uint8_t ldrInterval = 30;
 bool ldrTurnOff = false;
 uint8_t ldrMin = 20;
+uint8_t sbPin = 0;
+#if defined(ESP8266)
+uint8_t relayPin = 12;
+uint8_t ldrPin = A0;
+#endif
+#if CONFIG_IDF_TARGET_ESP32C3
+uint8_t relayPin = 0;
+uint8_t ldrPin = 3;
+#elif CONFIG_IDF_TARGET_ESP32S2
+uint8_t relayPin = 9;
+uint8_t ldrPin = 3;
+#elif CONFIG_IDF_TARGET_ESP32S3
+uint8_t relayPin = 13;
+uint8_t ldrPin = 2
+#elif CONFIG_IDF_TARGET_ESP32
+uint8_t relayPin = 12; // 22 for PICO
+uint8_t ldrPin = 36; // 33 for PICO
+#endif
+
+
+
 bool ledOn = false;
 int ldrDivider = LDR_DIVIDER;
 const unsigned int LDR_RECOVER_TIME = 4000;
@@ -164,15 +185,7 @@ void Globals::turnOnRelay() {
 
   if (!relayState) {
     relayState = true;
-#if defined(ESP8266)
-    digitalWrite(RELAY_PIN, HIGH);
-#endif
-#if defined(ARDUINO_ARCH_ESP32)
-    digitalWrite(RELAY_PIN, HIGH);
-#endif
-#if CONFIG_IDF_TARGET_ESP32
-    digitalWrite(RELAY_PIN_PICO, HIGH);
-#endif
+    digitalWrite(relayPin, HIGH);
     delay(100);
   }
 
@@ -186,15 +199,7 @@ void Globals::turnOffRelay() {
   if (relayState) {
     relayState = false;
     delay(100);
-#if defined(ESP8266)
-    digitalWrite(RELAY_PIN, LOW);
-#endif
-#if defined(ARDUINO_ARCH_ESP32)
-    digitalWrite(RELAY_PIN, LOW);
-#endif
-#if CONFIG_IDF_TARGET_ESP32
-    digitalWrite(RELAY_PIN_PICO, LOW);
-#endif
+    digitalWrite(relayPin, LOW);
   }
 
 }
@@ -238,6 +243,9 @@ void Globals::sendSerialInfo() {
     if (ldrEnabled) {
       Serial.printf("ldr:%d\n", ((ldrValue * 100) / ldrDivider));
     }
+    Serial.printf("relayPin:%d\n", relayPin);
+    Serial.printf("sbPin:%d\n", sbPin);
+    Serial.printf("ldrPin:%d\n", ldrPin);
   }
 
 }
