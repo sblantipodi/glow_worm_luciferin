@@ -1095,6 +1095,11 @@ bool NetworkManager::processLDR() {
     ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true", ldrInterval, ldrMinMqtt.toInt(),
                       ledOnMqtt == "true");
     delay(DELAY_500);
+    content = F("Success: rebooting the microcontroller using your credentials.");
+    statusCode = 200;
+    server.sendHeader(F("Access-Control-Allow-Origin"), "*");
+    server.send(statusCode, F("text/plain"), content);
+    delay(DELAY_500);
     ledManager.setPins(relayPin, sbPin, ldrPin);
     delay(DELAY_500);
     startUDP();
