@@ -34,7 +34,11 @@ void setup() {
     baudRateInUse = baudRateFromStorage.toInt();
   }
   int baudRateToUse = Globals::setBaudRateInUse(baudRateInUse);
+#if defined(ARDUINO_ARCH_ESP32)
+  Serial.setRxBufferSize(SERIAL_SIZE_RX);
+#endif
   Serial.begin(baudRateToUse);
+
 #if CONFIG_IDF_TARGET_ESP32 || defined(ESP8266)
   while (!Serial); // wait for serial attach
 #endif

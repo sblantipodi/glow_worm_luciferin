@@ -33,6 +33,7 @@
 #if defined(ARDUINO_ARCH_ESP32)
 #define LDR_DIVIDER 4096
 #endif
+#define SERIAL_SIZE_RX  2048
 
 extern class BootstrapManager bootstrapManager;
 
