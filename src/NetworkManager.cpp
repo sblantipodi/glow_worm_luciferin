@@ -1080,9 +1080,6 @@ bool NetworkManager::processLDR() {
     ledOn = ledOnMqtt == "true";
     ldrInterval = ldrIntervalMqtt.toInt();
     ldrMin = ldrMinMqtt.toInt();
-    relayPin = rPin.toInt();
-    sbPin = sPin.toInt();
-    ldrPin = lPin.toInt();
     if (ldrActionMqtt.toInt() == 2) {
       ldrDivider = ldrValue;
       ledManager.setLdr(ldrDivider);
@@ -1092,15 +1089,20 @@ bool NetworkManager::processLDR() {
       ledManager.setLdr(-1);
       delay(DELAY_500);
     }
-    ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true", ldrInterval, ldrMinMqtt.toInt(),
-                      ledOnMqtt == "true");
+    ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true",
+                      ldrInterval, ldrMinMqtt.toInt(), ledOnMqtt == "true");
     delay(DELAY_500);
     content = F("Success: rebooting the microcontroller using your credentials.");
     statusCode = 200;
     server.sendHeader(F("Access-Control-Allow-Origin"), "*");
     server.send(statusCode, F("text/plain"), content);
     delay(DELAY_500);
-    ledManager.setPins(relayPin, sbPin, ldrPin);
+    if (!bootstrapManager.jsonDoc[F("relayPin")].isNull() && !bootstrapManager.jsonDoc[F("sbPin")].isNull() && !bootstrapManager.jsonDoc[F("ldrPin")].isNull()) {
+      relayPin = rPin.toInt();
+      sbPin = sPin.toInt();
+      ldrPin = lPin.toInt();
+      ledManager.setPins(relayPin, sbPin, ldrPin);
+    }
     delay(DELAY_500);
     startUDP();
   }
