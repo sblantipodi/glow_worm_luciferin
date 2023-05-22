@@ -143,6 +143,8 @@ public:
 
     void setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam);
 
+    void flushSerial();
+
 };
 
 #endif //GLOW_WORM_LUCIFERIN_LEDMANAGER_H

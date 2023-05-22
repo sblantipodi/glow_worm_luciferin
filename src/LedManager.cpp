@@ -595,7 +595,7 @@ void LedManager::initStandard() {
     while (!Serial); // wait for serial attach
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsStandard->Begin();
     ledsStandard->Show();
   } else if (colorOrder == 2) {
@@ -608,7 +608,7 @@ void LedManager::initStandard() {
     while (!Serial); // wait for serial attach
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsStandardInverted->Begin();
     ledsStandardInverted->Show();
   } else if (colorOrder == 3) {
@@ -621,7 +621,7 @@ void LedManager::initStandard() {
     while (!Serial); // wait for serial attach
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsStandardBgr->Begin();
     ledsStandardBgr->Show();
   }
@@ -646,7 +646,7 @@ void LedManager::initStandardRgbw() {
     Serial.println();
     Serial.println(F("Initializing..."));
 
-    Serial.flush();
+    flushSerial();
     ledsStandardRgbw->Begin();
     ledsStandardRgbw->Show();
   } else if (colorOrder == 2) {
@@ -660,7 +660,7 @@ void LedManager::initStandardRgbw() {
     Serial.println();
     Serial.println(F("Initializing..."));
 
-    Serial.flush();
+    flushSerial();
     ledsStandardRgbwInverted->Begin();
     ledsStandardRgbwInverted->Show();
   }
@@ -684,7 +684,7 @@ void LedManager::initUart() {
     while (!Serial); // wait for serial attach
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsUart->Begin();
     ledsUart->Show();
   } else if (colorOrder == 2) {
@@ -697,7 +697,7 @@ void LedManager::initUart() {
     while (!Serial); // wait for serial attach
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsUartInverted->Begin();
     ledsUartInverted->Show();
   } else if (colorOrder == 3) {
@@ -710,7 +710,7 @@ void LedManager::initUart() {
     while (!Serial); // wait for serial attach
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsUartBgr->Begin();
     ledsUartBgr->Show();
   }
@@ -734,7 +734,7 @@ void LedManager::initUartRgbw() {
     while (!Serial); // wait for serial attach
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsUartRgbw->Begin();
     ledsUartRgbw->Show();
   } else if (colorOrder == 2) {
@@ -747,7 +747,7 @@ void LedManager::initUartRgbw() {
     while (!Serial); // wait for serial attach
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsUartRgbwInverted->Begin();
     ledsUartRgbwInverted->Show();
   }
@@ -770,7 +770,7 @@ void LedManager::initDma() {
     }
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsDma->Begin();
     ledsDma->Show();
   } else if (colorOrder == 2) {
@@ -782,7 +782,7 @@ void LedManager::initDma() {
     }
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsDmaInverted->Begin();
     ledsDmaInverted->Show();
   } else if (colorOrder == 3) {
@@ -794,7 +794,7 @@ void LedManager::initDma() {
     }
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsDmaBgr->Begin();
     ledsDmaBgr->Show();
   }
@@ -817,7 +817,7 @@ void LedManager::initDmaRgbw() {
     }
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsDmaRgbw->Begin();
     ledsDmaRgbw->Show();
   } else if (colorOrder == 2) {
@@ -829,7 +829,7 @@ void LedManager::initDmaRgbw() {
     }
     Serial.println();
     Serial.println(F("Initializing..."));
-    Serial.flush();
+    flushSerial();
     ledsDmaRgbwInverted->Begin();
     ledsDmaRgbwInverted->Show();
   }
@@ -852,7 +852,7 @@ void LedManager::initEsp32() {
     } else {
       Serial.println();
       Serial.println(F("Initializing..."));
-      Serial.flush();
+      flushSerial();
       ledsEsp32->Begin();
       ledsEsp32->Show();
     }
@@ -865,7 +865,7 @@ void LedManager::initEsp32() {
     } else {
       Serial.println();
       Serial.println(F("Initializing..."));
-      Serial.flush();
+      flushSerial();
       ledsEsp32Inverted->Begin();
       ledsEsp32Inverted->Show();
     }
@@ -878,7 +878,7 @@ void LedManager::initEsp32() {
     } else {
       Serial.println();
       Serial.println(F("Initializing..."));
-      Serial.flush();
+      flushSerial();
       ledsEsp32Bgr->Begin();
       ledsEsp32Bgr->Show();
     }
@@ -902,7 +902,7 @@ void LedManager::initEsp32Rgbw() {
     } else {
       Serial.println();
       Serial.println(F("Initializing..."));
-      Serial.flush();
+      flushSerial();
       ledsEsp32Rgbw->Begin();
       ledsEsp32Rgbw->Show();
     }
@@ -915,7 +915,7 @@ void LedManager::initEsp32Rgbw() {
     } else {
       Serial.println();
       Serial.println(F("Initializing..."));
-      Serial.flush();
+      flushSerial();
       ledsEsp32RgbwInverted->Begin();
       ledsEsp32RgbwInverted->Show();
     }
@@ -1013,6 +1013,20 @@ void LedManager::initLeds() {
     }
   }
 
+}
+
+/**
+ * Workaround to flush() that is now blocking on ESP32-S3
+ * https://github.com/espressif/arduino-esp32/issues/7554
+ */
+void LedManager::flushSerial() {
+#if CONFIG_IDF_TARGET_ESP32 || defined(ESP8266)
+  Serial.flush();
+#else
+  while (Serial.available()) {
+    Serial.read();
+  }
+#endif
 }
 
 /**
