@@ -24,7 +24,6 @@
  * Show LEDs
  */
 void LedManager::ledShow() const {
-
 #if defined(ARDUINO_ARCH_ESP32)
   if (colorOrder == 1) {
     switch (colorMode) {
@@ -160,7 +159,6 @@ void LedManager::ledShow() const {
     }
   }
 #endif
-
 }
 
 /**
@@ -170,7 +168,6 @@ void LedManager::ledShow() const {
  * @return RGB channel with color correction
  */
 byte *colorKtoRGB(byte *rgb) {
-
   float r, g, b;
   float temp = (float) whiteTempInUse - 10;
   if (temp <= 66) {
@@ -190,7 +187,6 @@ byte *colorKtoRGB(byte *rgb) {
   rgb[1] = (uint8_t) constrain(g, 0, 255);
   rgb[2] = (uint8_t) constrain(b, 0, 255);
   return rgb;
-
 }
 
 /**
@@ -199,9 +195,7 @@ byte *colorKtoRGB(byte *rgb) {
  * @return corrected brightness
  */
 uint8_t applyBrightnessCorrection(int c) {
-
   return (c && brightness) > 0 ? (c * ((brightness * 100) / 255)) / 100 : c;
-
 }
 
 uint16_t lastKelvin = 0;
@@ -215,7 +209,6 @@ byte colorCorrectionRGB[] = {0, 0, 0};
  * @return RGB color
  */
 RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
-
   if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
     if (lastKelvin != whiteTempInUse) {
       colorKtoRGB(colorCorrectionRGB);
@@ -229,7 +222,6 @@ RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
   } else {
     return {applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b)};
   }
-
 }
 
 /**
@@ -241,7 +233,6 @@ RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
  * @return RGBW color
  */
 RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
-
   uint8_t w;
   w = r < g ? (r < b ? r : b) : (g < b ? g : b);
   if (colorMode == 2) {
@@ -268,7 +259,6 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
     return {applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b),
             applyBrightnessCorrection(w)};
   }
-
 }
 
 /**
@@ -279,7 +269,6 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
  * @param b blu channel
  */
 void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) const {
-
   RgbColor rgbColor;
   RgbwColor rgbwColor;
   if (colorOrder == 1 || colorOrder == 2) {
@@ -408,22 +397,18 @@ void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) 
     }
   }
 #endif
-
 }
 
 /**
  * Clean the LEDs before reinit
  */
 void LedManager::cleanLEDs() {
-
   cleanGrb();
   cleanRgb();
   cleanBgr();
-
 }
 
 void LedManager::cleanGrb() {
-
   boolean cleared = false;
 #if defined(ARDUINO_ARCH_ESP32)
   if (ledsEsp32 != NULL) {
@@ -479,11 +464,9 @@ void LedManager::cleanGrb() {
   if (cleared) {
     Serial.println("LEDs cleared");
   }
-
 }
 
 void LedManager::cleanRgb() {
-
   boolean cleared = false;
 #if defined(ARDUINO_ARCH_ESP32)
   if (ledsEsp32Inverted != NULL) {
@@ -539,11 +522,9 @@ void LedManager::cleanRgb() {
   if (cleared) {
     Serial.println("LEDs cleared");
   }
-
 }
 
 void LedManager::cleanBgr() {
-
   boolean cleared = false;
 #if defined(ARDUINO_ARCH_ESP32)
   if (ledsEsp32Bgr != NULL) {
@@ -576,14 +557,12 @@ void LedManager::cleanBgr() {
   if (cleared) {
     Serial.println("LEDs cleared");
   }
-
 }
 
 /**
  * Init led strip. No hardware, ALL GPIO, yes serial read/write
  */
 void LedManager::initStandard() {
-
 #if defined(ESP8266)
   if (colorOrder == 1) {
     Serial.println(F("Using Standard"));
@@ -626,14 +605,12 @@ void LedManager::initStandard() {
     ledsStandardBgr->Show();
   }
 #endif
-
 }
 
 /**
  * Init led strip RGBW. No hardware, ALL GPIO, yes serial read/write
  */
 void LedManager::initStandardRgbw() {
-
 #if defined(ESP8266)
   if (colorOrder == 1) {
     Serial.println(F("Using Standard RGBW"));
@@ -665,14 +642,12 @@ void LedManager::initStandardRgbw() {
     ledsStandardRgbwInverted->Show();
   }
 #endif
-
 }
 
 /**
  * Init led strip RGB. Hardware UART, GPIO2, yes serial read/writeHardware UART, GPIO2, yes serial read/write
  */
 void LedManager::initUart() {
-
 #if defined(ESP8266)
   if (colorOrder == 1) {
     Serial.println(F("Using UART"));
@@ -715,14 +690,12 @@ void LedManager::initUart() {
     ledsUartBgr->Show();
   }
 #endif
-
 }
 
 /**
  * Init led strip RGBW. Hardware UART, GPIO2, yes serial read/write
  */
 void LedManager::initUartRgbw() {
-
 #if defined(ESP8266)
   if (colorOrder == 1) {
     Serial.println(F("Using UART RGBW"));
@@ -752,14 +725,12 @@ void LedManager::initUartRgbw() {
     ledsUartRgbwInverted->Show();
   }
 #endif
-
 }
 
 /**
  * Init led strip RGB. Hardware DMA, GPIO3, no serial read, yes serial write
  */
 void LedManager::initDma() {
-
 #if defined(ESP8266)
   if (colorOrder == 1) {
     Serial.println(F("Using DMA"));
@@ -799,14 +770,12 @@ void LedManager::initDma() {
     ledsDmaBgr->Show();
   }
 #endif
-
 }
 
 /**
  * Init led strip RGBW. Hardware DMA, GPIO3, no serial read, yes serial write
  */
 void LedManager::initDmaRgbw() {
-
 #if defined(ESP8266)
   if (colorOrder == 1) {
     Serial.println(F("Using DMA RGBW"));
@@ -834,14 +803,12 @@ void LedManager::initDmaRgbw() {
     ledsDmaRgbwInverted->Show();
   }
 #endif
-
 }
 
 /**
  * Init led strip RGB. Hardware, ALL GPIO, yes serial read/write
  */
 void LedManager::initEsp32() {
-
 #if defined(ARDUINO_ARCH_ESP32)
   if (colorOrder == 1) {
     Serial.println(F("Using DMA"));
@@ -884,14 +851,12 @@ void LedManager::initEsp32() {
     }
   }
 #endif
-
 }
 
 /**
  * Init led strip RGBW. Hardware, ALL GPIO, yes serial read/write
  */
 void LedManager::initEsp32Rgbw() {
-
 #if defined(ARDUINO_ARCH_ESP32)
   if (colorOrder == 1) {
     Serial.println(F("Using DMA"));
@@ -921,14 +886,12 @@ void LedManager::initEsp32Rgbw() {
     }
   }
 #endif
-
 }
 
 /**
  * Init LEDs
  */
 void LedManager::initLeds() {
-
   if ((colorOrder == 1) || (colorOrder == 2)) {
     switch (colorMode) {
       case 1:
@@ -1012,7 +975,6 @@ void LedManager::initLeds() {
       }
     }
   }
-
 }
 
 /**
@@ -1034,13 +996,11 @@ void LedManager::flushSerial() {
  * @param colorMode
  */
 void LedManager::setColorMode(int colorModeToUse) {
-
   Serial.println("CHANGING COLOR MODE");
   DynamicJsonDocument colorModeDoc(1024);
   colorModeDoc[COLOR_MODE_PARAM] = colorModeToUse;
   BootstrapManager::writeToLittleFS(colorModeDoc, COLOR_MODE_FILENAME);
   delay(20);
-
 }
 
 /**
@@ -1048,13 +1008,11 @@ void LedManager::setColorMode(int colorModeToUse) {
  * @param colorMode
  */
 void LedManager::setColorOrder(int colorOrderToUse) {
-
   Serial.println("CHANGING COLOR MODE");
   DynamicJsonDocument colorOrderDoc(1024);
   colorOrderDoc[COLOR_ORDER_PARAM] = colorOrderToUse;
   BootstrapManager::writeToLittleFS(colorOrderDoc, COLOR_ORDER_FILENAME);
   delay(20);
-
 }
 
 /**
@@ -1066,7 +1024,6 @@ void LedManager::setColorOrder(int colorOrderToUse) {
  * @param ledOnParam turn on LEDs automatically at boot
  */
 void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr, boolean ledOnParam) {
-
   Serial.println(F("CHANGING LDR"));
   previousMillisLDR = 0;
   DynamicJsonDocument ldrDoc(1024);
@@ -1077,7 +1034,6 @@ void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_
   ldrDoc[LED_ON_PARAM] = ledOnParam;
   BootstrapManager::writeToLittleFS(ldrDoc, LDR_FILENAME);
   delay(20);
-
 }
 
 
@@ -1086,13 +1042,11 @@ void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_
  * @param maxLdr value used during the calibration
  */
 void LedManager::setLdr(int maxLdr) {
-
   Serial.println(F("CHANGING LDR"));
   DynamicJsonDocument ldrDoc(1024);
   ldrDoc[MAX_LDR_PARAM] = maxLdr;
   BootstrapManager::writeToLittleFS(ldrDoc, LDR_CAL_FILENAME);
   delay(20);
-
 }
 
 /**
@@ -1103,7 +1057,6 @@ void LedManager::setLdr(int maxLdr) {
  * @param minLdr min brightness when using LDR
  */
 void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam) {
-
   Serial.println(F("CHANGING PINs"));
   DynamicJsonDocument ldrDoc(1024);
   ldrDoc[RELAY_PIN_PARAM] = relayPinParam;
@@ -1116,7 +1069,6 @@ void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrP
 #elif defined(ESP8266)
   EspClass::restart();
 #endif
-
 }
 
 /**
@@ -1124,7 +1076,6 @@ void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrP
  * @param newColorMode color mode to use
  */
 void LedManager::setColorModeInit(uint8_t newColorMode) {
-
   if (colorMode != newColorMode) {
     setColorMode(newColorMode);
   }
@@ -1134,7 +1085,6 @@ void LedManager::setColorModeInit(uint8_t newColorMode) {
     initLeds();
   }
   colorMode = newColorMode;
-
 }
 
 /**
@@ -1142,13 +1092,11 @@ void LedManager::setColorModeInit(uint8_t newColorMode) {
  * @param newColorOrder color mode to use
  */
 void LedManager::setColorOrderInit(uint8_t newColorOrder) {
-
   if (colorOrder != newColorOrder) {
     setColorOrder(newColorOrder);
     initLeds();
   }
   colorOrder = newColorOrder;
-
 }
 
 /**
@@ -1158,7 +1106,6 @@ void LedManager::setColorOrderInit(uint8_t newColorOrder) {
  * @param inB blu color
  */
 void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
-
   if (inR == 0 && inG == 0 && inB == 0) {
     effect = Effect::solid;
   }
@@ -1175,7 +1122,6 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
   Serial.print(inG);
   Serial.print(F(", b: "));
   Serial.println(inB);
-
 }
 
 /**
@@ -1183,13 +1129,11 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
  * @param numLedFromLuciferin int
  */
 void LedManager::setNumLed(int numLedFromLuciferin) {
-
   ledManager.dynamicLedNum = numLedFromLuciferin;
   DynamicJsonDocument numLedDoc(1024);
   numLedDoc[LED_NUM_PARAM] = ledManager.dynamicLedNum;
   BootstrapManager::writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
   delay(20);
-
 }
 
 /**
@@ -1197,12 +1141,10 @@ void LedManager::setNumLed(int numLedFromLuciferin) {
  * @param wt white temp
  */
 void LedManager::setWhiteTemp(int wt) {
-
   Serial.println(F("CHANGING WHITE TEMP"));
   whiteTempInUse = wt;
   DynamicJsonDocument whiteTempDoc(1024);
   whiteTempDoc[WHITE_TEMP_PARAM] = wt;
   BootstrapManager::writeToLittleFS(whiteTempDoc, WHITE_TEMP_FILENAME);
   delay(20);
-
 }

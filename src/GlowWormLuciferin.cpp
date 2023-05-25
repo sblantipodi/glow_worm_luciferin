@@ -243,9 +243,7 @@ void configureLeds() {
  * @return -1 if loop must break
  */
 int serialRead() {
-
   return !breakLoop ? Serial.read() : -1;
-
 }
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -269,7 +267,6 @@ void setApState(byte state) {
  * Main loop
  */
 void mainLoop() {
-
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   NetworkManager::checkConnection();
 #endif
@@ -516,14 +513,12 @@ void mainLoop() {
   if (effect == Effect::mixed_rainbow) {
     effectsManager.mixedRainbow(ledManager.dynamicLedNum);
   }
-
 }
 
 /**
  * Loop
  */
 void loop() {
-
   mainLoop();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -610,5 +605,4 @@ void loop() {
       }
     }
   }
-
 }

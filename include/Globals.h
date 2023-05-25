@@ -90,6 +90,7 @@ extern uint8_t ldrPin;
 extern int ldrDivider;
 extern const unsigned int LDR_RECOVER_TIME;
 extern unsigned long previousMillisLDR;
+extern long lastUdpMsgReceived;
 
 extern uint8_t baudRateInUse;
 extern bool relayState;

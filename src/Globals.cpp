@@ -86,6 +86,7 @@ bool ledOn = false;
 int ldrDivider = LDR_DIVIDER;
 const unsigned int LDR_RECOVER_TIME = 4000;
 unsigned long previousMillisLDR = 0;
+long lastUdpMsgReceived;
 bool apFileRead;
 int disconnectionCounter;
 
@@ -94,7 +95,6 @@ int disconnectionCounter;
  * @param gpio gpio to use
  */
 void Globals::setGpio(int gpioToUse) {
-
   Serial.println("CHANGING GPIO");
   if (gpioToUse == 0) {
     gpioToUse = 2;
@@ -104,7 +104,6 @@ void Globals::setGpio(int gpioToUse) {
   gpioDoc[GPIO_PARAM] = gpioInUse;
   BootstrapManager::writeToLittleFS(gpioDoc, GPIO_FILENAME);
   delay(20);
-
 }
 
 /**
@@ -112,7 +111,6 @@ void Globals::setGpio(int gpioToUse) {
  * @param gpio gpio to use
  */
 void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness) {
-
   Serial.println(F("Saving color and brightness info"));
   DynamicJsonDocument gpioDoc(1024);
   gpioDoc[F("r")] = rStored = r;
@@ -121,7 +119,6 @@ void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness) {
   gpioDoc[F("brightness")] = brightnessStored = brightness;
   BootstrapManager::writeToLittleFS(gpioDoc, COLOR_BRIGHT_FILENAME);
   delay(20);
-
 }
 
 /**
@@ -130,7 +127,6 @@ void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness) {
  * @return baudrate index
  */
 int Globals::setBaudRateInUse(int bdrate) {
-
   baudRateInUse = bdrate;
   int baudRateToUse;
   switch (bdrate) {
@@ -160,7 +156,6 @@ int Globals::setBaudRateInUse(int bdrate) {
       break;
   }
   return baudRateToUse;
-
 }
 
 /**
@@ -168,86 +163,80 @@ int Globals::setBaudRateInUse(int bdrate) {
  * @param bdRate int
  */
 void Globals::setBaudRate(int bdRate) {
-
   Serial.println(F("CHANGING BAUDRATE"));
   setBaudRateInUse(bdRate);
   DynamicJsonDocument baudrateDoc(1024);
   baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
   BootstrapManager::writeToLittleFS(baudrateDoc, BAUDRATE_FILENAME);
   delay(20);
-
 }
 
 /**
  * Turn ON the relay
  */
 void Globals::turnOnRelay() {
-
   if (!relayState) {
     relayState = true;
     digitalWrite(relayPin, HIGH);
     delay(100);
   }
-
 }
 
 /**
  * Turn OFF the relay
  */
 void Globals::turnOffRelay() {
-
   if (relayState) {
     relayState = false;
     delay(100);
     digitalWrite(relayPin, LOW);
   }
-
 }
 
 /**
  * Send serial info
  */
 void Globals::sendSerialInfo() {
-
   EVERY_N_SECONDS(10) {
+    if (millis() > lastUdpMsgReceived + 1000) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
+      framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;
     Serial.printf("framerate:%s\n", (String((framerate > 0.5 ? framerate : 0),1)).c_str());
     Serial.printf("firmware:%s\n", "LIGHT");
 #else
-    Serial.printf("firmware:%s\n", "FULL");
-    Serial.printf("mqttopic:%s\n", networkManager.topicInUse.c_str());
+      Serial.printf("firmware:%s\n", "FULL");
+      Serial.printf("mqttopic:%s\n", networkManager.topicInUse.c_str());
 #endif
-    Serial.printf("ver:%s\n", VERSION);
-    Serial.printf("lednum:%d\n", ledManager.dynamicLedNum);
+      Serial.printf("ver:%s\n", VERSION);
+      Serial.printf("lednum:%d\n", ledManager.dynamicLedNum);
 #if defined(ESP8266)
-    Serial.printf("board:%s\n", "ESP8266");
+      Serial.printf("board:%s\n", "ESP8266");
 #endif
 #if CONFIG_IDF_TARGET_ESP32C3
-    Serial.printf("board:%s\n", "ESP32_C3");
+      Serial.printf("board:%s\n", "ESP32_C3");
 #elif CONFIG_IDF_TARGET_ESP32S2
-    Serial.printf("board:%s\n", "ESP32_S2");
+      Serial.printf("board:%s\n", "ESP32_S2");
 #elif CONFIG_IDF_TARGET_ESP32S3
-    Serial.printf("board:%s\n", "ESP32_S3");
+      Serial.printf("board:%s\n", "ESP32_S3");
 #elif CONFIG_IDF_TARGET_ESP32
-    Serial.printf("board:%s\n", "ESP32");
+      Serial.printf("board:%s\n", "ESP32");
 #endif
-    Serial.printf("MAC:%s\n", MAC.c_str());
-    Serial.printf("gpio:%d\n", gpioInUse);
-    Serial.printf("baudrate:%d\n", baudRateInUse);
-    Serial.printf("effect:%d\n", Globals::effectToInt(effect));
-    Serial.printf("colorMode:%d\n", colorMode);
-    Serial.printf("colorOrder:%d\n", colorOrder);
-    Serial.printf("white:%d\n", whiteTempInUse);
-    if (ldrEnabled) {
-      Serial.printf("ldr:%d\n", ((ldrValue * 100) / ldrDivider));
+      Serial.printf("MAC:%s\n", MAC.c_str());
+      Serial.printf("gpio:%d\n", gpioInUse);
+      Serial.printf("baudrate:%d\n", baudRateInUse);
+      Serial.printf("effect:%d\n", Globals::effectToInt(effect));
+      Serial.printf("colorMode:%d\n", colorMode);
+      Serial.printf("colorOrder:%d\n", colorOrder);
+      Serial.printf("white:%d\n", whiteTempInUse);
+      if (ldrEnabled) {
+        Serial.printf("ldr:%d\n", ((ldrValue * 100) / ldrDivider));
+      }
+      Serial.printf("relayPin:%d\n", relayPin);
+      Serial.printf("sbPin:%d\n", sbPin);
+      Serial.printf("ldrPin:%d\n", ldrPin);
     }
-    Serial.printf("relayPin:%d\n", relayPin);
-    Serial.printf("sbPin:%d\n", sbPin);
-    Serial.printf("ldrPin:%d\n", ldrPin);
   }
-
 }
 
 /**
@@ -256,7 +245,6 @@ void Globals::sendSerialInfo() {
  * @return  effect string
  */
 const char *Globals::effectToString(Effect e) {
-
   switch (e) {
     case Effect::bpm:
       return "Bpm";
@@ -279,7 +267,6 @@ const char *Globals::effectToString(Effect e) {
     default:
       return "Solid";
   }
-
 }
 
 const uint8_t Globals::effectToInt(Effect e) {
