@@ -217,9 +217,6 @@ void configureLeds() {
       gpioInUse = additionalParam.toInt();
     }
   }
-  if (gpioInUse == 0) {
-    gpioInUse = 2;
-  }
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
 
