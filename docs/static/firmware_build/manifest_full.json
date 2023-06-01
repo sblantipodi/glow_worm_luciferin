@@ -43,7 +43,7 @@
       "chipFamily": "ESP32-S3",
       "parts": [
         {
-          "path": "GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin",
+          "path": "GlowWormLuciferinFULL_ESP32_S3_CDC_firmware-factory.bin",
           "offset": 0
         }
       ]
