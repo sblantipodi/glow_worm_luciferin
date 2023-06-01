@@ -165,6 +165,7 @@ jobs:
           platformio run -e glowwormluciferinfull_esp32;
           platformio run -e glowwormluciferinfull_esp32c3;
           platformio run -e glowwormluciferinfull_esp32s2;
+          platformio run -e glowwormluciferinfull_esp32s3cdc;
           platformio run -e glowwormluciferinfull_esp32s3;
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v3
@@ -186,6 +187,11 @@ jobs:
         with:
           name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_S3_FULL.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32s3/firmware.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v3
+        with:
+          name: DRAFT_GLOW_WORM_LUCIFERIN_ESP32_S3_FULL_CDC.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32s3cdc/firmware.bin
       - name: Save artifact (glowwormluciferinfull_esp32)
         continue-on-error: true
         env:
@@ -195,6 +201,7 @@ jobs:
           cp .pio/build/glowwormluciferinfull_esp32/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware.bin
           cp .pio/build/glowwormluciferinfull_esp32c3/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_C3_firmware.bin
           cp .pio/build/glowwormluciferinfull_esp32s2/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S2_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32s3cdc/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin
           cp .pio/build/glowwormluciferinfull_esp32s3/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_firmware.bin
           cp .pio/build/glowwormluciferinfull_esp32/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32c3/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin
@@ -206,6 +213,7 @@ jobs:
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware.bin;
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_C3_firmware.bin;
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S2_firmware.bin;
+          git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin;
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_firmware.bin;
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware-factory.bin;
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin;

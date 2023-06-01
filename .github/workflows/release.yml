@@ -144,6 +144,8 @@ jobs:
       - name: Run PlatformIO
         run: platformio run -e glowwormluciferinfull_esp32s2
       - name: Run PlatformIO
+        run: platformio run -e glowwormluciferinfull_esp32s3cdc
+      - name: Run PlatformIO
         run: platformio run -e glowwormluciferinfull_esp32s3
       - name: Save artifact (glowwormluciferinfull_esp32)
         env:
@@ -152,10 +154,12 @@ jobs:
           cp .pio/build/glowwormluciferinfull_esp32/firmware.bin ./GlowWormLuciferinFULL_ESP32_firmware.bin
           cp .pio/build/glowwormluciferinfull_esp32c3/firmware.bin ./GlowWormLuciferinFULL_ESP32_C3_firmware.bin
           cp .pio/build/glowwormluciferinfull_esp32s2/firmware.bin ./GlowWormLuciferinFULL_ESP32_S2_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32s3cdc/firmware.bin ./GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin
           cp .pio/build/glowwormluciferinfull_esp32s3/firmware.bin ./GlowWormLuciferinFULL_ESP32_S3_firmware.bin
           cp .pio/build/glowwormluciferinfull_esp32/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32c3/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s2/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin
+          cp .pio/build/glowwormluciferinfull_esp32s3cdc/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S3_CDC_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s3/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
           hub release edit -a GlowWormLuciferinFULL_ESP32_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
           hub release edit -a GlowWormLuciferinFULL_ESP32_C3_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
@@ -186,6 +190,7 @@ jobs:
           cp ./GlowWormLuciferinFULL_ESP32_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware.bin
           cp ./GlowWormLuciferinFULL_ESP32_C3_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C3_firmware.bin
           cp ./GlowWormLuciferinFULL_ESP32_S2_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S2_firmware.bin
+          cp ./GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin
           cp ./GlowWormLuciferinFULL_ESP32_S3_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_firmware.bin
           cp ./GlowWormLuciferinLIGHT_ESP32_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware.bin
           cp ./GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin
@@ -194,6 +199,7 @@ jobs:
           cp ./GlowWormLuciferinFULL_ESP32_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware-factory.bin
           cp ./GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin
           cp ./GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin
+          cp ./GlowWormLuciferinFULL_ESP32_S3_CDC_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware-factory.bin
           cp ./GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
           cp ./GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin
           cp ./GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin
@@ -204,6 +210,7 @@ jobs:
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C3_firmware.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S2_firmware.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_firmware.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin;
@@ -212,6 +219,7 @@ jobs:
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware-factory.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin;
+          git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware-factory.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin;
           git add ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin;
