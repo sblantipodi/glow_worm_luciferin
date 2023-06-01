@@ -206,6 +206,7 @@ jobs:
           cp .pio/build/glowwormluciferinfull_esp32/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32c3/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s2/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin
+          cp .pio/build/glowwormluciferinfull_esp32s3cdc/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s3/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
           cd ../beta;
           git config --global user.email "perini.davide@dpsoftware.org";
@@ -218,6 +219,7 @@ jobs:
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware-factory.bin;
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin;
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin;
+          git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware-factory.bin;
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin;
           git commit -m "CI BETA release for firmware web installer";
           git push;
