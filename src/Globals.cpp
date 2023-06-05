@@ -32,7 +32,7 @@ Globals globals;
 
 // DPsoftware checksum for serial
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
-        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, prefixLength = 6;
+        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock, prefixLength = 6;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
 uint8_t colorMode = 1;
 uint8_t colorOrder = 1;
@@ -87,7 +87,7 @@ uint8_t relayPin = 12; // 22 for PICO
 uint8_t sbPin = 0;
 uint8_t ldrPin = 36; // 33 for PICO
 #endif
-
+uint8_t gpioClockInUse = 2;
 
 
 bool ledOn = false;
@@ -111,6 +111,22 @@ void Globals::setGpio(int gpioToUse) {
   DynamicJsonDocument gpioDoc(1024);
   gpioDoc[GPIO_PARAM] = gpioInUse;
   BootstrapManager::writeToLittleFS(gpioDoc, GPIO_FILENAME);
+  delay(20);
+}
+
+/**
+ * Set gpio clock received by the Firefly Luciferin software
+ * @param gpio gpio to use
+ */
+void Globals::setGpioClock(int gpioClockToUse) {
+  Serial.println("CHANGING GPIO CLOCK");
+  if (gpioClockToUse == 0) {
+    gpioClockToUse = 2;
+  }
+  gpioClockInUse = gpioClockToUse;
+  DynamicJsonDocument gpioClockDoc(1024);
+  gpioClockDoc[GPIO_CLOCK_PARAM] = gpioClockInUse;
+  BootstrapManager::writeToLittleFS(gpioClockDoc, GPIO_CLOCK_FILENAME);
   delay(20);
 }
 
@@ -232,6 +248,7 @@ void Globals::sendSerialInfo() {
 #endif
       Serial.printf("MAC:%s\n", MAC.c_str());
       Serial.printf("gpio:%d\n", gpioInUse);
+      Serial.printf("gpioClock:%d\n", gpioClockInUse);
       Serial.printf("baudrate:%d\n", baudRateInUse);
       Serial.printf("effect:%d\n", Globals::effectToInt(effect));
       Serial.printf("colorMode:%d\n", colorMode);

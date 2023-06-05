@@ -48,10 +48,11 @@ extern class Helpers helper;
 extern class Globals globals;
 
 extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
-        fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin;
+        fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock;
 extern uint8_t prefixLength;
 
 extern uint8_t gpioInUse;
+extern uint8_t gpioClockInUse;
 extern uint8_t whiteTempInUse;
 extern uint8_t colorMode;
 extern uint8_t colorOrder;
@@ -70,7 +71,9 @@ extern float framerate;
 extern float framerateCounter;
 extern uint lastStream;
 const String GPIO_PARAM = "gpio";
+const String GPIO_CLOCK_PARAM = "gpioClock";
 const String GPIO_FILENAME = "gpio.json";
+const String GPIO_CLOCK_FILENAME = "gpioClock.json";
 const String AUTO_SAVE_FILENAME = "as.json";
 const String COLOR_BRIGHT_FILENAME = "cb.json";
 const String AP_FILENAME = "ap.json";
@@ -102,6 +105,8 @@ class Globals {
 
 public:
     static void setGpio(int gpio);
+
+    static void setGpioClock(int gpioClock);
 
     static void saveColorBrightnessInfo(int r, int g, int b, int brightness);
 

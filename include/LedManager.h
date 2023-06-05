@@ -39,13 +39,14 @@ public:
     // GRB
     NeoPixelBus<NeoGrbFeature, NeoWs2812xMethod> *ledsEsp32 = NULL; // Hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<NeoGrbwFeature, NeoSk6812Method> *ledsEsp32Rgbw = NULL; // Hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<DotStarGrbFeature, DotStarMethod> *ledsEsp32DotStar = NULL; // Hardware, ALL GPIO, yes serial read/write
     // RGB
     NeoPixelBus<NeoRgbFeature, NeoWs2812xMethod> *ledsEsp32Inverted = NULL; // Hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<NeoRgbwFeature, NeoSk6812Method> *ledsEsp32RgbwInverted = NULL; // Hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<DotStarRgbFeature, DotStarMethod> *ledsEsp32DotStarInverted = NULL; // Hardware, ALL GPIO, yes serial read/write
     // BGR
-    NeoPixelBus<NeoBgrFeature, NeoWs2812xMethod> *
-
-    ledsEsp32Bgr = NULL; // Hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<NeoBgrFeature, NeoWs2812xMethod> *ledsEsp32Bgr = NULL; // Hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<DotStarBgrFeature, DotStarMethod> *ledsEsp32DotStarBgr = NULL; // Hardware, ALL GPIO, yes serial read/write
 #else
     // GRB
     NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *ledsDma = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
@@ -54,6 +55,7 @@ public:
     NeoPixelBus<NeoGrbwFeature, NeoEsp8266Uart1Sk6812Method> *ledsUartRgbw = NULL; // Hardware UART, GPIO2, yes serial read/write
     NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangSk6812Method> *ledsStandardRgbw = NULL; // No hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<DotStarGrbFeature, DotStarMethod> *ledsDotStar = NULL; // No hardware, ALL GPIO, yes serial read/write
     // RGB
     NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> *ledsDmaInverted = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
     NeoPixelBus<NeoRgbwFeature, NeoSk6812Method> *ledsDmaRgbwInverted = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
@@ -61,10 +63,12 @@ public:
     NeoPixelBus<NeoRgbwFeature, NeoEsp8266Uart1Sk6812Method> *ledsUartRgbwInverted = NULL; // Hardware UART, GPIO2, yes serial read/write
     NeoPixelBus<NeoRgbFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandardInverted = NULL; // No hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<NeoRgbwFeature, NeoEsp8266BitBangSk6812Method> *ledsStandardRgbwInverted = NULL; // No hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<DotStarRgbFeature, DotStarMethod> *ledsDotStarInverted = NULL; // No hardware, ALL GPIO, yes serial read/write
     // BGR
     NeoPixelBus<NeoBgrFeature, Neo800KbpsMethod> *ledsDmaBgr = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
     NeoPixelBus<NeoBgrFeature, NeoEsp8266Uart1800KbpsMethod> *ledsUartBgr = NULL; // Hardware UART, GPIO2, yes serial read/write
     NeoPixelBus<NeoBgrFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandardBgr = NULL; // No hardware, ALL GPIO, yes serial read/write
+    NeoPixelBus<DotStarBgrFeature, DotStarMethod> *ledsDotStarBgr = NULL; // No hardware, ALL GPIO, yes serial read/write
 #endif
     const String COLOR_MODE_FILENAME = "color_mode.json";
     const String COLOR_ORDER_FILENAME = "color_order.json";
@@ -105,6 +109,8 @@ public:
 
     void initEsp32Rgbw();
 
+    void initEsp32DotStar();
+
     void initLeds();
 
     void initStandard();
@@ -118,6 +124,8 @@ public:
     void initDma();
 
     void initDmaRgbw();
+
+    void initDotStar();
 
     void ledShow() const;
 

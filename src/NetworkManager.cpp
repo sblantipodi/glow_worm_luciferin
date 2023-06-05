@@ -350,6 +350,8 @@ void NetworkManager::manageAPSetting(bool isSettingRoot) {
       prefsData += ledManager.dynamicLedNum;
       prefsData += F("\",\"gpio\":\"");
       prefsData += gpioInUse;
+      prefsData += F("\",\"gpioClock\":\"");
+      prefsData += gpioClockInUse;
       prefsData += F("\",\"colorMode\":\"");
       prefsData += colorMode;
       prefsData += F("\",\"colorOrder\":\"");
@@ -559,6 +561,7 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   String mqttuser = bootstrapManager.jsonDoc[F("mqttuser")];
   String mqttpass = bootstrapManager.jsonDoc[F("mqttpass")];
   String additionalParam = bootstrapManager.jsonDoc[F("additionalParam")];
+  String gpioClockParam = bootstrapManager.jsonDoc[F("gpioClock")];
   String colorModeParam = bootstrapManager.jsonDoc[F("colorMode")];
   String colorOrderParam = bootstrapManager.jsonDoc[F("colorOrder")];
   String lednum = bootstrapManager.jsonDoc[F("lednum")];
@@ -616,6 +619,11 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   delay(DELAY_200);
   Serial.println(F("Saving gpio"));
   Globals::setGpio(additionalParam.toInt());
+  if (!bootstrapManager.jsonDoc[F("gpioClock")].isNull()) {
+    delay(DELAY_200);
+    Serial.println(F("Saving gpio clock"));
+    Globals::setGpioClock(gpioClockParam.toInt());
+  }
   delay(DELAY_500);
   DynamicJsonDocument topicDoc(1024);
   topicDoc[networkManager.MQTT_PARAM] = mqttTopic;
@@ -654,6 +662,14 @@ bool NetworkManager::processFirmwareConfig() {
         int gpioFromConfig = (int) bootstrapManager.jsonDoc[GPIO_PARAM];
         if (gpioFromConfig != 0 && gpioInUse != gpioFromConfig) {
           Globals::setGpio(gpioFromConfig);
+          ledManager.reinitLEDTriggered = true;
+        }
+      }
+      // GPIO CLOCK
+      if (bootstrapManager.jsonDoc.containsKey(GPIO_CLOCK_PARAM)) {
+        int gpioClockFromConfig = (int) bootstrapManager.jsonDoc[GPIO_CLOCK_PARAM];
+        if (gpioClockFromConfig != 0 && gpioClockInUse != gpioClockFromConfig) {
+          Globals::setGpioClock(gpioClockFromConfig);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -895,6 +911,7 @@ void NetworkManager::sendStatus() {
 #endif
     root[LED_NUM_PARAM] = String(ledManager.dynamicLedNum);
     root[F("gpio")] = gpioInUse;
+    root[F("gpioClock")] = gpioClockInUse;
     root[F("mqttopic")] = networkManager.topicInUse;
     root[F("whitetemp")] = whiteTempInUse;
 

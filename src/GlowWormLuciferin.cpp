@@ -212,13 +212,16 @@ void configureLeds() {
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
     gpioInUse = gpioFromStorage.toInt();
   }
-  if (gpioInUse == 0) {
-    if (!additionalParam.isEmpty()) {
-      gpioInUse = additionalParam.toInt();
-    }
-  }
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
+
+  // GPIO clock pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
+  String gpioClockFromStorage = bootstrapManager.readValueFromFile(GPIO_CLOCK_FILENAME, GPIO_CLOCK_PARAM);
+  if (!gpioClockFromStorage.isEmpty() && gpioClockFromStorage != ERROR && gpioClockFromStorage.toInt() != 0) {
+    gpioClockInUse = gpioClockFromStorage.toInt();
+  }
+  Serial.print(F("GPIO CLOCK IN USE="));
+  Serial.println(gpioClockInUse);
 
   // Color mode from configuration storage
   String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME,ledManager.COLOR_MODE_PARAM);
@@ -323,10 +326,12 @@ void mainLoop() {
     while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     ldrSerialPin = serialRead();
     while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+    gpioClock = serialRead();
+    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
     chk = serialRead();
     if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
                                ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder
-                               ^ relaySerialPin ^ sbSerialPin ^ ldrSerialPin ^ 0x55))) {
+                               ^ relaySerialPin ^ sbSerialPin ^ ldrSerialPin ^ gpioClock ^ 0x55))) {
       loopIdx = 0;
       goto waitLoop;
     }
@@ -341,6 +346,10 @@ void mainLoop() {
       }
       if (gpio != 0 && gpioInUse != gpio) {
         Globals::setGpio(gpio);
+        ledManager.reinitLEDTriggered = true;
+      }
+      if (gpioClock != 0 && gpioClockInUse != gpioClock) {
+        Globals::setGpioClock(gpioClock);
         ledManager.reinitLEDTriggered = true;
       }
       if (ldrAction == 2 || ldrAction == 3 || ldrAction == 4) {
@@ -436,7 +445,7 @@ void mainLoop() {
             break;
         }
       }
-      if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 4)) {
+      if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 5)) {
         ledManager.setColorModeInit(fireflyColorMode);
       }
       if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 3)) {
