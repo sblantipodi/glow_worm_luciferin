@@ -1,6 +1,6 @@
 {
   "name": "Glow Worm Luciferin LIGHT",
-  "version": "5.9.48",
+  "version": "5.10.6",
   "builds": [
     {
       "chipFamily": "ESP8266",
@@ -24,7 +24,7 @@
       "chipFamily": "ESP32-C3",
       "parts": [
         {
-          "path": "GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin",
+          "path": "GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware-factory.bin",
           "offset": 0
         }
       ]
