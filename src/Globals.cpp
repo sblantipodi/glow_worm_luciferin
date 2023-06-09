@@ -238,7 +238,7 @@ void Globals::sendSerialInfo() {
       Serial.printf("board:%s\n", "ESP8266");
 #endif
 #if CONFIG_IDF_TARGET_ESP32C3
-      Serial.printf("board:%s\n", "ESP32_C3");
+      Serial.printf("board:%s\n", "ESP32_C3_CDC");
 #elif CONFIG_IDF_TARGET_ESP32S2
       Serial.printf("board:%s\n", "ESP32_S2");
 #elif CONFIG_IDF_TARGET_ESP32S3

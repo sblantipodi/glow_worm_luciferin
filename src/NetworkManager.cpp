@@ -901,7 +901,7 @@ void NetworkManager::sendStatus() {
     root[F("board")] = F("ESP8266");
 #endif
 #if CONFIG_IDF_TARGET_ESP32C3
-    root["board"] = "ESP32_C3";
+    root["board"] = "ESP32_C3_CDC";
 #elif CONFIG_IDF_TARGET_ESP32S2
     root["board"] = "ESP32_S2";
 #elif CONFIG_IDF_TARGET_ESP32S3
