@@ -31,6 +31,7 @@ Helpers helper;
 Globals globals;
 
 // DPsoftware checksum for serial
+byte config[CONFIG_NUM_PARAMS];
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
         fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock, prefixLength = 6;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;

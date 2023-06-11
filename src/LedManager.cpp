@@ -25,51 +25,21 @@
  */
 void LedManager::ledShow() const {
 #if defined(ARDUINO_ARCH_ESP32)
-  if (colorOrder == 1) {
-    switch (colorMode) {
-      case 1:
-        ledsEsp32->Show();
-        break;
-      case 2:
-      case 3:
-      case 4:
-        ledsEsp32Rgbw->Show();
-        break;
-      case 5:
-        ledsEsp32DotStar->Show();
-        break;
-    }
-  } else if (colorOrder == 2) {
-    switch (colorMode) {
-      case 1:
-        ledsEsp32Inverted->Show();
-        break;
-      case 2:
-      case 3:
-      case 4:
-        ledsEsp32RgbwInverted->Show();
-        break;
-      case 5:
-        ledsEsp32DotStarInverted->Show();
-        break;
-    }
-  } else if (colorOrder == 3) {
-    switch (colorMode) {
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-        ledsEsp32Bgr->Show();
-        break;
-      case 5:
-        ledsEsp32DotStarBgr->Show();
-        break;
-    }
+  switch (colorMode) {
+    case 1:
+      ledsEsp32->Show();
+      break;
+    case 2:
+    case 3:
+    case 4:
+      ledsEsp32Rgbw->Show();
+      break;
+    case 5:
+      ledsEsp32DotStar->Show();
+      break;
   }
 #else
-  if (colorOrder == 1) {
-    if (gpioInUse == 3) {
-      switch (colorMode) {
+  switch (colorMode) {
         case 1:
           ledsDma->Show();
           break;
@@ -82,118 +52,6 @@ void LedManager::ledShow() const {
           ledsDotStar->Show();
           break;
       }
-    } else if (gpioInUse == 2) {
-      switch (colorMode) {
-        case 1:
-          ledsUart->Show();
-          break;
-        case 2:
-        case 3:
-        case 4:
-          ledsUartRgbw->Show();
-          break;
-        case 5:
-          ledsDotStar->Show();
-          break;
-      }
-    } else {
-      switch (colorMode) {
-        case 1:
-          ledsStandard->Show();
-          break;
-        case 2:
-        case 3:
-        case 4:
-          ledsStandardRgbw->Show();
-          break;
-        case 5:
-          ledsDotStar->Show();
-          break;
-      }
-    }
-  } else if (colorOrder == 2) {
-    if (gpioInUse == 3) {
-      switch (colorMode) {
-        case 1:
-          ledsDmaInverted->Show();
-          break;
-        case 2:
-        case 3:
-        case 4:
-          ledsDmaRgbwInverted->Show();
-          break;
-        case 5:
-          ledsDotStarInverted->Show();
-          break;
-      }
-    } else if (gpioInUse == 2) {
-      switch (colorMode) {
-        case 1:
-          ledsUartInverted->Show();
-          break;
-        case 2:
-        case 3:
-        case 4:
-          ledsUartRgbwInverted->Show();
-          break;
-        case 5:
-          ledsDotStarInverted->Show();
-          break;
-      }
-    } else {
-      switch (colorMode) {
-        case 1:
-          ledsStandardInverted->Show();
-          break;
-        case 2:
-        case 3:
-        case 4:
-          ledsStandardRgbwInverted->Show();
-          break;
-        case 5:
-          ledsDotStarInverted->Show();
-          break;
-      }
-    }
-  } else if (colorOrder == 3) {
-    if (gpioInUse == 3) {
-      switch (colorMode) {
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-          ledsDmaBgr->Show();
-          break;
-        case 5:
-          ledsDotStarBgr->Show();
-          break;
-      }
-    } else if (gpioInUse == 2) {
-      switch (colorMode) {
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-          ledsUartBgr->Show();
-          break;
-        case 5:
-          ledsDotStarBgr->Show();
-          break;
-      }
-    } else {
-      switch (colorMode) {
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-          ledsStandardBgr->Show();
-          break;
-        case 5:
-          ledsDotStarBgr->Show();
-          break;
-      }
-    }
-  }
 #endif
 }
 
@@ -304,155 +162,52 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
  * @param g green channel
  * @param b blu channel
  */
-void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) const {
+void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrder, uint8_t bToOrder) const {
   RgbColor rgbColor;
   RgbwColor rgbwColor;
-  if (colorOrder == 1 || colorOrder == 2) {
-    switch (colorMode) {
-      case 1:
-        rgbColor = calculateRgbMode(r, g, b);
-        break;
-      case 2:
-      case 3:
-      case 4:
-        rgbwColor = calculateRgbwMode(r, g, b);
-        break;
-      case 5:
-        rgbColor = calculateRgbMode(r, g, b);
-        break;
-    }
-  } else if (colorOrder == 3) {
-    switch (colorMode) {
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-      case 5:
-        rgbColor = calculateRgbMode(r, g, b);
-        break;
-    }
+  uint8_t r,g,b;
+  switch (colorOrder) {
+    case 1: g = rToOrder; r = gToOrder; b = bToOrder; break;
+    case 2: r = rToOrder; g = gToOrder; b = bToOrder; break;
+    case 3: b = rToOrder; g = gToOrder; r = bToOrder; break;
+    case 4: b = rToOrder; r = gToOrder; g = bToOrder; break;
+    case 5: r = rToOrder; b = gToOrder; g = bToOrder; break;
+    case 6: g = rToOrder; b = gToOrder; r = bToOrder; break;
+  }
+  switch (colorMode) {
+    case 1:
+      rgbColor = calculateRgbMode(r, g, b);
+      break;
+    case 2:
+    case 3:
+    case 4:
+      rgbwColor = calculateRgbwMode(r, g, b);
+      break;
+    case 5:
+      rgbColor = calculateRgbMode(r, g, b);
+      break;
   }
 #if defined(ARDUINO_ARCH_ESP32)
-  if (colorOrder == 1) {
-    switch (colorMode) {
-      case 1:
-        ledsEsp32->SetPixelColor(index, rgbColor);
-        break;
-      case 2:
-      case 3:
-      case 4:
-        ledsEsp32Rgbw->SetPixelColor(index, rgbwColor);
-        break;
-      case 5:
-        ledsEsp32DotStar->SetPixelColor(index, rgbColor);
-        break;
-    }
-  } else if (colorOrder == 2) {
-    switch (colorMode) {
-      case 1:
-        ledsEsp32Inverted->SetPixelColor(index, rgbColor);
-        break;
-      case 2:
-      case 3:
-      case 4:
-        ledsEsp32RgbwInverted->SetPixelColor(index, rgbwColor);
-        break;
-      case 5:
-        ledsEsp32DotStarInverted->SetPixelColor(index, rgbColor);
-        break;
-    }
-  } else if (colorOrder == 3) {
-    switch (colorMode) {
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-        ledsEsp32Bgr->SetPixelColor(index, rgbColor);
-        break;
-      case 5:
-        ledsEsp32DotStarBgr->SetPixelColor(index, rgbColor);
-        break;
-    }
+  switch (colorMode) {
+    case 1:
+      ledsEsp32->SetPixelColor(index, rgbColor);
+      break;
+    case 2:
+    case 3:
+    case 4:
+      ledsEsp32Rgbw->SetPixelColor(index, rgbwColor);
+      break;
+    case 5:
+      ledsEsp32DotStar->SetPixelColor(index, rgbColor);
+      break;
   }
 #else
-  if (colorOrder == 1) {
-    if (gpioInUse == 3) {
-      switch (colorMode) {
-        case 1: ledsDma->SetPixelColor(index, rgbColor); break;
-        case 2:
-        case 3:
-        case 4: ledsDmaRgbw->SetPixelColor(index, rgbwColor); break;
-        case 5: ledsDotStar->SetPixelColor(index, rgbColor); break;
-      }
-    } else if (gpioInUse == 2) {
-      switch (colorMode) {
-        case 1: ledsUart->SetPixelColor(index, rgbColor); break;
-        case 2:
-        case 3:
-        case 4: ledsUartRgbw->SetPixelColor(index, rgbwColor); break;
-        case 5: ledsDotStar->SetPixelColor(index, rgbColor); break;
-      }
-    } else {
-      switch (colorMode) {
-        case 1: ledsStandard->SetPixelColor(index, rgbColor); break;
-        case 2:
-        case 3:
-        case 4: ledsStandardRgbw->SetPixelColor(index, rgbwColor); break;
-        case 5: ledsDotStar->SetPixelColor(index, rgbColor); break;
-      }
-    }
-  } else if (colorOrder == 2) {
-    if (gpioInUse == 3) {
-      switch (colorMode) {
-        case 1: ledsDmaInverted->SetPixelColor(index, rgbColor); break;
-        case 2:
-        case 3:
-        case 4: ledsDmaRgbwInverted->SetPixelColor(index, rgbwColor); break;
-        case 5: ledsDotStarInverted->SetPixelColor(index, rgbColor); break;
-      }
-    } else if (gpioInUse == 2) {
-      switch (colorMode) {
-        case 1: ledsUartInverted->SetPixelColor(index, rgbColor); break;
-        case 2:
-        case 3:
-        case 4: ledsUartRgbwInverted->SetPixelColor(index, rgbwColor); break;
-        case 5: ledsDotStarInverted->SetPixelColor(index, rgbColor); break;
-      }
-    } else {
-      switch (colorMode) {
-        case 1: ledsStandardInverted->SetPixelColor(index, rgbColor); break;
-        case 2:
-        case 3:
-        case 4: ledsStandardRgbwInverted->SetPixelColor(index, rgbwColor); break;
-        case 5: ledsDotStarInverted->SetPixelColor(index, rgbColor); break;
-      }
-    }
-  } else if (colorOrder == 3) {
-    if (gpioInUse == 3) {
-      switch (colorMode) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: ledsDmaBgr->SetPixelColor(index, rgbColor); break;
-        case 5: ledsDotStarBgr->SetPixelColor(index, rgbColor); break;
-      }
-    } else if (gpioInUse == 2) {
-      switch (colorMode) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: ledsUartBgr->SetPixelColor(index, rgbColor); break;
-        case 5: ledsDotStarBgr->SetPixelColor(index, rgbColor); break;
-      }
-    } else {
-      switch (colorMode) {
-        case 1:
-        case 2:
-        case 3:
-        case 4: ledsStandardBgr->SetPixelColor(index, rgbColor); break;
-        case 5: ledsDotStarBgr->SetPixelColor(index, rgbColor); break;
-      }
-    }
+  switch (colorMode) {
+    case 1: ledsDma->SetPixelColor(index, rgbColor); break;
+    case 2:
+    case 3:
+    case 4: ledsDmaRgbw->SetPixelColor(index, rgbwColor); break;
+    case 5: ledsDotStar->SetPixelColor(index, rgbColor); break;
   }
 #endif
 }
@@ -461,12 +216,6 @@ void LedManager::setPixelColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) 
  * Clean the LEDs before reinit
  */
 void LedManager::cleanLEDs() {
-  cleanGrb();
-  cleanRgb();
-  cleanBgr();
-}
-
-void LedManager::cleanGrb() {
   boolean cleared = false;
 #if defined(ARDUINO_ARCH_ESP32)
   if (ledsEsp32 != NULL) {
@@ -532,167 +281,24 @@ void LedManager::cleanGrb() {
 #endif
   if (cleared) {
     Serial.println("LEDs cleared");
-  }
-}
-
-void LedManager::cleanRgb() {
-  boolean cleared = false;
-#if defined(ARDUINO_ARCH_ESP32)
-  if (ledsEsp32Inverted != NULL) {
-    while (!ledsEsp32Inverted->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsEsp32Inverted;
-    ledsEsp32Inverted = NULL;
-  } else if (ledsEsp32RgbwInverted != NULL) {
-    while (!ledsEsp32RgbwInverted->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsEsp32RgbwInverted;
-    ledsEsp32RgbwInverted = NULL;
-  } else if (ledsEsp32DotStarInverted != NULL) {
-    while (!ledsEsp32DotStarInverted->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsEsp32DotStarInverted;
-    ledsEsp32DotStarInverted = NULL;
-  }
-#endif
-#if defined(ESP8266)
-  if (ledsDmaInverted != nullptr) {
-    while (!ledsDmaInverted->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsDmaInverted;
-    ledsDmaInverted = nullptr;
-  }
-  if (ledsDmaRgbwInverted != nullptr) {
-    while (!ledsDmaRgbwInverted->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsDmaRgbwInverted;
-    ledsDmaRgbwInverted = nullptr;
-  }
-  if (ledsUartInverted != nullptr) {
-    while (!ledsUartInverted->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsUartInverted;
-    ledsUartInverted = nullptr;
-  }
-  if (ledsUartRgbwInverted != nullptr) {
-    while (!ledsUartRgbwInverted->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsUartRgbwInverted;
-    ledsUartRgbwInverted = nullptr;
-  }
-  if (ledsStandardInverted != nullptr) {
-    while (!ledsStandardInverted->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsStandardInverted;
-    ledsStandardInverted = nullptr;
-  }
-  if (ledsStandardRgbwInverted != nullptr) {
-    while (!ledsStandardRgbwInverted->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsStandardRgbwInverted;
-    ledsStandardRgbwInverted = nullptr;
-  }
-  if (ledsDotStarInverted != nullptr) {
-    while (!ledsDotStarInverted->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsDotStarInverted;
-    ledsDotStarInverted = nullptr;
-  }
-#endif
-  if (cleared) {
-    Serial.println("LEDs cleared");
-  }
-}
-
-void LedManager::cleanBgr() {
-  boolean cleared = false;
-#if defined(ARDUINO_ARCH_ESP32)
-  if (ledsEsp32Bgr != NULL) {
-    while (!ledsEsp32Bgr->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsEsp32Bgr;
-    ledsEsp32Bgr = NULL;
-  }
-  if (ledsEsp32DotStarBgr != NULL) {
-    while (!ledsEsp32DotStarBgr->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsEsp32DotStarBgr;
-    ledsEsp32DotStarBgr = NULL;
-  }
-#endif
-#if defined(ESP8266)
-  if (ledsDmaBgr != nullptr) {
-    while (!ledsDmaBgr->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsDmaBgr;
-    ledsDmaBgr = nullptr;
-  }
-  if (ledsUartBgr != nullptr) {
-    while (!ledsUartBgr->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsUartBgr;
-    ledsUartBgr = nullptr;
-  }
-  if (ledsStandardBgr != nullptr) {
-    while (!ledsStandardBgr->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsStandardBgr;
-    ledsStandardBgr = nullptr;
-  }
-  if (ledsDotStarBgr != nullptr) {
-    while (!ledsDotStarBgr->CanShow()) { yield(); }
-    cleared = true;
-    delete ledsDotStarBgr;
-    ledsDotStarBgr = nullptr;
-  }
-#endif
-  if (cleared) {
-    Serial.println("LEDs cleared");
-  }
-}
+  }}
 
 /**
  * Init led strip. No hardware, ALL GPIO, yes serial read/write
  */
 void LedManager::initStandard() {
 #if defined(ESP8266)
-  if (colorOrder == 1) {
-    cleanLEDs();
-    ledsStandard = new NeoPixelBus<NeoGrbFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, gpioInUse); // and recreate with new count
-    if (ledsStandard == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    while (!Serial); // wait for serial attach
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsStandard->Begin();
-    ledsStandard->Show();
-  } else if (colorOrder == 2) {
-    cleanLEDs();
-    ledsStandardInverted = new NeoPixelBus<NeoRgbFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, gpioInUse); // and recreate with new count
-    if (ledsStandardInverted == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    while (!Serial); // wait for serial attach
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsStandardInverted->Begin();
-    ledsStandardInverted->Show();
-  } else if (colorOrder == 3) {
-    cleanLEDs();
-    ledsStandardBgr = new NeoPixelBus<NeoBgrFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, gpioInUse); // and recreate with new count
-    if (ledsStandardBgr == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    while (!Serial); // wait for serial attach
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsStandardBgr->Begin();
-    ledsStandardBgr->Show();
+  cleanLEDs();
+  ledsStandard = new NeoPixelBus<NeoRgbFeature, NeoEsp8266BitBangWs2812xMethod >(dynamicLedNum, gpioInUse); // and recreate with new count
+  if (ledsStandard == nullptr) {
+    Serial.println(F("OUT OF MEMORY"));
   }
+  while (!Serial); // wait for serial attach
+  Serial.println();
+  Serial.println(F("Initializing..."));
+  flushSerial();
+  ledsStandard->Begin();
+  ledsStandard->Show();
 #endif
 }
 
@@ -701,33 +307,18 @@ void LedManager::initStandard() {
  */
 void LedManager::initStandardRgbw() {
 #if defined(ESP8266)
-  if (colorOrder == 1) {
-    cleanLEDs();
-    ledsStandardRgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp8266BitBangSk6812Method >(dynamicLedNum, gpioInUse); // and recreate with new count
-    if (ledsStandardRgbw == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    while (!Serial); // wait for serial attach
-    Serial.println();
-    Serial.println(F("Initializing..."));
-
-    flushSerial();
-    ledsStandardRgbw->Begin();
-    ledsStandardRgbw->Show();
-  } else if (colorOrder == 2) {
-    cleanLEDs();
-    ledsStandardRgbwInverted = new NeoPixelBus<NeoRgbwFeature, NeoEsp8266BitBangSk6812Method >(dynamicLedNum, gpioInUse); // and recreate with new count
-    if (ledsStandardRgbwInverted == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    while (!Serial); // wait for serial attach
-    Serial.println();
-    Serial.println(F("Initializing..."));
-
-    flushSerial();
-    ledsStandardRgbwInverted->Begin();
-    ledsStandardRgbwInverted->Show();
+  cleanLEDs();
+  ledsStandardRgbw = new NeoPixelBus<NeoRgbwFeature, NeoEsp8266BitBangSk6812Method >(dynamicLedNum, gpioInUse); // and recreate with new count
+  if (ledsStandardRgbw == nullptr) {
+    Serial.println(F("OUT OF MEMORY"));
   }
+  while (!Serial); // wait for serial attach
+  Serial.println();
+  Serial.println(F("Initializing..."));
+
+  flushSerial();
+  ledsStandardRgbw->Begin();
+  ledsStandardRgbw->Show();
 #endif
 }
 
@@ -736,43 +327,17 @@ void LedManager::initStandardRgbw() {
  */
 void LedManager::initUart() {
 #if defined(ESP8266)
-  if (colorOrder == 1) {
-    cleanLEDs();
-    ledsUart = new NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
-    if (ledsUart == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    while (!Serial); // wait for serial attach
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsUart->Begin();
-    ledsUart->Show();
-  } else if (colorOrder == 2) {
-    cleanLEDs();
-    ledsUartInverted = new NeoPixelBus<NeoRgbFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
-    if (ledsUartInverted == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    while (!Serial); // wait for serial attach
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsUartInverted->Begin();
-    ledsUartInverted->Show();
-  } else if (colorOrder == 3) {
-    cleanLEDs();
-    ledsUartBgr = new NeoPixelBus<NeoBgrFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
-    if (ledsUartBgr == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    while (!Serial); // wait for serial attach
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsUartBgr->Begin();
-    ledsUartBgr->Show();
+  cleanLEDs();
+  ledsUart = new NeoPixelBus<NeoRgbFeature, NeoEsp8266Uart1800KbpsMethod>(dynamicLedNum, 2); // and recreate with new count
+  if (ledsUart == nullptr) {
+    Serial.println(F("OUT OF MEMORY"));
   }
+  while (!Serial); // wait for serial attach
+  Serial.println();
+  Serial.println(F("Initializing..."));
+  flushSerial();
+  ledsUart->Begin();
+  ledsUart->Show();
 #endif
 }
 
@@ -781,31 +346,17 @@ void LedManager::initUart() {
  */
 void LedManager::initUartRgbw() {
 #if defined(ESP8266)
-  if (colorOrder == 1) {
-    cleanLEDs();
-    ledsUartRgbw = new NeoPixelBus<NeoGrbwFeature, NeoEsp8266Uart1Sk6812Method>(dynamicLedNum, 2); // and recreate with new count
-    if (ledsUartRgbw == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    while (!Serial); // wait for serial attach
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsUartRgbw->Begin();
-    ledsUartRgbw->Show();
-  } else if (colorOrder == 2) {
-    cleanLEDs();
-    ledsUartRgbwInverted = new NeoPixelBus<NeoRgbwFeature, NeoEsp8266Uart1Sk6812Method>(dynamicLedNum, 2); // and recreate with new count
-    if (ledsUartRgbwInverted == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    while (!Serial); // wait for serial attach
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsUartRgbwInverted->Begin();
-    ledsUartRgbwInverted->Show();
+  cleanLEDs();
+  ledsUartRgbw = new NeoPixelBus<NeoRgbwFeature, NeoEsp8266Uart1Sk6812Method>(dynamicLedNum, 2); // and recreate with new count
+  if (ledsUartRgbw == nullptr) {
+    Serial.println(F("OUT OF MEMORY"));
   }
+  while (!Serial); // wait for serial attach
+  Serial.println();
+  Serial.println(F("Initializing..."));
+  flushSerial();
+  ledsUartRgbw->Begin();
+  ledsUartRgbw->Show();
 #endif
 }
 
@@ -814,40 +365,16 @@ void LedManager::initUartRgbw() {
  */
 void LedManager::initDma() {
 #if defined(ESP8266)
-  if (colorOrder == 1) {
-    cleanLEDs();
-    ledsDma = new NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
-    if (ledsDma == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsDma->Begin();
-    ledsDma->Show();
-  } else if (colorOrder == 2) {
-    cleanLEDs();
-    ledsDmaInverted = new NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
-    if (ledsDmaInverted == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsDmaInverted->Begin();
-    ledsDmaInverted->Show();
-  } else if (colorOrder == 3) {
-    cleanLEDs();
-    ledsDmaBgr = new NeoPixelBus<NeoBgrFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
-    if (ledsDmaBgr == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsDmaBgr->Begin();
-    ledsDmaBgr->Show();
+  cleanLEDs();
+  ledsDma = new NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod >(dynamicLedNum, 3); // and recreate with new count
+  if (ledsDma == nullptr) {
+    Serial.println(F("OUT OF MEMORY"));
   }
+  Serial.println();
+  Serial.println(F("Initializing..."));
+  flushSerial();
+  ledsDma->Begin();
+  ledsDma->Show();
 #endif
 }
 
@@ -856,40 +383,16 @@ void LedManager::initDma() {
  */
 void LedManager::initDotStar() {
 #if defined(ESP8266)
-  if (colorOrder == 1) {
-    cleanLEDs();
-    ledsDotStar = new NeoPixelBus<DotStarGrbFeature, DotStarMethod>(dynamicLedNum, gpioClockInUse, gpioInUse); // and recreate with new count
-    if (ledsDotStar == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsDotStar->Begin();
-    ledsDotStar->Show();
-  } else if (colorOrder == 2) {
-    cleanLEDs();
-    ledsDotStarInverted = new NeoPixelBus<DotStarRgbFeature, DotStarMethod>(dynamicLedNum, gpioClockInUse, gpioInUse); // and recreate with new count
-    if (ledsDotStarInverted == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsDotStarInverted->Begin();
-    ledsDotStarInverted->Show();
-  } else if (colorOrder == 3) {
-    cleanLEDs();
-    ledsDotStarBgr = new NeoPixelBus<DotStarBgrFeature, DotStarMethod>(dynamicLedNum, gpioClockInUse, gpioInUse); // and recreate with new count
-    if (ledsDotStarBgr == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsDotStarBgr->Begin();
-    ledsDotStarBgr->Show();
+  cleanLEDs();
+  ledsDotStar = new NeoPixelBus<DotStarRgbFeature, DotStarMethod>(dynamicLedNum, gpioClockInUse, gpioInUse); // and recreate with new count
+  if (ledsDotStar == nullptr) {
+    Serial.println(F("OUT OF MEMORY"));
   }
+  Serial.println();
+  Serial.println(F("Initializing..."));
+  flushSerial();
+  ledsDotStar->Begin();
+  ledsDotStar->Show();
 #endif
 }
 
@@ -898,29 +401,16 @@ void LedManager::initDotStar() {
  */
 void LedManager::initDmaRgbw() {
 #if defined(ESP8266)
-  if (colorOrder == 1) {
-    cleanLEDs();
-    ledsDmaRgbw = new NeoPixelBus<NeoGrbwFeature, NeoSk6812Method>(dynamicLedNum, 3); // and recreate with new count
-    if (ledsDmaRgbw == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsDmaRgbw->Begin();
-    ledsDmaRgbw->Show();
-  } else if (colorOrder == 2) {
-    cleanLEDs();
-    ledsDmaRgbwInverted = new NeoPixelBus<NeoRgbwFeature, NeoSk6812Method>(dynamicLedNum, 3); // and recreate with new count
-    if (ledsDmaRgbwInverted == nullptr) {
-      Serial.println(F("OUT OF MEMORY"));
-    }
-    Serial.println();
-    Serial.println(F("Initializing..."));
-    flushSerial();
-    ledsDmaRgbwInverted->Begin();
-    ledsDmaRgbwInverted->Show();
+  cleanLEDs();
+  ledsDmaRgbw = new NeoPixelBus<NeoRgbwFeature, NeoSk6812Method>(dynamicLedNum, 3); // and recreate with new count
+  if (ledsDmaRgbw == nullptr) {
+    Serial.println(F("OUT OF MEMORY"));
   }
+  Serial.println();
+  Serial.println(F("Initializing..."));
+  flushSerial();
+  ledsDmaRgbw->Begin();
+  ledsDmaRgbw->Show();
 #endif
 }
 
@@ -929,42 +419,16 @@ void LedManager::initDmaRgbw() {
  */
 void LedManager::initEsp32() {
 #if defined(ARDUINO_ARCH_ESP32)
-  if (colorOrder == 1) {
-    cleanLEDs();
-    ledsEsp32 = new NeoPixelBus<NeoGrbFeature, NeoWs2812xMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
-    if (ledsEsp32 == NULL) {
-      Serial.println(F("OUT OF MEMORY"));
-    } else {
-      Serial.println();
-      Serial.println(F("Initializing..."));
-      flushSerial();
-      ledsEsp32->Begin();
-      ledsEsp32->Show();
-    }
-  } else if (colorOrder == 2) {
-    cleanLEDs();
-    ledsEsp32Inverted = new NeoPixelBus<NeoRgbFeature, NeoWs2812xMethod>(dynamicLedNum,gpioInUse); // and recreate with new count
-    if (ledsEsp32Inverted == NULL) {
-      Serial.println(F("OUT OF MEMORY"));
-    } else {
-      Serial.println();
-      Serial.println(F("Initializing..."));
-      flushSerial();
-      ledsEsp32Inverted->Begin();
-      ledsEsp32Inverted->Show();
-    }
-  } else if (colorOrder == 3) {
-    cleanLEDs();
-    ledsEsp32Bgr = new NeoPixelBus<NeoBgrFeature, NeoWs2812xMethod>(dynamicLedNum,gpioInUse); // and recreate with new count
-    if (ledsEsp32Bgr == NULL) {
-      Serial.println(F("OUT OF MEMORY"));
-    } else {
-      Serial.println();
-      Serial.println(F("Initializing..."));
-      flushSerial();
-      ledsEsp32Bgr->Begin();
-      ledsEsp32Bgr->Show();
-    }
+  cleanLEDs();
+  ledsEsp32 = new NeoPixelBus<NeoRgbFeature, NeoWs2812xMethod>(dynamicLedNum, gpioInUse); // and recreate with new count
+  if (ledsEsp32 == NULL) {
+    Serial.println(F("OUT OF MEMORY"));
+  } else {
+    Serial.println();
+    Serial.println(F("Initializing..."));
+    flushSerial();
+    ledsEsp32->Begin();
+    ledsEsp32->Show();
   }
 #endif
 }
@@ -974,42 +438,16 @@ void LedManager::initEsp32() {
  */
 void LedManager::initEsp32DotStar() {
 #if defined(ARDUINO_ARCH_ESP32)
-  if (colorOrder == 1) {
-    cleanLEDs();
-    ledsEsp32DotStar = new NeoPixelBus<DotStarGrbFeature, DotStarMethod>(dynamicLedNum, gpioClockInUse, gpioInUse); // and recreate with new count
-    if (ledsEsp32DotStar == NULL) {
-      Serial.println(F("OUT OF MEMORY"));
-    } else {
-      Serial.println();
-      Serial.println(F("Initializing..."));
-      flushSerial();
-      ledsEsp32DotStar->Begin();
-      ledsEsp32DotStar->Show();
-    }
-  } else if (colorOrder == 2) {
-    cleanLEDs();
-    ledsEsp32DotStarInverted = new NeoPixelBus<DotStarRgbFeature, DotStarMethod>(dynamicLedNum, gpioClockInUse,gpioInUse); // and recreate with new count
-    if (ledsEsp32DotStarInverted == NULL) {
-      Serial.println(F("OUT OF MEMORY"));
-    } else {
-      Serial.println();
-      Serial.println(F("Initializing..."));
-      flushSerial();
-      ledsEsp32DotStarInverted->Begin();
-      ledsEsp32DotStarInverted->Show();
-    }
-  } else if (colorOrder == 3) {
-    cleanLEDs();
-    ledsEsp32DotStarBgr = new NeoPixelBus<DotStarBgrFeature, DotStarMethod>(dynamicLedNum, gpioClockInUse,gpioInUse); // and recreate with new count
-    if (ledsEsp32DotStarBgr == NULL) {
-      Serial.println(F("OUT OF MEMORY"));
-    } else {
-      Serial.println();
-      Serial.println(F("Initializing..."));
-      flushSerial();
-      ledsEsp32DotStarBgr->Begin();
-      ledsEsp32DotStarBgr->Show();
-    }
+  cleanLEDs();
+  ledsEsp32DotStar = new NeoPixelBus<DotStarRgbFeature, DotStarMethod>(dynamicLedNum, gpioClockInUse, gpioInUse); // and recreate with new count
+  if (ledsEsp32DotStar == NULL) {
+    Serial.println(F("OUT OF MEMORY"));
+  } else {
+    Serial.println();
+    Serial.println(F("Initializing..."));
+    flushSerial();
+    ledsEsp32DotStar->Begin();
+    ledsEsp32DotStar->Show();
   }
 #endif
 }
@@ -1019,30 +457,16 @@ void LedManager::initEsp32DotStar() {
  */
 void LedManager::initEsp32Rgbw() {
 #if defined(ARDUINO_ARCH_ESP32)
-  if (colorOrder == 1) {
-    cleanLEDs();
-    ledsEsp32Rgbw = new NeoPixelBus<NeoGrbwFeature, NeoSk6812Method>(dynamicLedNum,gpioInUse); // and recreate with new count
-    if (ledsEsp32Rgbw == NULL) {
-      Serial.println(F("OUT OF MEMORY"));
-    } else {
-      Serial.println();
-      Serial.println(F("Initializing..."));
-      flushSerial();
-      ledsEsp32Rgbw->Begin();
-      ledsEsp32Rgbw->Show();
-    }
-  } else if (colorOrder == 2) {
-    cleanLEDs();
-    ledsEsp32RgbwInverted = new NeoPixelBus<NeoRgbwFeature, NeoSk6812Method>(dynamicLedNum,gpioInUse); // and recreate with new count
-    if (ledsEsp32RgbwInverted == NULL) {
-      Serial.println(F("OUT OF MEMORY"));
-    } else {
-      Serial.println();
-      Serial.println(F("Initializing..."));
-      flushSerial();
-      ledsEsp32RgbwInverted->Begin();
-      ledsEsp32RgbwInverted->Show();
-    }
+  cleanLEDs();
+  ledsEsp32Rgbw = new NeoPixelBus<NeoRgbwFeature, NeoSk6812Method>(dynamicLedNum, gpioInUse); // and recreate with new count
+  if (ledsEsp32Rgbw == NULL) {
+    Serial.println(F("OUT OF MEMORY"));
+  } else {
+    Serial.println();
+    Serial.println(F("Initializing..."));
+    flushSerial();
+    ledsEsp32Rgbw->Begin();
+    ledsEsp32Rgbw->Show();
   }
 #endif
 }
@@ -1155,7 +579,8 @@ void LedManager::setColorOrder(int colorOrderToUse) {
  * @param minLdr min brightness when using LDR
  * @param ledOnParam turn on LEDs automatically at boot
  */
-void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr, boolean ledOnParam) {
+void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr,
+                        boolean ledOnParam) {
   Serial.println(F("CHANGING LDR"));
   previousMillisLDR = 0;
   DynamicJsonDocument ldrDoc(1024);

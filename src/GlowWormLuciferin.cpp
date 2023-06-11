@@ -40,6 +40,7 @@ void setup() {
 #endif
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
   Serial.setTxTimeoutMs(0);
+  Serial.setTimeout(0);
 #endif
 
   Serial.begin(baudRateToUse);
@@ -289,46 +290,28 @@ void mainLoop() {
       loopIdx = 0;
       goto waitLoop;
     }
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    hi = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    lo = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    loSecondPart = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    usbBrightness = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    gpio = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    baudRate = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    whiteTemp = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    fireflyEffect = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    ldrEn = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    ldrTo = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    ldrInt = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    ldrMn = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    ldrAction = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    fireflyColorMode = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    fireflyColorOrder = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    relaySerialPin = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    sbSerialPin = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    ldrSerialPin = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    gpioClock = serialRead();
-    while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-    chk = serialRead();
+    int i = 0;
+    Serial.readBytes((byte*) config, CONFIG_NUM_PARAMS);
+    hi = config[i++];
+    lo = config[i++];
+    loSecondPart = config[i++];
+    usbBrightness = config[i++];
+    gpio = config[i++];
+    baudRate = config[i++];
+    whiteTemp = config[i++];
+    fireflyEffect = config[i++];
+    ldrEn = config[i++];
+    ldrTo = config[i++];
+    ldrInt = config[i++];
+    ldrMn = config[i++];
+    ldrAction = config[i++];
+    fireflyColorMode = config[i++];
+    fireflyColorOrder = config[i++];
+    relaySerialPin = config[i++];
+    sbSerialPin = config[i++];
+    ldrSerialPin = config[i++];
+    gpioClock = config[i++];
+    chk = config[i++];
     if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
                                ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder
                                ^ relaySerialPin ^ sbSerialPin ^ ldrSerialPin ^ gpioClock ^ 0x55))) {
@@ -448,7 +431,7 @@ void mainLoop() {
       if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 5)) {
         ledManager.setColorModeInit(fireflyColorMode);
       }
-      if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 3)) {
+      if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 6)) {
         ledManager.setColorOrderInit(fireflyColorOrder);
       }
       // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));

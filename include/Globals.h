@@ -35,6 +35,8 @@
 #endif
 #define SERIAL_SIZE_RX  2048
 
+#define CONFIG_NUM_PARAMS 20
+
 extern class BootstrapManager bootstrapManager;
 
 extern class EffectsManager effectsManager;
@@ -47,6 +49,8 @@ extern class Helpers helper;
 
 extern class Globals globals;
 
+// Change this number if you increase/decrease the usb serial config variables
+extern byte config[CONFIG_NUM_PARAMS];
 extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
         fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock;
 extern uint8_t prefixLength;
