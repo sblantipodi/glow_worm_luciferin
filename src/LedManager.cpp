@@ -39,19 +39,46 @@ void LedManager::ledShow() const {
       break;
   }
 #else
-  switch (colorMode) {
-        case 1:
-          ledsDma->Show();
-          break;
-        case 2:
-        case 3:
-        case 4:
-          ledsDmaRgbw->Show();
-          break;
-        case 5:
-          ledsDotStar->Show();
-          break;
-      }
+  if (gpioInUse == 3) {
+    switch (colorMode) {
+      case 1:
+        ledsDma->Show();
+        break;
+      case 2:
+      case 3:
+      case 4:
+        ledsDmaRgbw->Show();
+        break;
+      case 5:
+        ledsDotStar->Show();
+    }
+  } else if (gpioInUse == 2) {
+    switch (colorMode) {
+      case 1:
+        ledsUart->Show();
+        break;
+      case 2:
+      case 3:
+      case 4:
+        ledsUartRgbw->Show();
+        break;
+      case 5:
+        ledsDotStar->Show();
+    }
+  } else {
+    switch (colorMode) {
+      case 1:
+        ledsStandard->Show();
+        break;
+      case 2:
+      case 3:
+      case 4:
+        ledsStandardRgbw->Show();
+        break;
+      case 5:
+        ledsDotStar->Show();
+    }
+  }
 #endif
 }
 
@@ -202,12 +229,45 @@ void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrde
       break;
   }
 #else
-  switch (colorMode) {
-    case 1: ledsDma->SetPixelColor(index, rgbColor); break;
-    case 2:
-    case 3:
-    case 4: ledsDmaRgbw->SetPixelColor(index, rgbwColor); break;
-    case 5: ledsDotStar->SetPixelColor(index, rgbColor); break;
+  if (gpioInUse == 3) {
+    switch (colorMode) {
+      case 1:
+        ledsDma->SetPixelColor(index, rgbColor); break;
+        break;
+      case 2:
+      case 3:
+      case 4:
+        ledsDmaRgbw->SetPixelColor(index, rgbwColor); break;
+        break;
+      case 5:
+        ledsDotStar->SetPixelColor(index, rgbColor); break;
+    }
+  } else if (gpioInUse == 2) {
+    switch (colorMode) {
+      case 1:
+        ledsUart->SetPixelColor(index, rgbColor); break;
+        break;
+      case 2:
+      case 3:
+      case 4:
+        ledsUartRgbw->SetPixelColor(index, rgbwColor); break;
+        break;
+      case 5:
+        ledsDotStar->SetPixelColor(index, rgbColor); break;
+    }
+  } else {
+    switch (colorMode) {
+      case 1:
+        ledsStandard->SetPixelColor(index, rgbColor); break;
+        break;
+      case 2:
+      case 3:
+      case 4:
+        ledsStandardRgbw->SetPixelColor(index, rgbwColor); break;
+        break;
+      case 5:
+        ledsDotStar->SetPixelColor(index, rgbColor); break;
+    }
   }
 #endif
 }
