@@ -165,7 +165,7 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
 void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrder, uint8_t bToOrder) const {
   RgbColor rgbColor;
   RgbwColor rgbwColor;
-  uint8_t r,g,b;
+  uint8_t r = 0, g = 0, b = 0;
   switch (colorOrder) {
     case 1: g = rToOrder; r = gToOrder; b = bToOrder; break;
     case 2: r = rToOrder; g = gToOrder; b = bToOrder; break;

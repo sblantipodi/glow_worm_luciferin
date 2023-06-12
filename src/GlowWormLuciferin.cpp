@@ -40,8 +40,8 @@ void setup() {
 #endif
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
   Serial.setTxTimeoutMs(0);
-  Serial.setTimeout(0);
 #endif
+  Serial.setTimeout(0);
 
   Serial.begin(baudRateToUse);
 
@@ -362,8 +362,8 @@ void mainLoop() {
           ledManager.setPins(relayPin, sbPin, ldrPin);
         }
       }
-      uint16_t numLedFromLuciferin = lo + loSecondPart + 1;
-      if ((ledManager.dynamicLedNum != numLedFromLuciferin) && (numLedFromLuciferin < NUM_LEDS)) {
+      uint16_t numLedFromLuciferin = lo + (loSecondPart * SERIAL_CHUNK_SIZE) + 1;
+      if (ledManager.dynamicLedNum != numLedFromLuciferin) {
         LedManager::setNumLed(numLedFromLuciferin);
         ledManager.reinitLEDTriggered = true;
       }
@@ -434,9 +434,26 @@ void mainLoop() {
       if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 6)) {
         ledManager.setColorOrderInit(fireflyColorOrder);
       }
-      // memset(leds, 0, (numLedFromLuciferin) * sizeof(struct CRGB));
-      // Serial.readBytes( (char*)leds, numLedFromLuciferin * 3);
-      for (uint16_t i = 0; i < (numLedFromLuciferin); i++) {
+      int rlen;
+      if ((numLedFromLuciferin * 3) < LED_BUFF) {
+        rlen = numLedFromLuciferin * 3;
+      } else {
+        rlen = LED_BUFF;
+      }
+      // Serial buffer is read with a single block using Serial.readBytes()
+      rlen = Serial.readBytes((byte*) ledBuffer, rlen);
+      i = 0;
+      int j = 0;
+      while (i < rlen) {
+        byte r, g, b;
+        r = ledBuffer[i++];
+        g = ledBuffer[i++];
+        b = ledBuffer[i++];
+        setSerialPixel(j, r, g, b);
+        j++;
+      }
+      // If there are many LEDs and buffer is too small, read the first block with Serial.readBytes() and then continue with Serial.read()
+      while (j < numLedFromLuciferin) {
         byte r, g, b;
         while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
         r = serialRead();
@@ -444,12 +461,8 @@ void mainLoop() {
         g = serialRead();
         while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
         b = serialRead();
-        if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
-          r = g = b = 0;
-        }
-        if (ledManager.fireflyEffectInUse <= 6) {
-          ledManager.setPixelColor(i, r, g, b);
-        }
+        setSerialPixel(j, r, g, b);
+        j++;
       }
       ledManager.lastLedUpdate = millis();
       framerateCounter++;
@@ -506,6 +519,15 @@ void mainLoop() {
   //MIXED RAINBOW
   if (effect == Effect::mixed_rainbow) {
     effectsManager.mixedRainbow(ledManager.dynamicLedNum);
+  }
+}
+
+void setSerialPixel(int j, byte r, byte g, byte b) {
+  if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
+    r = g = b = 0;
+  }
+  if (ledManager.fireflyEffectInUse <= 6) {
+    ledManager.setPixelColor(j, r, g, b);
   }
 }
 

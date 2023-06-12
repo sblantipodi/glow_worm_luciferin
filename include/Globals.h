@@ -33,9 +33,12 @@
 #if defined(ARDUINO_ARCH_ESP32)
 #define LDR_DIVIDER 4096
 #endif
-#define SERIAL_SIZE_RX  2048
-
+#define SERIAL_SIZE_RX 2048
 #define CONFIG_NUM_PARAMS 20
+// This value must meet the one in Firefly Luciferin
+// We are transferring byte via Serial, the maximum decimal number that can be represented with 1 byte is 255.
+// Use a multiplier to set a much bigger number using only 2 bytes.
+const int SERIAL_CHUNK_SIZE = 250;
 
 extern class BootstrapManager bootstrapManager;
 

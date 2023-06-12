@@ -44,10 +44,11 @@ TaskHandle_t handleSerialTask = NULL; // fast Serial task pinned to CORE1
 PingESP pingESP;
 #endif
 
-#define CHIPSET     WS2812B
-#define COLOR_ORDER GRB
-
-uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
+// This must be a multiple of 3 (R;G;B). Serial buffer is read with a single block using Serial.readBytes(),
+// if there are many LEDs and buffer is too small, read the first block with Serial.readBytes() and then continue with Serial.read()
+const uint16_t LED_BUFF = 1500;
+byte ledBuffer[LED_BUFF];
+uint16_t scale = 30;
 byte btnState = LOW;
 byte lastState = LOW;
 unsigned long pressedTime  = 0;
@@ -63,3 +64,4 @@ void setApState(byte state);
 
 void configureLeds();
 
+void setSerialPixel(int j, byte r, byte g, byte b);
