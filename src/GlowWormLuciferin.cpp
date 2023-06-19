@@ -38,10 +38,6 @@ void setup() {
   // Increase the RX Buffer size allows to send bigger messages via Serial in one chunk, increase performance.
   Serial.setRxBufferSize(SERIAL_SIZE_RX);
 #endif
-#if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-  Serial.setTxTimeoutMs(0);
-#endif
-
   Serial.begin(baudRateToUse);
 
 #if CONFIG_IDF_TARGET_ESP32 || defined(ESP8266)
@@ -171,10 +167,6 @@ void setup() {
   pinMode(relayPin, OUTPUT);
   digitalWrite(relayPin, LOW);
 
-#if defined(ARDUINO_ARCH_ESP32)
-  esp_task_wdt_init(3000, true); //enable panic so ESP32 restarts
-  esp_task_wdt_add(NULL); //add current thread to WDT watch
-#endif
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Begin listening to UDP port
   networkManager.UDP.begin(UDP_PORT);
@@ -585,12 +577,6 @@ void loop() {
   }
 #endif
 #endif
-#if defined(ARDUINO_ARCH_ESP32)
-  EVERY_N_MILLISECONDS(3000) {
-    esp_task_wdt_reset();
-  }
-#endif
-
   if (ldrEnabled) {
     if (ldrInterval == 0) {
       EVERY_N_SECONDS(1) {

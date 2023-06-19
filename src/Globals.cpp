@@ -70,17 +70,17 @@ uint8_t ldrPin = A0;
 #if CONFIG_IDF_TARGET_ESP32C3
 uint8_t gpioInUse = 6;
 uint8_t relayPin = 0;
-uint8_t sbPin = 7;
+uint8_t sbPin = 9;
 uint8_t ldrPin = 3;
 #elif CONFIG_IDF_TARGET_ESP32S2
 uint8_t gpioInUse = 16;
 uint8_t relayPin = 9;
-uint8_t sbPin = 18;
+uint8_t sbPin = 0;
 uint8_t ldrPin = 3;
 #elif CONFIG_IDF_TARGET_ESP32S3
 uint8_t gpioInUse = 16;
 uint8_t relayPin = 13;
-uint8_t sbPin = 18;
+uint8_t sbPin = 0;
 uint8_t ldrPin = 2;
 #elif CONFIG_IDF_TARGET_ESP32
 uint8_t gpioInUse = 2;

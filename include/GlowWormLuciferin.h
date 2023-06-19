@@ -28,12 +28,7 @@
 #include <NeoPixelAnimator.h>
 #include "Version.h"
 #include "Globals.h"
-
-#if defined(ARDUINO_ARCH_ESP32)
-
-#include <esp_task_wdt.h>
-
-#elif defined(ESP8266)
+#if defined(ESP8266)
 #include "PingESP.h"
 #endif
 
