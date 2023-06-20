@@ -1,6 +1,6 @@
 <html>
 <head>
-    <meta charSet="utf-8"/>
+    <meta charset="utf-8"/>
     <title>Luciferin</title>
     <meta name="description" content="Bias Lighting and Ambient Light firmware, designed for Firefly Luciferin"/>
     <meta name="viewport" content="width=device-width"/>
@@ -309,13 +309,13 @@
             fill: gray;
         }
 
-        .container {
+        .container{
             text-align: center;
             width: 100%;
         }
 
 
-        .dropdown-container {
+        .dropdown-container{
             text-align: center;
             width: 100%;
         }
@@ -329,8 +329,8 @@
 
 </head>
 <body>
-<div className="content">
-    <h1>Glow Worm Luciferin</h1><a href="https://github.com/sblantipodi/firefly_luciferin" className="logo"><img
+<div class="content">
+    <h1>Glow Worm Luciferin</h1><a href="https://github.com/sblantipodi/firefly_luciferin" class="logo"><img
         src="static/logos/luciferin_logo.png" alt="Luciferin"/></a>
 
     <p>
@@ -351,7 +351,7 @@
         To try it out and install <b>Glow Worm Luciferin firmware</b>, connect an ESP to
         your computer and hit the button:
     </p>
-    <div className="container">
+    <div class="container">
         <p>
             <esp-web-install-button id="inst_full"
                                     manifest="static/firmware_build/manifest_full.json">
@@ -367,9 +367,9 @@
                 <button slot="activate">INSTALL LIGHT</button>
             </esp-web-install-button>
         </p>
-        <div className="demo">
-            <div className="dropdown-container">
-                <select id="version" className="btn" onChange="setManifest()">
+        <div class="demo">
+            <div class="dropdown-container">
+                <select id="version" class="btn" onchange="setManifest()">
                     <option data-manifest="static/firmware_build/manifest_full.json"
                     >Latest stable version
                     </option>
@@ -380,8 +380,8 @@
                     >Previous stable version
                     </option>
                 </select>
-                <div className="select-icon">
-                    <svg focusable="false" viewBox="0 0 104 128" width="25" height="30" className="icon">
+                <div class="select-icon">
+                    <svg focusable="false" viewBox="0 0 104 128" width="25" height="30" class="icon">
                         <path d="m2e1 95a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm14 55h68v1e1h-68zm0-3e1h68v1e1h-68zm0-3e1h68v1e1h-68z"></path>
                     </svg>
                 </div>
@@ -403,7 +403,7 @@
         <b>If you are flashing an ESP32-C3, ESP32-S2 or ESP32-S3 <span id="esp-family"><a onClick="showHelp()">please read here.</a></span></b>
         <br>
     </p>
-    <div className="footer">
+    <div class="footer">
         <div>
             <a href="https://github.com/sblantipodi/glow_worm_luciferin">Glow Worm Luciferin</a> | <a
                 href="https://github.com/sblantipodi/firefly_luciferin">Firefly Luciferin</a>
