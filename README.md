@@ -72,7 +72,6 @@ If you don't want to design your own PCB and you have a soldering iron, you migh
 
 ## Pre-build boards support
 Luciferin supports pre-build board like the [QuinLED-Dig-Uno](https://quinled.info/pre-assembled-quinled-dig-uno/).  
-NOTE: QuinLED-Dig-Uno must be used with Glow Worm FULL Firmware because it can't be connected to your PC via USB.
 
 ## Luciferin Web Interface
 Glow Worm Luciferin FULL firmware exposes a `Web Interface` to control your lights from your browser without the needs of the Firefly Luciferin PC client.
