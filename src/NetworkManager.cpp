@@ -321,11 +321,17 @@ void NetworkManager::listenOnHttpGet() {
  * Manage AP Settings
  */
 void NetworkManager::manageAPSetting(bool isSettingRoot) {
-  server.on(isSettingRoot ? F("/") : F("/setsettings"), []() {
-      stopUDP();
-      server.send(200, F("text/html"), setSettingsPage);
-      startUDP();
-  });
+  if (isSettingRoot) {
+    server.on(F("/"), []() {
+        server.send(200, F("text/html"), setSettingsPageOffline);
+    });
+  } else {
+    server.on(F("/setsettings"), []() {
+        stopUDP();
+        server.send(200, F("text/html"), setSettingsPage);
+        startUDP();
+    });
+  }
   server.on(F("/getsettings"), [this]() {
       stopUDP();
       prefsData = F("{\"deviceName\":\"");
