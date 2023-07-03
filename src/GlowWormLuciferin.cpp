@@ -76,15 +76,15 @@ void setup() {
   String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
   if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
     setApState(11);
-    ledManager.setColor(0, 255, 0);
+    ledManager.setColorLoop(0, 255, 0);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
     setApState(12);
-    ledManager.setColor(0, 0, 255);
+    ledManager.setColorLoop(0, 0, 255);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
     bootstrapManager.littleFsInit();
     bootstrapManager.isWifiConfigured();
     setApState(13);
-    ledManager.setColor(255, 75, 0);
+    ledManager.setColorLoop(255, 75, 0);
     bootstrapManager.launchWebServerCustom(false, manageApRoot);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
     setApState(0);

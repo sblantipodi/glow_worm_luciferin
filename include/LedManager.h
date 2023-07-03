@@ -113,6 +113,8 @@ public:
 
     static void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
 
+    static void setColorLoop(uint8_t inR, uint8_t inG, uint8_t inB);
+
     static void setNumLed(int numLedFromLuciferin);
 
     static void setWhiteTemp(int whiteTemp);

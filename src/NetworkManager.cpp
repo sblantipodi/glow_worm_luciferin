@@ -127,7 +127,7 @@ void NetworkManager::manageDisconnections() {
       asDoc[AP_PARAM] = 10;
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
-    ledManager.setColor(255, 0, 0);
+    ledManager.setColorLoop(255, 0, 0);
   } else if (disconnectionCounter >= (MAX_RECONNECT * 2)) {
     ledManager.stateOn = true;
     effect = Effect::solid;
