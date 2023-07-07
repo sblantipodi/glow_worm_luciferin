@@ -41,9 +41,32 @@ void NetworkManager::getUDPStream() {
     }
     // If packet received...
     uint16_t packetSizeBroadcast = broadcastUDP.parsePacket();
-    broadcastUDP.read(packetBroadcast, UDP_MAX_BUFFER_SIZE);
-    if (packetSizeBroadcast == 4) {
-      remoteBroadcastPort = broadcastUDP.remoteIP();
+    broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE);
+    packetBroadcast[packetSizeBroadcast] = '\0';
+    char * dn;
+    dn = strstr (packetBroadcast, DN);
+    if (dn) {
+      for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
+        dname[dnIdx] = packetBroadcast[dnIdx + 2];
+      }
+      if (!remoteIpForUdp.toString().equals(broadcastUDP.remoteIP().toString()) && strcmp(dname, deviceName.c_str()) == 0) {
+        remoteIpForUdp = broadcastUDP.remoteIP();
+        Serial.println(F("-> Setting IP to use <-"));
+        Serial.println(remoteIpForUdp.toString());
+      }
+    } else {
+      char * p;
+      p = strstr (packetBroadcast, PING);
+      if (p) {
+        for (uint8_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
+          broadCastAddress[brIdx] = packetBroadcast[brIdx + 4];
+        }
+        if (!remoteIpForUdpBroadcast.toString().equals(broadCastAddress)) {
+          remoteIpForUdpBroadcast.fromString(broadCastAddress);
+          Serial.println(F("-> Setting Broadcast IP to use <-"));
+          Serial.println(remoteIpForUdpBroadcast.toString());
+        }
+      }
     }
   }
 }
@@ -413,11 +436,11 @@ void NetworkManager::setLeds() {
     }
   } else {
 #if defined(ESP8266)
-    if (networkManager.remoteBroadcastPort.isSet()) {
+    if (networkManager.remoteBroadcastIp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
-    if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
+    if (!networkManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
-      networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
+      networkManager.broadcastUDP.beginPacket(networkManager.remoteIpForUdp, UDP_BROADCAST_PORT);
       if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
         networkManager.broadcastUDP.print(ffeffect.c_str());
       } else {
@@ -868,11 +891,12 @@ void NetworkManager::sendStatus() {
       BootstrapManager::publish(networkManager.lightStateTopic.c_str(), fpsData.c_str(), false);
     } else {
 #if defined(ESP8266)
-      if (networkManager.remoteBroadcastPort.isSet()) {
+      if (networkManager.remoteBroadcastIp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
-      if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
+      if (!networkManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
-        networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
+        Serial.println(fpsData.c_str());
+        networkManager.broadcastUDP.beginPacket(networkManager.remoteIpForUdp, UDP_BROADCAST_PORT);
         networkManager.broadcastUDP.print(fpsData.c_str());
         networkManager.broadcastUDP.endPacket();
       }
@@ -924,7 +948,6 @@ void NetworkManager::sendStatus() {
     root[F("gpioClock")] = gpioClockInUse;
     root[F("mqttopic")] = networkManager.topicInUse;
     root[F("whitetemp")] = whiteTempInUse;
-
     if (effect == Effect::solid && !ledManager.stateOn) {
       LedManager::setColor(0, 0, 0);
     }
@@ -936,11 +959,12 @@ void NetworkManager::sendStatus() {
       String output;
       serializeJson(root, output);
 #if defined(ESP8266)
-      if (networkManager.remoteBroadcastPort.isSet()) {
+      if (networkManager.remoteBroadcastIp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
-      if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
+      if (!networkManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0"))) {
 #endif
-        networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
+        Serial.println(output.c_str());
+        networkManager.broadcastUDP.beginPacket(networkManager.remoteIpForUdpBroadcast, UDP_BROADCAST_PORT);
         networkManager.broadcastUDP.print(output.c_str());
         networkManager.broadcastUDP.endPacket();
       }
@@ -976,11 +1000,11 @@ bool NetworkManager::processUpdate() {
           BootstrapManager::publish(networkManager.updateResultStateTopic.c_str(), deviceName.c_str(), false);
         } else {
 #if defined(ESP8266)
-          if (networkManager.remoteBroadcastPort.isSet()) {
+          if (networkManager.remoteBroadcastIp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
-          if (!networkManager.remoteBroadcastPort.toString().equals(F("0.0.0.0"))) {
+          if (!networkManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
-            networkManager.broadcastUDP.beginPacket(networkManager.remoteBroadcastPort, UDP_BROADCAST_PORT);
+            networkManager.broadcastUDP.beginPacket(networkManager.remoteIpForUdp, UDP_BROADCAST_PORT);
             networkManager.broadcastUDP.print(deviceName.c_str());
             networkManager.broadcastUDP.endPacket();
           }
