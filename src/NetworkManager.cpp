@@ -958,7 +958,7 @@ void NetworkManager::sendStatus() {
       String output;
       serializeJson(root, output);
 #if defined(ESP8266)
-      if (networkManager.remoteIpForUdp.isSet()) {
+      if (networkManager.remoteIpForUdpBroadcast.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
       if (!networkManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0"))) {
 #endif
