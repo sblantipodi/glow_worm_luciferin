@@ -95,7 +95,7 @@ bool ledOn = false;
 int ldrDivider = LDR_DIVIDER;
 const unsigned int LDR_RECOVER_TIME = 4000;
 unsigned long previousMillisLDR = 0;
-long lastUdpMsgReceived;
+unsigned long lastUdpMsgReceived;
 bool apFileRead;
 int disconnectionCounter;
 

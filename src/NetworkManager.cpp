@@ -436,7 +436,7 @@ void NetworkManager::setLeds() {
     }
   } else {
 #if defined(ESP8266)
-    if (networkManager.remoteBroadcastIp.isSet()) {
+    if (networkManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
     if (!networkManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
@@ -891,7 +891,7 @@ void NetworkManager::sendStatus() {
       BootstrapManager::publish(networkManager.lightStateTopic.c_str(), fpsData.c_str(), false);
     } else {
 #if defined(ESP8266)
-      if (networkManager.remoteBroadcastIp.isSet()) {
+      if (networkManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
       if (!networkManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
@@ -958,7 +958,7 @@ void NetworkManager::sendStatus() {
       String output;
       serializeJson(root, output);
 #if defined(ESP8266)
-      if (networkManager.remoteBroadcastIp.isSet()) {
+      if (networkManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
       if (!networkManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0"))) {
 #endif
@@ -998,7 +998,7 @@ bool NetworkManager::processUpdate() {
           BootstrapManager::publish(networkManager.updateResultStateTopic.c_str(), deviceName.c_str(), false);
         } else {
 #if defined(ESP8266)
-          if (networkManager.remoteBroadcastIp.isSet()) {
+          if (networkManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
           if (!networkManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
