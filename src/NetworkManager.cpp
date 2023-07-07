@@ -895,7 +895,6 @@ void NetworkManager::sendStatus() {
 #elif defined(ARDUINO_ARCH_ESP32)
       if (!networkManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
-        Serial.println(fpsData.c_str());
         networkManager.broadcastUDP.beginPacket(networkManager.remoteIpForUdp, UDP_BROADCAST_PORT);
         networkManager.broadcastUDP.print(fpsData.c_str());
         networkManager.broadcastUDP.endPacket();
@@ -963,7 +962,6 @@ void NetworkManager::sendStatus() {
 #elif defined(ARDUINO_ARCH_ESP32)
       if (!networkManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0"))) {
 #endif
-        Serial.println(output.c_str());
         networkManager.broadcastUDP.beginPacket(networkManager.remoteIpForUdpBroadcast, UDP_BROADCAST_PORT);
         networkManager.broadcastUDP.print(output.c_str());
         networkManager.broadcastUDP.endPacket();
