@@ -432,7 +432,7 @@ void NetworkManager::setLeds() {
       } else {
         BootstrapManager::publish(networkManager.effectToFw.c_str(), OFF_CMD.c_str(), false);
       }
-      framerate = framerateCounter = 0;
+//      framerate = framerateCounter = 0;
     }
   } else {
 #if defined(ESP8266)
@@ -445,7 +445,7 @@ void NetworkManager::setLeds() {
         networkManager.broadcastUDP.print(ffeffect.c_str());
       } else {
         networkManager.broadcastUDP.print(networkManager.STOP_FF);
-        framerate = framerateCounter = 0;
+//        framerate = framerateCounter = 0;
       }
       networkManager.broadcastUDP.endPacket();
     }
@@ -1148,8 +1148,8 @@ void NetworkManager::checkConnection() {
       ledManager.stateOn = false;
       Globals::turnOffRelay();
     }
-    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
-    framerateCounter = 0;
+//    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
+//    framerateCounter = 0;
     NetworkManager::sendStatus();
   }
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT

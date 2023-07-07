@@ -456,7 +456,7 @@ void mainLoop() {
         j++;
       }
       ledManager.lastLedUpdate = millis();
-      framerateCounter++;
+      framerateCounterSerial++;
       if (effect != Effect::mixed_rainbow) {
         ledManager.ledShow();
       }

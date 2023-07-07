@@ -75,7 +75,9 @@ enum class Effect {
 extern Effect effect;
 extern String ffeffect;
 extern float framerate;
+extern float framerateSerial;
 extern float framerateCounter;
+extern float framerateCounterSerial;
 extern uint lastStream;
 const String GPIO_PARAM = "gpio";
 const String GPIO_CLOCK_PARAM = "gpioClock";

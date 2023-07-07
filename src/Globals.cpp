@@ -46,7 +46,9 @@ boolean autoSave;
 Effect effect;
 String ffeffect;
 float framerate = 0;
+float framerateSerial = 0;
 float framerateCounter = 0;
+float framerateCounterSerial = 0;
 uint lastStream = 0;
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 uint8_t baudRateInUse = 8;
@@ -224,11 +226,11 @@ void Globals::turnOffRelay() {
 void Globals::sendSerialInfo() {
   EVERY_N_SECONDS(10) {
     if (millis() > lastUdpMsgReceived + 1000) {
+      framerateSerial = framerateCounterSerial > 0 ? framerateCounterSerial / 10 : 0;
+      framerateCounterSerial = 0;
+      Serial.printf("framerate:%s\n", (String((framerateSerial > 0.5 ? framerateSerial : 0),1)).c_str());
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-      framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
-    framerateCounter = 0;
-    Serial.printf("framerate:%s\n", (String((framerate > 0.5 ? framerate : 0),1)).c_str());
-    Serial.printf("firmware:%s\n", "LIGHT");
+      Serial.printf("firmware:%s\n", "LIGHT");
 #else
       Serial.printf("firmware:%s\n", "FULL");
       Serial.printf("mqttopic:%s\n", networkManager.topicInUse.c_str());
