@@ -76,21 +76,21 @@ void setup() {
   String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
   if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
     setApState(11);
-    ledManager.setColorLoop(0, 255, 0);
+    LedManager::setColorLoop(0, 255, 0);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
     setApState(12);
-    ledManager.setColorLoop(0, 0, 255);
+    LedManager::setColorLoop(0, 0, 255);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
     bootstrapManager.littleFsInit();
-    bootstrapManager.isWifiConfigured();
+    BootstrapManager::isWifiConfigured();
     setApState(13);
-    ledManager.setColorLoop(255, 75, 0);
+    LedManager::setColorLoop(255, 75, 0);
     bootstrapManager.launchWebServerCustom(false, manageApRoot);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
     setApState(0);
   } else {
     bootstrapManager.littleFsInit();
-    if (bootstrapManager.isWifiConfigured()) {
+    if (BootstrapManager::isWifiConfigured()) {
       configureLeds();
     }
   }
@@ -189,7 +189,7 @@ void setup() {
       Globals::turnOnRelay();
       ledManager.stateOn = true;
       effect = Effect::solid;
-      networkManager.setColor();
+      NetworkManager::setColor();
     }
   }
 #endif
@@ -309,7 +309,7 @@ void mainLoop() {
       loopIdx = 0;
       goto waitLoop;
     }
-    if (breakLoop == false) {
+    if (!breakLoop) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
       if (!relayState) {
       Globals::turnOnRelay();
@@ -539,10 +539,10 @@ void loop() {
       if (!ledManager.stateOn) {
         Globals::turnOnRelay();
         ledManager.stateOn = true;
-        networkManager.setColor();
+        NetworkManager::setColor();
       } else {
         ledManager.stateOn = false;
-        networkManager.setColor();
+        NetworkManager::setColor();
         Globals::turnOffRelay();
       }
     }
@@ -554,7 +554,7 @@ void loop() {
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
     if (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0) {
       setApState(0);
-      ledManager.setColor(0, 0, 0);
+      LedManager::setColor(0, 0, 0);
     }
     disconnectionCounter = 0;
   }
@@ -606,4 +606,13 @@ void loop() {
       }
     }
   }
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+  if (disconnectionCounter > 0) {
+    if (disconnectionCounter >= MAX_RECONNECT) {
+      LedManager::setColor(0, 0, 0);
+    }
+    disconnectionCounter = 0;
+  }
+#endif
 }
