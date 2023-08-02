@@ -31,9 +31,9 @@ Helpers helper;
 Globals globals;
 
 // DPsoftware checksum for serial
+byte config[CONFIG_NUM_PARAMS];
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
-        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, prefixLength = 6;
-uint8_t gpioInUse = 2;
+        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock, prefixLength = 6;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
 uint8_t colorMode = 1;
 uint8_t colorOrder = 1;
@@ -46,7 +46,9 @@ boolean autoSave;
 Effect effect;
 String ffeffect;
 float framerate = 0;
+float framerateSerial = 0;
 float framerateCounter = 0;
+float framerateCounterSerial = 0;
 uint lastStream = 0;
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 uint8_t baudRateInUse = 8;
@@ -61,10 +63,41 @@ bool ldrEnabled = false;
 uint8_t ldrInterval = 30;
 bool ldrTurnOff = false;
 uint8_t ldrMin = 20;
+#if defined(ESP8266)
+uint8_t gpioInUse = 2;
+uint8_t relayPin = 12;
+uint8_t sbPin = 0;
+uint8_t ldrPin = A0;
+#endif
+#if CONFIG_IDF_TARGET_ESP32C3
+uint8_t gpioInUse = 6;
+uint8_t relayPin = 0;
+uint8_t sbPin = 9;
+uint8_t ldrPin = 3;
+#elif CONFIG_IDF_TARGET_ESP32S2
+uint8_t gpioInUse = 16;
+uint8_t relayPin = 9;
+uint8_t sbPin = 0;
+uint8_t ldrPin = 3;
+#elif CONFIG_IDF_TARGET_ESP32S3
+uint8_t gpioInUse = 16;
+uint8_t relayPin = 13;
+uint8_t sbPin = 0;
+uint8_t ldrPin = 2;
+#elif CONFIG_IDF_TARGET_ESP32
+uint8_t gpioInUse = 2;
+uint8_t relayPin = 12; // 22 for PICO
+uint8_t sbPin = 0;
+uint8_t ldrPin = 36; // 33 for PICO
+#endif
+uint8_t gpioClockInUse = 2;
+
+
 bool ledOn = false;
 int ldrDivider = LDR_DIVIDER;
 const unsigned int LDR_RECOVER_TIME = 4000;
 unsigned long previousMillisLDR = 0;
+unsigned long lastUdpMsgReceived;
 bool apFileRead;
 int disconnectionCounter;
 
@@ -73,7 +106,6 @@ int disconnectionCounter;
  * @param gpio gpio to use
  */
 void Globals::setGpio(int gpioToUse) {
-
   Serial.println("CHANGING GPIO");
   if (gpioToUse == 0) {
     gpioToUse = 2;
@@ -83,7 +115,22 @@ void Globals::setGpio(int gpioToUse) {
   gpioDoc[GPIO_PARAM] = gpioInUse;
   BootstrapManager::writeToLittleFS(gpioDoc, GPIO_FILENAME);
   delay(20);
+}
 
+/**
+ * Set gpio clock received by the Firefly Luciferin software
+ * @param gpio gpio to use
+ */
+void Globals::setGpioClock(int gpioClockToUse) {
+  Serial.println("CHANGING GPIO CLOCK");
+  if (gpioClockToUse == 0) {
+    gpioClockToUse = 2;
+  }
+  gpioClockInUse = gpioClockToUse;
+  DynamicJsonDocument gpioClockDoc(1024);
+  gpioClockDoc[GPIO_CLOCK_PARAM] = gpioClockInUse;
+  BootstrapManager::writeToLittleFS(gpioClockDoc, GPIO_CLOCK_FILENAME);
+  delay(20);
 }
 
 /**
@@ -91,7 +138,6 @@ void Globals::setGpio(int gpioToUse) {
  * @param gpio gpio to use
  */
 void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness) {
-
   Serial.println(F("Saving color and brightness info"));
   DynamicJsonDocument gpioDoc(1024);
   gpioDoc[F("r")] = rStored = r;
@@ -100,7 +146,6 @@ void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness) {
   gpioDoc[F("brightness")] = brightnessStored = brightness;
   BootstrapManager::writeToLittleFS(gpioDoc, COLOR_BRIGHT_FILENAME);
   delay(20);
-
 }
 
 /**
@@ -109,7 +154,6 @@ void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness) {
  * @return baudrate index
  */
 int Globals::setBaudRateInUse(int bdrate) {
-
   baudRateInUse = bdrate;
   int baudRateToUse;
   switch (bdrate) {
@@ -139,7 +183,6 @@ int Globals::setBaudRateInUse(int bdrate) {
       break;
   }
   return baudRateToUse;
-
 }
 
 /**
@@ -147,86 +190,85 @@ int Globals::setBaudRateInUse(int bdrate) {
  * @param bdRate int
  */
 void Globals::setBaudRate(int bdRate) {
-
   Serial.println(F("CHANGING BAUDRATE"));
   setBaudRateInUse(bdRate);
   DynamicJsonDocument baudrateDoc(1024);
   baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
   BootstrapManager::writeToLittleFS(baudrateDoc, BAUDRATE_FILENAME);
   delay(20);
-
 }
 
 /**
  * Turn ON the relay
  */
 void Globals::turnOnRelay() {
-
   if (!relayState) {
     relayState = true;
-#if defined(ESP8266)
-    digitalWrite(RELAY_PIN, HIGH);
-#elif defined(ARDUINO_ARCH_ESP32)
-    digitalWrite(RELAY_PIN_DIG, HIGH);
-    digitalWrite(RELAY_PIN_PICO, HIGH);
-#endif
+    digitalWrite(relayPin, HIGH);
     delay(100);
   }
-
 }
 
 /**
  * Turn OFF the relay
  */
 void Globals::turnOffRelay() {
-
   if (relayState) {
     relayState = false;
     delay(100);
-#if defined(ESP8266)
-    digitalWrite(RELAY_PIN, LOW);
-#elif defined(ARDUINO_ARCH_ESP32)
-    digitalWrite(RELAY_PIN_DIG, LOW);
-    digitalWrite(RELAY_PIN_PICO, LOW);
-#endif
+    digitalWrite(relayPin, LOW);
   }
-
 }
 
 /**
  * Send serial info
  */
 void Globals::sendSerialInfo() {
-
   EVERY_N_SECONDS(10) {
+    if (millis() > lastUdpMsgReceived + 1000) {
+      framerateSerial = framerateCounterSerial > 0 ? framerateCounterSerial / 10 : 0;
+      framerateCounterSerial = 0;
+      Serial.printf("framerate:%s\n", (String((framerateSerial > 0.5 ? framerateSerial : 0),1)).c_str());
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
-    framerateCounter = 0;
-    Serial.printf("framerate:%s\n", (String((framerate > 0.5 ? framerate : 0),1)).c_str());
-    Serial.printf("firmware:%s\n", "LIGHT");
+      Serial.printf("firmware:%s\n", "LIGHT");
 #else
-    Serial.printf("firmware:%s\n", "FULL");
-    Serial.printf("mqttopic:%s\n", networkManager.topicInUse.c_str());
+      Serial.printf("firmware:%s\n", "FULL");
+      Serial.printf("mqttopic:%s\n", networkManager.topicInUse.c_str());
 #endif
-    Serial.printf("ver:%s\n", VERSION);
-    Serial.printf("lednum:%d\n", ledManager.dynamicLedNum);
-#if defined(ARDUINO_ARCH_ESP32)
-    Serial.printf("board:%s\n", "ESP32");
-#elif defined(ESP8266)
-    Serial.printf("board:%s\n", "ESP8266");
+      Serial.printf("ver:%s\n", VERSION);
+      Serial.printf("lednum:%d\n", ledManager.dynamicLedNum);
+#if defined(ESP8266)
+      Serial.printf("board:%s\n", "ESP8266");
 #endif
-    Serial.printf("MAC:%s\n", MAC.c_str());
-    Serial.printf("gpio:%d\n", gpioInUse);
-    Serial.printf("baudrate:%d\n", baudRateInUse);
-    Serial.printf("effect:%d\n", Globals::effectToInt(effect));
-    Serial.printf("colorMode:%d\n", colorMode);
-    Serial.printf("colorOrder:%d\n", colorOrder);
-    Serial.printf("white:%d\n", whiteTempInUse);
-    if (ldrEnabled) {
-      Serial.printf("ldr:%d\n", ((ldrValue * 100) / ldrDivider));
+#if CONFIG_IDF_TARGET_ESP32C3
+      Serial.printf("board:%s\n", "ESP32_C3_CDC");
+#elif CONFIG_IDF_TARGET_ESP32S2
+      Serial.printf("board:%s\n", "ESP32_S2");
+#elif CONFIG_IDF_TARGET_ESP32S3
+#if ARDUINO_USB_MODE==1
+      Serial.printf("board:%s\n", "ESP32_S3_CDC");
+#else
+      Serial.printf("board:%s\n", "ESP32_S3");
+#endif
+#elif CONFIG_IDF_TARGET_ESP32
+      Serial.printf("board:%s\n", "ESP32");
+#endif
+      Serial.printf("MAC:%s\n", MAC.c_str());
+      Serial.printf("gpio:%d\n", gpioInUse);
+      Serial.printf("gpioClock:%d\n", gpioClockInUse);
+      Serial.printf("baudrate:%d\n", baudRateInUse);
+      Serial.printf("effect:%d\n", Globals::effectToInt(effect));
+      Serial.printf("colorMode:%d\n", colorMode);
+      Serial.printf("colorOrder:%d\n", colorOrder);
+      Serial.printf("white:%d\n", whiteTempInUse);
+      if (ldrEnabled) {
+        Serial.printf("ldr:%d\n", ((ldrValue * 100) / ldrDivider));
+      }
+      Serial.printf("relayPin:%d\n", relayPin);
+      Serial.printf("sbPin:%d\n", sbPin);
+      Serial.printf("ldrPin:%d\n", ldrPin);
     }
   }
-
 }
 
 /**
@@ -235,7 +277,6 @@ void Globals::sendSerialInfo() {
  * @return  effect string
  */
 const char *Globals::effectToString(Effect e) {
-
   switch (e) {
     case Effect::bpm:
       return "Bpm";
@@ -258,7 +299,6 @@ const char *Globals::effectToString(Effect e) {
     default:
       return "Solid";
   }
-
 }
 
 const uint8_t Globals::effectToInt(Effect e) {

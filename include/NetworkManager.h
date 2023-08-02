@@ -28,6 +28,7 @@
 
 const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Firefly Luciferin
 const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
+const uint16_t UDP_BR_MAX_BUFFER_SIZE = 50;
 
 class NetworkManager {
 
@@ -40,9 +41,11 @@ public:
 #define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
     char packet[UDP_MAX_BUFFER_SIZE];
     char packetBroadcast[UDP_MAX_BUFFER_SIZE];
-    static const uint16_t FIRST_CHUNK = 170;
-    static const uint16_t SECOND_CHUNK = 340;
-    static const uint16_t THIRD_CHUNK = 510;
+    char broadCastAddress[UDP_BR_MAX_BUFFER_SIZE];
+    char dname[UDP_BR_MAX_BUFFER_SIZE];
+    const char *PING = "PING";
+    const char *DN = "DN";
+
     static uint16_t part;
 
     String lightStateTopic = "lights/glowwormluciferin";
@@ -63,7 +66,8 @@ public:
     const String TOPIC_FILENAME = "topic.json";
     bool servingWebPages = false;
 
-    IPAddress remoteBroadcastPort;
+    IPAddress remoteIpForUdp;
+    IPAddress remoteIpForUdpBroadcast;
 
     [[maybe_unused]] static boolean firmwareUpgrade;
     static size_t updateSize;

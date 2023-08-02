@@ -27,21 +27,19 @@
 #include "LedManager.h"
 #include "NetworkManager.h"
 
-#if defined(ARDUINO_ARCH_ESP32)
-#define RELAY_PIN_DIG 12 // equals to Q2
-#define RELAY_PIN_PICO 22
-#define LDR_PIN_DIG 36 // (ADC analog pin)
-#define LDR_PIN_PICO 33 // (ADC analog pin)
-#define LDR_DIVIDER 4096
-#elif defined(ESP8266)
-#define RELAY_PIN 12
-#define LDR_PIN A0 // (ADC analog pin)
+#if defined(ESP8266)
 #define LDR_DIVIDER 1024
 #endif
-#define DATA_PIN 5 // Wemos D1 Mini Lite PIN D5
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-#define SMART_BUTTON 0 // Smart button to turn on/off light
+#if defined(ARDUINO_ARCH_ESP32)
+#define LDR_DIVIDER 4096
 #endif
+#define SERIAL_SIZE_RX 2048
+#define CONFIG_NUM_PARAMS 20
+// This value must meet the one in Firefly Luciferin
+// We are transferring byte via Serial, the maximum decimal number that can be represented with 1 byte is 255.
+// Use a multiplier to set a much bigger number using only 2 bytes.
+const int SERIAL_CHUNK_SIZE = 250;
+
 extern class BootstrapManager bootstrapManager;
 
 extern class EffectsManager effectsManager;
@@ -54,11 +52,14 @@ extern class Helpers helper;
 
 extern class Globals globals;
 
+// Change this number if you increase/decrease the usb serial config variables
+extern byte config[CONFIG_NUM_PARAMS];
 extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
-        fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction;
+        fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock;
 extern uint8_t prefixLength;
 
 extern uint8_t gpioInUse;
+extern uint8_t gpioClockInUse;
 extern uint8_t whiteTempInUse;
 extern uint8_t colorMode;
 extern uint8_t colorOrder;
@@ -74,10 +75,14 @@ enum class Effect {
 extern Effect effect;
 extern String ffeffect;
 extern float framerate;
+extern float framerateSerial;
 extern float framerateCounter;
+extern float framerateCounterSerial;
 extern uint lastStream;
 const String GPIO_PARAM = "gpio";
+const String GPIO_CLOCK_PARAM = "gpioClock";
 const String GPIO_FILENAME = "gpio.json";
+const String GPIO_CLOCK_FILENAME = "gpioClock.json";
 const String AUTO_SAVE_FILENAME = "as.json";
 const String COLOR_BRIGHT_FILENAME = "cb.json";
 const String AP_FILENAME = "ap.json";
@@ -91,9 +96,13 @@ extern bool ledOn;
 extern uint8_t ldrInterval;
 extern bool ldrTurnOff;
 extern uint8_t ldrMin;
+extern uint8_t relayPin;
+extern uint8_t sbPin;
+extern uint8_t ldrPin;
 extern int ldrDivider;
 extern const unsigned int LDR_RECOVER_TIME;
 extern unsigned long previousMillisLDR;
+extern unsigned long lastUdpMsgReceived;
 
 extern uint8_t baudRateInUse;
 extern bool relayState;
@@ -105,6 +114,8 @@ class Globals {
 
 public:
     static void setGpio(int gpio);
+
+    static void setGpioClock(int gpioClock);
 
     static void saveColorBrightnessInfo(int r, int g, int b, int brightness);
 
