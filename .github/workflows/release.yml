@@ -166,7 +166,11 @@ jobs:
           hub release edit -a GlowWormLuciferinFULL_ESP32_S2_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
           hub release edit -a GlowWormLuciferinFULL_ESP32_S3_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
       - name: Run PlatformIO
-        run: platformio run -e glowwormluciferinlight_esp32
+        run: |
+          platformio run -e glowwormluciferinlight_esp32;
+          platformio run -e glowwormluciferinlight_esp32c3cdc;
+          platformio run -e glowwormluciferinlight_esp32s2;
+          platformio run -e glowwormluciferinlight_esp32s3;
       - name: Save artifact (glowwormluciferinlight_esp32)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
