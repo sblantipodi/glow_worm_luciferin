@@ -44,12 +44,21 @@ void NetworkManager::getUDPStream() {
     broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE);
     packetBroadcast[packetSizeBroadcast] = '\0';
     char * dn;
+    char * dnStatic;
     dn = strstr (packetBroadcast, DN);
-    if (dn) {
-      for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
-        dname[dnIdx] = packetBroadcast[dnIdx + 2];
+    dnStatic = strstr (packetBroadcast, DNStatic);
+    if (dn || dnStatic) {
+      if (dnStatic) {
+        for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
+          dname[dnIdx] = packetBroadcast[dnIdx + strlen(DNStatic)];
+        }
+      } else {
+        for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
+          dname[dnIdx] = packetBroadcast[dnIdx + strlen(DN)];
+        }
       }
-      if (!remoteIpForUdp.toString().equals(broadcastUDP.remoteIP().toString()) && strcmp(dname, deviceName.c_str()) == 0) {
+      if (!remoteIpForUdp.toString().equals(broadcastUDP.remoteIP().toString())
+        && ((strcmp(dname, deviceName.c_str()) == 0) || (strcmp(dname, microcontrollerIP.c_str()) == 0))) {
         remoteIpForUdp = broadcastUDP.remoteIP();
         Serial.println(F("-> Setting IP to use <-"));
         Serial.println(remoteIpForUdp.toString());
@@ -59,7 +68,7 @@ void NetworkManager::getUDPStream() {
       p = strstr (packetBroadcast, PING);
       if (p) {
         for (uint8_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
-          broadCastAddress[brIdx] = packetBroadcast[brIdx + 4];
+          broadCastAddress[brIdx] = packetBroadcast[brIdx + strlen(PING)];
         }
         if (!remoteIpForUdpBroadcast.toString().equals(broadCastAddress)) {
           remoteIpForUdpBroadcast.fromString(broadCastAddress);
