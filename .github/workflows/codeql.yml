@@ -55,8 +55,8 @@ jobs:
 
     - name: Autobuild
       run: |
-        cd currentbranch;
         platformio run -e glowwormluciferinfull_esp8266;
+        platformio run -e glowwormluciferinfull_esp32;
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
