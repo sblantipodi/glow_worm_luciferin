@@ -13,7 +13,6 @@ _Written for Arduino IDE and PlatformIO._
 [![CI Build](https://github.com/sblantipodi/glow_worm_luciferin/actions/workflows/main.yml/badge.svg)](https://github.com/sblantipodi/glow_worm_luciferin/actions)
 [![CodeQL Analysis](https://github.com/sblantipodi/glow_worm_luciferin/actions/workflows/codeql.yml/badge.svg)](https://github.com/sblantipodi/glow_worm_luciferin/actions/workflows/codeql.yml)
 [![GitHub version](https://img.shields.io/github/v/release/sblantipodi/glow_worm_luciferin.svg)](https://github.com/sblantipodi/glow_worm_luciferin/releases)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![DPsoftware](https://img.shields.io/static/v1?label=DP&message=Software&color=orange)](https://www.dpsoftware.org)
 [![Discord](https://img.shields.io/discord/747247942074892328.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/aXf9jeN)
 
