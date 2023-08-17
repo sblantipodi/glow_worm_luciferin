@@ -40,13 +40,12 @@ jobs:
         python --version
     - name: Install submodules
       run: |
-        cd currentbranch;
         git submodule update --init
 
     - name: Setup template config files
       run: |
-        cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
-        touch /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.version_no_increment_update_date;      
+        cp secrets.ini.template secrets.ini
+        touch .version_no_increment_update_date;      
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
