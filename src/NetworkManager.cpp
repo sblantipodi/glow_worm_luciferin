@@ -888,7 +888,7 @@ void NetworkManager::sendStatus() {
     fpsData += F("\",\"lednum\":\"");
     fpsData += ledManager.dynamicLedNum;
     fpsData += F("\",\"framerate\":\"");
-    fpsData += framerate;
+    fpsData += framerate > framerateSerial ? framerate : framerateSerial;
     fpsData += F("\",\"wifi\":\"");
     fpsData += BootstrapManager::getWifiQuality();
     if (ldrEnabled) {
@@ -927,7 +927,7 @@ void NetworkManager::sendStatus() {
     root[F("wifi")] = BootstrapManager::getWifiQuality();
     root[F("MAC")] = MAC;
     root[F("ver")] = VERSION;
-    root[F("framerate")] = framerate;
+    root[F("framerate")] = framerate > framerateSerial ? framerate : framerateSerial;
     if (ldrEnabled) {
       root[F("ldr")] = ((ldrValue * 100) / ldrDivider);
     }
