@@ -29,6 +29,7 @@ String NetworkManager::fpsData;
  * Parse UDP packet
  */
 void NetworkManager::getUDPStream() {
+  yield();
   if (!servingWebPages) {
     // If packet received...
     uint16_t packetSize = UDP.parsePacket();
@@ -1147,11 +1148,12 @@ void NetworkManager::checkConnection() {
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
   server.handleClient();
-
-  EVERY_N_SECONDS(10) {
+  currentMillisCheckConn = millis();
+  if (currentMillisCheckConn - prevMillisCheckConn1 > 10000) {
+    prevMillisCheckConn1 = currentMillisCheckConn;
     // No updates since 7 seconds, turn off LEDs
-    if ((!breakLoop && (effect == Effect::GlowWorm) && (millis() > ledManager.lastLedUpdate + 10000)) ||
-        (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 10000))) {
+    if ((!breakLoop && (effect == Effect::GlowWorm) && (currentMillisCheckConn > ledManager.lastLedUpdate + 10000)) ||
+        (!breakLoop && (effect == Effect::GlowWormWifi) && (currentMillisCheckConn > lastStream + 10000))) {
       breakLoop = true;
       effect = Effect::solid;
       ledManager.stateOn = false;
@@ -1162,9 +1164,10 @@ void NetworkManager::checkConnection() {
     NetworkManager::sendStatus();
   }
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
-  EVERY_N_SECONDS(15) {
+  if (currentMillisCheckConn - prevMillisCheckConn2 > 15000) {
+    prevMillisCheckConn2 = currentMillisCheckConn;
     // No updates since 15 seconds, turn off LEDs
-    if(millis() > ledManager.lastLedUpdate + 10000){
+    if(currentMillisCheckConn > ledManager.lastLedUpdate + 10000){
       ledManager.setColor(0, 0, 0);
       globals.turnOffRelay();
     }
