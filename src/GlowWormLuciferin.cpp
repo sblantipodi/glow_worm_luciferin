@@ -271,9 +271,7 @@ void setApState(byte state) {
  * Main loop
  */
 void mainLoop() {
-#if defined(ARDUINO_ARCH_ESP32)
   yield();
-#endif
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   NetworkManager::checkConnection();
 #endif

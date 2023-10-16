@@ -29,9 +29,7 @@ String NetworkManager::fpsData;
  * Parse UDP packet
  */
 void NetworkManager::getUDPStream() {
-#if defined(ARDUINO_ARCH_ESP32)
   yield();
-#endif
   if (!servingWebPages) {
     // If packet received...
     uint16_t packetSize = UDP.parsePacket();
