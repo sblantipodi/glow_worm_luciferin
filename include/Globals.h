@@ -21,7 +21,6 @@
 #define _DPSOFTWARE_GLOBALS_UTILS_H
 
 #include <Arduino.h>
-#include <lib8tion.h>
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
 #include "LedManager.h"
@@ -35,6 +34,7 @@
 #endif
 #define SERIAL_SIZE_RX 2048
 #define CONFIG_NUM_PARAMS 20
+#define CONFIG_PREFIX_LENGTH 6
 // This value must meet the one in Firefly Luciferin
 // We are transferring byte via Serial, the maximum decimal number that can be represented with 1 byte is 255.
 // Use a multiplier to set a much bigger number using only 2 bytes.
@@ -54,9 +54,9 @@ extern class Globals globals;
 
 // Change this number if you increase/decrease the usb serial config variables
 extern byte config[CONFIG_NUM_PARAMS];
+extern byte pre[CONFIG_PREFIX_LENGTH];
 extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
         fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock;
-extern uint8_t prefixLength;
 
 extern uint8_t gpioInUse;
 extern uint8_t gpioClockInUse;
@@ -103,6 +103,17 @@ extern int ldrDivider;
 extern const unsigned int LDR_RECOVER_TIME;
 extern unsigned long previousMillisLDR;
 extern unsigned long lastUdpMsgReceived;
+
+extern unsigned long currentMillisCheckConn;
+extern unsigned long prevMillisCheckConn1;
+extern unsigned long prevMillisCheckConn2;
+
+extern unsigned long currentMillisSendSerial;
+extern unsigned long prevMillisSendSerial;
+
+extern unsigned long currentMillisMainLoop;
+
+extern unsigned long prevMillisPing;
 
 extern uint8_t baudRateInUse;
 extern bool relayState;

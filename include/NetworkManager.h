@@ -45,6 +45,7 @@ public:
     char dname[UDP_BR_MAX_BUFFER_SIZE];
     const char *PING = "PING";
     const char *DN = "DN";
+    const char *DNStatic = "DNStatic";
 
     static uint16_t part;
 

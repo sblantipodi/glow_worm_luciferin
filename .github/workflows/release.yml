@@ -151,20 +151,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp .pio/build/glowwormluciferinfull_esp32/firmware.bin ./GlowWormLuciferinFULL_ESP32_firmware.bin
-          cp .pio/build/glowwormluciferinfull_esp32c3cdc/firmware.bin ./GlowWormLuciferinFULL_ESP32_C3_CDC_firmware.bin
-          cp .pio/build/glowwormluciferinfull_esp32s2/firmware.bin ./GlowWormLuciferinFULL_ESP32_S2_firmware.bin
-          cp .pio/build/glowwormluciferinfull_esp32s3cdc/firmware.bin ./GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin
-          cp .pio/build/glowwormluciferinfull_esp32s3/firmware.bin ./GlowWormLuciferinFULL_ESP32_S3_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32c3cdc/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_C3_CDC_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32s2/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S2_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32s3cdc/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32s3/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S3_firmware.bin
+          hub release edit -a GlowWormLuciferinFULL_ESP32_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          hub release edit -a GlowWormLuciferinFULL_ESP32_C3_CDC_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          hub release edit -a GlowWormLuciferinFULL_ESP32_S2_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          hub release edit -a GlowWormLuciferinFULL_ESP32_S3_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
           cp .pio/build/glowwormluciferinfull_esp32/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32c3cdc/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_C3_CDC_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s2/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s3cdc/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S3_CDC_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s3/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
-          hub release edit -a GlowWormLuciferinFULL_ESP32_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
-          hub release edit -a GlowWormLuciferinFULL_ESP32_C3_CDC_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
-          hub release edit -a GlowWormLuciferinFULL_ESP32_S2_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
-          hub release edit -a GlowWormLuciferinFULL_ESP32_S3_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          cp -i .pio/build/glowwormluciferinfull_esp32/firmware.bin ./GlowWormLuciferinFULL_ESP32_firmware.bin
+          cp -i .pio/build/glowwormluciferinfull_esp32c3cdc/firmware.bin ./GlowWormLuciferinFULL_ESP32_C3_CDC_firmware.bin
+          cp -i .pio/build/glowwormluciferinfull_esp32s2/firmware.bin ./GlowWormLuciferinFULL_ESP32_S2_firmware.bin
+          cp -i .pio/build/glowwormluciferinfull_esp32s3cdc/firmware.bin ./GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin
+          cp -i .pio/build/glowwormluciferinfull_esp32s3/firmware.bin ./GlowWormLuciferinFULL_ESP32_S3_firmware.bin
       - name: Run PlatformIO
         run: |
           platformio run -e glowwormluciferinlight_esp32;
@@ -175,18 +180,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp .pio/build/glowwormluciferinlight_esp32/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_firmware.bin
-          cp .pio/build/glowwormluciferinlight_esp32c3cdc/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware.bin
-          cp .pio/build/glowwormluciferinlight_esp32s2/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
-          cp .pio/build/glowwormluciferinlight_esp32s3/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
-          cp .pio/build/glowwormluciferinlight_esp32/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin
-          cp .pio/build/glowwormluciferinlight_esp32c3cdc/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware-factory.bin
-          cp .pio/build/glowwormluciferinlight_esp32s2/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin
-          cp .pio/build/glowwormluciferinlight_esp32s3/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin
+          cp .pio/build/glowwormluciferinlight_esp32/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32c3cdc/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32s2/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32s3/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
           hub release edit -a GlowWormLuciferinLIGHT_ESP32_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
           hub release edit -a GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
           hub release edit -a GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
           hub release edit -a GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin -m "" "${{ env.RELEASE_VERSION }}"
+          cp .pio/build/glowwormluciferinlight_esp32/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin
+          cp .pio/build/glowwormluciferinlight_esp32c3cdc/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware-factory.bin
+          cp .pio/build/glowwormluciferinlight_esp32s2/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin
+          cp .pio/build/glowwormluciferinlight_esp32s3/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin          
+          cp -i .pio/build/glowwormluciferinlight_esp32/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          cp -i .pio/build/glowwormluciferinlight_esp32c3cdc/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware.bin
+          cp -i .pio/build/glowwormluciferinlight_esp32s2/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
+          cp -i .pio/build/glowwormluciferinlight_esp32s3/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
       - name: Commit firmware into GitHub.io docs folder
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -287,8 +296,8 @@ jobs:
         run: |
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
           echo "id=$id" >> $GITHUB_OUTPUT
-      - name: Publish release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          hub release edit --draft=false -m "Release ${{ env.RELEASE_VERSION }}" "${{ env.RELEASE_VERSION }}"
+#      - name: Publish release
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          hub release edit --draft=false -m "Release ${{ env.RELEASE_VERSION }}" "${{ env.RELEASE_VERSION }}"

@@ -32,8 +32,9 @@ Globals globals;
 
 // DPsoftware checksum for serial
 byte config[CONFIG_NUM_PARAMS];
+byte pre[CONFIG_PREFIX_LENGTH];
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
-        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock, prefixLength = 6;
+        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
 uint8_t colorMode = 1;
 uint8_t colorOrder = 1;
@@ -92,7 +93,6 @@ uint8_t ldrPin = 36; // 33 for PICO
 #endif
 uint8_t gpioClockInUse = 2;
 
-
 bool ledOn = false;
 int ldrDivider = LDR_DIVIDER;
 const unsigned int LDR_RECOVER_TIME = 4000;
@@ -100,6 +100,17 @@ unsigned long previousMillisLDR = 0;
 unsigned long lastUdpMsgReceived;
 bool apFileRead;
 int disconnectionCounter;
+
+unsigned long currentMillisCheckConn = 0;
+unsigned long prevMillisCheckConn1 = 0;
+unsigned long prevMillisCheckConn2 = 0;
+
+unsigned long currentMillisSendSerial = 0;
+unsigned long prevMillisSendSerial = 0;
+
+unsigned long currentMillisMainLoop = 0;
+
+unsigned long prevMillisPing = 0;
 
 /**
  * Set gpio received by the Firefly Luciferin software
@@ -224,8 +235,10 @@ void Globals::turnOffRelay() {
  * Send serial info
  */
 void Globals::sendSerialInfo() {
-  EVERY_N_SECONDS(10) {
-    if (millis() > lastUdpMsgReceived + 1000) {
+  currentMillisSendSerial = millis();
+  if (currentMillisSendSerial - prevMillisSendSerial > 10000) {
+    prevMillisSendSerial = currentMillisSendSerial;
+    if (currentMillisSendSerial > lastUdpMsgReceived + DELAY_1000) {
       framerateSerial = framerateCounterSerial > 0 ? framerateCounterSerial / 10 : 0;
       framerateCounterSerial = 0;
       Serial.printf("framerate:%s\n", (String((framerateSerial > 0.5 ? framerateSerial : 0),1)).c_str());

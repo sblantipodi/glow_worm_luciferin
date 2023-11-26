@@ -29,6 +29,7 @@ String NetworkManager::fpsData;
  * Parse UDP packet
  */
 void NetworkManager::getUDPStream() {
+  yield();
   if (!servingWebPages) {
     // If packet received...
     uint16_t packetSize = UDP.parsePacket();
@@ -44,12 +45,21 @@ void NetworkManager::getUDPStream() {
     broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE);
     packetBroadcast[packetSizeBroadcast] = '\0';
     char * dn;
+    char * dnStatic;
     dn = strstr (packetBroadcast, DN);
-    if (dn) {
-      for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
-        dname[dnIdx] = packetBroadcast[dnIdx + 2];
+    dnStatic = strstr (packetBroadcast, DNStatic);
+    if (dn || dnStatic) {
+      if (dnStatic) {
+        for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
+          dname[dnIdx] = packetBroadcast[dnIdx + strlen(DNStatic)];
+        }
+      } else {
+        for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
+          dname[dnIdx] = packetBroadcast[dnIdx + strlen(DN)];
+        }
       }
-      if (!remoteIpForUdp.toString().equals(broadcastUDP.remoteIP().toString()) && strcmp(dname, deviceName.c_str()) == 0) {
+      if (!remoteIpForUdp.toString().equals(broadcastUDP.remoteIP().toString())
+        && ((strcmp(dname, deviceName.c_str()) == 0) || (strcmp(dname, microcontrollerIP.c_str()) == 0))) {
         remoteIpForUdp = broadcastUDP.remoteIP();
         Serial.println(F("-> Setting IP to use <-"));
         Serial.println(remoteIpForUdp.toString());
@@ -59,7 +69,7 @@ void NetworkManager::getUDPStream() {
       p = strstr (packetBroadcast, PING);
       if (p) {
         for (uint8_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
-          broadCastAddress[brIdx] = packetBroadcast[brIdx + 4];
+          broadCastAddress[brIdx] = packetBroadcast[brIdx + strlen(PING)];
         }
         if (!remoteIpForUdpBroadcast.toString().equals(broadCastAddress)) {
           remoteIpForUdpBroadcast.fromString(broadCastAddress);
@@ -879,7 +889,7 @@ void NetworkManager::sendStatus() {
     fpsData += F("\",\"lednum\":\"");
     fpsData += ledManager.dynamicLedNum;
     fpsData += F("\",\"framerate\":\"");
-    fpsData += framerate;
+    fpsData += framerate > framerateSerial ? framerate : framerateSerial;
     fpsData += F("\",\"wifi\":\"");
     fpsData += BootstrapManager::getWifiQuality();
     if (ldrEnabled) {
@@ -918,7 +928,7 @@ void NetworkManager::sendStatus() {
     root[F("wifi")] = BootstrapManager::getWifiQuality();
     root[F("MAC")] = MAC;
     root[F("ver")] = VERSION;
-    root[F("framerate")] = framerate;
+    root[F("framerate")] = framerate > framerateSerial ? framerate : framerateSerial;
     if (ldrEnabled) {
       root[F("ldr")] = ((ldrValue * 100) / ldrDivider);
     }
@@ -1138,11 +1148,12 @@ void NetworkManager::checkConnection() {
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
   server.handleClient();
-
-  EVERY_N_SECONDS(10) {
+  currentMillisCheckConn = millis();
+  if (currentMillisCheckConn - prevMillisCheckConn1 > 10000) {
+    prevMillisCheckConn1 = currentMillisCheckConn;
     // No updates since 7 seconds, turn off LEDs
-    if ((!breakLoop && (effect == Effect::GlowWorm) && (millis() > ledManager.lastLedUpdate + 10000)) ||
-        (!breakLoop && (effect == Effect::GlowWormWifi) && (millis() > lastStream + 10000))) {
+    if ((!breakLoop && (effect == Effect::GlowWorm) && (currentMillisCheckConn > ledManager.lastLedUpdate + 10000)) ||
+        (!breakLoop && (effect == Effect::GlowWormWifi) && (currentMillisCheckConn > lastStream + 10000))) {
       breakLoop = true;
       effect = Effect::solid;
       ledManager.stateOn = false;
@@ -1153,9 +1164,10 @@ void NetworkManager::checkConnection() {
     NetworkManager::sendStatus();
   }
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
-  EVERY_N_SECONDS(15) {
+  if (currentMillisCheckConn - prevMillisCheckConn2 > 15000) {
+    prevMillisCheckConn2 = currentMillisCheckConn;
     // No updates since 15 seconds, turn off LEDs
-    if(millis() > ledManager.lastLedUpdate + 10000){
+    if(currentMillisCheckConn > ledManager.lastLedUpdate + 10000){
       ledManager.setColor(0, 0, 0);
       globals.turnOffRelay();
     }
