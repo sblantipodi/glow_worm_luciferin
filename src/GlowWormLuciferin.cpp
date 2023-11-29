@@ -272,9 +272,7 @@ void setApState(byte state) {
  */
 void mainLoop() {
   yield();
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
   NetworkManager::checkConnection();
-#endif
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (effect == Effect::GlowWorm) {

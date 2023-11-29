@@ -64,6 +64,7 @@ jobs:
           git submodule update --init
       - name: Setup template config files
         run: |
+          cp -R ./docs/static/firmware_build/* ./docs/static/firmware_build_previous/;
           cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/secrets.ini
           touch .version_no_increment_update_date;
           echo ${{steps.get-id.outputs.id}} > version
@@ -89,7 +90,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp -R ./docs/static/firmware_build/* ./docs/static/firmware_build_previous/;
           mv ./GlowWormLuciferinFULL_ESP8266_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinFULL_ESP8266_firmware.bin
           mv ./GlowWormLuciferinLIGHT_ESP8266_firmware.bin ./docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP8266_firmware.bin
           git config --global user.email "perini.davide@dpsoftware.org";
