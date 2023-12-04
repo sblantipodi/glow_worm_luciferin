@@ -25,59 +25,59 @@
  * Setup function
  */
 void setup() {
-  firmwareVersion = VERSION;
-  // if fastDisconnectionManagement we need to execute the disconnection callback immediately
-  fastDisconnectionManagement = true;
-  // BaudRate from configuration storage
-  String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
-  if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
-    baudRateInUse = baudRateFromStorage.toInt();
-  }
-  int baudRateToUse = Globals::setBaudRateInUse(baudRateInUse);
+    firmwareVersion = VERSION;
+    // if fastDisconnectionManagement we need to execute the disconnection callback immediately
+    fastDisconnectionManagement = true;
+    // BaudRate from configuration storage
+    String baudRateFromStorage = bootstrapManager.readValueFromFile(BAUDRATE_FILENAME, BAUDRATE_PARAM);
+    if (!baudRateFromStorage.isEmpty() && baudRateFromStorage != ERROR && baudRateFromStorage.toInt() != 0) {
+        baudRateInUse = baudRateFromStorage.toInt();
+    }
+    int baudRateToUse = Globals::setBaudRateInUse(baudRateInUse);
 #if defined(ARDUINO_ARCH_ESP32)
-  // Increase the RX Buffer size allows to send bigger messages via Serial in one chunk, increase performance.
-  Serial.setRxBufferSize(SERIAL_SIZE_RX);
+    // Increase the RX Buffer size allows to send bigger messages via Serial in one chunk, increase performance.
+    Serial.setRxBufferSize(SERIAL_SIZE_RX);
 #endif
-  Serial.begin(baudRateToUse);
+    Serial.begin(baudRateToUse);
 #if defined(ESP8266)
-  Serial.setTimeout(10);
+    Serial.setTimeout(10);
 #endif
-  Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
+    Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
 
 #if CONFIG_IDF_TARGET_ESP32 || defined(ESP8266)
-  while (!Serial); // wait for serial attach
+    while (!Serial); // wait for serial attach
 #endif
-  Serial.print(F("BAUDRATE IN USE="));
-  Serial.println(baudRateToUse);
+    Serial.print(F("BAUDRATE IN USE="));
+    Serial.println(baudRateToUse);
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  pinMode(sbPin, INPUT_PULLUP);
+    pinMode(sbPin, INPUT_PULLUP);
 #endif
-  // LED number from configuration storage
-  String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
-  if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
-    ledManager.dynamicLedNum = ledNumToUse.toInt();
-  } else {
-    ledManager.dynamicLedNum = 100;
-  }
-  Serial.print(F("\nUsing LEDs="));
-  Serial.println(ledManager.dynamicLedNum);
+    // LED number from configuration storage
+    String ledNumToUse = bootstrapManager.readValueFromFile(LED_NUM_FILENAME, LED_NUM_PARAM);
+    if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
+        ledManager.dynamicLedNum = ledNumToUse.toInt();
+    } else {
+        ledManager.dynamicLedNum = 100;
+    }
+    Serial.print(F("\nUsing LEDs="));
+    Serial.println(ledManager.dynamicLedNum);
 
-  // White temp to use
-  String whiteTempToUse = bootstrapManager.readValueFromFile(WHITE_TEMP_FILENAME, WHITE_TEMP_PARAM);
-  if (!whiteTempToUse.isEmpty() && whiteTempToUse != ERROR && whiteTempToUse.toInt() != 0) {
-    whiteTempInUse = whiteTempToUse.toInt();
-  }
-  Serial.print(F("\nUsing White temp="));
-  Serial.println(whiteTempToUse);
+    // White temp to use
+    String whiteTempToUse = bootstrapManager.readValueFromFile(WHITE_TEMP_FILENAME, WHITE_TEMP_PARAM);
+    if (!whiteTempToUse.isEmpty() && whiteTempToUse != ERROR && whiteTempToUse.toInt() != 0) {
+        whiteTempInUse = whiteTempToUse.toInt();
+    }
+    Serial.print(F("\nUsing White temp="));
+    Serial.println(whiteTempToUse);
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-  MAC = WiFi.macAddress();
-  bootstrapManager.littleFsInit();
-  configureLeds();
+    MAC = WiFi.macAddress();
+    bootstrapManager.littleFsInit();
+    configureLeds();
 #endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
   if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
     setApState(11);
     LedManager::setColorLoop(0, 255, 0);
@@ -101,7 +101,7 @@ void setup() {
 #endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  // LED number from configuration storage
+    // LED number from configuration storage
   String topicToUse = bootstrapManager.readValueFromFile(networkManager.TOPIC_FILENAME, networkManager.MQTT_PARAM);
   if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != networkManager.topicInUse) {
     networkManager.topicInUse = topicToUse;
@@ -115,65 +115,67 @@ void setup() {
                                   NetworkManager::callback, true, manageApRoot);
 #endif
 
-  // Color mode from configuration storage
-  String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
-  String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
-  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME,
-                                                                     ledManager.LDR_INTER_PARAM);
-  String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
-  String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
-  String ledOnFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LED_ON_PARAM);
-  String relayPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_PIN_PARAM);
-  String sbPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.SB_PIN_PARAM);
-  String ldrPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LDR_PIN_PARAM);
-  if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
-    ldrEnabled = ldrFromStorage == "1";
-  }
-  if (!ldrTurnOffFromStorage.isEmpty() && ldrTurnOffFromStorage != ERROR) {
-    ldrTurnOff = ldrTurnOffFromStorage == "1";
-  }
-  if (!ldrIntervalFromStorage.isEmpty() && ldrIntervalFromStorage != ERROR) {
-    ldrInterval = ldrIntervalFromStorage.toInt();
-  }
-  if (!ldrMinFromStorage.isEmpty() && ldrMinFromStorage != ERROR && ldrMinFromStorage.toInt() != 0) {
-    ldrMin = ldrMinFromStorage.toInt();
-  }
-  if (!relayPinFromStorage.isEmpty() && relayPinFromStorage != ERROR) {
-    relayPin = relayPinFromStorage.toInt();
-  }
-  if (!sbPinFromStorage.isEmpty() && sbPinFromStorage != ERROR) {
-    sbPin = sbPinFromStorage.toInt();
-  }
-  if (!ldrPinFromStorage.isEmpty() && ldrPinFromStorage != ERROR) {
-    ldrPin = ldrPinFromStorage.toInt();
-  }
-  if (!ldrMaxFromStorage.isEmpty() && ldrMaxFromStorage != ERROR && ldrMaxFromStorage.toInt() != 0) {
-    ldrDivider = ldrMaxFromStorage.toInt();
-    if (ldrDivider == -1) {
-      ldrDivider = LDR_DIVIDER;
+    // Color mode from configuration storage
+    String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
+    String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
+    String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME,
+                                                                       ledManager.LDR_INTER_PARAM);
+    String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
+    String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME,
+                                                                  ledManager.MAX_LDR_PARAM);
+    String ledOnFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LED_ON_PARAM);
+    String relayPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME,
+                                                                    ledManager.RELAY_PIN_PARAM);
+    String sbPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.SB_PIN_PARAM);
+    String ldrPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LDR_PIN_PARAM);
+    if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
+        ldrEnabled = ldrFromStorage == "1";
     }
-  }
-  String r = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r"));
-  if (!r.isEmpty() && r != ERROR && r.toInt() != -1) {
-    ledManager.red = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r")).toInt();
-    rStored = ledManager.red;
-    ledManager.green = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("g")).toInt();
-    gStored = ledManager.green;
-    ledManager.blue = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("b")).toInt();
-    bStored = ledManager.blue;
-    brightness = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
-    brightnessStored = brightness;
-  }
-  String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
-  if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
-    autoSave = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave")).toInt();
-  }
+    if (!ldrTurnOffFromStorage.isEmpty() && ldrTurnOffFromStorage != ERROR) {
+        ldrTurnOff = ldrTurnOffFromStorage == "1";
+    }
+    if (!ldrIntervalFromStorage.isEmpty() && ldrIntervalFromStorage != ERROR) {
+        ldrInterval = ldrIntervalFromStorage.toInt();
+    }
+    if (!ldrMinFromStorage.isEmpty() && ldrMinFromStorage != ERROR && ldrMinFromStorage.toInt() != 0) {
+        ldrMin = ldrMinFromStorage.toInt();
+    }
+    if (!relayPinFromStorage.isEmpty() && relayPinFromStorage != ERROR) {
+        relayPin = relayPinFromStorage.toInt();
+    }
+    if (!sbPinFromStorage.isEmpty() && sbPinFromStorage != ERROR) {
+        sbPin = sbPinFromStorage.toInt();
+    }
+    if (!ldrPinFromStorage.isEmpty() && ldrPinFromStorage != ERROR) {
+        ldrPin = ldrPinFromStorage.toInt();
+    }
+    if (!ldrMaxFromStorage.isEmpty() && ldrMaxFromStorage != ERROR && ldrMaxFromStorage.toInt() != 0) {
+        ldrDivider = ldrMaxFromStorage.toInt();
+        if (ldrDivider == -1) {
+            ldrDivider = LDR_DIVIDER;
+        }
+    }
+    String r = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r"));
+    if (!r.isEmpty() && r != ERROR && r.toInt() != -1) {
+        ledManager.red = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r")).toInt();
+        rStored = ledManager.red;
+        ledManager.green = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("g")).toInt();
+        gStored = ledManager.green;
+        ledManager.blue = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("b")).toInt();
+        bStored = ledManager.blue;
+        brightness = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
+        brightnessStored = brightness;
+    }
+    String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
+    if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
+        autoSave = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave")).toInt();
+    }
 
-  pinMode(relayPin, OUTPUT);
-  digitalWrite(relayPin, LOW);
+    pinMode(relayPin, OUTPUT);
+    digitalWrite(relayPin, LOW);
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  // Begin listening to UDP port
+    // Begin listening to UDP port
   networkManager.UDP.begin(UDP_PORT);
   networkManager.broadcastUDP.begin(UDP_BROADCAST_PORT);
   Serial.print("Listening on UDP port ");
@@ -188,7 +190,7 @@ void setup() {
 #endif
 #endif
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (!ledOnFromStorage.isEmpty() && ledOnFromStorage != ERROR) {
+    if (!ledOnFromStorage.isEmpty() && ledOnFromStorage != ERROR) {
     ledOn = ledOnFromStorage == "1";
     if (ledOn) {
       Globals::turnOnRelay();
@@ -204,41 +206,41 @@ void setup() {
  * Configure LEDs using the stored params
  */
 void configureLeds() {
-  // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
-  String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
-  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
-    gpioInUse = gpioFromStorage.toInt();
-  }
-  Serial.print(F("GPIO IN USE="));
-  Serial.println(gpioInUse);
+    // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
+    String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
+    if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
+        gpioInUse = gpioFromStorage.toInt();
+    }
+    Serial.print(F("GPIO IN USE="));
+    Serial.println(gpioInUse);
 
-  // GPIO clock pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
-  String gpioClockFromStorage = bootstrapManager.readValueFromFile(GPIO_CLOCK_FILENAME, GPIO_CLOCK_PARAM);
-  if (!gpioClockFromStorage.isEmpty() && gpioClockFromStorage != ERROR && gpioClockFromStorage.toInt() != 0) {
-    gpioClockInUse = gpioClockFromStorage.toInt();
-  }
-  Serial.print(F("GPIO CLOCK IN USE="));
-  Serial.println(gpioClockInUse);
+    // GPIO clock pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
+    String gpioClockFromStorage = bootstrapManager.readValueFromFile(GPIO_CLOCK_FILENAME, GPIO_CLOCK_PARAM);
+    if (!gpioClockFromStorage.isEmpty() && gpioClockFromStorage != ERROR && gpioClockFromStorage.toInt() != 0) {
+        gpioClockInUse = gpioClockFromStorage.toInt();
+    }
+    Serial.print(F("GPIO CLOCK IN USE="));
+    Serial.println(gpioClockInUse);
 
-  // Color mode from configuration storage
-  String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME,
-                                                                   ledManager.COLOR_MODE_PARAM);
-  if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
-    colorMode = colorModeFromStorage.toInt();
-  }
-  Serial.print(F("COLOR_MODE IN USE="));
-  Serial.println(colorMode);
+    // Color mode from configuration storage
+    String colorModeFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_MODE_FILENAME,
+                                                                     ledManager.COLOR_MODE_PARAM);
+    if (!colorModeFromStorage.isEmpty() && colorModeFromStorage != ERROR && colorModeFromStorage.toInt() != 0) {
+        colorMode = colorModeFromStorage.toInt();
+    }
+    Serial.print(F("COLOR_MODE IN USE="));
+    Serial.println(colorMode);
 
-  // Color order from configuration storage
-  String colorOrderFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_ORDER_FILENAME,
-                                                                    ledManager.COLOR_ORDER_PARAM);
-  if (!colorOrderFromStorage.isEmpty() && colorOrderFromStorage != ERROR && colorOrderFromStorage.toInt() != 0) {
-    colorOrder = colorOrderFromStorage.toInt();
-  }
-  Serial.print(F("COLOR_ORDER IN USE="));
-  Serial.println(colorOrder);
+    // Color order from configuration storage
+    String colorOrderFromStorage = bootstrapManager.readValueFromFile(ledManager.COLOR_ORDER_FILENAME,
+                                                                      ledManager.COLOR_ORDER_PARAM);
+    if (!colorOrderFromStorage.isEmpty() && colorOrderFromStorage != ERROR && colorOrderFromStorage.toInt() != 0) {
+        colorOrder = colorOrderFromStorage.toInt();
+    }
+    Serial.print(F("COLOR_ORDER IN USE="));
+    Serial.println(colorOrder);
 
-  ledManager.initLeds();
+    ledManager.initLeds();
 
 }
 
@@ -247,7 +249,7 @@ void configureLeds() {
  * @return -1 if loop must break
  */
 int serialRead() {
-  return !breakLoop ? Serial.read() : -1;
+    return !breakLoop ? Serial.read() : -1;
 }
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -271,207 +273,214 @@ void setApState(byte state) {
  * Main loop
  */
 void mainLoop() {
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
+    yield();
     NetworkManager::checkConnection();
-#endif
-
     // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
     if (effect == Effect::GlowWorm) {
 #endif
     if (!ledManager.led_state) ledManager.led_state = true;
-    int loopIdx;
-    for (loopIdx = 0; loopIdx < 6; ++loopIdx) {
-        waitLoop:
-        while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-        if (breakLoop || prefix[loopIdx] == serialRead()) continue;
-        loopIdx = 0;
-        goto waitLoop;
-    }
     int i = 0;
-    Serial.readBytes((byte*) config, CONFIG_NUM_PARAMS);
-    hi = config[i++];
-    lo = config[i++];
-    loSecondPart = config[i++];
-    usbBrightness = config[i++];
-    gpio = config[i++];
-    baudRate = config[i++];
-    whiteTemp = config[i++];
-    fireflyEffect = config[i++];
-    ldrEn = config[i++];
-    ldrTo = config[i++];
-    ldrInt = config[i++];
-    ldrMn = config[i++];
-    ldrAction = config[i++];
-    fireflyColorMode = config[i++];
-    fireflyColorOrder = config[i++];
-    relaySerialPin = config[i++];
-    sbSerialPin = config[i++];
-    ldrSerialPin = config[i++];
-    gpioClock = config[i++];
-    chk = config[i++];
-    if (!breakLoop && (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
-                               ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder
-                               ^ relaySerialPin ^ sbSerialPin ^ ldrSerialPin ^ gpioClock ^ 0x55))) {
-        loopIdx = 0;
-        goto waitLoop;
+    int prefixLength = Serial.readBytes((byte *) pre, CONFIG_PREFIX_LENGTH);
+    bool prefixOk = false;
+    if (prefixLength == CONFIG_PREFIX_LENGTH) {
+        if (pre[0] == prefix[0] && pre[1] == prefix[1] && pre[2] == prefix[2] && pre[3] == prefix[3] &&
+            pre[4] == prefix[4] && pre[5] == prefix[5]) {
+            prefixOk = true;
+        }
     }
-    if (!breakLoop) {
+    if (prefixOk) {
+        int configLen = Serial.readBytes((byte *) config, CONFIG_NUM_PARAMS);
+        if (configLen == CONFIG_NUM_PARAMS) {
+            hi = config[i++];
+            lo = config[i++];
+            loSecondPart = config[i++];
+            usbBrightness = config[i++];
+            gpio = config[i++];
+            baudRate = config[i++];
+            whiteTemp = config[i++];
+            fireflyEffect = config[i++];
+            ldrEn = config[i++];
+            ldrTo = config[i++];
+            ldrInt = config[i++];
+            ldrMn = config[i++];
+            ldrAction = config[i++];
+            fireflyColorMode = config[i++];
+            fireflyColorOrder = config[i++];
+            relaySerialPin = config[i++];
+            sbSerialPin = config[i++];
+            ldrSerialPin = config[i++];
+            gpioClock = config[i++];
+            chk = config[i++];
+            if (!(!breakLoop &&
+                  (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
+                           ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder
+                           ^ relaySerialPin ^ sbSerialPin ^ ldrSerialPin ^ gpioClock ^ 0x55)))) {
+                if (!breakLoop) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-        if (!relayState) {
-            Globals::turnOnRelay();
-        }
-#endif
-        if ((usbBrightness != brightness) & !ldrEnabled) {
-            brightness = usbBrightness;
-        }
-        if (gpio != 0 && gpioInUse != gpio) {
-            Globals::setGpio(gpio);
-            ledManager.reinitLEDTriggered = true;
-        }
-        if (gpioClock != 0 && gpioClockInUse != gpioClock) {
-            Globals::setGpioClock(gpioClock);
-            ledManager.reinitLEDTriggered = true;
-        }
-        if (ldrAction == 2 || ldrAction == 3 || ldrAction == 4) {
-            ldrEnabled = ldrEn == 1;
-            ldrTurnOff = ldrTo == 1;
-            ldrInterval = ldrInt;
-            ldrMin = ldrMn;
-            ledManager.setLdr(ldrEn == 1, ldrTo == 1, ldrInt, ldrMn, ledOn);
-            delay(DELAY_500);
-            if (ldrAction == 2) {
-                ldrDivider = ldrValue;
-                ledManager.setLdr(ldrDivider);
-            } else if (ldrAction == 3) {
-                ldrDivider = LDR_DIVIDER;
-                ledManager.setLdr(-1);
-            }
-        }
-        // Pins is set to +10 because null values are zero, so GPIO 0 is 10, GPIO 1 is 11.
-        if (relaySerialPin > 9 && sbSerialPin > 9 && ldrSerialPin > 9) {
-            relaySerialPin = relaySerialPin - 10;
-            sbSerialPin = sbSerialPin - 10;
-            ldrSerialPin = ldrSerialPin - 10;
-            if ((relayPin != relaySerialPin) || (sbPin != sbSerialPin) || (ldrPin != ldrSerialPin)) {
-                relayPin = relaySerialPin;
-                sbPin = sbSerialPin;
-                ldrPin = ldrSerialPin;
-                ledManager.setPins(relayPin, sbPin, ldrPin);
-            }
-        }
-        uint16_t numLedFromLuciferin = lo + (loSecondPart * SERIAL_CHUNK_SIZE) + 1;
-        if (ledManager.dynamicLedNum != numLedFromLuciferin) {
-            LedManager::setNumLed(numLedFromLuciferin);
-            ledManager.reinitLEDTriggered = true;
-        }
-        if (ledManager.reinitLEDTriggered) {
-            ledManager.reinitLEDTriggered = false;
-            ledManager.initLeds();
-            breakLoop = true;
-        }
-        if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 8)) {
-            Globals::setBaudRate(baudRate);
-#if defined(ARDUINO_ARCH_ESP32)
-            ESP.restart();
-#elif defined(ESP8266)
-            EspClass::restart();
-#endif
-        }
-        if (whiteTemp != 0 && whiteTempInUse != whiteTemp && (whiteTemp >= 20 && whiteTemp <= 110)) {
-            LedManager::setWhiteTemp(whiteTemp);
-        }
-        // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
-        if (fireflyEffect != 0 && ledManager.fireflyEffectInUse != fireflyEffect) {
-            ledManager.fireflyEffectInUse = fireflyEffect;
-            switch (ledManager.fireflyEffectInUse) {
-#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                    if (effect != Effect::GlowWorm) {
-                        previousMillisLDR = 0;
+                    if (!relayState) {
+                        Globals::turnOnRelay();
                     }
-                    effect = Effect::GlowWorm;
-                    break;
 #endif
-                case 6:
-                    effect = Effect::solid;
-                    break;
-                case 7:
-                    effect = Effect::fire;
-                    break;
-                case 8:
-                    effect = Effect::twinkle;
-                    break;
-                case 9:
-                    effect = Effect::bpm;
-                    break;
-                case 10:
-                    effect = Effect::rainbow;
-                    break;
-                case 11:
-                    effect = Effect::mixed_rainbow;
-                    break;
-                case 12:
-                    effect = Effect::chase_rainbow;
-                    break;
-                case 13:
-                    effect = Effect::solid_rainbow;
-                    break;
-                case 100:
-                    ledManager.fireflyEffectInUse = 0;
-                    break;
+                    if ((usbBrightness != brightness) & !ldrEnabled) {
+                        brightness = usbBrightness;
+                    }
+                    if (gpio != 0 && gpioInUse != gpio) {
+                        Globals::setGpio(gpio);
+                        ledManager.reinitLEDTriggered = true;
+                    }
+                    if (gpioClock != 0 && gpioClockInUse != gpioClock) {
+                        Globals::setGpioClock(gpioClock);
+                        ledManager.reinitLEDTriggered = true;
+                    }
+                    if (ldrAction == 2 || ldrAction == 3 || ldrAction == 4) {
+                        ldrEnabled = ldrEn == 1;
+                        ldrTurnOff = ldrTo == 1;
+                        ldrInterval = ldrInt;
+                        ldrMin = ldrMn;
+                        ledManager.setLdr(ldrEn == 1, ldrTo == 1, ldrInt, ldrMn, ledOn);
+                        delay(DELAY_500);
+                        if (ldrAction == 2) {
+                            ldrDivider = ldrValue;
+                            ledManager.setLdr(ldrDivider);
+                        } else if (ldrAction == 3) {
+                            ldrDivider = LDR_DIVIDER;
+                            ledManager.setLdr(-1);
+                        }
+                    }
+                    // Pins is set to +10 because null values are zero, so GPIO 0 is 10, GPIO 1 is 11.
+                    if (relaySerialPin > 9 && sbSerialPin > 9 && ldrSerialPin > 9) {
+                        relaySerialPin = relaySerialPin - 10;
+                        sbSerialPin = sbSerialPin - 10;
+                        ldrSerialPin = ldrSerialPin - 10;
+                        if ((relayPin != relaySerialPin) || (sbPin != sbSerialPin) || (ldrPin != ldrSerialPin)) {
+                            relayPin = relaySerialPin;
+                            sbPin = sbSerialPin;
+                            ldrPin = ldrSerialPin;
+                            ledManager.setPins(relayPin, sbPin, ldrPin);
+                        }
+                    }
+                    uint16_t numLedFromLuciferin = lo + (loSecondPart * SERIAL_CHUNK_SIZE) + 1;
+                    if (ledManager.dynamicLedNum != numLedFromLuciferin) {
+                        LedManager::setNumLed(numLedFromLuciferin);
+                        ledManager.reinitLEDTriggered = true;
+                    }
+                    if (ledManager.reinitLEDTriggered) {
+                        ledManager.reinitLEDTriggered = false;
+                        ledManager.initLeds();
+                        breakLoop = true;
+                    }
+                    if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 8)) {
+                        Globals::setBaudRate(baudRate);
+#if defined(ARDUINO_ARCH_ESP32)
+                        ESP.restart();
+#elif defined(ESP8266)
+                        EspClass::restart();
+#endif
+                    }
+                    if (whiteTemp != 0 && whiteTempInUse != whiteTemp && (whiteTemp >= 20 && whiteTemp <= 110)) {
+                        LedManager::setWhiteTemp(whiteTemp);
+                    }
+                    // If MQTT is enabled but using USB cable, effect is 0 and is set via MQTT callback
+                    if (fireflyEffect != 0 && ledManager.fireflyEffectInUse != fireflyEffect) {
+                        ledManager.fireflyEffectInUse = fireflyEffect;
+                        switch (ledManager.fireflyEffectInUse) {
+#ifdef TARGET_GLOWWORMLUCIFERINLIGHT
+                            case 1:
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5:
+                                if (effect != Effect::GlowWorm) {
+                                    previousMillisLDR = 0;
+                                }
+                                effect = Effect::GlowWorm;
+                                break;
+#endif
+                            case 6:
+                                effect = Effect::solid;
+                                break;
+                            case 7:
+                                effect = Effect::fire;
+                                break;
+                            case 8:
+                                effect = Effect::twinkle;
+                                break;
+                            case 9:
+                                effect = Effect::bpm;
+                                break;
+                            case 10:
+                                effect = Effect::rainbow;
+                                break;
+                            case 11:
+                                effect = Effect::mixed_rainbow;
+                                break;
+                            case 12:
+                                effect = Effect::chase_rainbow;
+                                break;
+                            case 13:
+                                effect = Effect::solid_rainbow;
+                                break;
+                            case 100:
+                                ledManager.fireflyEffectInUse = 0;
+                                break;
+                        }
+                    }
+                    if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 5)) {
+                        ledManager.setColorModeInit(fireflyColorMode);
+                    }
+                    if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 6)) {
+                        ledManager.setColorOrderInit(fireflyColorOrder);
+                    }
+                    int rlenChunk;
+                    if ((numLedFromLuciferin * 3) < LED_BUFF) {
+                        rlenChunk = numLedFromLuciferin * 3;
+                    } else {
+                        rlenChunk = LED_BUFF;
+                    }
+                    // Serial buffer is read with a single block using Serial.readBytes()
+                    int rlen = Serial.readBytes((byte *) ledBuffer, rlenChunk);
+                    if (rlenChunk == rlen) {
+                        i = 0;
+                        int j = 0;
+                        while (i < rlen) {
+                            byte r, g, b;
+                            r = ledBuffer[i++];
+                            g = ledBuffer[i++];
+                            b = ledBuffer[i++];
+                            setSerialPixel(j, r, g, b);
+                            j++;
+                        }
+                        // If there are many LEDs and buffer is too small, read the first block with Serial.readBytes() and then continue with Serial.read()
+                        while (j < numLedFromLuciferin) {
+                            byte r, g, b;
+                            while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+                            r = serialRead();
+                            while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+                            g = serialRead();
+                            while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+                            b = serialRead();
+                            setSerialPixel(j, r, g, b);
+                            j++;
+                        }
+                        ledManager.lastLedUpdate = millis();
+                        framerateCounterSerial++;
+                        if (effect != Effect::mixed_rainbow) {
+                            ledManager.ledShow();
+                        }
+                    }
+                }
             }
-        }
-        if (fireflyColorMode != 0 && (fireflyColorMode >= 1 && fireflyColorMode <= 5)) {
-            ledManager.setColorModeInit(fireflyColorMode);
-        }
-        if (fireflyColorOrder != 0 && (fireflyColorOrder >= 1 && fireflyColorOrder <= 6)) {
-            ledManager.setColorOrderInit(fireflyColorOrder);
-        }
-        int rlen;
-        if ((numLedFromLuciferin * 3) < LED_BUFF) {
-            rlen = numLedFromLuciferin * 3;
-        } else {
-            rlen = LED_BUFF;
-        }
-        // Serial buffer is read with a single block using Serial.readBytes()
-        rlen = Serial.readBytes((byte*) ledBuffer, rlen);
-        i = 0;
-        int j = 0;
-        while (i < rlen) {
-            byte r, g, b;
-            r = ledBuffer[i++];
-            g = ledBuffer[i++];
-            b = ledBuffer[i++];
-            setSerialPixel(j, r, g, b);
-            j++;
-        }
-        // If there are many LEDs and buffer is too small, read the first block with Serial.readBytes() and then continue with Serial.read()
-        while (j < numLedFromLuciferin) {
-            byte r, g, b;
-            while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-            r = serialRead();
-            while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-            g = serialRead();
-            while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
-            b = serialRead();
-            setSerialPixel(j, r, g, b);
-            j++;
-        }
-        ledManager.lastLedUpdate = millis();
-        framerateCounterSerial++;
-        if (effect != Effect::mixed_rainbow) {
-            ledManager.ledShow();
         }
     }
     // Flush serial buffer
+#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S3)
     while (!breakLoop && Serial.available() > 0) {
         serialRead();
     }
+#else
+    Serial.flush();
+#endif
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
     }
 #endif
@@ -521,23 +530,23 @@ void mainLoop() {
 }
 
 void setSerialPixel(int j, byte r, byte g, byte b) {
-  if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
-    r = g = b = 0;
-  }
-  if (ledManager.fireflyEffectInUse <= 6) {
-    ledManager.setPixelColor(j, r, g, b);
-  }
+    if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
+        r = g = b = 0;
+    }
+    if (ledManager.fireflyEffectInUse <= 6) {
+        ledManager.setPixelColor(j, r, g, b);
+    }
 }
 
 /**
  * Loop
  */
 void loop() {
-  mainLoop();
-  currentMillisMainLoop = millis();
+    mainLoop();
+    currentMillisMainLoop = millis();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  btnState = digitalRead(sbPin);
+    btnState = digitalRead(sbPin);
   if (lastState == HIGH && btnState == LOW) {
     pressedTime = currentMillisMainLoop;
   } else if (lastState == LOW && btnState == HIGH) {
@@ -569,7 +578,7 @@ void loop() {
 #endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (relayState && !ledManager.stateOn) {
+    if (relayState && !ledManager.stateOn) {
     Globals::turnOffRelay();
   }
   networkManager.getUDPStream();
@@ -577,48 +586,49 @@ void loop() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 #if defined(ESP8266)
-  if (currentMillisMainLoop - prevMillisPing > 30000) {
-    prevMillisPing = currentMillisMainLoop;
-    // Hey gateway, GlowWorm is here
-    if (!pingESP.ping()) {
-      WiFi.reconnect();
-    }
-  }
-#endif
-#endif
-  if (ldrEnabled) {
-    if (ldrInterval == 0) {
-      if (currentMillisMainLoop - previousMillisLDR > DELAY_1000) {
-        previousMillisLDR = currentMillisMainLoop;
-        ldrReading = true;
-        previousMillisLDR = currentMillisMainLoop;
-      }
-    } else {
-      if (((currentMillisMainLoop - previousMillisLDR) >= ((ldrInterval * 1000) * 60)) || previousMillisLDR == 0) {
-        ldrReading = true;
-        previousMillisLDR = currentMillisMainLoop;
+    if (currentMillisMainLoop - prevMillisPing > 30000) {
+      prevMillisPing = currentMillisMainLoop;
+      // Hey gateway, GlowWorm is here
+      if (!pingESP.ping()) {
+        WiFi.reconnect();
       }
     }
-    if (ldrReading) {
-      if ((ldrInterval == 0) || ((currentMillisMainLoop - previousMillisLDR) >= LDR_RECOVER_TIME)) {
-        ldrValue = analogRead(ldrPin);
-        uint8_t minBright = (ldrMin * 255) / 100;
-        int br = ((((ldrValue * 100) / ldrDivider) * 255) / 100);
-        if (br > 255) {
-          brightness = 255;
+#endif
+#endif
+    if (ldrEnabled) {
+        if (ldrInterval == 0) {
+            if (currentMillisMainLoop - previousMillisLDR > DELAY_1000) {
+                previousMillisLDR = currentMillisMainLoop;
+                ldrReading = true;
+                previousMillisLDR = currentMillisMainLoop;
+            }
         } else {
-          brightness = br;
+            if (((currentMillisMainLoop - previousMillisLDR) >= ((ldrInterval * 1000) * 60)) ||
+                previousMillisLDR == 0) {
+                ldrReading = true;
+                previousMillisLDR = currentMillisMainLoop;
+            }
         }
-        if (brightness <= minBright) {
-          brightness = minBright;
+        if (ldrReading) {
+            if ((ldrInterval == 0) || ((currentMillisMainLoop - previousMillisLDR) >= LDR_RECOVER_TIME)) {
+                ldrValue = analogRead(ldrPin);
+                uint8_t minBright = (ldrMin * 255) / 100;
+                int br = ((((ldrValue * 100) / ldrDivider) * 255) / 100);
+                if (br > 255) {
+                    brightness = 255;
+                } else {
+                    brightness = br;
+                }
+                if (brightness <= minBright) {
+                    brightness = minBright;
+                }
+                ldrReading = false;
+            }
         }
-        ldrReading = false;
-      }
     }
-  }
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (disconnectionCounter > 0) {
+    if (disconnectionCounter > 0) {
     if (disconnectionCounter >= MAX_RECONNECT) {
       LedManager::setColor(0, 0, 0);
     }
