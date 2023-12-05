@@ -42,7 +42,8 @@ void setup() {
 #if defined(ESP8266)
     Serial.setTimeout(10);
 #endif
-    Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
+    // TODO enabled
+    //Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
 
 #if CONFIG_IDF_TARGET_ESP32 || defined(ESP8266)
     while (!Serial); // wait for serial attach
@@ -543,7 +544,8 @@ void setSerialPixel(int j, byte r, byte g, byte b) {
  */
 void loop() {
     mainLoop();
-    currentMillisMainLoop = millis();
+    // TODO
+//    currentMillisMainLoop = millis();
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
     btnState = digitalRead(sbPin);

@@ -235,8 +235,7 @@ void Globals::turnOffRelay() {
  * Send serial info
  */
 void Globals::sendSerialInfo() {
-  currentMillisSendSerial = millis();
-  if (currentMillisSendSerial - prevMillisSendSerial > 10000) {
+    EVERY_N_SECONDS(10) {
     prevMillisSendSerial = currentMillisSendSerial;
     if (currentMillisSendSerial > lastUdpMsgReceived + DELAY_1000) {
       framerateSerial = framerateCounterSerial > 0 ? framerateCounterSerial / 10 : 0;

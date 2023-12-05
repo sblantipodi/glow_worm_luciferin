@@ -41,7 +41,7 @@ void NetworkManager::getUDPStream() {
       }
     }
     // If packet received...
-    uint16_t packetSizeBroadcast = broadcastUDP.parsePacket();
+    uint8_t packetSizeBroadcast = broadcastUDP.parsePacket();
     broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE);
     packetBroadcast[packetSizeBroadcast] = '\0';
     char * dn;

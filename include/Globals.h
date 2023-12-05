@@ -21,6 +21,7 @@
 #define _DPSOFTWARE_GLOBALS_UTILS_H
 
 #include <Arduino.h>
+#include <lib8tion.h>
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
 #include "LedManager.h"
