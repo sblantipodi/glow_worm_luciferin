@@ -119,6 +119,45 @@ uint8_t applyBrightnessCorrection(int c) {
   return (c && brightness) > 0 ? (c * ((brightness * 100) / 255)) / 100 : c;
 }
 
+/**
+ * Set color order for RGB
+ * @param r color channel
+ * @param g color channel
+ * @param b color channel
+ * @return rgb
+ */
+RgbColor setColorOrder(uint8_t r, uint8_t g, uint8_t b) {
+  switch (colorOrder) {
+    case 1: return RgbColor(g, r, b);
+    case 2: return RgbColor(r, g, b);
+    case 3: return RgbColor(b, g, r);
+    case 4: return RgbColor(b, r, g);
+    case 5: return RgbColor(r, b, g);
+    case 6: return RgbColor(g, b, r);
+    default: return RgbColor(r, g, b);
+  }
+}
+
+/**
+ * Set color order for RGBW
+ * @param r color channel
+ * @param g color channel
+ * @param b color channel
+ * @param w color channel
+ * @return rgb
+ */
+RgbwColor setColorOrderWhite(uint8_t r, uint8_t g, uint8_t b, uint8_t w) {
+  switch (colorOrder) {
+    case 1: return RgbwColor(g, r, b, w);
+    case 2: return RgbwColor(r, g, b, w);
+    case 3: return RgbwColor(b, g, r, w);
+    case 4: return RgbwColor(b, r, g, w);
+    case 5: return RgbwColor(r, b, g, w);
+    case 6: return RgbwColor(g, b, r, w);
+    default: return RgbwColor(r, g, b, w);
+  }
+}
+
 uint16_t lastKelvin = 0;
 byte colorCorrectionRGB[] = {0, 0, 0};
 
@@ -139,9 +178,9 @@ RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
     rgb[0] = ((uint16_t) colorCorrectionRGB[0] * r) / 255; // correct R
     rgb[1] = ((uint16_t) colorCorrectionRGB[1] * g) / 255; // correct G
     rgb[2] = ((uint16_t) colorCorrectionRGB[2] * b) / 255; // correct B
-    return {applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2])};
+    return setColorOrder(applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2]));
   } else {
-    return {applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b)};
+    return setColorOrder(applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b));
   }
 }
 
@@ -174,11 +213,9 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
     rgb[0] = ((uint16_t) colorCorrectionRGB[0] * r) / 255; // correct R
     rgb[1] = ((uint16_t) colorCorrectionRGB[1] * g) / 255; // correct G
     rgb[2] = ((uint16_t) colorCorrectionRGB[2] * b) / 255; // correct B
-    return {applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2]),
-            applyBrightnessCorrection(w)};
+    return setColorOrderWhite(applyBrightnessCorrection(rgb[0]), applyBrightnessCorrection(rgb[1]), applyBrightnessCorrection(rgb[2]), applyBrightnessCorrection(w));
   } else {
-    return {applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b),
-            applyBrightnessCorrection(w)};
+    return setColorOrderWhite(applyBrightnessCorrection(r), applyBrightnessCorrection(g), applyBrightnessCorrection(b), applyBrightnessCorrection(w));
   }
 }
 
@@ -192,26 +229,17 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
 void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrder, uint8_t bToOrder) const {
   RgbColor rgbColor;
   RgbwColor rgbwColor;
-  uint8_t r = 0, g = 0, b = 0;
-  switch (colorOrder) {
-    case 1: g = rToOrder; r = gToOrder; b = bToOrder; break;
-    case 2: r = rToOrder; g = gToOrder; b = bToOrder; break;
-    case 3: b = rToOrder; g = gToOrder; r = bToOrder; break;
-    case 4: b = rToOrder; r = gToOrder; g = bToOrder; break;
-    case 5: r = rToOrder; b = gToOrder; g = bToOrder; break;
-    case 6: g = rToOrder; b = gToOrder; r = bToOrder; break;
-  }
   switch (colorMode) {
     case 1:
-      rgbColor = calculateRgbMode(r, g, b);
+      rgbColor = calculateRgbMode(rToOrder, gToOrder, bToOrder);
       break;
     case 2:
     case 3:
     case 4:
-      rgbwColor = calculateRgbwMode(r, g, b);
+      rgbwColor = calculateRgbwMode(rToOrder, gToOrder, bToOrder);
       break;
     case 5:
-      rgbColor = calculateRgbMode(r, g, b);
+      rgbColor = calculateRgbMode(rToOrder, gToOrder, bToOrder);
       break;
   }
 #if defined(ARDUINO_ARCH_ESP32)
