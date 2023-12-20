@@ -42,6 +42,8 @@ public:
 #else
     NeoPixelBus<NeoRgbFeature, Neo800KbpsMethod> *ledsDma = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
     NeoPixelBus<NeoRgbwFeature, NeoSk6812Method> *ledsDmaRgbw = NULL; // Hardware DMA, GPIO3, no serial read, yes serial write
+
+    NeoPixelBus<NeoRgbFeature, Ws2801Method> *ledsSpi = NULL; // SPI, GPIO4 (CLK), GPIO2 (DATA), yes serial read/write
     NeoPixelBus<NeoRgbFeature, NeoEsp8266Uart1800KbpsMethod> *ledsUart = NULL; // Hardware UART, GPIO2, yes serial read/write
     NeoPixelBus<NeoRgbwFeature, NeoEsp8266Uart1Sk6812Method> *ledsUartRgbw = NULL; // Hardware UART, GPIO2, yes serial read/write
     NeoPixelBus<NeoRgbFeature, NeoEsp8266BitBangWs2812xMethod> *ledsStandard = NULL; // No hardware, ALL GPIO, yes serial read/write
@@ -88,6 +90,8 @@ public:
     void initStandard();
 
     void initStandardRgbw();
+
+    void initSpi();
 
     void initUart();
 

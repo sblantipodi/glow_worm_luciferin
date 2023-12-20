@@ -55,7 +55,11 @@ void LedManager::ledShow() const {
   } else if (gpioInUse == 2) {
     switch (colorMode) {
       case 1:
+#if defined(RGB_SPI)
+        ledsSpi->Show();
+#else
         ledsUart->Show();
+#endif
         break;
       case 2:
       case 3:
@@ -273,7 +277,11 @@ void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrde
   } else if (gpioInUse == 2) {
     switch (colorMode) {
       case 1:
+#if defined(RGB_SPI)
+        ledsSpi->SetPixelColor(index, rgbColor);
+#else
         ledsUart->SetPixelColor(index, rgbColor); break;
+#endif
         break;
       case 2:
       case 3:
@@ -335,6 +343,12 @@ void LedManager::cleanLEDs() {
     cleared = true;
     delete ledsDmaRgbw;
     ledsDmaRgbw = nullptr;
+  }
+  if (ledsSpi != nullptr) {
+    while (!ledsSpi->CanShow()) { yield(); }
+    cleared = true;
+    delete ledsSpi;
+    ledsSpi = nullptr;
   }
   if (ledsUart != nullptr) {
     while (!ledsUart->CanShow()) { yield(); }
@@ -410,8 +424,28 @@ void LedManager::initStandardRgbw() {
 #endif
 }
 
+
 /**
- * Init led strip RGB. Hardware UART, GPIO2, yes serial read/writeHardware UART, GPIO2, yes serial read/write
+ * Init led strip RGB. Hardware SPI, GPIO4 (CLK) GPIO2 (DATA), yes serial read/write
+ */
+void LedManager::initSpi() {
+#if defined(ESP8266)
+  cleanLEDs();
+  ledsSpi = new NeoPixelBus<NeoRgbFeature, Ws2801Method>(dynamicLedNum, 4, 2);
+  if (ledsSpi == nullptr) {
+    Serial.println(F("OUT OF MEMORY"));
+  }
+  while (!Serial); // wait for serial attach
+  Serial.println();
+  Serial.println(F("Initializing..."));
+  flushSerial();
+  ledsSpi->Begin();
+  ledsSpi->Show();
+#endif
+}
+
+/**
+ * Init led strip RGB. Hardware UART, GPIO2, yes serial read/write
  */
 void LedManager::initUart() {
 #if defined(ESP8266)
@@ -594,7 +628,11 @@ void LedManager::initLeds() {
     } else if (gpioInUse == 2) {
       switch (colorMode) {
         case 1:
+#if defined(RGB_SPI)
+          initSpi();
+#else
           initUart();
+#endif
           break;
         case 2:
         case 3:
