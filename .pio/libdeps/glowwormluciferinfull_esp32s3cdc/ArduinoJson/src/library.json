@@ -1,0 +1,101 @@
+{
+  "examples": [
+    {
+      "files": [
+        "JsonConfigFile.ino"
+      ],
+      "name": "JsonConfigFile",
+      "base": "examples\\JsonConfigFile"
+    },
+    {
+      "files": [
+        "JsonFilterExample.ino"
+      ],
+      "name": "JsonFilterExample",
+      "base": "examples\\JsonFilterExample"
+    },
+    {
+      "files": [
+        "JsonGeneratorExample.ino"
+      ],
+      "name": "JsonGeneratorExample",
+      "base": "examples\\JsonGeneratorExample"
+    },
+    {
+      "files": [
+        "JsonHttpClient.ino"
+      ],
+      "name": "JsonHttpClient",
+      "base": "examples\\JsonHttpClient"
+    },
+    {
+      "files": [
+        "JsonParserExample.ino"
+      ],
+      "name": "JsonParserExample",
+      "base": "examples\\JsonParserExample"
+    },
+    {
+      "files": [
+        "JsonServer.ino"
+      ],
+      "name": "JsonServer",
+      "base": "examples\\JsonServer"
+    },
+    {
+      "files": [
+        "JsonUdpBeacon.ino"
+      ],
+      "name": "JsonUdpBeacon",
+      "base": "examples\\JsonUdpBeacon"
+    },
+    {
+      "files": [
+        "MsgPackParser.ino"
+      ],
+      "name": "MsgPackParser",
+      "base": "examples\\MsgPackParser"
+    },
+    {
+      "files": [
+        "ProgmemExample.ino"
+      ],
+      "name": "ProgmemExample",
+      "base": "examples\\ProgmemExample"
+    },
+    {
+      "files": [
+        "StringExample.ino"
+      ],
+      "name": "StringExample",
+      "base": "examples\\StringExample"
+    }
+  ],
+  "export": {},
+  "repository": {
+    "url": "https://github.com/bblanchon/ArduinoJson.git",
+    "type": "git"
+  },
+  "homepage": "https://arduinojson.org/?utm_source=meta&utm_medium=library.json",
+  "platforms": [
+    "*"
+  ],
+  "keywords": [
+    "json",
+    "rest",
+    "http",
+    "web"
+  ],
+  "name": "ArduinoJson",
+  "description": "A simple and efficient JSON library for embedded C++. ArduinoJson supports ✔ serialization, ✔ deserialization, ✔ MessagePack, ✔ streams, ✔ filtering, and more. It is the most popular Arduino library on GitHub ❤❤❤❤❤. Check out arduinojson.org for a comprehensive documentation.",
+  "authors": [
+    {
+      "url": "https://blog.benoitblanchon.fr",
+      "name": "Benoit Blanchon"
+    }
+  ],
+  "version": "7.0.0",
+  "frameworks": [
+    "*"
+  ]
+}

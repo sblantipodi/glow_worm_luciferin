@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright © 2014-2024, Benoit BLANCHON
 // MIT License
 
 #pragma once
@@ -9,7 +9,6 @@
 
 #include <ArduinoJson/Polyfills/assert.hpp>
 #include <ArduinoJson/Polyfills/attributes.hpp>
-#include <ArduinoJson/Strings/StoragePolicy.hpp>
 #include <ArduinoJson/Strings/StringAdapter.hpp>
 
 ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
@@ -54,8 +53,8 @@ class ZeroTerminatedRamString {
     return stringCompare(a, b) == 0;
   }
 
-  StringStoragePolicy::Copy storagePolicy() const {
-    return StringStoragePolicy::Copy();
+  bool isLinked() const {
+    return false;
   }
 
  protected:
@@ -84,8 +83,8 @@ class StaticStringAdapter : public ZeroTerminatedRamString {
  public:
   StaticStringAdapter(const char* str) : ZeroTerminatedRamString(str) {}
 
-  StringStoragePolicy::Link storagePolicy() const {
-    return StringStoragePolicy::Link();
+  bool isLinked() const {
+    return true;
   }
 };
 
@@ -122,8 +121,8 @@ class SizedRamString {
     return str_;
   }
 
-  StringStoragePolicy::Copy storagePolicy() const {
-    return StringStoragePolicy::Copy();
+  bool isLinked() const {
+    return false;
   }
 
  protected:
