@@ -2,7 +2,7 @@
   GlowWormLuciferin.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2023  Davide Perini
+  Copyright © 2020 - 2024  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -258,7 +258,7 @@ void manageApRoot() {
 
 void setApState(byte state) {
   configureLeds();
-  DynamicJsonDocument asDoc(1024);
+  JsonDocument asDoc;
   asDoc[AP_PARAM] = state;
   BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
   effect = Effect::solid;
