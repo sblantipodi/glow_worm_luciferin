@@ -2,7 +2,7 @@
   NetworkManager.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2023  Davide Perini
+  Copyright © 2020 - 2024  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -156,7 +156,7 @@ void NetworkManager::manageDisconnections() {
     effect = Effect::solid;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
     if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 10)) {
-      DynamicJsonDocument asDoc(1024);
+      JsonDocument asDoc;
       asDoc[AP_PARAM] = 10;
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
@@ -166,7 +166,7 @@ void NetworkManager::manageDisconnections() {
     effect = Effect::solid;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
     if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0)) {
-      DynamicJsonDocument asDoc(1024);
+      JsonDocument asDoc;
       asDoc[AP_PARAM] = 0;
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
@@ -310,7 +310,7 @@ void NetworkManager::listenOnHttpGet() {
   server.on(F("/setAutoSave"), []() {
       stopUDP();
       autoSave = server.arg(F("autosave")).toInt();
-      DynamicJsonDocument asDoc(1024);
+      JsonDocument asDoc;
       asDoc[F("autosave")] = autoSave;
       BootstrapManager::writeToLittleFS(asDoc, AUTO_SAVE_FILENAME);
       delay(20);
@@ -605,7 +605,7 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   String colorOrderParam = bootstrapManager.jsonDoc[F("colorOrder")];
   String lednum = bootstrapManager.jsonDoc[F("lednum")];
   String br = bootstrapManager.jsonDoc[F("br")];
-  DynamicJsonDocument doc(1024);
+  JsonDocument doc;
   if (deviceName.length() > 0 &&
       ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0 && mqttTopic.length() > 0))) {
     if (microcontrollerIP.length() == 0) {
@@ -664,7 +664,7 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
     Globals::setGpioClock(gpioClockParam.toInt());
   }
   delay(DELAY_500);
-  DynamicJsonDocument topicDoc(1024);
+  JsonDocument topicDoc;
   topicDoc[networkManager.MQTT_PARAM] = mqttTopic;
   BootstrapManager::writeToLittleFS(topicDoc, networkManager.TOPIC_FILENAME);
   delay(DELAY_500);
@@ -913,7 +913,7 @@ void NetworkManager::sendStatus() {
   } else {
     bootstrapManager.jsonDoc.clear();
     JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
-    JsonObject color = root.createNestedObject(F("color"));
+    JsonObject color = root["color"].to<JsonObject>();
     root[F("state")] = (ledManager.stateOn) ? ON_CMD : OFF_CMD;
     color[F("r")] = ledManager.red;
     color[F("g")] = ledManager.green;

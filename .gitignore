@@ -1,6 +1,7 @@
 .vscode
 .idea
 .pio/build
+.pio
 secrets.ini
 .version_no_increment
 .version_no_increment_update_date

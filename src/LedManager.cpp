@@ -2,7 +2,7 @@
   LedManager.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2023  Davide Perini
+  Copyright © 2020 - 2024  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -641,7 +641,7 @@ void LedManager::flushSerial() {
  */
 void LedManager::setColorMode(int colorModeToUse) {
   Serial.println("CHANGING COLOR MODE");
-  DynamicJsonDocument colorModeDoc(1024);
+  JsonDocument colorModeDoc;
   colorModeDoc[COLOR_MODE_PARAM] = colorModeToUse;
   BootstrapManager::writeToLittleFS(colorModeDoc, COLOR_MODE_FILENAME);
   delay(20);
@@ -653,7 +653,7 @@ void LedManager::setColorMode(int colorModeToUse) {
  */
 void LedManager::setColorOrder(int colorOrderToUse) {
   Serial.println("CHANGING COLOR MODE");
-  DynamicJsonDocument colorOrderDoc(1024);
+  JsonDocument colorOrderDoc;
   colorOrderDoc[COLOR_ORDER_PARAM] = colorOrderToUse;
   BootstrapManager::writeToLittleFS(colorOrderDoc, COLOR_ORDER_FILENAME);
   delay(20);
@@ -671,7 +671,7 @@ void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_
                         boolean ledOnParam) {
   Serial.println(F("CHANGING LDR"));
   previousMillisLDR = 0;
-  DynamicJsonDocument ldrDoc(1024);
+  JsonDocument ldrDoc;
   ldrDoc[LDR_PARAM] = ldrEnabledToSet;
   ldrDoc[LDR_TO_PARAM] = ldrTurnOffToSet;
   ldrDoc[LDR_INTER_PARAM] = ldrIntervalToSet;
@@ -688,7 +688,7 @@ void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_
  */
 void LedManager::setLdr(int maxLdr) {
   Serial.println(F("CHANGING LDR"));
-  DynamicJsonDocument ldrDoc(1024);
+  JsonDocument ldrDoc;
   ldrDoc[MAX_LDR_PARAM] = maxLdr;
   BootstrapManager::writeToLittleFS(ldrDoc, LDR_CAL_FILENAME);
   delay(20);
@@ -703,7 +703,7 @@ void LedManager::setLdr(int maxLdr) {
  */
 void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam) {
   Serial.println(F("CHANGING PINs"));
-  DynamicJsonDocument ldrDoc(1024);
+  JsonDocument ldrDoc;
   ldrDoc[RELAY_PIN_PARAM] = relayPinParam;
   ldrDoc[SB_PIN_PARAM] = sbPinParam;
   ldrDoc[LDR_PIN_PARAM] = ldrPinParam;
@@ -796,7 +796,7 @@ void LedManager::setColorLoop(uint8_t inR, uint8_t inG, uint8_t inB) {
  */
 void LedManager::setNumLed(int numLedFromLuciferin) {
   ledManager.dynamicLedNum = numLedFromLuciferin;
-  DynamicJsonDocument numLedDoc(1024);
+  JsonDocument numLedDoc;
   numLedDoc[LED_NUM_PARAM] = ledManager.dynamicLedNum;
   BootstrapManager::writeToLittleFS(numLedDoc, LED_NUM_FILENAME);
   delay(20);
@@ -809,7 +809,7 @@ void LedManager::setNumLed(int numLedFromLuciferin) {
 void LedManager::setWhiteTemp(int wt) {
   Serial.println(F("CHANGING WHITE TEMP"));
   whiteTempInUse = wt;
-  DynamicJsonDocument whiteTempDoc(1024);
+  JsonDocument whiteTempDoc;
   whiteTempDoc[WHITE_TEMP_PARAM] = wt;
   BootstrapManager::writeToLittleFS(whiteTempDoc, WHITE_TEMP_FILENAME);
   delay(20);

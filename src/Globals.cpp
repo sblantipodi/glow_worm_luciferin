@@ -1,7 +1,7 @@
 /*
   Globals.cpp - Helper classes
   
-  Copyright © 2020 - 2023  Davide Perini
+  Copyright © 2020 - 2024  Davide Perini
   
   Permission is hereby granted, free of charge, to any person obtaining a copy of 
   this software and associated documentation files (the "Software"), to deal
@@ -122,7 +122,7 @@ void Globals::setGpio(int gpioToUse) {
     gpioToUse = 2;
   }
   gpioInUse = gpioToUse;
-  DynamicJsonDocument gpioDoc(1024);
+  JsonDocument gpioDoc;
   gpioDoc[GPIO_PARAM] = gpioInUse;
   BootstrapManager::writeToLittleFS(gpioDoc, GPIO_FILENAME);
   delay(20);
@@ -138,7 +138,7 @@ void Globals::setGpioClock(int gpioClockToUse) {
     gpioClockToUse = 2;
   }
   gpioClockInUse = gpioClockToUse;
-  DynamicJsonDocument gpioClockDoc(1024);
+  JsonDocument gpioClockDoc;
   gpioClockDoc[GPIO_CLOCK_PARAM] = gpioClockInUse;
   BootstrapManager::writeToLittleFS(gpioClockDoc, GPIO_CLOCK_FILENAME);
   delay(20);
@@ -150,7 +150,7 @@ void Globals::setGpioClock(int gpioClockToUse) {
  */
 void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness) {
   Serial.println(F("Saving color and brightness info"));
-  DynamicJsonDocument gpioDoc(1024);
+  JsonDocument gpioDoc;
   gpioDoc[F("r")] = rStored = r;
   gpioDoc[F("g")] = gStored = g;
   gpioDoc[F("b")] = bStored = b;
@@ -203,7 +203,7 @@ int Globals::setBaudRateInUse(int bdrate) {
 void Globals::setBaudRate(int bdRate) {
   Serial.println(F("CHANGING BAUDRATE"));
   setBaudRateInUse(bdRate);
-  DynamicJsonDocument baudrateDoc(1024);
+  JsonDocument baudrateDoc;
   baudrateDoc[BAUDRATE_PARAM] = baudRateInUse;
   BootstrapManager::writeToLittleFS(baudrateDoc, BAUDRATE_FILENAME);
   delay(20);
