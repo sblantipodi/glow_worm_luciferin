@@ -25,11 +25,7 @@
  * Setup function
  */
 void setup() {
-#if defined(ARDUINO_ARCH_ESP32)
-    setCpuFrequencyMhz(80);
-#endif
-
-    firmwareVersion = VERSION;
+  firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
   // BaudRate from configuration storage
@@ -202,14 +198,6 @@ void setup() {
     }
   }
 #endif
-
-#if defined(ARDUINO_ARCH_ESP32)
-
-    uint32_t f = getCpuFrequencyMhz();
-    Serial.print("CPU FREQQ ");
-    Serial.print(f);
-#endif
-
 }
 
 /**
