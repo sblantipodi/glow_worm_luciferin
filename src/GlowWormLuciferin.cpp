@@ -25,7 +25,9 @@
  * Setup function
  */
 void setup() {
-  firmwareVersion = VERSION;
+    setCpuFrequencyMhz(80);
+
+    firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
   // BaudRate from configuration storage
@@ -38,10 +40,7 @@ void setup() {
   // Increase the RX Buffer size allows to send bigger messages via Serial in one chunk, increase performance.
   Serial.setRxBufferSize(SERIAL_SIZE_RX);
 #endif
-// TODO remove timeout and buffer size below
-    Serial.setTimeout(10);
     Serial.begin(baudRateToUse);
-    Serial.setRxBufferSize(SERIAL_SIZE_RX);
 #if defined(ESP8266)
     Serial.setTimeout(10);
 #endif
@@ -201,6 +200,12 @@ void setup() {
     }
   }
 #endif
+
+    uint32_t f = getCpuFrequencyMhz();
+    Serial.print("CPU FREQQ ");
+    Serial.print(f);
+
+
 }
 
 /**
