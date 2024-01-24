@@ -38,9 +38,12 @@ void setup() {
   // Increase the RX Buffer size allows to send bigger messages via Serial in one chunk, increase performance.
   Serial.setRxBufferSize(SERIAL_SIZE_RX);
 #endif
-  Serial.begin(baudRateToUse);
+// TODO remove timeout and buffer size below
+    Serial.setTimeout(10);
+    Serial.begin(baudRateToUse);
+    Serial.setRxBufferSize(SERIAL_SIZE_RX);
 #if defined(ESP8266)
-  Serial.setTimeout(10);
+    Serial.setTimeout(10);
 #endif
   Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
 

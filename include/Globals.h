@@ -32,7 +32,8 @@
 #if defined(ARDUINO_ARCH_ESP32)
 #define LDR_DIVIDER 4096
 #endif
-#define SERIAL_SIZE_RX 2048
+// TODO set 2048
+#define SERIAL_SIZE_RX 1024
 #define CONFIG_NUM_PARAMS 20
 #define CONFIG_PREFIX_LENGTH 6
 // This value must meet the one in Firefly Luciferin

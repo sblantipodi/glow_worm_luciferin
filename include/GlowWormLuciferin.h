@@ -41,7 +41,8 @@ PingESP pingESP;
 
 // This must be a multiple of 3 (R;G;B). Serial buffer is read with a single block using Serial.readBytes(),
 // if there are many LEDs and buffer is too small, read the first block with Serial.readBytes() and then continue with Serial.read()
-const uint16_t LED_BUFF = 1500;
+// TODO set 1500
+const uint16_t LED_BUFF = 500;
 byte ledBuffer[LED_BUFF];
 uint16_t scale = 30;
 byte btnState = LOW;
