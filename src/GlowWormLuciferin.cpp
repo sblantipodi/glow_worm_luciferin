@@ -275,7 +275,7 @@ void mainLoop() {
   NetworkManager::checkConnection();
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (effect == Effect::GlowWorm) {
+  if (effect == Effect::GlowWorm && Serial.available()) {
 #endif
     if (!ledManager.led_state) ledManager.led_state = true;
     int i = 0;
