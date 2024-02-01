@@ -25,11 +25,7 @@
  * Setup function
  */
 void setup() {
-// TODO
-#if defined(ARDUINO_ARCH_ESP32)
-    esp_task_wdt_delete(NULL);
-#endif
-    firmwareVersion = VERSION;
+  firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
   // BaudRate from configuration storage
@@ -117,10 +113,6 @@ void setup() {
   // Bootsrap setup() with Wifi and MQTT functions
   bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton,
                                   NetworkManager::callback, true, manageApRoot);
-#endif
-// TODO
-#if defined(ARDUINO_ARCH_ESP32)
-    esp_task_wdt_delete(NULL);
 #endif
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
