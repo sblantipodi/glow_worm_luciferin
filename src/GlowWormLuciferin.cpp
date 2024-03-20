@@ -38,9 +38,9 @@ void setup() {
   // Increase the RX Buffer size allows to send bigger messages via Serial in one chunk, increase performance.
   Serial.setRxBufferSize(SERIAL_SIZE_RX);
 #endif
-  Serial.begin(baudRateToUse);
+    Serial.begin(baudRateToUse);
 #if defined(ESP8266)
-  Serial.setTimeout(10);
+    Serial.setTimeout(10);
 #endif
   Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
 
@@ -114,7 +114,6 @@ void setup() {
   bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton,
                                   NetworkManager::callback, true, manageApRoot);
 #endif
-
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
   String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
@@ -275,7 +274,7 @@ void mainLoop() {
   NetworkManager::checkConnection();
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (effect == Effect::GlowWorm) {
+  if (effect == Effect::GlowWorm && (Serial.available() > 0)) {
 #endif
     if (!ledManager.led_state) ledManager.led_state = true;
     int i = 0;

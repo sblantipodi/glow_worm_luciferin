@@ -22,11 +22,11 @@
     <meta name="twitter:image"
           content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
     <script module>
-        // https://unpkg.com/esp-web-tools@9.3.0/dist/web/install-button.js?module
+        // https://unpkg.com/esp-web-tools@9.4.2/dist/web/install-button.js?module
         // https://unpkg.com/tasmota-esp-web-tools@8.1.2/dist/web/install-button.js?module
         // https://unpkg.com/tasmota-esp-web-tools/dist/web/install-button.js?module
         import(
-            "https://unpkg.com/tasmota-esp-web-tools@8.1.2/dist/web/install-button.js?module"
+            "https://unpkg.com/esp-web-tools@10.0.1/dist/web/install-button.js?module"
             );
         window.addEventListener("load", function (event) {
             try {
@@ -263,10 +263,12 @@
         }
 
         ewt-install-dialog, ewt-no-port-picked-dialog {
+            --label-text-color: orange;
             --mdc-theme-primary: orange;
             --esp-tools-button-color: orange;
             --esp-tools-button-text-color: orange;
             --mdc-text-field-fill-color: #f8f8f8;
+            --md-sys-color-primary: orange;
         }
 
         .dropdown-container {
@@ -380,7 +382,7 @@
             <esp-web-install-button id="inst_full"
                                     manifest="static/firmware_build/manifest_full.json">
                 <button slot="activate">INSTALL FULL</button>
-                <span slot="unsupported"><b><span style="color: red;">This browser is not supported!</span></b></span>
+                <span slot="unsupported"><b>Your browser is not supported!</b></span>
                 <span slot="not-allowed">Ah snap, you are not allowed to use this on HTTP!</span>
             </esp-web-install-button>
             <br>
@@ -435,7 +437,7 @@
                     src="https://img.shields.io/github/v/release/sblantipodi/glow_worm_luciferin.svg?label=Glow%20Worm%20Luciferin&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAABBVBMVEUAAAD/////////VyL/WSf/Wiv/XTL/XjX/YTr/ZUL/Z0T/aEf/aUn/bU//clj/dFn/d17/eWH/emP/e2T/fGb/fmj/gm7/g2//iHb/inn/i3r/jHv/j3//lIT/lIX/l4j/mIn/m43/nI//npH/npL/pZr/ppr/qp//tKv/taz/tq7/t67/t6//wbr/wbv/wrv/w73/xL3/xb7/xb//x8L/ycP/ysT/ysX/zsn/z8r/1tL/19P/3Nj/3Nn/3dn/4d7/4+D/5eP/5+X/7Or/7ev/7uz/7u3/7+7/8O7/8O//8vH/8/L/9vX/9vb/9/b/+fj/+fn/+/r/+/v//Pz//f3//v7///9aJEoJAAAAA3RSTlMAARYXuUDOAAACr0lEQVR42u2aaVvaQBSFaUuQ2kbKomyiLUpdW0VtJaZVIVWQLZoY/v9PKZZksk1iEhJi2zOfmMyB8z6ZmTv3zkPiTcwtAQAAAAAAAAAAAF4cwCTiBgAAAAAAAAAAAP5agMG0efVw1QYAeGwfr5eehsq1Zuc5806zVn7SltaP24+hAIxPs8bhwrno7C6eF4za7Ol4bgCFZ62ClbMHuv3D2YpVy35X5gMYbSQpeWT9luZ/W6dIkxvCPAAdlp7JZgS7v5Cha9lOcAAn/ylB2+rfzjhpLQQ+AO5M/qs5Y49pmf1bjHE0t2oiuAsGcF8jE1k9uRFlSRSOSmRJMJxxqXLEP1k6EkRJFm9OqkRbuw8E0CLLnlMom4LZlbWncoN4sbyu/Uk2xZcgAP1ljd+08YcVomzImj95VBmawoL2Dt/2AwDsUf2nBB91gj92vS3yYGdoCUwawZ5/AEldc2u2wKccEm2+N/XPk+6hLeqM1BnLSb4BrtUub9/xygFZcvmu7s8cKHYtrw5e+wbYV1+ARAt6l2lNvfRB+5S+pCmltdnovm+A7Vnvgh72dQJ3/8nkYjZc9g0w66S6DufeVdH8reIvB2E3Zdnd/gAKzkmHiaDonIAUIgKYDDb172y6JEv/LMCCpsD7IrwKexHGvg09BqJUKqpA5BaKv6b1UNyNKhRrhxE7CuMwykohHsc7RLrV83ocN2NOSJb7EaRkyYaeku0ytJTsB0nJuEiSUuOEuyelnxaRlr8LPy33V5gIERQm8Zdm/opTsU7Tfh4trjxXOHt5zsd6QVH9Nv8FRZArmsr7aS1UCe2KJsAl1XgwGOKeEAAAAAAAAAAAAAAgOAD+SQUAAAAAAAAAwP8H4LW9UttzP/habYmwGwAAAIDYASILMAAAAABePMDCEg4AAAAAcQH8BmpkuUqa4Ih2AAAAAElFTkSuQmCC"></a>
             <a href="https://github.com/sblantipodi/firefly_luciferin/wiki"><img
                     src="https://img.shields.io/website/https/sblantipodi.github.io/glow_worm_luciferin.svg?label=Wiki&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs"></a>
-            </div>
+        </div>
         <div>
             <a href="https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A"><img
                     src="https://img.shields.io/badge/donate-PayPal-blue"></a>
