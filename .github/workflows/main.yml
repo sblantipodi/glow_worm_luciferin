@@ -332,13 +332,13 @@ jobs:
         run: |
           echo "TAG_NAME=$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/version)" >> $GITHUB_OUTPUT
       - name: Set property version in a ESP Web Tools json file
-        uses: benday-inc/set-property-value-in-appsettings@v1.4
+        uses: benday-inc/set-property-value-in-appsettings@v1.5
         with:
           pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_full.json'
           keyname1: 'version'
           valuetoset: '${{ steps.vars.outputs.TAG_NAME }}'
       - name: Set property version in a ESP Web Tools json file
-        uses: benday-inc/set-property-value-in-appsettings@v1.4
+        uses: benday-inc/set-property-value-in-appsettings@v1.5
         with:
           pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_light.json'
           keyname1: 'version'
