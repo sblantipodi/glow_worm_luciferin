@@ -375,6 +375,8 @@ void NetworkManager::manageAPSetting(bool isSettingRoot) {
       prefsData += microcontrollerIP;
       prefsData += F("\",\"dhcp\":\"");
       prefsData += dhcpInUse;
+      prefsData += F("\",\"ethd\":\"");
+      prefsData += ethd;
       prefsData += F("\",\"mqttuser\":\"");
       prefsData += mqttuser;
       prefsData += F("\",\"mqttIp\":\"");
@@ -593,6 +595,7 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   String microcontrollerIP = bootstrapManager.jsonDoc[F("microcontrollerIP")];
   String mqttCheckbox = bootstrapManager.jsonDoc[F("mqttCheckbox")];
   String setSsid = bootstrapManager.jsonDoc[F("ssid")];
+  String setEthd = bootstrapManager.jsonDoc[F("ethd")];
   String wifipwd = bootstrapManager.jsonDoc[F("wifipwd")];
   String mqttIP = bootstrapManager.jsonDoc[F("mqttIP")];
   String mqttPort = bootstrapManager.jsonDoc[F("mqttPort")];
@@ -611,6 +614,7 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
     if (microcontrollerIP.length() == 0) {
       microcontrollerIP = "DHCP";
     }
+    doc[F("ethd")] = setEthd.isEmpty() ? String(ethd) : setEthd;
     doc[F("deviceName")] = deviceName;
     doc[F("microcontrollerIP")] = microcontrollerIP;
     doc[F("qsid")] = (setSsid != NULL && !setSsid.isEmpty()) ? setSsid : qsid;
@@ -923,7 +927,13 @@ void NetworkManager::sendStatus() {
     root[F("brightness")] = brightness;
     root[F("effect")] = Globals::effectToString(effect);
     root[F("deviceName")] = deviceName;
-    root[F("IP")] = microcontrollerIP;
+    if (ethd == 0) {
+      root[F("IP")] = microcontrollerIP;
+    } else {
+#if defined(ARDUINO_ARCH_ESP32)
+      root[F("IP")] = ETH.localIP();
+#endif
+    }
     root[F("dhcp")] = dhcpInUse;
     root[F("wifi")] = BootstrapManager::getWifiQuality();
     root[F("MAC")] = MAC;

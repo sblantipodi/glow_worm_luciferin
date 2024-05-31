@@ -266,6 +266,11 @@ void Globals::sendSerialInfo() {
 #elif CONFIG_IDF_TARGET_ESP32
       Serial.printf("board:%s\n", "ESP32");
 #endif
+#if defined(ARDUINO_ARCH_ESP32)
+      if (ethd > 0 && MAC.isEmpty()) {
+        MAC = ETH.macAddress();
+      }
+#endif
       Serial.printf("MAC:%s\n", MAC.c_str());
       Serial.printf("gpio:%d\n", gpioInUse);
       Serial.printf("gpioClock:%d\n", gpioClockInUse);
