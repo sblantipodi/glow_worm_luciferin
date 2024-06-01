@@ -216,7 +216,7 @@ void Globals::turnOnRelay() {
   if (!relayState) {
     relayState = true;
     digitalWrite(relayPin, HIGH);
-    delay(100);
+    delay(10);
   }
 }
 
@@ -226,7 +226,7 @@ void Globals::turnOnRelay() {
 void Globals::turnOffRelay() {
   if (relayState) {
     relayState = false;
-    delay(100);
+    delay(10);
     digitalWrite(relayPin, LOW);
   }
 }
@@ -265,11 +265,6 @@ void Globals::sendSerialInfo() {
 #endif
 #elif CONFIG_IDF_TARGET_ESP32
       Serial.printf("board:%s\n", "ESP32");
-#endif
-#if defined(ARDUINO_ARCH_ESP32)
-      if (ethd > 0 && MAC.isEmpty()) {
-        MAC = ETH.macAddress();
-      }
 #endif
       Serial.printf("MAC:%s\n", MAC.c_str());
       Serial.printf("gpio:%d\n", gpioInUse);

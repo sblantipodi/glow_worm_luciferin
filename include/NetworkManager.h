@@ -30,6 +30,7 @@ const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Fir
 const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
 const uint16_t UDP_BR_MAX_BUFFER_SIZE = 50;
 
+
 class NetworkManager {
 
 public:

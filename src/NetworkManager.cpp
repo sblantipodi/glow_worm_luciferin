@@ -25,6 +25,8 @@ uint16_t NetworkManager::part = 1;
 size_t NetworkManager::updateSize = 0;
 String NetworkManager::fpsData;
 
+
+
 /**
  * Parse UDP packet
  */
@@ -596,6 +598,9 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   String mqttCheckbox = bootstrapManager.jsonDoc[F("mqttCheckbox")];
   String setSsid = bootstrapManager.jsonDoc[F("ssid")];
   String setEthd = bootstrapManager.jsonDoc[F("ethd")];
+#if defined(ESP8266)
+  setEthd = -1;
+#endif
   String wifipwd = bootstrapManager.jsonDoc[F("wifipwd")];
   String mqttIP = bootstrapManager.jsonDoc[F("mqttIP")];
   String mqttPort = bootstrapManager.jsonDoc[F("mqttPort")];
@@ -927,13 +932,7 @@ void NetworkManager::sendStatus() {
     root[F("brightness")] = brightness;
     root[F("effect")] = Globals::effectToString(effect);
     root[F("deviceName")] = deviceName;
-    if (ethd == 0) {
-      root[F("IP")] = microcontrollerIP;
-    } else {
-#if defined(ARDUINO_ARCH_ESP32)
-      root[F("IP")] = ETH.localIP();
-#endif
-    }
+    root[F("IP")] = microcontrollerIP;
     root[F("dhcp")] = dhcpInUse;
     root[F("wifi")] = BootstrapManager::getWifiQuality();
     root[F("MAC")] = MAC;
