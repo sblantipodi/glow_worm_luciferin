@@ -172,7 +172,7 @@ void NetworkManager::manageDisconnections() {
       asDoc[AP_PARAM] = 0;
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
-    ledManager.setColor(0, 0, 0);
+    LedManager::setColor(0, 0, 0);
   }
 }
 
@@ -619,7 +619,7 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
     if (microcontrollerIP.length() == 0) {
       microcontrollerIP = "DHCP";
     }
-    doc[F("ethd")] = setEthd.isEmpty() ? String(ethd) : setEthd;
+    doc[F("ethd")] = bootstrapManager.jsonDoc[F("ethd")].isNull() ? String(ethd) : setEthd;
     doc[F("deviceName")] = deviceName;
     doc[F("microcontrollerIP")] = microcontrollerIP;
     doc[F("qsid")] = (setSsid != NULL && !setSsid.isEmpty()) ? setSsid : qsid;
@@ -687,6 +687,9 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   Globals::setBaudRate(baudRateInUse);
   delay(DELAY_1000);
 #if defined(ARDUINO_ARCH_ESP32)
+  if (ethd > 0 && ethd != -1) {
+    EthManager::deallocateEthernetPins(ethd);
+  }
   ESP.restart();
 #elif defined(ESP8266)
   EspClass::restart();
@@ -1177,7 +1180,7 @@ void NetworkManager::checkConnection() {
     prevMillisCheckConn2 = currentMillisCheckConn;
     // No updates since 15 seconds, turn off LEDs
     if(currentMillisCheckConn > ledManager.lastLedUpdate + 10000){
-      ledManager.setColor(0, 0, 0);
+      LedManager::setColor(0, 0, 0);
       globals.turnOffRelay();
     }
   }
