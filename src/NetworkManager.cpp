@@ -67,16 +67,18 @@ void NetworkManager::getUDPStream() {
         Serial.println(remoteIpForUdp.toString());
       }
     } else {
-      char * p;
-      p = strstr (packetBroadcast, PING);
-      if (p) {
-        for (uint8_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
-          broadCastAddress[brIdx] = packetBroadcast[brIdx + strlen(PING)];
-        }
-        if (!remoteIpForUdpBroadcast.toString().equals(broadCastAddress)) {
-          remoteIpForUdpBroadcast.fromString(broadCastAddress);
-          Serial.println(F("-> Setting Broadcast IP to use <-"));
-          Serial.println(remoteIpForUdpBroadcast.toString());
+      if (networkManager.remoteIpForUdpBroadcast.toString().equals(remoteIpForUdp.toString())) {
+        char *p;
+        p = strstr(packetBroadcast, PING);
+        if (p) {
+          for (uint8_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
+            broadCastAddress[brIdx] = packetBroadcast[brIdx + strlen(PING)];
+          }
+          if (!remoteIpForUdpBroadcast.toString().equals(broadCastAddress)) {
+            remoteIpForUdpBroadcast.fromString(broadCastAddress);
+            Serial.println(F("-> Setting Broadcast IP to use <-"));
+            Serial.println(remoteIpForUdpBroadcast.toString());
+          }
         }
       }
     }
