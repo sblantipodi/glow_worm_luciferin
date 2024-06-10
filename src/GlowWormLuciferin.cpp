@@ -101,17 +101,17 @@ void setup() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // LED number from configuration storage
-  String topicToUse = bootstrapManager.readValueFromFile(netManager.TOPIC_FILENAME, netManager.MQTT_PARAM);
-  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != netManager.topicInUse) {
-    netManager.topicInUse = topicToUse;
-    NetManager::executeMqttSwap(netManager.topicInUse);
+  String topicToUse = bootstrapManager.readValueFromFile(networkManager.TOPIC_FILENAME, networkManager.MQTT_PARAM);
+  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != networkManager.topicInUse) {
+    networkManager.topicInUse = topicToUse;
+    NetworkManager::executeMqttSwap(networkManager.topicInUse);
   }
   Serial.print(F("\nMQTT topic in use="));
-  Serial.println(netManager.topicInUse);
+  Serial.println(networkManager.topicInUse);
 
   // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(NetManager::manageDisconnections, NetManager::manageHardwareButton,
-                                  NetManager::callback, true, manageApRoot);
+  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton,
+                                  NetworkManager::callback, true, manageApRoot);
 #endif
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
@@ -172,13 +172,13 @@ void setup() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Begin listening to UDP port
-  netManager.UDP.begin(UDP_PORT);
-  netManager.broadcastUDP.begin(UDP_BROADCAST_PORT);
+  networkManager.UDP.begin(UDP_PORT);
+  networkManager.broadcastUDP.begin(UDP_BROADCAST_PORT);
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
-  NetManager::fpsData.reserve(200);
-  netManager.prefsData.reserve(200);
-  netManager.listenOnHttpGet();
+  NetworkManager::fpsData.reserve(200);
+  networkManager.prefsData.reserve(200);
+  networkManager.listenOnHttpGet();
 #if defined(ESP8266)
   // Hey gateway, GlowWorm is here
   delay(DELAY_500);
@@ -192,7 +192,7 @@ void setup() {
       Globals::turnOnRelay();
       ledManager.stateOn = true;
       effect = Effect::solid;
-      NetManager::setColor();
+      NetworkManager::setColor();
     }
   }
 #endif
@@ -251,7 +251,7 @@ int serialRead() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 
 void manageApRoot() {
-  netManager.manageAPSetting(true);
+  networkManager.manageAPSetting(true);
 }
 
 void setApState(byte state) {
@@ -270,7 +270,7 @@ void setApState(byte state) {
  */
 void mainLoop() {
   yield();
-  NetManager::checkConnection();
+  NetworkManager::checkConnection();
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (effect == Effect::GlowWorm && (Serial.available() > 0)) {
@@ -449,11 +449,11 @@ void mainLoop() {
               // If there are many LEDs and buffer is too small, read the first block with Serial.readBytes() and then continue with Serial.read()
               while (j < numLedFromLuciferin) {
                 byte r, g, b;
-                while (!breakLoop && !Serial.available()) NetManager::checkConnection();
+                while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
                 r = serialRead();
-                while (!breakLoop && !Serial.available()) NetManager::checkConnection();
+                while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
                 g = serialRead();
-                while (!breakLoop && !Serial.available()) NetManager::checkConnection();
+                while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
                 b = serialRead();
                 setSerialPixel(j, r, g, b);
                 j++;
@@ -551,10 +551,10 @@ void loop() {
       if (!ledManager.stateOn) {
         Globals::turnOnRelay();
         ledManager.stateOn = true;
-        NetManager::setColor();
+        NetworkManager::setColor();
       } else {
         ledManager.stateOn = false;
-        NetManager::setColor();
+        NetworkManager::setColor();
         Globals::turnOffRelay();
       }
     }
@@ -576,7 +576,7 @@ void loop() {
   if (relayState && !ledManager.stateOn) {
     Globals::turnOffRelay();
   }
-  netManager.getUDPStream();
+  networkManager.getUDPStream();
 #endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL

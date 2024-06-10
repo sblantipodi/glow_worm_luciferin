@@ -24,7 +24,7 @@
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
 #include "LedManager.h"
-#include "NetManager.h"
+#include "NetworkManager.h"
 
 #if defined(ESP8266)
 #define LDR_DIVIDER 1024
@@ -46,7 +46,7 @@ extern class EffectsManager effectsManager;
 
 extern class LedManager ledManager;
 
-extern class NetManager netManager;
+extern class NetworkManager networkManager;
 
 extern class Helpers helper;
 

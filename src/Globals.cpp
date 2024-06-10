@@ -21,12 +21,12 @@
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
 #include "LedManager.h"
-#include "NetManager.h"
+#include "NetworkManager.h"
 
 BootstrapManager bootstrapManager;
 EffectsManager effectsManager;
 LedManager ledManager;
-NetManager netManager;
+NetworkManager networkManager;
 Helpers helper;
 Globals globals;
 
@@ -246,7 +246,7 @@ void Globals::sendSerialInfo() {
       Serial.printf("firmware:%s\n", "LIGHT");
 #else
       Serial.printf("firmware:%s\n", "FULL");
-      Serial.printf("mqttopic:%s\n", netManager.topicInUse.c_str());
+      Serial.printf("mqttopic:%s\n", networkManager.topicInUse.c_str());
 #endif
       Serial.printf("ver:%s\n", VERSION);
       Serial.printf("lednum:%d\n", ledManager.dynamicLedNum);
