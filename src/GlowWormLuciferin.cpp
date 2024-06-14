@@ -20,6 +20,7 @@
 
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 #include "GlowWormLuciferin.h"
+
 /**
  * Setup function
  */
@@ -533,14 +534,10 @@ void setSerialPixel(int j, byte r, byte g, byte b) {
   }
 }
 
-/**
- * Loop
- */
-void loop() {
-  mainLoop();
-  currentMillisMainLoop = millis();
 
+// TODO
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
+void debounceSmartButton() {
   btnState = digitalRead(sbPin);
   if (lastState == HIGH && btnState == LOW) {
     pressedTime = currentMillisMainLoop;
@@ -560,6 +557,61 @@ void loop() {
     }
   }
   lastState = btnState;
+}
+
+void smartButtonEvent() {
+  int reading = digitalRead(sbPin);
+  if (reading != lastButtonState) {
+    lastDebounceTime = currentMillisMainLoop;
+  }
+  unsigned long currentMinusDebounce = currentMillisMainLoop - lastDebounceTime;
+  if (currentMinusDebounce > debounceDelay) {
+    if (reading != buttonState) {
+      buttonState = reading;
+      if (buttonState == HIGH) {
+        Serial.println("PREMUTOOOO");
+        Serial.println("PREMUTOOOO");
+        Serial.println("PREMUTOOOO");
+        Serial.println("PREMUTOOOO");
+        Serial.println("PREMUTOOOO");
+        Serial.println("---------------");
+        Serial.println(currentMinusDebounce);
+        if (currentMinusDebounce > 500) {
+          Serial.println("LOOONG");
+
+        } else {
+          Serial.println("SHORT");
+
+          if (!ledManager.stateOn) {
+            Globals::turnOnRelay();
+            ledManager.stateOn = true;
+            NetManager::setColor();
+          } else {
+            ledManager.stateOn = false;
+            NetManager::setColor();
+            Globals::turnOffRelay();
+          }
+        }
+
+      }
+    }
+  }
+
+  lastButtonState = reading;
+}
+#endif
+
+
+/**
+ * Loop
+ */
+void loop() {
+  mainLoop();
+  currentMillisMainLoop = millis();
+
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+//  debounceSmartButton();
+  smartButtonEvent();
 
   if (!apFileRead) {
     apFileRead = true;
@@ -630,3 +682,5 @@ void loop() {
   }
 #endif
 }
+
+

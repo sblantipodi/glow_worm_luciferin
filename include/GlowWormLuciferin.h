@@ -51,6 +51,17 @@ unsigned long releasedTime = 0;
 const int DEBOUNCE_PRESS_TIME  = 50;
 const int SHORT_PRESS_TIME  = 400;
 
+
+// TODO
+// Variables will change:
+int buttonState;            // the current reading from the input pin
+int lastButtonState = LOW;  // the previous reading from the input pin
+// the following variables are unsigned longs because the time, measured in
+// milliseconds, will quickly become a bigger number than can be stored in an int.
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+
+
 void mainLoop();
 
 void manageApRoot();
@@ -60,3 +71,5 @@ void setApState(byte state);
 void configureLeds();
 
 void setSerialPixel(int j, byte r, byte g, byte b);
+
+void debounceSmartButton();
