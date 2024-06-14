@@ -367,37 +367,31 @@ jobs:
           keyname1: 'version'
           valuetoset: "${{ steps.vars.outputs.TAG_NAME }}"
 
-      - name: Retrieve saved firmware file (GlowWormLuciferinFULL_ESP8266_firmware.bin)
-        uses: actions/download-artifact@v4
-        with:
-          name: GlowWormLuciferinFULL_ESP8266_firmware.bin
-          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/
-      - name: Retrieve saved firmware file (GlowWormLuciferinLIGHT_ESP8266_firmware.bin)
-        uses: actions/download-artifact@v4
-        with:
-          name: GlowWormLuciferinLIGHT_ESP8266_firmware.bin
-          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/
+#      - name: Retrieve saved firmware file (GlowWormLuciferinFULL_ESP8266_firmware.bin)
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: GlowWormLuciferinFULL_ESP8266_firmware.bin
+#          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/
+#      - name: Retrieve saved firmware file (GlowWormLuciferinLIGHT_ESP8266_firmware.bin)
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: GlowWormLuciferinLIGHT_ESP8266_firmware.bin
+#          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/
 
       - uses: actions/download-artifact@v4
         with:
-          path: path/to/artifacts
+          path: ci_artifacts
       - name: Display structure of downloaded files
         run: | 
-          ls -R path/to/artifacts;
-          pwd;
-          pwd;
-          pwd;
-          pwd;
-          pwd;
-          pwd;
-          pwd;
-          pwd;
+          ls -R ci_artifacts;
+          
 
       - name: Save artifact (glowwormluciferinfull_esp8266)
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cp ci_artifacts/*.bin ./docs/static/firmware_build_beta/
           cd currentbranch;
           ls ./docs/static/firmware_build_beta/;
           git config --global user.email "perini.davide@dpsoftware.org";
