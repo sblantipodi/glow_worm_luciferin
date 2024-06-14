@@ -385,6 +385,14 @@ jobs:
         run: |
           cd currentbranch;
           ls ./docs/static/firmware_build_beta/;
+          pwd;
+          pwd;
+          pwd;
+          pwd;
+          pwd;
+          pwd;
+          pwd;
+          pwd;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
