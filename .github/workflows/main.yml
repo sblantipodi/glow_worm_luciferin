@@ -45,7 +45,7 @@ jobs:
       - name: Static code analysis
         run: |
           cd currentbranch;
-          platformio check --verbose --severity=high --skip-packages;          
+          platformio check --verbose --severity=high --skip-packages -e glowwormluciferinfull_esp8266;          
 
   build_esp8266_full:
     runs-on: ubuntu-latest
