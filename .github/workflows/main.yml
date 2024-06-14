@@ -93,7 +93,7 @@ jobs:
         continue-on-error: true
         with:
           name: GlowWormLuciferinFULL_ESP8266_firmware.bin
-          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp8266/firmware.bin
+          path: docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
 
   build_esp8266_light:
     runs-on: ubuntu-latest
@@ -147,7 +147,7 @@ jobs:
         continue-on-error: true
         with:
           name: GlowWormLuciferinLIGHT_ESP8266_firmware.bin
-          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp8266/firmware.bin
+          path: docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP8266_firmware.bin
 
 #  build_esp32_full:
 #    runs-on: ubuntu-latest
@@ -391,7 +391,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp -rf ci_artifacts/*.bin ./currentbranch/docs/static/firmware_build_beta/
+          cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP8266_firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin
+          cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP8266_firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP8266_firmware.bin
           cd currentbranch;
           ls ./docs/static/firmware_build_beta/;
           git config --global user.email "perini.davide@dpsoftware.org";
