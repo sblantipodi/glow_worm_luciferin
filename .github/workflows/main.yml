@@ -384,6 +384,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd currentbranch;
+          ls ./docs/static/firmware_build_beta/;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
