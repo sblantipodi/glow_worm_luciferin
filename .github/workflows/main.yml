@@ -368,12 +368,12 @@ jobs:
           valuetoset: "${{ steps.vars.outputs.TAG_NAME }}"
 
       - name: Retrieve saved firmware file (GlowWormLuciferinFULL_ESP8266_firmware.bin)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: GlowWormLuciferinFULL_ESP8266_firmware.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/
       - name: Retrieve saved firmware file (GlowWormLuciferinLIGHT_ESP8266_firmware.bin)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: GlowWormLuciferinLIGHT_ESP8266_firmware.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/
