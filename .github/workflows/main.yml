@@ -378,6 +378,21 @@ jobs:
           name: GlowWormLuciferinLIGHT_ESP8266_firmware.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/
 
+      - uses: actions/download-artifact@v4
+        with:
+          path: path/to/artifacts
+      - name: Display structure of downloaded files
+        run: | 
+          ls -R path/to/artifacts;
+          pwd;
+          pwd;
+          pwd;
+          pwd;
+          pwd;
+          pwd;
+          pwd;
+          pwd;
+
       - name: Save artifact (glowwormluciferinfull_esp8266)
         continue-on-error: true
         env:
@@ -385,14 +400,6 @@ jobs:
         run: |
           cd currentbranch;
           ls ./docs/static/firmware_build_beta/;
-          pwd;
-          pwd;
-          pwd;
-          pwd;
-          pwd;
-          pwd;
-          pwd;
-          pwd;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
           git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
