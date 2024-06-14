@@ -8,38 +8,71 @@ on:
 
 jobs:
 
-#  static_code_analysis:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#        with:
-#          path: 'currentbranch'
-#      - uses: actions/checkout@v4
-#        with:
-#          ref: master
-#          path: 'beta'
-#      - name: Set up Python
-#        uses: actions/setup-python@v5
-#        with:
-#          python-version: '3.12'
-#      - name: Install dependencies
-#        run: |
-#          python -m pip install --upgrade pip
-#          pip install platformio
-#          python --version
-#      - name: Install submodules
-#        run: |
-#          cd currentbranch;
-#          git submodule update --init
-#      - name: Setup template config files
-#        run: |
-#          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
-#          touch /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.version_no_increment_update_date;
-#      - name: Static code analysis
-#        run: |
-#          cd currentbranch;
-#          platformio check --verbose --severity=high --skip-packages;
+  static_code_analysis_environment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: 'currentbranch'
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          path: 'beta'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+          python --version
+      - name: Install submodules
+        run: |
+          cd currentbranch;
+          git submodule update --init
+      - name: Setup template config files
+        run: |
+          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
+          touch /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.version_no_increment_update_date;
+      - name: Static code analysis
+        run: |
+          cd currentbranch;
+          platformio check --verbose --severity=high --skip-packages;
+
+  static_code_analysis:
+    runs-on: static_code_analysis_environment
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: 'currentbranch'
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          path: 'beta'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+          python --version
+      - name: Install submodules
+        run: |
+          cd currentbranch;
+          git submodule update --init
+      - name: Setup template config files
+        run: |
+          cp /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini.template /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/secrets.ini
+          touch /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.version_no_increment_update_date;
+      - name: Static code analysis
+        run: |
+          cd currentbranch;
+          platformio check --verbose --severity=high --skip-packages;          
 
   build_esp8266_full:
     runs-on: ubuntu-latest
