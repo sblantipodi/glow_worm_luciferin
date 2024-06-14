@@ -157,6 +157,12 @@ jobs:
           cp .pio/build/glowwormluciferinfull_esp32s2/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s3cdc/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s3/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
+          
+          cp .pio/build/glowwormluciferinfull_esp32/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32c3cdc/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_C3_CDC_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32s2/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S2_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32s3cdc/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin
+          cp .pio/build/glowwormluciferinfull_esp32s3/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_firmware.bin
           cd ../beta;
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v4
@@ -188,6 +194,37 @@ jobs:
         with:
           name: GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32s3/firmware-factory.bin
+
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: GlowWormLuciferinFULL_ESP32_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32/firmware.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: GlowWormLuciferinFULL_ESP32_C3_CDC_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32c3cdc/firmware.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: GlowWormLuciferinFULL_ESP32_S2_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32s2/firmware.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32s3cdc/firmware.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: GlowWormLuciferinFULL_ESP32_S3_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32s3/firmware.bin
 
   build_esp32_light:
     runs-on: ubuntu-latest
@@ -240,6 +277,11 @@ jobs:
           cp .pio/build/glowwormluciferinlight_esp32c3cdc/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware-factory.bin
           cp .pio/build/glowwormluciferinlight_esp32s2/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin
           cp .pio/build/glowwormluciferinlight_esp32s3/firmware-factory.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin
+          
+          cp .pio/build/glowwormluciferinlight_esp32/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32c3cdc/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32s2/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
+          cp .pio/build/glowwormluciferinlight_esp32s3/firmware.bin ../beta/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
           cd ../beta;
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v4
@@ -265,6 +307,31 @@ jobs:
         with:
           name: GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp32s3/firmware-factory.bin
+
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp32/firmware.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp32c3cdc/firmware.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp32s2/firmware.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp32s3/firmware.bin
 
 
   web_tools_update:
@@ -317,6 +384,17 @@ jobs:
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware-factory.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin
+          
+          cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_firmware.bin
+          cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_C3_CDC_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_C3_CDC_firmware.bin
+          cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_S2_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S2_firmware.bin
+          cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_CDC_firmware.bin
+          cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_S3_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP32_S3_firmware.bin
+          cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_firmware.bin
+          cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_C3_CDC_firmware.bin
+          cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
+          cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
+          
           cd currentbranch;
           ls ./docs/static/firmware_build_beta/;
           git config --global user.email "perini.davide@dpsoftware.org";
