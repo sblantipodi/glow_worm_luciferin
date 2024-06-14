@@ -391,7 +391,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp ci_artifacts/*.bin ./docs/static/firmware_build_beta/
+          cp -rf ci_artifacts/*.bin ./currentbranch/docs/static/firmware_build_beta/
           cd currentbranch;
           ls ./docs/static/firmware_build_beta/;
           git config --global user.email "perini.davide@dpsoftware.org";
