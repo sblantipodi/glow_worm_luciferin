@@ -364,10 +364,7 @@ jobs:
           ls ./docs/static/firmware_build_beta/;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
-          git add ./docs/static/firmware_build_beta/GlowWormLuciferinFULL_ESP8266_firmware.bin;
-          git add ./docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP8266_firmware.bin;
-          git add ./docs/static/firmware_build_beta/manifest_full.json;
-          git add ./docs/static/firmware_build_beta/manifest_light.json;
+          git add ./docs/static/firmware_build_beta/*;
           cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_light.json;
           git commit -m "CI BETA release for firmware web installer";
           git push;
