@@ -534,32 +534,9 @@ void setSerialPixel(int j, byte r, byte g, byte b) {
   }
 }
 
-
 // TODO
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 void debounceSmartButton() {
-  btnState = digitalRead(sbPin);
-  if (lastState == HIGH && btnState == LOW) {
-    pressedTime = currentMillisMainLoop;
-  } else if (lastState == LOW && btnState == HIGH) {
-    releasedTime = currentMillisMainLoop;
-    long pressDuration = releasedTime - pressedTime;
-    if ((pressDuration > DEBOUNCE_PRESS_TIME) && (pressedTime > 0) && (pressDuration < SHORT_PRESS_TIME)) {
-      if (!ledManager.stateOn) {
-        Globals::turnOnRelay();
-        ledManager.stateOn = true;
-        NetManager::setColor();
-      } else {
-        ledManager.stateOn = false;
-        NetManager::setColor();
-        Globals::turnOffRelay();
-      }
-    }
-  }
-  lastState = btnState;
-}
-
-void smartButtonEvent() {
   int reading = digitalRead(sbPin);
   if (reading != lastButtonState) {
     lastDebounceTime = currentMillisMainLoop;
@@ -569,19 +546,19 @@ void smartButtonEvent() {
     if (reading != buttonState) {
       buttonState = reading;
       if (buttonState == HIGH) {
-        Serial.println("PREMUTOOOO");
-        Serial.println("PREMUTOOOO");
-        Serial.println("PREMUTOOOO");
-        Serial.println("PREMUTOOOO");
-        Serial.println("PREMUTOOOO");
-        Serial.println("---------------");
-        Serial.println(currentMinusDebounce);
-        if (currentMinusDebounce > 500) {
-          Serial.println("LOOONG");
-
-        } else {
-          Serial.println("SHORT");
-
+        // First boot triggers a continuos debounce, stop it for the initial milliseconds.
+#if defined(ARDUINO_ARCH_ESP32)
+        if (currentMillisMainLoop > esp32DebouceInitialPeriod) {
+#else
+          if (currentMillisMainLoop > esp8266DebouceInitialPeriod) {
+#endif
+          // TODO remove the publish
+          JsonObject root = bootstrapManager.getJsonObject();
+          root["currentMillisMainLoop"] = currentMillisMainLoop;
+          root["debounceDelay"] = debounceDelay;
+          root["currentMinusDebounce"] = currentMinusDebounce;
+          root["device"] = deviceName;
+          BootstrapManager::publish("cmd/remove", root, true);
           if (!ledManager.stateOn) {
             Globals::turnOnRelay();
             ledManager.stateOn = true;
@@ -592,11 +569,9 @@ void smartButtonEvent() {
             Globals::turnOffRelay();
           }
         }
-
       }
     }
   }
-
   lastButtonState = reading;
 }
 #endif
@@ -608,11 +583,8 @@ void smartButtonEvent() {
 void loop() {
   mainLoop();
   currentMillisMainLoop = millis();
-
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-//  debounceSmartButton();
-  smartButtonEvent();
-
+  debounceSmartButton();
   if (!apFileRead) {
     apFileRead = true;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
