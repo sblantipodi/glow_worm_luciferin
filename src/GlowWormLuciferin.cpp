@@ -534,7 +534,6 @@ void setSerialPixel(int j, byte r, byte g, byte b) {
   }
 }
 
-// TODO
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 void debounceSmartButton() {
   int reading = digitalRead(sbPin);
@@ -550,15 +549,8 @@ void debounceSmartButton() {
 #if defined(ARDUINO_ARCH_ESP32)
         if (currentMillisMainLoop > esp32DebouceInitialPeriod) {
 #else
-          if (currentMillisMainLoop > esp8266DebouceInitialPeriod) {
+        if (currentMillisMainLoop > esp8266DebouceInitialPeriod) {
 #endif
-          // TODO remove the publish
-          JsonObject root = bootstrapManager.getJsonObject();
-          root["currentMillisMainLoop"] = currentMillisMainLoop;
-          root["debounceDelay"] = debounceDelay;
-          root["currentMinusDebounce"] = currentMinusDebounce;
-          root["device"] = deviceName;
-          BootstrapManager::publish("cmd/remove", root, true);
           if (!ledManager.stateOn) {
             Globals::turnOnRelay();
             ledManager.stateOn = true;
