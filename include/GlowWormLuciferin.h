@@ -46,7 +46,7 @@ byte ledBuffer[LED_BUFF];
 int buttonState;            // the current reading from the input pin
 int lastButtonState = LOW;  // the previous reading from the input pin
 #if defined(ARDUINO_ARCH_ESP32)
-unsigned long esp32DebouceInitialPeriod = 15000;
+unsigned long esp32DebouceInitialPeriod = 30000;
 #else
 unsigned long esp8266DebouceInitialPeriod = 60000;
 #endif
