@@ -87,6 +87,18 @@ jobs:
           name: GlowWormLuciferinFULL_ESP8266_firmware.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/.pio/build/glowwormluciferinfull_esp8266/firmware.bin
 
+      - name: Saving version files
+        uses: actions/upload-artifact@v4
+        with:
+          name: version
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/version
+
+      - name: Saving Version.h files
+        uses: actions/upload-artifact@v4
+        with:
+          name: Version.h
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/include/Version.h
+
 
 
   build_esp8266_firmware_light:
@@ -423,6 +435,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cp -rf ci_artifacts/Version.h/Version.h ./currentbranch/include/Version.h
+          cp -rf ci_artifacts/version/version ./currentbranch/version
+          
           cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP8266_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP8266_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP8266_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP8266_firmware.bin
           
@@ -450,6 +465,8 @@ jobs:
           ls ./docs/static/firmware_build/;
           git config --global user.email "perini.davide@dpsoftware.org";
           git config --global user.name "Davide Perini";
+          git add ./version;
+          git add ./include/Version.h;
           git add ./docs/static/firmware_build/*;
           git add ./docs/static/firmware_build_previous/*;
           cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build/manifest_full.json;

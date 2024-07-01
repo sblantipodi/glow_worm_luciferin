@@ -150,12 +150,9 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
  * MANAGE WIFI AND MQTT DISCONNECTION
  */
 void NetManager::manageDisconnections() {
-  Serial.print(F("disconnection counter="));
-  Serial.println(disconnectionCounter);
-  if (disconnectionCounter < MAX_RECONNECT) {
-    disconnectionCounter++;
-  } else if (disconnectionCounter >= MAX_RECONNECT && disconnectionCounter < (MAX_RECONNECT * 2)) {
-    disconnectionCounter++;
+  Serial.print(F("managing disconnections..."));
+  if ((millis() - disconnectionTime > secondsBeforeReset) && (currentMillisMainLoop - disconnectionTime < (secondsBeforeReset * 2))) {
+    disconnectionTime = millis();
     ledManager.stateOn = true;
     effect = Effect::solid;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
@@ -164,8 +161,10 @@ void NetManager::manageDisconnections() {
       asDoc[AP_PARAM] = 10;
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
-    ledManager.setColorLoop(255, 0, 0);
-  } else if (disconnectionCounter >= (MAX_RECONNECT * 2)) {
+    LedManager::setColorLoop(255, 0, 0);
+  }
+  if (millis() - disconnectionTimeOff > (secondsBeforeReset * 2)) {
+    disconnectionTimeOff = millis();
     ledManager.stateOn = true;
     effect = Effect::solid;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
