@@ -103,6 +103,9 @@ extern int ldrDivider;
 extern const unsigned int LDR_RECOVER_TIME;
 extern unsigned long previousMillisLDR;
 extern unsigned long lastUdpMsgReceived;
+extern unsigned long disconnectionTime;
+extern unsigned long disconnectionTimeOff;
+extern unsigned long secondsBeforeReset;
 
 extern unsigned long currentMillisCheckConn;
 extern unsigned long prevMillisCheckConn1;
@@ -119,7 +122,6 @@ extern uint8_t baudRateInUse;
 extern bool relayState;
 extern bool breakLoop;
 extern bool apFileRead;
-extern int disconnectionCounter;
 
 class Globals {
 

@@ -98,8 +98,11 @@ int ldrDivider = LDR_DIVIDER;
 const unsigned int LDR_RECOVER_TIME = 4000;
 unsigned long previousMillisLDR = 0;
 unsigned long lastUdpMsgReceived;
+unsigned long disconnectionTime;
+unsigned long disconnectionTimeOff;
+// after three minutes, start device reset
+unsigned long secondsBeforeReset = 180000;
 bool apFileRead;
-int disconnectionCounter;
 
 unsigned long currentMillisCheckConn = 0;
 unsigned long prevMillisCheckConn1 = 0;

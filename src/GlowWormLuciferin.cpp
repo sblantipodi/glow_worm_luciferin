@@ -584,7 +584,6 @@ void loop() {
       setApState(0);
       LedManager::setColor(0, 0, 0);
     }
-    disconnectionCounter = 0;
   }
 #endif
 
@@ -637,14 +636,6 @@ void loop() {
     }
   }
 
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (disconnectionCounter > 0 || (ethd > 0 && !ethConnected)) {
-    if (disconnectionCounter >= MAX_RECONNECT || (ethd > 0 && !ethConnected)) {
-      LedManager::setColor(0, 0, 0);
-    }
-    disconnectionCounter = 0;
-  }
-#endif
 }
 
 
