@@ -52,11 +52,11 @@ void NetManager::getUDPStream() {
     dnStatic = strstr (packetBroadcast, DNStatic);
     if (dn || dnStatic) {
       if (dnStatic) {
-        for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
+        for (uint16_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
           dname[dnIdx] = packetBroadcast[dnIdx + strlen(DNStatic)];
         }
       } else {
-        for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
+        for (uint16_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
           dname[dnIdx] = packetBroadcast[dnIdx + strlen(DN)];
         }
       }
@@ -71,7 +71,7 @@ void NetManager::getUDPStream() {
         char *p;
         p = strstr(packetBroadcast, PING);
         if (p) {
-          for (uint8_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
+          for (uint16_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
             broadCastAddress[brIdx] = packetBroadcast[brIdx + strlen(PING)];
           }
           if (!remoteIpForUdpBroadcast.toString().equals(broadCastAddress)) {
