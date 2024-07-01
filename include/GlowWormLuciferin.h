@@ -43,13 +43,16 @@ PingESP pingESP;
 // if there are many LEDs and buffer is too small, read the first block with Serial.readBytes() and then continue with Serial.read()
 const uint16_t LED_BUFF = 1500;
 byte ledBuffer[LED_BUFF];
-uint16_t scale = 30;
-byte btnState = LOW;
-byte lastState = LOW;
-unsigned long pressedTime  = 0;
-unsigned long releasedTime = 0;
-const int DEBOUNCE_PRESS_TIME  = 50;
-const int SHORT_PRESS_TIME  = 400;
+int buttonState;            // the current reading from the input pin
+int lastButtonState = LOW;  // the previous reading from the input pin
+#if defined(ARDUINO_ARCH_ESP32)
+unsigned long esp32DebouceInitialPeriod = 30000;
+#else
+unsigned long esp8266DebouceInitialPeriod = 60000;
+#endif
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+
 
 void mainLoop();
 
@@ -60,3 +63,5 @@ void setApState(byte state);
 void configureLeds();
 
 void setSerialPixel(int j, byte r, byte g, byte b);
+
+void debounceSmartButton();

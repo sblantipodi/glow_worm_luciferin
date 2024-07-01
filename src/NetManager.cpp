@@ -1,5 +1,5 @@
 /*
-  NetworkManager.cpp - Glow Worm Luciferin for Firefly Luciferin
+  NetManager.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
   Copyright © 2020 - 2024  Davide Perini
@@ -18,17 +18,19 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "NetworkManager.h"
+#include "NetManager.h"
 
-uint16_t NetworkManager::part = 1;
-[[maybe_unused]] boolean NetworkManager::firmwareUpgrade = false;
-size_t NetworkManager::updateSize = 0;
-String NetworkManager::fpsData;
+uint16_t NetManager::part = 1;
+[[maybe_unused]] boolean NetManager::firmwareUpgrade = false;
+size_t NetManager::updateSize = 0;
+String NetManager::fpsData;
+
+
 
 /**
  * Parse UDP packet
  */
-void NetworkManager::getUDPStream() {
+void NetManager::getUDPStream() {
   yield();
   if (!servingWebPages) {
     // If packet received...
@@ -50,11 +52,11 @@ void NetworkManager::getUDPStream() {
     dnStatic = strstr (packetBroadcast, DNStatic);
     if (dn || dnStatic) {
       if (dnStatic) {
-        for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
+        for (uint16_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
           dname[dnIdx] = packetBroadcast[dnIdx + strlen(DNStatic)];
         }
       } else {
-        for (uint8_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
+        for (uint16_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
           dname[dnIdx] = packetBroadcast[dnIdx + strlen(DN)];
         }
       }
@@ -65,16 +67,18 @@ void NetworkManager::getUDPStream() {
         Serial.println(remoteIpForUdp.toString());
       }
     } else {
-      char * p;
-      p = strstr (packetBroadcast, PING);
-      if (p) {
-        for (uint8_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
-          broadCastAddress[brIdx] = packetBroadcast[brIdx + strlen(PING)];
-        }
-        if (!remoteIpForUdpBroadcast.toString().equals(broadCastAddress)) {
-          remoteIpForUdpBroadcast.fromString(broadCastAddress);
-          Serial.println(F("-> Setting Broadcast IP to use <-"));
-          Serial.println(remoteIpForUdpBroadcast.toString());
+      if (netManager.remoteIpForUdpBroadcast.toString().equals(remoteIpForUdp.toString())) {
+        char *p;
+        p = strstr(packetBroadcast, PING);
+        if (p) {
+          for (uint16_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
+            broadCastAddress[brIdx] = packetBroadcast[brIdx + strlen(PING)];
+          }
+          if (!remoteIpForUdpBroadcast.toString().equals(broadCastAddress)) {
+            remoteIpForUdpBroadcast.fromString(broadCastAddress);
+            Serial.println(F("-> Setting Broadcast IP to use <-"));
+            Serial.println(remoteIpForUdpBroadcast.toString());
+          }
         }
       }
     }
@@ -85,7 +89,7 @@ void NetworkManager::getUDPStream() {
  * Get data from the stream and send to the strip
  * @param payload stream data
  */
-void NetworkManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
+void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   uint32_t myLeds;
   char delimiters[] = ",";
   char *ptr;
@@ -145,7 +149,7 @@ void NetworkManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) 
 /**
  * MANAGE WIFI AND MQTT DISCONNECTION
  */
-void NetworkManager::manageDisconnections() {
+void NetManager::manageDisconnections() {
   Serial.print(F("disconnection counter="));
   Serial.println(disconnectionCounter);
   if (disconnectionCounter < MAX_RECONNECT) {
@@ -170,75 +174,75 @@ void NetworkManager::manageDisconnections() {
       asDoc[AP_PARAM] = 0;
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
-    ledManager.setColor(0, 0, 0);
+    LedManager::setColor(0, 0, 0);
   }
 }
 
 /**
  * MQTT SUBSCRIPTIONS
  */
-void NetworkManager::manageQueueSubscription() {
+void NetManager::manageQueueSubscription() {
   // Note: Add another topic subscription can cause performance issues on ESP8266
   // Double check it with 60FPS, 100 LEDs, with MQTT enabled.
-  BootstrapManager::subscribe(networkManager.lightSetTopic.c_str(), 1);
-  BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
-  BootstrapManager::subscribe(networkManager.updateStateTopic.c_str());
-  BootstrapManager::subscribe(networkManager.firmwareConfigTopic.c_str());
-  BootstrapManager::subscribe(networkManager.effectToGw.c_str());
+  BootstrapManager::subscribe(netManager.lightSetTopic.c_str(), 1);
+  BootstrapManager::subscribe(netManager.cmndReboot.c_str());
+  BootstrapManager::subscribe(netManager.updateStateTopic.c_str());
+  BootstrapManager::subscribe(netManager.firmwareConfigTopic.c_str());
+  BootstrapManager::subscribe(netManager.effectToGw.c_str());
   // TODO remove subscription to topic that doesn't need MQTT, some topics can be managed via HTTP only
-  BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
-  BootstrapManager::subscribe(networkManager.unsubscribeTopic.c_str());
+  BootstrapManager::subscribe(netManager.streamTopic.c_str(), 0);
+  BootstrapManager::subscribe(netManager.unsubscribeTopic.c_str());
   apFileRead = false;
 }
 
 /**
  * Unsubscribe from the default MQTT topic
  */
-void NetworkManager::swapTopicUnsubscribe() {
+void NetManager::swapTopicUnsubscribe() {
   // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
-  BootstrapManager::unsubscribe(networkManager.lightSetTopic.c_str());
-  BootstrapManager::unsubscribe(networkManager.effectToGw.c_str());
-  BootstrapManager::unsubscribe(networkManager.streamTopic.c_str());
-  BootstrapManager::unsubscribe(networkManager.cmndReboot.c_str());
-  BootstrapManager::unsubscribe(networkManager.updateStateTopic.c_str());
-  BootstrapManager::unsubscribe(networkManager.unsubscribeTopic.c_str());
+  BootstrapManager::unsubscribe(netManager.lightSetTopic.c_str());
+  BootstrapManager::unsubscribe(netManager.effectToGw.c_str());
+  BootstrapManager::unsubscribe(netManager.streamTopic.c_str());
+  BootstrapManager::unsubscribe(netManager.cmndReboot.c_str());
+  BootstrapManager::unsubscribe(netManager.updateStateTopic.c_str());
+  BootstrapManager::unsubscribe(netManager.unsubscribeTopic.c_str());
 }
 
 /**
  * Swap MQTT topi with the custom one
  * @param customtopic custom MQTT topic to use, received by Firefly Luciferin
  */
-void NetworkManager::swapTopicReplace(const String &customtopic) {
+void NetManager::swapTopicReplace(const String &customtopic) {
   // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
-  networkManager.lightStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.effectToGw.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.effectToFw.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.updateStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.updateResultStateTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.lightSetTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.baseStreamTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.streamTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.unsubscribeTopic.replace(networkManager.BASE_TOPIC, customtopic);
-  networkManager.cmndReboot.replace(networkManager.BASE_TOPIC, customtopic);
+  netManager.lightStateTopic.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.effectToGw.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.effectToFw.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.updateStateTopic.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.updateResultStateTopic.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.lightSetTopic.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.baseStreamTopic.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.streamTopic.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.unsubscribeTopic.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.cmndReboot.replace(netManager.BASE_TOPIC, customtopic);
 }
 
 /**
  * Subscribe to custom MQTT topic
  */
-void NetworkManager::swapTopicSubscribe() {
+void NetManager::swapTopicSubscribe() {
   // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
-  BootstrapManager::subscribe(networkManager.lightSetTopic.c_str(), 1);
-  BootstrapManager::subscribe(networkManager.effectToGw.c_str());
-  BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
-  BootstrapManager::subscribe(networkManager.cmndReboot.c_str());
-  BootstrapManager::subscribe(networkManager.updateStateTopic.c_str());
-  BootstrapManager::subscribe(networkManager.unsubscribeTopic.c_str());
+  BootstrapManager::subscribe(netManager.lightSetTopic.c_str(), 1);
+  BootstrapManager::subscribe(netManager.effectToGw.c_str());
+  BootstrapManager::subscribe(netManager.streamTopic.c_str(), 0);
+  BootstrapManager::subscribe(netManager.cmndReboot.c_str());
+  BootstrapManager::subscribe(netManager.updateStateTopic.c_str());
+  BootstrapManager::subscribe(netManager.unsubscribeTopic.c_str());
 }
 
 /**
  * List on HTTP GET
  */
-void NetworkManager::listenOnHttpGet() {
+void NetManager::listenOnHttpGet() {
   server.on(F("/"), []() {
       stopUDP();
       server.send(200, F("text/html"), settingsPage);
@@ -320,7 +324,7 @@ void NetworkManager::listenOnHttpGet() {
   server.on(F("/ldr"), []() {
       httpCallback(processLDR);
   });
-  server.on(("/" + networkManager.lightSetTopic).c_str(), []() {
+  server.on(("/" + netManager.lightSetTopic).c_str(), []() {
       httpCallback(nullptr);
       setLeds();
       setColor();
@@ -330,16 +334,16 @@ void NetworkManager::listenOnHttpGet() {
       setLeds();
       setColor();
   });
-  server.on(("/" + networkManager.cmndReboot).c_str(), []() {
+  server.on(("/" + netManager.cmndReboot).c_str(), []() {
       httpCallback(processGlowWormLuciferinRebootCmnd);
   });
-  server.on(("/" + networkManager.updateStateTopic).c_str(), []() {
+  server.on(("/" + netManager.updateStateTopic).c_str(), []() {
       httpCallback(processUpdate);
   });
-  server.on(("/" + networkManager.unsubscribeTopic).c_str(), []() {
+  server.on(("/" + netManager.unsubscribeTopic).c_str(), []() {
       httpCallback(processUnSubscribeStream);
   });
-  server.on(("/" + networkManager.firmwareConfigTopic).c_str(), []() {
+  server.on(("/" + netManager.firmwareConfigTopic).c_str(), []() {
       httpCallback(processFirmwareConfig);
   });
   server.onNotFound([]() {
@@ -353,7 +357,7 @@ void NetworkManager::listenOnHttpGet() {
 /**
  * Manage AP Settings
  */
-void NetworkManager::manageAPSetting(bool isSettingRoot) {
+void NetManager::manageAPSetting(bool isSettingRoot) {
   if (isSettingRoot) {
     server.on(F("/"), []() {
         server.send(200, F("text/html"), setSettingsPageOffline);
@@ -375,6 +379,8 @@ void NetworkManager::manageAPSetting(bool isSettingRoot) {
       prefsData += microcontrollerIP;
       prefsData += F("\",\"dhcp\":\"");
       prefsData += dhcpInUse;
+      prefsData += F("\",\"ethd\":\"");
+      prefsData += ethd;
       prefsData += F("\",\"mqttuser\":\"");
       prefsData += mqttuser;
       prefsData += F("\",\"mqttIp\":\"");
@@ -384,7 +390,7 @@ void NetworkManager::manageAPSetting(bool isSettingRoot) {
       prefsData += F("\",\"mqttPort\":\"");
       prefsData += mqttPort;
       prefsData += F("\",\"mqttTopic\":\"");
-      prefsData += networkManager.topicInUse;
+      prefsData += netManager.topicInUse;
       prefsData += F("\",\"lednum\":\"");
       prefsData += ledManager.dynamicLedNum;
       prefsData += F("\",\"gpio\":\"");
@@ -412,7 +418,7 @@ void NetworkManager::manageAPSetting(bool isSettingRoot) {
 /**
  * Set color
  */
-void NetworkManager::setColor() {
+void NetManager::setColor() {
   if (ledManager.stateOn) {
     LedManager::setColor(map(ledManager.red, 0, 255, 0, brightness), map(ledManager.green, 0, 255, 0, brightness),
                          map(ledManager.blue, 0, 255, 0, brightness));
@@ -424,7 +430,7 @@ void NetworkManager::setColor() {
 /**
  * Set LEDs state, used by HTTP and MQTT requests
  */
-void NetworkManager::setLeds() {
+void NetManager::setLeds() {
   String requestedEffect = bootstrapManager.jsonDoc[F("effect")];
   ffeffect = bootstrapManager.jsonDoc[F("effect")].as<String>();
   if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")
@@ -435,29 +441,29 @@ void NetworkManager::setLeds() {
   processJson();
   if (mqttIP.length() > 0) {
     if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
-      BootstrapManager::publish(networkManager.effectToFw.c_str(), ffeffect.c_str(), false);
+      BootstrapManager::publish(netManager.effectToFw.c_str(), ffeffect.c_str(), false);
     } else {
       if (ledManager.stateOn) {
-        BootstrapManager::publish(networkManager.effectToFw.c_str(), ffeffect.c_str(), false);
+        BootstrapManager::publish(netManager.effectToFw.c_str(), ffeffect.c_str(), false);
       } else {
-        BootstrapManager::publish(networkManager.effectToFw.c_str(), OFF_CMD.c_str(), false);
+        BootstrapManager::publish(netManager.effectToFw.c_str(), OFF_CMD.c_str(), false);
       }
       framerate = framerateCounter = 0;
     }
   } else {
 #if defined(ESP8266)
-    if (networkManager.remoteIpForUdp.isSet()) {
+    if (netManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
-    if (!networkManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
+    if (!netManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
-      networkManager.broadcastUDP.beginPacket(networkManager.remoteIpForUdp, UDP_BROADCAST_PORT);
+      netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
       if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
-        networkManager.broadcastUDP.print(ffeffect.c_str());
+        netManager.broadcastUDP.print(ffeffect.c_str());
       } else {
-        networkManager.broadcastUDP.print(networkManager.STOP_FF);
+        netManager.broadcastUDP.print(netManager.STOP_FF);
         framerate = framerateCounter = 0;
       }
-      networkManager.broadcastUDP.endPacket();
+      netManager.broadcastUDP.endPacket();
     }
   }
 }
@@ -465,25 +471,25 @@ void NetworkManager::setLeds() {
 /**
  * Stop UDP broadcast while serving pages
  */
-void NetworkManager::stopUDP() {
-  networkManager.UDP.stop();
-  networkManager.servingWebPages = true;
+void NetManager::stopUDP() {
+  netManager.UDP.stop();
+  netManager.servingWebPages = true;
   delay(10);
 }
 
 /*
  * Start UDP broadcast while serving pages
  */
-void NetworkManager::startUDP() {
+void NetManager::startUDP() {
   delay(10);
-  networkManager.servingWebPages = false;
-  networkManager.UDP.begin(UDP_PORT);
+  netManager.servingWebPages = false;
+  netManager.UDP.begin(UDP_PORT);
 }
 
 /**
  * MANAGE HARDWARE BUTTON
  */
-void NetworkManager::manageHardwareButton() {
+void NetManager::manageHardwareButton() {
   // no hardware button at the moment
 }
 
@@ -493,25 +499,25 @@ void NetworkManager::manageHardwareButton() {
  * @param payload MQTT payload
  * @param length MQTT message length
  */
-void NetworkManager::callback(char *topic, byte *payload, unsigned int length) {
-  if (networkManager.streamTopic.equals(topic)) {
+void NetManager::callback(char *topic, byte *payload, unsigned int length) {
+  if (netManager.streamTopic.equals(topic)) {
     if (effect == Effect::GlowWormWifi) {
       fromMqttStreamToStrip(reinterpret_cast<char *>(payload));
     }
   } else {
     bootstrapManager.jsonDoc.clear();
     bootstrapManager.parseQueueMsg(topic, payload, length);
-    if (networkManager.cmndReboot.equals(topic)) {
+    if (netManager.cmndReboot.equals(topic)) {
       processGlowWormLuciferinRebootCmnd();
-    } else if (networkManager.lightSetTopic.equals(topic)) {
+    } else if (netManager.lightSetTopic.equals(topic)) {
       processJson();
-    } else if (networkManager.effectToGw.equals(topic)) {
+    } else if (netManager.effectToGw.equals(topic)) {
       setLeds();
-    } else if (networkManager.updateStateTopic.equals(topic)) {
+    } else if (netManager.updateStateTopic.equals(topic)) {
       processMqttUpdate();
-    } else if (networkManager.firmwareConfigTopic.equals(topic)) {
+    } else if (netManager.firmwareConfigTopic.equals(topic)) {
       processFirmwareConfig();
-    } else if (networkManager.unsubscribeTopic.equals(topic)) {
+    } else if (netManager.unsubscribeTopic.equals(topic)) {
       processUnSubscribeStream();
     }
     if (ledManager.stateOn) {
@@ -527,13 +533,13 @@ void NetworkManager::callback(char *topic, byte *payload, unsigned int length) {
  * Execute callback from HTTP payload
  * @param callback to execute using HTTP payload
  */
-void NetworkManager::httpCallback(bool (*callback)()) {
+void NetManager::httpCallback(bool (*callback)()) {
   bootstrapManager.jsonDoc.clear();
   String payload = server.arg(F("payload"));
   bootstrapManager.parseHttpMsg(payload, payload.length());
   if (callback != nullptr) {
     callback();
-    networkManager.setColor();
+    netManager.setColor();
   }
   server.send(200, F("text/plain"), F("OK"));
 }
@@ -542,7 +548,7 @@ void NetworkManager::httpCallback(bool (*callback)()) {
  * Get data from the stream and send to the strip
  * @param payload stream data
  */
-void NetworkManager::fromMqttStreamToStrip(char *payload) {
+void NetManager::fromMqttStreamToStrip(char *payload) {
   uint32_t myLeds;
   char delimiters[] = ",";
   char *ptr;
@@ -588,11 +594,15 @@ void NetworkManager::fromMqttStreamToStrip(char *payload) {
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool NetworkManager::processFirmwareConfigWithReboot() {
+bool NetManager::processFirmwareConfigWithReboot() {
   String deviceName = bootstrapManager.jsonDoc[F("deviceName")];
   String microcontrollerIP = bootstrapManager.jsonDoc[F("microcontrollerIP")];
   String mqttCheckbox = bootstrapManager.jsonDoc[F("mqttCheckbox")];
   String setSsid = bootstrapManager.jsonDoc[F("ssid")];
+  String setEthd = bootstrapManager.jsonDoc[F("ethd")];
+#if defined(ESP8266)
+  setEthd = -1;
+#endif
   String wifipwd = bootstrapManager.jsonDoc[F("wifipwd")];
   String mqttIP = bootstrapManager.jsonDoc[F("mqttIP")];
   String mqttPort = bootstrapManager.jsonDoc[F("mqttPort")];
@@ -611,6 +621,7 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
     if (microcontrollerIP.length() == 0) {
       microcontrollerIP = "DHCP";
     }
+    doc[F("ethd")] = bootstrapManager.jsonDoc[F("ethd")].isNull() ? String(ethd) : setEthd;
     doc[F("deviceName")] = deviceName;
     doc[F("microcontrollerIP")] = microcontrollerIP;
     doc[F("qsid")] = (setSsid != NULL && !setSsid.isEmpty()) ? setSsid : qsid;
@@ -665,8 +676,8 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   }
   delay(DELAY_500);
   JsonDocument topicDoc;
-  topicDoc[networkManager.MQTT_PARAM] = mqttTopic;
-  BootstrapManager::writeToLittleFS(topicDoc, networkManager.TOPIC_FILENAME);
+  topicDoc[netManager.MQTT_PARAM] = mqttTopic;
+  BootstrapManager::writeToLittleFS(topicDoc, netManager.TOPIC_FILENAME);
   delay(DELAY_500);
   ledManager.setColorMode(colorModeParam.toInt());
   delay(DELAY_500);
@@ -678,6 +689,9 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
   Globals::setBaudRate(baudRateInUse);
   delay(DELAY_1000);
 #if defined(ARDUINO_ARCH_ESP32)
+  if (ethd > 0 && ethd != -1) {
+    EthManager::deallocateEthernetPins(ethd);
+  }
   ESP.restart();
 #elif defined(ESP8266)
   EspClass::restart();
@@ -690,7 +704,7 @@ bool NetworkManager::processFirmwareConfigWithReboot() {
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool NetworkManager::processFirmwareConfig() {
+bool NetManager::processFirmwareConfig() {
   boolean espRestart = false;
   if (bootstrapManager.jsonDoc.containsKey("MAC")) {
     String macToUpdate = bootstrapManager.jsonDoc["MAC"];
@@ -779,17 +793,17 @@ bool NetworkManager::processFirmwareConfig() {
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool NetworkManager::processUnSubscribeStream() {
+bool NetManager::processUnSubscribeStream() {
   if (bootstrapManager.jsonDoc.containsKey("instance")) {
     String instance = bootstrapManager.jsonDoc["instance"];
     String manager = bootstrapManager.jsonDoc["manager"];
     if (manager.equals(deviceName)) {
-      BootstrapManager::unsubscribe(networkManager.streamTopic.c_str());
-      networkManager.streamTopic = networkManager.baseStreamTopic + instance;
+      BootstrapManager::unsubscribe(netManager.streamTopic.c_str());
+      netManager.streamTopic = netManager.baseStreamTopic + instance;
       effect = Effect::GlowWormWifi;
       Globals::turnOnRelay();
       ledManager.stateOn = true;
-      BootstrapManager::subscribe(networkManager.streamTopic.c_str(), 0);
+      BootstrapManager::subscribe(netManager.streamTopic.c_str(), 0);
     }
   }
   return true;
@@ -800,7 +814,7 @@ bool NetworkManager::processUnSubscribeStream() {
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool NetworkManager::processJson() {
+bool NetManager::processJson() {
   ledManager.lastLedUpdate = millis();
   boolean skipMacCheck = ((bootstrapManager.jsonDoc.containsKey("MAC") && bootstrapManager.jsonDoc["MAC"] == MAC)
                           || bootstrapManager.jsonDoc.containsKey("allInstances"));
@@ -875,7 +889,7 @@ bool NetworkManager::processJson() {
  * Send microcontroller state
  * For debug: ESP.getFreeHeap() ESP.getHeapFragmentation() ESP.getMaxFreeBlockSize()
  */
-void NetworkManager::sendStatus() {
+void NetManager::sendStatus() {
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
     fpsData = F("{\"deviceName\":\"");
@@ -898,16 +912,16 @@ void NetworkManager::sendStatus() {
     }
     fpsData += F("\"}");
     if (mqttIP.length() > 0) {
-      BootstrapManager::publish(networkManager.lightStateTopic.c_str(), fpsData.c_str(), false);
+      BootstrapManager::publish(netManager.lightStateTopic.c_str(), fpsData.c_str(), false);
     } else {
 #if defined(ESP8266)
-      if (networkManager.remoteIpForUdp.isSet()) {
+      if (netManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
-      if (!networkManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
+      if (!netManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
-        networkManager.broadcastUDP.beginPacket(networkManager.remoteIpForUdp, UDP_BROADCAST_PORT);
-        networkManager.broadcastUDP.print(fpsData.c_str());
-        networkManager.broadcastUDP.endPacket();
+        netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
+        netManager.broadcastUDP.print(fpsData.c_str());
+        netManager.broadcastUDP.endPacket();
       }
     }
   } else {
@@ -955,7 +969,7 @@ void NetworkManager::sendStatus() {
     root[LED_NUM_PARAM] = String(ledManager.dynamicLedNum);
     root[F("gpio")] = gpioInUse;
     root[F("gpioClock")] = gpioClockInUse;
-    root[F("mqttopic")] = networkManager.topicInUse;
+    root[F("mqttopic")] = netManager.topicInUse;
     root[F("whitetemp")] = whiteTempInUse;
     if (effect == Effect::solid && !ledManager.stateOn) {
       LedManager::setColor(0, 0, 0);
@@ -963,18 +977,18 @@ void NetworkManager::sendStatus() {
 
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
     if (mqttIP.length() > 0) {
-      BootstrapManager::publish(networkManager.lightStateTopic.c_str(), root, true);
+      BootstrapManager::publish(netManager.lightStateTopic.c_str(), root, true);
     } else {
       String output;
       serializeJson(root, output);
 #if defined(ESP8266)
-      if (networkManager.remoteIpForUdpBroadcast.isSet()) {
+      if (netManager.remoteIpForUdpBroadcast.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
-      if (!networkManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0"))) {
+      if (!netManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0"))) {
 #endif
-        networkManager.broadcastUDP.beginPacket(networkManager.remoteIpForUdpBroadcast, UDP_BROADCAST_PORT);
-        networkManager.broadcastUDP.print(output.c_str());
-        networkManager.broadcastUDP.endPacket();
+        netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdpBroadcast, UDP_BROADCAST_PORT);
+        netManager.broadcastUDP.print(output.c_str());
+        netManager.broadcastUDP.endPacket();
       }
     }
   }
@@ -986,7 +1000,7 @@ void NetworkManager::sendStatus() {
 * Handle web server for the upgrade process
 * @return true if message is correctly processed
 */
-bool NetworkManager::processMqttUpdate() {
+bool NetManager::processMqttUpdate() {
   if (bootstrapManager.jsonDoc.containsKey(F("update"))) {
     return processUpdate();
   }
@@ -997,7 +1011,7 @@ bool NetworkManager::processMqttUpdate() {
  * Handle web server for the upgrade process
  * @return true if message is correctly processed
  */
-bool NetworkManager::processUpdate() {
+bool NetManager::processUpdate() {
   Serial.println(F("Starting web server"));
   server.on("/update", HTTP_POST, []() {
       server.sendHeader("Connection", "close");
@@ -1005,16 +1019,16 @@ bool NetworkManager::processUpdate() {
       server.send(200, "text/plain", error ? "KO" : "OK");
       if (!error) {
         if (mqttIP.length() > 0) {
-          BootstrapManager::publish(networkManager.updateResultStateTopic.c_str(), deviceName.c_str(), false);
+          BootstrapManager::publish(netManager.updateResultStateTopic.c_str(), deviceName.c_str(), false);
         } else {
 #if defined(ESP8266)
-          if (networkManager.remoteIpForUdp.isSet()) {
+          if (netManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
-          if (!networkManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
+          if (!netManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
-            networkManager.broadcastUDP.beginPacket(networkManager.remoteIpForUdp, UDP_BROADCAST_PORT);
-            networkManager.broadcastUDP.print(deviceName.c_str());
-            networkManager.broadcastUDP.endPacket();
+            netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
+            netManager.broadcastUDP.print(deviceName.c_str());
+            netManager.broadcastUDP.endPacket();
           }
         }
       }
@@ -1061,7 +1075,7 @@ bool NetworkManager::processUpdate() {
  * @param json StaticJsonDocument
  * @return true if message is correctly processed
  */
-bool NetworkManager::processGlowWormLuciferinRebootCmnd() {
+bool NetManager::processGlowWormLuciferinRebootCmnd() {
   if (bootstrapManager.jsonDoc[VALUE] == OFF_CMD) {
     ledManager.stateOn = false;
     sendStatus();
@@ -1079,7 +1093,7 @@ bool NetworkManager::processGlowWormLuciferinRebootCmnd() {
  * Process LDR settings
  * @return true if message is correctly processed
  */
-bool NetworkManager::processLDR() {
+bool NetManager::processLDR() {
   if (bootstrapManager.jsonDoc.containsKey(F("ldrEnabled"))) {
     stopUDP();
     String ldrEnabledMqtt = bootstrapManager.jsonDoc[F("ldrEnabled")];
@@ -1130,9 +1144,9 @@ bool NetworkManager::processLDR() {
  * Execute the MQTT topic swap
  * @param customtopic new topic to use
  */
-void NetworkManager::executeMqttSwap(const String &customtopic) {
+void NetManager::executeMqttSwap(const String &customtopic) {
   Serial.println("Swapping topic=" + customtopic);
-  networkManager.topicInUse = customtopic;
+  netManager.topicInUse = customtopic;
   swapTopicUnsubscribe();
   swapTopicReplace(customtopic);
   swapTopicSubscribe();
@@ -1143,7 +1157,7 @@ void NetworkManager::executeMqttSwap(const String &customtopic) {
 /**
  * Check connection and turn off the LED strip if no input received
  */
-void NetworkManager::checkConnection() {
+void NetManager::checkConnection() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Bootsrap loop() with Wifi, MQTT and OTA functions
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
@@ -1161,14 +1175,14 @@ void NetworkManager::checkConnection() {
     }
     framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
     framerateCounter = 0;
-    NetworkManager::sendStatus();
+    NetManager::sendStatus();
   }
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
   if (currentMillisCheckConn - prevMillisCheckConn2 > 15000) {
     prevMillisCheckConn2 = currentMillisCheckConn;
     // No updates since 15 seconds, turn off LEDs
     if(currentMillisCheckConn > ledManager.lastLedUpdate + 10000){
-      ledManager.setColor(0, 0, 0);
+      LedManager::setColor(0, 0, 0);
       globals.turnOffRelay();
     }
   }

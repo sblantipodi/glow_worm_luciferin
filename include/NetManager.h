@@ -1,5 +1,5 @@
 /*
-  NetworkManager.h - Glow Worm Luciferin for Firefly Luciferin
+  NetManager.h - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
   Copyright © 2020 - 2024  Davide Perini
@@ -18,8 +18,8 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H
-#define GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H
+#ifndef GLOW_WORM_LUCIFERIN_NET_MANAGER_H
+#define GLOW_WORM_LUCIFERIN_NET_MANAGER_H
 
 #include <Arduino.h>
 #include "Version.h"
@@ -30,7 +30,8 @@ const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Fir
 const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
 const uint16_t UDP_BR_MAX_BUFFER_SIZE = 50;
 
-class NetworkManager {
+
+class NetManager {
 
 public:
 
@@ -133,4 +134,4 @@ public:
     void manageAPSetting(bool isSettingRoot);
 };
 
-#endif //GLOW_WORM_LUCIFERIN_NETWORK_MANAGER_H
+#endif //GLOW_WORM_LUCIFERIN_NET_MANAGER_H

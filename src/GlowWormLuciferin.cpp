@@ -38,9 +38,9 @@ void setup() {
   // Increase the RX Buffer size allows to send bigger messages via Serial in one chunk, increase performance.
   Serial.setRxBufferSize(SERIAL_SIZE_RX);
 #endif
-  Serial.begin(baudRateToUse);
+    Serial.begin(baudRateToUse);
 #if defined(ESP8266)
-  Serial.setTimeout(10);
+    Serial.setTimeout(10);
 #endif
   Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
 
@@ -102,19 +102,18 @@ void setup() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // LED number from configuration storage
-  String topicToUse = bootstrapManager.readValueFromFile(networkManager.TOPIC_FILENAME, networkManager.MQTT_PARAM);
-  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != networkManager.topicInUse) {
-    networkManager.topicInUse = topicToUse;
-    NetworkManager::executeMqttSwap(networkManager.topicInUse);
+  String topicToUse = bootstrapManager.readValueFromFile(netManager.TOPIC_FILENAME, netManager.MQTT_PARAM);
+  if (topicToUse != "null" && !topicToUse.isEmpty() && topicToUse != ERROR && topicToUse != netManager.topicInUse) {
+    netManager.topicInUse = topicToUse;
+    NetManager::executeMqttSwap(netManager.topicInUse);
   }
   Serial.print(F("\nMQTT topic in use="));
-  Serial.println(networkManager.topicInUse);
+  Serial.println(netManager.topicInUse);
 
   // Bootsrap setup() with Wifi and MQTT functions
-  bootstrapManager.bootstrapSetup(NetworkManager::manageDisconnections, NetworkManager::manageHardwareButton,
-                                  NetworkManager::callback, true, manageApRoot);
+  bootstrapManager.bootstrapSetup(NetManager::manageDisconnections, NetManager::manageHardwareButton,
+                                  NetManager::callback, true, manageApRoot);
 #endif
-
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
   String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
@@ -174,13 +173,13 @@ void setup() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Begin listening to UDP port
-  networkManager.UDP.begin(UDP_PORT);
-  networkManager.broadcastUDP.begin(UDP_BROADCAST_PORT);
+  netManager.UDP.begin(UDP_PORT);
+  netManager.broadcastUDP.begin(UDP_BROADCAST_PORT);
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
-  NetworkManager::fpsData.reserve(200);
-  networkManager.prefsData.reserve(200);
-  networkManager.listenOnHttpGet();
+  NetManager::fpsData.reserve(200);
+  netManager.prefsData.reserve(200);
+  netManager.listenOnHttpGet();
 #if defined(ESP8266)
   // Hey gateway, GlowWorm is here
   delay(DELAY_500);
@@ -194,7 +193,7 @@ void setup() {
       Globals::turnOnRelay();
       ledManager.stateOn = true;
       effect = Effect::solid;
-      NetworkManager::setColor();
+      NetManager::setColor();
     }
   }
 #endif
@@ -253,7 +252,7 @@ int serialRead() {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 
 void manageApRoot() {
-  networkManager.manageAPSetting(true);
+  netManager.manageAPSetting(true);
 }
 
 void setApState(byte state) {
@@ -272,10 +271,10 @@ void setApState(byte state) {
  */
 void mainLoop() {
   yield();
-  NetworkManager::checkConnection();
+  NetManager::checkConnection();
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (effect == Effect::GlowWorm) {
+  if (effect == Effect::GlowWorm && (Serial.available() > 0)) {
 #endif
     if (!ledManager.led_state) ledManager.led_state = true;
     int i = 0;
@@ -451,11 +450,11 @@ void mainLoop() {
               // If there are many LEDs and buffer is too small, read the first block with Serial.readBytes() and then continue with Serial.read()
               while (j < numLedFromLuciferin) {
                 byte r, g, b;
-                while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+                while (!breakLoop && !Serial.available()) NetManager::checkConnection();
                 r = serialRead();
-                while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+                while (!breakLoop && !Serial.available()) NetManager::checkConnection();
                 g = serialRead();
-                while (!breakLoop && !Serial.available()) NetworkManager::checkConnection();
+                while (!breakLoop && !Serial.available()) NetManager::checkConnection();
                 b = serialRead();
                 setSerialPixel(j, r, g, b);
                 j++;
@@ -535,34 +534,49 @@ void setSerialPixel(int j, byte r, byte g, byte b) {
   }
 }
 
+#ifdef TARGET_GLOWWORMLUCIFERINFULL
+void debounceSmartButton() {
+  int reading = digitalRead(sbPin);
+  if (reading != lastButtonState) {
+    lastDebounceTime = currentMillisMainLoop;
+  }
+  unsigned long currentMinusDebounce = currentMillisMainLoop - lastDebounceTime;
+  if (currentMinusDebounce > debounceDelay) {
+    if (reading != buttonState) {
+      buttonState = reading;
+      if (buttonState == HIGH) {
+        // First boot triggers a continuos debounce, stop it for the initial milliseconds.
+#if defined(ARDUINO_ARCH_ESP32)
+        if (currentMillisMainLoop > esp32DebouceInitialPeriod) {
+#else
+        if (currentMillisMainLoop > esp8266DebouceInitialPeriod) {
+#endif
+          if (!ledManager.stateOn) {
+            Globals::turnOnRelay();
+            ledManager.stateOn = true;
+            NetManager::setColor();
+          } else {
+            ledManager.stateOn = false;
+            NetManager::setColor();
+            Globals::turnOffRelay();
+          }
+        }
+      }
+    }
+  }
+  lastButtonState = reading;
+}
+#endif
+
+
 /**
  * Loop
  */
 void loop() {
   mainLoop();
   currentMillisMainLoop = millis();
-
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  btnState = digitalRead(sbPin);
-  if (lastState == HIGH && btnState == LOW) {
-    pressedTime = currentMillisMainLoop;
-  } else if (lastState == LOW && btnState == HIGH) {
-    releasedTime = currentMillisMainLoop;
-    long pressDuration = releasedTime - pressedTime;
-    if ((pressDuration > DEBOUNCE_PRESS_TIME) && (pressedTime > 0) && (pressDuration < SHORT_PRESS_TIME)) {
-      if (!ledManager.stateOn) {
-        Globals::turnOnRelay();
-        ledManager.stateOn = true;
-        NetworkManager::setColor();
-      } else {
-        ledManager.stateOn = false;
-        NetworkManager::setColor();
-        Globals::turnOffRelay();
-      }
-    }
-  }
-  lastState = btnState;
-
+  debounceSmartButton();
   if (!apFileRead) {
     apFileRead = true;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
@@ -578,7 +592,7 @@ void loop() {
   if (relayState && !ledManager.stateOn) {
     Globals::turnOffRelay();
   }
-  networkManager.getUDPStream();
+  netManager.getUDPStream();
 #endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -624,11 +638,13 @@ void loop() {
   }
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (disconnectionCounter > 0) {
-    if (disconnectionCounter >= MAX_RECONNECT) {
+  if (disconnectionCounter > 0 || (ethd > 0 && !ethConnected)) {
+    if (disconnectionCounter >= MAX_RECONNECT || (ethd > 0 && !ethConnected)) {
       LedManager::setColor(0, 0, 0);
     }
     disconnectionCounter = 0;
   }
 #endif
 }
+
+

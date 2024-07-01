@@ -21,12 +21,12 @@
 #include "BootstrapManager.h"
 #include "EffectsManager.h"
 #include "LedManager.h"
-#include "NetworkManager.h"
+#include "NetManager.h"
 
 BootstrapManager bootstrapManager;
 EffectsManager effectsManager;
 LedManager ledManager;
-NetworkManager networkManager;
+NetManager netManager;
 Helpers helper;
 Globals globals;
 
@@ -216,7 +216,7 @@ void Globals::turnOnRelay() {
   if (!relayState) {
     relayState = true;
     digitalWrite(relayPin, HIGH);
-    delay(100);
+    delay(10);
   }
 }
 
@@ -226,7 +226,7 @@ void Globals::turnOnRelay() {
 void Globals::turnOffRelay() {
   if (relayState) {
     relayState = false;
-    delay(100);
+    delay(10);
     digitalWrite(relayPin, LOW);
   }
 }
@@ -246,7 +246,7 @@ void Globals::sendSerialInfo() {
       Serial.printf("firmware:%s\n", "LIGHT");
 #else
       Serial.printf("firmware:%s\n", "FULL");
-      Serial.printf("mqttopic:%s\n", networkManager.topicInUse.c_str());
+      Serial.printf("mqttopic:%s\n", netManager.topicInUse.c_str());
 #endif
       Serial.printf("ver:%s\n", VERSION);
       Serial.printf("lednum:%d\n", ledManager.dynamicLedNum);
