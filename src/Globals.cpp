@@ -244,6 +244,8 @@ void Globals::sendSerialInfo() {
     if (currentMillisSendSerial > lastUdpMsgReceived + DELAY_1000) {
       framerateSerial = framerateCounterSerial > 0 ? framerateCounterSerial / 10 : 0;
       framerateCounterSerial = 0;
+      // TODO
+      Serial.flush();
       Serial.printf("framerate:%s\n", (String((framerateSerial > 0.5 ? framerateSerial : 0),1)).c_str());
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
       Serial.printf("firmware:%s\n", "LIGHT");

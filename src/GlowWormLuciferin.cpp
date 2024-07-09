@@ -469,14 +469,15 @@ void mainLoop() {
         }
       }
     }
-    // Flush serial buffer
-#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S3)
-    while (!breakLoop && Serial.available() > 0) {
-      serialRead();
-    }
-#else
-  Serial.flush();
-#endif
+// TODO
+//    // Flush serial buffer
+//#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S3)
+//    while (!breakLoop && Serial.available() > 0) {
+//      serialRead();
+//    }
+//#else
+//  Serial.flush();
+//#endif
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   }
 #endif
