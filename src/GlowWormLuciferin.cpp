@@ -39,9 +39,10 @@ void setup() {
   Serial.setRxBufferSize(SERIAL_SIZE_RX);
 #endif
     Serial.begin(baudRateToUse);
-#if defined(ESP8266)
-    Serial.setTimeout(10);
-#endif
+//#if defined(ESP8266)
+//    Serial.setTimeout(10);
+//#endif
+  Serial.setTimeout(10);
   Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
 
 #if CONFIG_IDF_TARGET_ESP32 || defined(ESP8266)
@@ -274,7 +275,7 @@ void mainLoop() {
   NetManager::checkConnection();
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (effect == Effect::GlowWorm && (Serial.available() > 0)) {
+  if (effect == Effect::GlowWorm && (Serial.peek() != -1)) {
 #endif
     if (!ledManager.led_state) ledManager.led_state = true;
     int i = 0;
@@ -469,15 +470,6 @@ void mainLoop() {
         }
       }
     }
-// TODO
-//    // Flush serial buffer
-//#if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32S3)
-//    while (!breakLoop && Serial.available() > 0) {
-//      serialRead();
-//    }
-//#else
-//  Serial.flush();
-//#endif
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   }
 #endif
