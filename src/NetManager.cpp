@@ -151,20 +151,16 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
  */
 void NetManager::manageDisconnections() {
   Serial.print(F("managing disconnections..."));
-  if ((millis() - disconnectionTime > secondsBeforeReset) && (currentMillisMainLoop - disconnectionTime < (secondsBeforeReset * 2))) {
+  if (wifiReconnectAttemp > 10 && wifiReconnectAttemp <= 20) {
     disconnectionTime = millis();
-    ledManager.stateOn = true;
-    effect = Effect::solid;
-    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 10)) {
-      JsonDocument asDoc;
-      asDoc[AP_PARAM] = 10;
-      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
-    }
-    LedManager::setColorLoop(255, 0, 0);
+    disconnectionResetEnable = true;
   }
-  if (millis() - disconnectionTimeOff > (secondsBeforeReset * 2)) {
-    disconnectionTimeOff = millis();
+  if ((mqttReconnectAttemp > 10 && mqttReconnectAttemp <= 20) && (mqttIP.length() > 0)) {
+    disconnectionTime = millis();
+    disconnectionResetEnable = true;
+  }
+  if (millis() - disconnectionTime > (secondsBeforeReset * 2)) {
+    disconnectionTime = millis();
     ledManager.stateOn = true;
     effect = Effect::solid;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
@@ -174,6 +170,17 @@ void NetManager::manageDisconnections() {
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
     LedManager::setColor(0, 0, 0);
+  } else if ((millis() - disconnectionTime > secondsBeforeReset) && disconnectionResetEnable) {
+    disconnectionResetEnable = false;
+    ledManager.stateOn = true;
+    effect = Effect::solid;
+    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 10)) {
+      JsonDocument asDoc;
+      asDoc[AP_PARAM] = 10;
+      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
+    }
+    LedManager::setColorLoop(255, 0, 0);
   }
 }
 

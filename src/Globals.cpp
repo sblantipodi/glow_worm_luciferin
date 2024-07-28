@@ -99,7 +99,7 @@ const unsigned int LDR_RECOVER_TIME = 4000;
 unsigned long previousMillisLDR = 0;
 unsigned long lastUdpMsgReceived;
 unsigned long disconnectionTime;
-unsigned long disconnectionTimeOff;
+bool disconnectionResetEnable;
 // after three minutes, start device reset
 unsigned long secondsBeforeReset = 180000;
 bool apFileRead;

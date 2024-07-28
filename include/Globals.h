@@ -104,7 +104,7 @@ extern const unsigned int LDR_RECOVER_TIME;
 extern unsigned long previousMillisLDR;
 extern unsigned long lastUdpMsgReceived;
 extern unsigned long disconnectionTime;
-extern unsigned long disconnectionTimeOff;
+extern bool disconnectionResetEnable;
 extern unsigned long secondsBeforeReset;
 
 extern unsigned long currentMillisCheckConn;
