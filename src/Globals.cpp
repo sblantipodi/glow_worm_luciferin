@@ -98,8 +98,11 @@ int ldrDivider = LDR_DIVIDER;
 const unsigned int LDR_RECOVER_TIME = 4000;
 unsigned long previousMillisLDR = 0;
 unsigned long lastUdpMsgReceived;
+unsigned long disconnectionTime;
+bool disconnectionResetEnable;
+// after three minutes, start device reset
+unsigned long secondsBeforeReset = 180000;
 bool apFileRead;
-int disconnectionCounter;
 
 unsigned long currentMillisCheckConn = 0;
 unsigned long prevMillisCheckConn1 = 0;
@@ -241,7 +244,7 @@ void Globals::sendSerialInfo() {
     if (currentMillisSendSerial > lastUdpMsgReceived + DELAY_1000) {
       framerateSerial = framerateCounterSerial > 0 ? framerateCounterSerial / 10 : 0;
       framerateCounterSerial = 0;
-      Serial.printf("framerate:%s\n", (String((framerateSerial > 0.5 ? framerateSerial : 0),1)).c_str());
+      Serial.printf("framerate:%f\n", (framerateSerial > 0.5 ? framerateSerial : 0));
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
       Serial.printf("firmware:%s\n", "LIGHT");
 #else
@@ -280,6 +283,7 @@ void Globals::sendSerialInfo() {
       Serial.printf("relayPin:%d\n", relayPin);
       Serial.printf("sbPin:%d\n", sbPin);
       Serial.printf("ldrPin:%d\n", ldrPin);
+      Serial.flush();
     }
   }
 }

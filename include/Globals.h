@@ -32,7 +32,7 @@
 #if defined(ARDUINO_ARCH_ESP32)
 #define LDR_DIVIDER 4096
 #endif
-#define SERIAL_SIZE_RX 2048
+#define SERIAL_SIZE_RX 1500
 #define CONFIG_NUM_PARAMS 20
 #define CONFIG_PREFIX_LENGTH 6
 // This value must meet the one in Firefly Luciferin
@@ -103,6 +103,9 @@ extern int ldrDivider;
 extern const unsigned int LDR_RECOVER_TIME;
 extern unsigned long previousMillisLDR;
 extern unsigned long lastUdpMsgReceived;
+extern unsigned long disconnectionTime;
+extern bool disconnectionResetEnable;
+extern unsigned long secondsBeforeReset;
 
 extern unsigned long currentMillisCheckConn;
 extern unsigned long prevMillisCheckConn1;
@@ -119,7 +122,6 @@ extern uint8_t baudRateInUse;
 extern bool relayState;
 extern bool breakLoop;
 extern bool apFileRead;
-extern int disconnectionCounter;
 
 class Globals {
 

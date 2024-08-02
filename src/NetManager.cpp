@@ -150,22 +150,17 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
  * MANAGE WIFI AND MQTT DISCONNECTION
  */
 void NetManager::manageDisconnections() {
-  Serial.print(F("disconnection counter="));
-  Serial.println(disconnectionCounter);
-  if (disconnectionCounter < MAX_RECONNECT) {
-    disconnectionCounter++;
-  } else if (disconnectionCounter >= MAX_RECONNECT && disconnectionCounter < (MAX_RECONNECT * 2)) {
-    disconnectionCounter++;
-    ledManager.stateOn = true;
-    effect = Effect::solid;
-    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 10)) {
-      JsonDocument asDoc;
-      asDoc[AP_PARAM] = 10;
-      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
-    }
-    ledManager.setColorLoop(255, 0, 0);
-  } else if (disconnectionCounter >= (MAX_RECONNECT * 2)) {
+  Serial.print(F("managing disconnections..."));
+  if (wifiReconnectAttemp > 10 && wifiReconnectAttemp <= 20) {
+    disconnectionTime = millis();
+    disconnectionResetEnable = true;
+  }
+  if ((mqttReconnectAttemp > 10 && mqttReconnectAttemp <= 20) && (mqttIP.length() > 0)) {
+    disconnectionTime = millis();
+    disconnectionResetEnable = true;
+  }
+  if (millis() - disconnectionTime > (secondsBeforeReset * 2)) {
+    disconnectionTime = millis();
     ledManager.stateOn = true;
     effect = Effect::solid;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
@@ -175,6 +170,17 @@ void NetManager::manageDisconnections() {
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
     LedManager::setColor(0, 0, 0);
+  } else if ((millis() - disconnectionTime > secondsBeforeReset) && disconnectionResetEnable) {
+    disconnectionResetEnable = false;
+    ledManager.stateOn = true;
+    effect = Effect::solid;
+    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
+    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 10)) {
+      JsonDocument asDoc;
+      asDoc[AP_PARAM] = 10;
+      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
+    }
+    LedManager::setColorLoop(255, 0, 0);
   }
 }
 
