@@ -814,3 +814,15 @@ void LedManager::setWhiteTemp(int wt) {
   BootstrapManager::writeToLittleFS(whiteTempDoc, WHITE_TEMP_FILENAME);
   delay(20);
 }
+
+/**
+ * Manage built in LED in GRB color order
+ * @param r red
+ * @param g green
+ * @param b blu
+ */
+void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
+#if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
+  neopixelWrite(LED_BUILTIN, r, g, b);
+#endif
+}

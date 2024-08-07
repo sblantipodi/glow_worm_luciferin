@@ -159,6 +159,9 @@ void NetManager::manageDisconnections() {
     disconnectionTime = millis();
     disconnectionResetEnable = true;
   }
+  if (disconnectionResetEnable) {
+    LedManager::manageBuiltInLed(0, 125, 255);
+  }
   if (millis() - disconnectionTime > (secondsBeforeReset * 2)) {
     disconnectionTime = millis();
     ledManager.stateOn = true;
@@ -169,6 +172,7 @@ void NetManager::manageDisconnections() {
       asDoc[AP_PARAM] = 0;
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
+    LedManager::manageBuiltInLed(0, 0, 0);
     LedManager::setColor(0, 0, 0);
   } else if ((millis() - disconnectionTime > secondsBeforeReset) && disconnectionResetEnable) {
     disconnectionResetEnable = false;
@@ -180,6 +184,7 @@ void NetManager::manageDisconnections() {
       asDoc[AP_PARAM] = 10;
       BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
     }
+    LedManager::manageBuiltInLed(255, 0, 0);
     LedManager::setColorLoop(255, 0, 0);
   }
 }
