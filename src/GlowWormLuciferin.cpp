@@ -21,10 +21,12 @@
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 #include "GlowWormLuciferin.h"
 
+
 /**
  * Setup function
  */
 void setup() {
+  LedManager::manageBuiltInLed(0, 0, 255);
   firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
@@ -82,14 +84,17 @@ void setup() {
   if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
     setApState(11);
     LedManager::setColorLoop(0, 255, 0);
+    LedManager::manageBuiltInLed(0, 255, 0);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
     setApState(12);
     LedManager::setColorLoop(0, 0, 255);
+    LedManager::manageBuiltInLed(0, 0, 255);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
     bootstrapManager.littleFsInit();
     BootstrapManager::isWifiConfigured();
     setApState(13);
     LedManager::setColorLoop(255, 75, 0);
+    LedManager::manageBuiltInLed(255, 75, 0);
     bootstrapManager.launchWebServerCustom(false, manageApRoot);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 13) {
     setApState(0);
@@ -168,7 +173,6 @@ void setup() {
   if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
     autoSave = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave")).toInt();
   }
-
   pinMode(relayPin, OUTPUT);
   digitalWrite(relayPin, LOW);
 
@@ -198,6 +202,7 @@ void setup() {
     }
   }
 #endif
+  LedManager::manageBuiltInLed(0, 0, 0);
 }
 
 /**
