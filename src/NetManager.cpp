@@ -159,7 +159,8 @@ void NetManager::manageDisconnections() {
     disconnectionTime = millis();
     disconnectionResetEnable = true;
   }
-  if (disconnectionResetEnable) {
+  if (disconnectionResetEnable && !builtInLedStatus) {
+    builtInLedStatus = true;
     LedManager::manageBuiltInLed(0, 125, 255);
   }
   if (millis() - disconnectionTime > (secondsBeforeReset * 2)) {
@@ -175,6 +176,7 @@ void NetManager::manageDisconnections() {
     LedManager::manageBuiltInLed(0, 0, 0);
     LedManager::setColor(0, 0, 0);
   } else if ((millis() - disconnectionTime > secondsBeforeReset) && disconnectionResetEnable) {
+    resetLedStatus = true;
     disconnectionResetEnable = false;
     ledManager.stateOn = true;
     effect = Effect::solid;

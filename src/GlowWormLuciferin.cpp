@@ -636,7 +636,14 @@ void loop() {
       }
     }
   }
-
+  if ((builtInLedStatus || resetLedStatus) && wifiReconnectAttemp == 0 && mqttReconnectAttemp == 0) {
+    builtInLedStatus = false;
+    resetLedStatus = false;
+    LedManager::setColorNoSolid(0, 0, 0);
+#if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
+    LedManager::manageBuiltInLed(0, 0, 0);
+#endif
+  }
 }
 
 

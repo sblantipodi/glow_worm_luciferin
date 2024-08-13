@@ -754,6 +754,16 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
   if (inR == 0 && inG == 0 && inB == 0) {
     effect = Effect::solid;
   }
+  setColorNoSolid(inR, inG, inB);
+}
+
+/**
+ * Set led strip color
+ * @param inR red color
+ * @param inG green color
+ * @param inB blu color
+ */
+void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
   if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
     for (int i = 0; i < ledManager.dynamicLedNum; i++) {
       ledManager.setPixelColor(i, inR, inG, inB);
