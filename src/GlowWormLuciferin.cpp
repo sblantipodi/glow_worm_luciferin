@@ -640,6 +640,7 @@ void loop() {
     builtInLedStatus = false;
     resetLedStatus = false;
     LedManager::setColorNoSolid(0, 0, 0);
+    disconnectionTime = currentMillisMainLoop;
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
     LedManager::manageBuiltInLed(0, 0, 0);
 #endif
