@@ -40,10 +40,7 @@ void setup() {
   // Increase the RX Buffer size allows to send bigger messages via Serial in one chunk, increase performance.
   Serial.setRxBufferSize(SERIAL_SIZE_RX);
 #endif
-    Serial.begin(baudRateToUse);
-//#if defined(ESP8266)
-//    Serial.setTimeout(10);
-//#endif
+  Serial.begin(baudRateToUse);
   Serial.setTimeout(10);
   Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
 
@@ -285,6 +282,7 @@ void mainLoop() {
 #endif
       if (!ledManager.led_state) ledManager.led_state = true;
       int i = 0;
+      yield();
       int prefixLength = Serial.readBytes((byte *) pre, CONFIG_PREFIX_LENGTH);
       bool prefixOk = false;
       if (prefixLength == CONFIG_PREFIX_LENGTH) {
@@ -294,6 +292,7 @@ void mainLoop() {
         }
       }
       if (prefixOk) {
+        yield();
         int configLen = Serial.readBytes((byte *) config, CONFIG_NUM_PARAMS);
         if (configLen == CONFIG_NUM_PARAMS) {
           hi = config[i++];
@@ -443,6 +442,7 @@ void mainLoop() {
                 rlenChunk = LED_BUFF;
               }
               // Serial buffer is read with a single block using Serial.readBytes()
+              yield();
               int rlen = Serial.readBytes((byte *) ledBuffer, rlenChunk);
               if (rlenChunk == rlen) {
                 i = 0;
