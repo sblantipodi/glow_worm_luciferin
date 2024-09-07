@@ -31,13 +31,8 @@ Helpers helper;
 Globals globals;
 
 // DPsoftware checksum for serial
-#if defined(ARDUINO_ARCH_ESP32)
-DMA_ATTR byte config[CONFIG_NUM_PARAMS];
-DMA_ATTR byte pre[CONFIG_PREFIX_LENGTH];
-#else
 byte config[CONFIG_NUM_PARAMS];
 byte pre[CONFIG_PREFIX_LENGTH];
-#endif
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
         fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
@@ -249,11 +244,10 @@ void Globals::sendSerialInfo() {
   if (currentMillisSendSerial - prevMillisSendSerial > 10000) {
     prevMillisSendSerial = currentMillisSendSerial;
     if (currentMillisSendSerial > lastUdpMsgReceived + DELAY_1000) {
-      yield();
       framerateSerial = framerateCounterSerial > 0 ? framerateCounterSerial / 10 : 0;
       framerateCounterSerial = 0;
-      Serial.printf("framerate:%.2f\n", (framerateSerial > 0.5 ? framerateSerial : 0));
       if (framerateSerial == 0) {
+        Serial.printf("framerate:%.1f\n", (framerateSerial > 1 ? framerateSerial : 0));
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
         Serial.printf("firmware:%s\n", "LIGHT");
 #else
@@ -292,6 +286,10 @@ void Globals::sendSerialInfo() {
         Serial.printf("relayPin:%d\n", relayPin);
         Serial.printf("sbPin:%d\n", sbPin);
         Serial.printf("ldrPin:%d\n", ldrPin);
+      } else {
+        delay(1);
+        Serial.printf("framerate:%.1f\n", (framerateSerial > 1 ? framerateSerial : 0));
+        delay(1);
       }
       Serial.flush();
     }
