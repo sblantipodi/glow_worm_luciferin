@@ -53,8 +53,13 @@ extern class Helpers helper;
 extern class Globals globals;
 
 // Change this number if you increase/decrease the usb serial config variables
+#if defined(ARDUINO_ARCH_ESP32)
+extern DMA_ATTR byte config[CONFIG_NUM_PARAMS];
+extern DMA_ATTR byte pre[CONFIG_PREFIX_LENGTH];
+#else
 extern byte config[CONFIG_NUM_PARAMS];
 extern byte pre[CONFIG_PREFIX_LENGTH];
+#endif
 extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
         fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock;
 
