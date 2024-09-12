@@ -1191,6 +1191,7 @@ void NetManager::checkConnection() {
     NetManager::sendStatus();
   }
 #elif  TARGET_GLOWWORMLUCIFERINLIGHT
+  currentMillisCheckConn = millis();
   if (currentMillisCheckConn - prevMillisCheckConn2 > 15000) {
     prevMillisCheckConn2 = currentMillisCheckConn;
     // No updates since 15 seconds, turn off LEDs
