@@ -719,12 +719,12 @@ bool NetManager::processFirmwareConfigWithReboot() {
  */
 bool NetManager::processFirmwareConfig() {
   boolean espRestart = false;
-  if (bootstrapManager.jsonDoc.containsKey("MAC")) {
+  if (bootstrapManager.jsonDoc["MAC"].is<JsonVariant>()) {
     String macToUpdate = bootstrapManager.jsonDoc["MAC"];
     Serial.println(macToUpdate);
     if (macToUpdate == MAC) {
       // GPIO
-      if (bootstrapManager.jsonDoc.containsKey(GPIO_PARAM)) {
+      if (bootstrapManager.jsonDoc[GPIO_PARAM].is<JsonVariant>()) {
         int gpioFromConfig = (int) bootstrapManager.jsonDoc[GPIO_PARAM];
         if (gpioFromConfig != 0 && gpioInUse != gpioFromConfig) {
           Globals::setGpio(gpioFromConfig);
@@ -732,7 +732,7 @@ bool NetManager::processFirmwareConfig() {
         }
       }
       // GPIO CLOCK
-      if (bootstrapManager.jsonDoc.containsKey(GPIO_CLOCK_PARAM)) {
+      if (bootstrapManager.jsonDoc[GPIO_CLOCK_PARAM].is<JsonVariant>()) {
         int gpioClockFromConfig = (int) bootstrapManager.jsonDoc[GPIO_CLOCK_PARAM];
         if (gpioClockFromConfig != 0 && gpioClockInUse != gpioClockFromConfig) {
           Globals::setGpioClock(gpioClockFromConfig);
@@ -740,7 +740,7 @@ bool NetManager::processFirmwareConfig() {
         }
       }
       // COLOR_MODE
-      if (bootstrapManager.jsonDoc.containsKey(ledManager.COLOR_MODE_PARAM)) {
+      if (bootstrapManager.jsonDoc[ledManager.COLOR_MODE_PARAM].is<JsonVariant>()) {
         int colorModeParam = (int) bootstrapManager.jsonDoc[ledManager.COLOR_MODE_PARAM];
         if (colorMode != colorModeParam) {
           colorMode = colorModeParam;
@@ -749,7 +749,7 @@ bool NetManager::processFirmwareConfig() {
         }
       }
       // COLOR_ORDER
-      if (bootstrapManager.jsonDoc.containsKey(ledManager.COLOR_ORDER_PARAM)) {
+      if (bootstrapManager.jsonDoc[ledManager.COLOR_ORDER_PARAM].is<JsonVariant>()) {
         int colorOrderParam = (int) bootstrapManager.jsonDoc[ledManager.COLOR_ORDER_PARAM];
         if (colorOrder != colorOrderParam) {
           colorOrder = colorOrderParam;
@@ -758,7 +758,7 @@ bool NetManager::processFirmwareConfig() {
         }
       }
       // LDR_PIN_PARAM
-      if (bootstrapManager.jsonDoc.containsKey(ledManager.LDR_PIN_PARAM)) {
+      if (bootstrapManager.jsonDoc[ledManager.LDR_PIN_PARAM].is<JsonVariant>()) {
         int ldrPinParam = (int) bootstrapManager.jsonDoc[ledManager.LDR_PIN_PARAM];
         if (ldrPin != ldrPinParam) {
           ldrPin = ldrPinParam;
@@ -767,7 +767,7 @@ bool NetManager::processFirmwareConfig() {
         }
       }
       // RELAY_PIN_PARAM
-      if (bootstrapManager.jsonDoc.containsKey(ledManager.RELAY_PIN_PARAM)) {
+      if (bootstrapManager.jsonDoc[ledManager.RELAY_PIN_PARAM].is<JsonVariant>()) {
         int relayPinParam = (int) bootstrapManager.jsonDoc[ledManager.RELAY_PIN_PARAM];
         if (relayPin != relayPinParam) {
           relayPin = relayPinParam;
@@ -776,7 +776,7 @@ bool NetManager::processFirmwareConfig() {
         }
       }
       // SB_PIN_PARAM
-      if (bootstrapManager.jsonDoc.containsKey(ledManager.SB_PIN_PARAM)) {
+      if (bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM].is<JsonVariant>()) {
         int sbrPinParam = (int) bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM];
         if (sbPin != sbrPinParam) {
           sbPin = sbrPinParam;
@@ -807,7 +807,7 @@ bool NetManager::processFirmwareConfig() {
  * @return true if message is correctly processed
  */
 bool NetManager::processUnSubscribeStream() {
-  if (bootstrapManager.jsonDoc.containsKey("instance")) {
+  if (bootstrapManager.jsonDoc["instance"].is<JsonVariant>()) {
     String instance = bootstrapManager.jsonDoc["instance"];
     String manager = bootstrapManager.jsonDoc["manager"];
     if (manager.equals(deviceName)) {
@@ -829,10 +829,10 @@ bool NetManager::processUnSubscribeStream() {
  */
 bool NetManager::processJson() {
   ledManager.lastLedUpdate = millis();
-  boolean skipMacCheck = ((bootstrapManager.jsonDoc.containsKey("MAC") && bootstrapManager.jsonDoc["MAC"] == MAC)
-                          || bootstrapManager.jsonDoc.containsKey("allInstances"));
-  if (!bootstrapManager.jsonDoc.containsKey("MAC") || skipMacCheck) {
-    if (bootstrapManager.jsonDoc.containsKey("state")) {
+  boolean skipMacCheck = ((bootstrapManager.jsonDoc["MAC"].is<JsonVariant>() && bootstrapManager.jsonDoc["MAC"] == MAC)
+                          || bootstrapManager.jsonDoc["allInstances"].is<JsonVariant>());
+  if (!bootstrapManager.jsonDoc["MAC"].is<JsonVariant>() || skipMacCheck) {
+    if (bootstrapManager.jsonDoc["state"].is<JsonVariant>()) {
       String state = bootstrapManager.jsonDoc["state"];
       if (state == ON_CMD) {
         Globals::turnOnRelay();
@@ -841,12 +841,12 @@ bool NetManager::processJson() {
         ledManager.stateOn = false;
       }
     }
-    if (bootstrapManager.jsonDoc.containsKey("color")) {
+    if (bootstrapManager.jsonDoc["color"].is<JsonVariant>()) {
       ledManager.red = bootstrapManager.jsonDoc["color"]["r"];
       ledManager.green = bootstrapManager.jsonDoc["color"]["g"];
       ledManager.blue = bootstrapManager.jsonDoc["color"]["b"];
     }
-    if (bootstrapManager.jsonDoc.containsKey("brightness")) {
+    if (bootstrapManager.jsonDoc["brightness"].is<JsonVariant>()) {
       brightness = bootstrapManager.jsonDoc["brightness"];
     }
     if (autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
@@ -854,17 +854,17 @@ bool NetManager::processJson() {
       Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness);
     }
     if (skipMacCheck) {
-      if (bootstrapManager.jsonDoc.containsKey("whitetemp")) {
+      if (bootstrapManager.jsonDoc["whitetemp"].is<JsonVariant>()) {
         uint8_t wt = bootstrapManager.jsonDoc["whitetemp"];
         if (wt != 0 && whiteTempInUse != wt) {
           LedManager::setWhiteTemp(wt);
         }
       }
     }
-    if (bootstrapManager.jsonDoc.containsKey("ffeffect")) {
+    if (bootstrapManager.jsonDoc["ffeffect"].is<JsonVariant>()) {
       ffeffect = bootstrapManager.jsonDoc["ffeffect"].as<String>();
     }
-    if (bootstrapManager.jsonDoc.containsKey("effect")) {
+    if (bootstrapManager.jsonDoc["effect"].is<JsonVariant>()) {
       boolean effectIsDifferent = (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi);
       JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
       if (requestedEffect == "Bpm") effect = Effect::bpm;
@@ -1014,7 +1014,7 @@ void NetManager::sendStatus() {
 * @return true if message is correctly processed
 */
 bool NetManager::processMqttUpdate() {
-  if (bootstrapManager.jsonDoc.containsKey(F("update"))) {
+  if (bootstrapManager.jsonDoc[F("update")].is<JsonVariant>()) {
     return processUpdate();
   }
   return true;
@@ -1107,7 +1107,7 @@ bool NetManager::processGlowWormLuciferinRebootCmnd() {
  * @return true if message is correctly processed
  */
 bool NetManager::processLDR() {
-  if (bootstrapManager.jsonDoc.containsKey(F("ldrEnabled"))) {
+  if (bootstrapManager.jsonDoc[F("ldrEnabled")].is<JsonVariant>()) {
     stopUDP();
     String ldrEnabledMqtt = bootstrapManager.jsonDoc[F("ldrEnabled")];
     String ldrTurnOffMqtt = bootstrapManager.jsonDoc[F("ldrTurnOff")];
