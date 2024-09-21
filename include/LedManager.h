@@ -113,6 +113,8 @@ public:
 
     static void setColor(uint8_t inR, uint8_t inG, uint8_t inB);
 
+    static void setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB);
+
     static void setColorLoop(uint8_t inR, uint8_t inG, uint8_t inB);
 
     static void setNumLed(int numLedFromLuciferin);
@@ -126,6 +128,8 @@ public:
     void setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam);
 
     void flushSerial();
+
+    static void manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b);
 
 };
 
