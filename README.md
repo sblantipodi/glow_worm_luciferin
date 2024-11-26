@@ -1,5 +1,5 @@
 # Glow Worm Luciferin
-Ambilight or Bias Light is a technology that enhances your viewing experience by projecting colored lights onto the wall behind your TV/Monitor, matching the colors on the screen. This creates a more immersive and engaging atmosphere, making your favorite shows, movies, and games feel even more captivating.
+Ambient Lighting or Bias Light is a technology that enhances your viewing experience by projecting colored lights onto the wall behind your TV/Monitor, matching the colors on the screen. This creates a more immersive and engaging atmosphere, making your favorite shows, movies, and games feel even more captivating.
 
 **Luciferin** is a generic term for the light-emitting compound found in organisms that generate bioluminescence like Fireflies and Glow Worms.
 `Glow Worm Luciferin is a firmware` for ESP8266/ESP32 boards designed for the  
