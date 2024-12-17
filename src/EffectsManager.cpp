@@ -21,20 +21,21 @@
 #include "EffectsManager.h"
 
 RgbColor color = EffectsManager::Wheel(random(0, 255));;
+unsigned long preMill = 0;
+int position = 0;
 
 /**
  * Fire effect
  * @param cooling config effect param
  * @param sparking config effect param
  * @param speedDelay config effect param
- * @param dynamicLedNum config effect param
  */
-void EffectsManager::fire(int cooling, int sparking, int speedDelay, int dynamicLedNum) {
+void EffectsManager::fire(int cooling, int sparking, int speedDelay) {
   static byte heat[NUM_LEDS];
   int cooldown;
   // Step 1.  Cool down every cell a little
-  for (int i = 0; i < dynamicLedNum; i++) {
-    cooldown = random(0, ((cooling * 10) / dynamicLedNum) + 2);
+  for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+    cooldown = random(0, ((cooling * 10) / ledManager.dynamicLedNum) + 2);
     if (cooldown > heat[i]) {
       heat[i] = 0;
     } else {
@@ -42,7 +43,7 @@ void EffectsManager::fire(int cooling, int sparking, int speedDelay, int dynamic
     }
   }
   // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-  for (int k = dynamicLedNum - 1; k >= 2; k--) {
+  for (int k = ledManager.dynamicLedNum - 1; k >= 2; k--) {
     heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
   }
   // Step 3.  Randomly ignite new 'sparks' near the bottom
@@ -52,7 +53,7 @@ void EffectsManager::fire(int cooling, int sparking, int speedDelay, int dynamic
     //heat[y] = random(160,255);
   }
   // Step 4.  Convert heat to LED colors
-  for (int j = 0; j < dynamicLedNum; j++) {
+  for (int j = 0; j < ledManager.dynamicLedNum; j++) {
     // Scale 'heat' down from 0-255 to 0-191
     byte t192 = (byte) round((heat[j] / 255.0) * 191);
     // calculate ramp up from
@@ -71,24 +72,138 @@ void EffectsManager::fire(int cooling, int sparking, int speedDelay, int dynamic
   delay(speedDelay);
 }
 
+void EffectsManager::randomColors() {
+  unsigned long curMill = millis();
+  if (curMill - preMill >= 150) {
+    preMill = curMill;
+    for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+      ledManager.setPixelColor(i, (brightness * random(0, 255)), (brightness * random(0, 255)),
+                               (brightness * random(0, 255)));
+    }
+    ledManager.ledShow();
+  }
+}
+
+void EffectsManager::rainbowColors() {
+  unsigned long curMill = millis();
+  if (curMill - preMill >= 20) {
+    preMill = curMill;
+    static uint8_t hue = 0;
+    for (uint16_t i = 0; i < ledManager.dynamicLedNum; i++) {
+      RgbColor c = HslColor(hue / 255.0f, 1.0f, 0.5f);
+      ledManager.setPixelColor(i, c.R, c.G, c.B);
+    }
+    ledManager.ledShow();
+    hue++;
+  }
+}
+
+void EffectsManager::meteor() {
+  unsigned long curMill = millis();
+  if (curMill - preMill >= 10) {
+    previousMillis = curMill;
+    ledManager.setPixelColor(position, ledManager.red, ledManager.green, ledManager.blue);
+    ledManager.setPixelColor(ledManager.dynamicLedNum - 1, 0,0,0);
+    if (position > 0) { ledManager.setPixelColor(position - 1, 0,0,0); }
+    ledManager.ledShow();
+    position = (position + 1) % ledManager.dynamicLedNum;
+  }
+}
+
+void EffectsManager::colorWaterfall() {
+  unsigned long curMill = millis();
+  if (curMill - preMill >= 400) {
+    preMill = curMill;
+    RgbColor c = RgbColor(random(0, 255), random(0, 255), random(0, 255));
+    for (uint16_t i = 0; i < ledManager.dynamicLedNum; i++) { ledManager.setPixelColor(i, c.R, c.G, c.B); }
+    ledManager.ledShow();
+    delay(20);
+  }
+}
+
+uint8_t hue = 0;
+int currentPixel = 0;
+void EffectsManager::randomMarquee() {
+  unsigned long curMill = millis();
+  if (curMill - preMill >= 150) {
+    preMill = curMill;
+    for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+      if (i % 3 == currentPixel % 3) {
+        ledManager.setPixelColor(i, random(0, 255), random(0, 255), random(0, 255));
+      } else {
+        ledManager.setPixelColor(i, 0,0,0);
+      }
+    }
+    ledManager.ledShow();
+    currentPixel++;
+  }
+}
+
+void EffectsManager::rainbowMarquee() {
+  unsigned long curMill = millis();
+  if (curMill - preMill >= 150) {
+    preMill = curMill;
+    for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+      if (i % 3 == currentPixel % 3) {
+        RgbColor c = HslColor(((i * 256 / ledManager.dynamicLedNum) + hue) / 255.0f, 1.0f, 0.5f);
+        ledManager.setPixelColor(i, c.R, c.G, c.B);
+      } else {
+        ledManager.setPixelColor(i, 0,0,0);
+      }
+    }
+    hue++;
+    ledManager.ledShow();
+    currentPixel++;
+  }
+}
+
+void EffectsManager::pulsing_rainbow() {
+  unsigned long curMill = millis();
+  if (curMill - preMill >= 20/10) {
+    preMill = curMill;
+    for (uint16_t i = 0; i < ledManager.dynamicLedNum; i++) {
+      RgbColor c = HslColor(((i * 256 / ledManager.dynamicLedNum) + hue) / 255.0f, 1.0f, 0.5f);
+      ledManager.setPixelColor(i, c.R, c.G, c.B);
+    }
+    ledManager.ledShow();
+    hue++;
+  }
+}
+
+void EffectsManager::christmas() {
+  unsigned long curMill = millis();
+  if (curMill - preMill >= 300) {
+    preMill = curMill;
+    for (uint16_t i = 0; i < ledManager.dynamicLedNum; i++) {
+      RgbColor c = HslColor(hue / 255.0f, 1.0f, 0.5f);
+      ledManager.setPixelColor(i, c.R, c.G, c.B);
+      hue++;
+    }
+    ledManager.ledShow();
+  }
+}
+
 /**
  * Twinkle effect
  * @param count config effect param
  * @param speedDelay config effect param
  * @param onlyOne config effect param
- * @param dynamicLedNum config effect param
+ * @param ledManager.dynamicLedNum config effect param
  */
-void EffectsManager::twinkleRandom(int count, int speedDelay, boolean onlyOne, int dynamicLedNum) {
-  LedManager::setColor(1, 1, 1);
-  for (int i = 0; i < count; i++) {
-    ledManager.setPixelColor(random(dynamicLedNum), random(0, 255), random(0, 255), random(0, 255));
-    ledManager.ledShow();
-    delay(speedDelay);
-    if (onlyOne) {
-      LedManager::setColor(1, 1, 1);
+void EffectsManager::twinkleRandom() {
+  unsigned long curMill = millis();
+  if (curMill - preMill >= 200) {
+    preMill = curMill;
+    int pixelIndex = random(ledManager.dynamicLedNum);
+    RgbColor c = RgbColor(random(256), random(256), random(256));
+    ledManager.setPixelColor(pixelIndex, c.R, c.G, c.B);
+    for (uint16_t i = 0; i < ledManager.dynamicLedNum; i++) {
+      RgbColor currentColor = ledManager.getPixelColor(i);
+      RgbColor dimColor = RgbColor(currentColor.R / 1.05, currentColor.G / 1.05, currentColor.B / 1.05);
+      ledManager.setPixelColor(i, dimColor.R, dimColor.G, dimColor.B);
     }
+    ledManager.ledShow();
   }
-  delay(speedDelay);
 }
 
 byte * WheelByte(byte WheelPos) {
@@ -127,8 +242,8 @@ RgbColor EffectsManager::Wheel(uint8_t WheelPos) {
 }
 
 uint16_t iWipe;
-void EffectsManager::colorWipe(int dynamicLedNum, byte rw, byte gw, byte bw) {
-  if (iWipe < dynamicLedNum) {
+void EffectsManager::colorWipe(byte rw, byte gw, byte bw) {
+  if (iWipe < ledManager.dynamicLedNum) {
     if (millis() - lastAnim >= 15) {
       lastAnim = millis();
       ledManager.setPixelColor(iWipe, rw, gw, bw);
@@ -143,42 +258,46 @@ void EffectsManager::colorWipe(int dynamicLedNum, byte rw, byte gw, byte bw) {
 
 /**
  * Theater chase rainbow effect
- * @param dynamicLedNum number of leds
+
  */
-void EffectsManager::theaterChaseRainbow(int dynamicLedNum) {
-  colorWipe(dynamicLedNum, color.R, color.G, color.B);
+void EffectsManager::theaterChaseRainbow() {
+  colorWipe(color.R, color.G, color.B);
 }
 
 /**
  * Mixed Rainbow effect
- * @param dynamicLedNum number of leds
+
  */
 uint16_t jMixed = 0;
 uint16_t Mixed = 0;
-void EffectsManager::mixedRainbow(int dynamicLedNum) {
-  byte *c;
-  if (Mixed == 3) {
-    jMixed++;
-  }
-  if (jMixed < 256) {     // cycle all 256 colors in the wheel
-    if (Mixed < 3) {
-      if (millis() - lastAnim >= 20) {
-        lastAnim = millis();
-        for (int z = 0; z < dynamicLedNum; z = z + 3) {
-          c = WheelByte((z + jMixed) % 255);
-          ledManager.setPixelColor(z + Mixed, *c, *(c + 1), *(c + 2));    //turn every third pixel on
+void EffectsManager::mixedRainbow() {
+  unsigned long curMill = millis();
+  if (curMill - preMill >= 500) {
+    preMill = curMill;
+    byte *c;
+    if (Mixed == 3) {
+      jMixed++;
+    }
+    if (jMixed < 256) {     // cycle all 256 colors in the wheel
+      if (Mixed < 3) {
+        if (millis() - lastAnim >= 20) {
+          lastAnim = millis();
+          for (int z = 0; z < ledManager.dynamicLedNum; z = z + 3) {
+            c = WheelByte((z + jMixed) % 255);
+            ledManager.setPixelColor(z + Mixed, *c, *(c + 1), *(c + 2));    //turn every third pixel on
+          }
+          ledManager.ledShow();
+          for (int k = 0; k < ledManager.dynamicLedNum; k = k + 3) {
+            ledManager.setPixelColor(k + Mixed, 0, 0, 0);        //turn every third pixel off
+          }
+          Mixed++;
         }
-        ledManager.ledShow();
-        for (int k = 0; k < dynamicLedNum; k = k + 3) {
-          ledManager.setPixelColor(k + Mixed, 0, 0, 0);        //turn every third pixel off
-        }
-        Mixed++;
+      } else {
+        Mixed = 0;
       }
     } else {
-      Mixed = 0;
+      jMixed = 0;
     }
-  } else {
-    jMixed = 0;
   }
 }
 
@@ -191,7 +310,7 @@ void setAll(int dynamicLedNum, byte red, byte green, byte blue) {
 
 int kFade = 0;
 bool stepFadeIn = true;
-void FadeInOut(int dynamicLedNum, byte red, byte green, byte blue) {
+void FadeInOut(byte red, byte green, byte blue) {
   float r, g, b;
   if (stepFadeIn && kFade == 255) {
     stepFadeIn = false;
@@ -204,13 +323,13 @@ void FadeInOut(int dynamicLedNum, byte red, byte green, byte blue) {
     r = (kFade / 256.0) * red;
     g = (kFade / 256.0) * green;
     b = (kFade / 256.0) * blue;
-    setAll(dynamicLedNum, r, g, b);
+    setAll(ledManager.dynamicLedNum, r, g, b);
     kFade = kFade + 1;
   } else if (kFade >= 0 && !stepFadeIn) {
     r = (kFade / 256.0) * red;
     g = (kFade / 256.0) * green;
     b = (kFade / 256.0) * blue;
-    setAll(dynamicLedNum, r, g, b);
+    setAll(ledManager.dynamicLedNum, r, g, b);
     kFade = kFade - 2;
   }
 }
@@ -218,45 +337,49 @@ void FadeInOut(int dynamicLedNum, byte red, byte green, byte blue) {
 /**
  * BPM effect
  */
-void EffectsManager::bpm(int dynamicLedNum) {
-  FadeInOut(dynamicLedNum, color.R, color.G, color.B);
+void EffectsManager::bpm() {
+
+  FadeInOut(color.R, color.G, color.B);
 }
 
 /**
  * Rainbow effect
- * @param dynamicLedNum number of leds
  */
 byte *cT;
 uint16_t iT, jT;
-void EffectsManager::rainbow(int dynamicLedNum) {
-  if (jT<256*5) { // 5 cycles of all colors on wheel
-    if (millis() - lastAnim >= 2) {
-      lastAnim = millis();
-      for (iT = 0; iT < dynamicLedNum; iT++) {
-        cT = WheelByte(((iT * 256 / dynamicLedNum) + jT) & 255);
-        ledManager.setPixelColor(iT, *cT, *(cT + 1), *(cT + 2));
+void EffectsManager::rainbow(boolean slowdown) {
+  unsigned long curMill = millis();
+  int raindelay = slowdown ? 100 : 0;
+  if (curMill - preMill >= raindelay) {
+    preMill = curMill;
+    if (jT < 256 * 5) { // 5 cycles of all colors on wheel
+      if (millis() - lastAnim >= 2) {
+        lastAnim = millis();
+        for (iT = 0; iT < ledManager.dynamicLedNum; iT++) {
+          cT = WheelByte(((iT * 256 / ledManager.dynamicLedNum) + jT) & 255);
+          ledManager.setPixelColor(iT, *cT, *(cT + 1), *(cT + 2));
+        }
+        ledManager.ledShow();
+        jT++;
       }
-      ledManager.ledShow();
-      jT++;
+    } else {
+      jT = 0;
     }
-  } else {
-    jT = 0;
   }
 }
 
 /**
  * Solid rainbow effect
- * @param dynamicLedNum number of leds
  */
 int xSolidRainbow = 0;
 int ySolidRainbow = 0;
-void EffectsManager::solidRainbow(int dynamicLedNum) {
+void EffectsManager::solidRainbow() {
   if (xSolidRainbow <= 9) { //9 cycles of rainbow color
     if (ySolidRainbow < 360) {//360 shades - NeoPixelBus uses float
       if (millis() - lastAnim >= 100) {
         lastAnim = millis();
         RgbColor rgb = RgbColor(HslColor(ySolidRainbow / 360.0f, 1.0f, 0.25f));
-        for (int i = 0; i < dynamicLedNum; i++) {
+        for (int i = 0; i < ledManager.dynamicLedNum; i++) {
           ledManager.setPixelColor(i, rgb.R, rgb.G, rgb.B);
         }
         ledManager.ledShow();

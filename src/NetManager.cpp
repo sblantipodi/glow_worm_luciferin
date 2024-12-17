@@ -873,7 +873,15 @@ bool NetManager::processJson() {
       else if (requestedEffect == "Rainbow") effect = Effect::rainbow;
       else if (requestedEffect == "Chase rainbow") effect = Effect::chase_rainbow;
       else if (requestedEffect == "Solid rainbow") effect = Effect::solid_rainbow;
-      else if (requestedEffect == "Mixed rainbow") effect = Effect::mixed_rainbow;
+      else if (requestedEffect == "Random colors") effect = Effect::randomColors;
+      else if (requestedEffect == "Rainbow colors") effect = Effect::rainbowColors;
+      else if (requestedEffect == "Meteor") effect = Effect::meteor;
+      else if (requestedEffect == "Color waterfall") effect = Effect::colorWaterfall;
+      else if (requestedEffect == "Random marquee") effect = Effect::randomMarquee;
+      else if (requestedEffect == "Rainbow marquee") effect = Effect::rainbowMarquee;
+      else if (requestedEffect == "Pulsing rainbow") effect = Effect::pulsing_rainbow;
+      else if (requestedEffect == "Christmas") effect = Effect::christmas;
+      else if (requestedEffect == "Slow rainbow") effect = Effect::slowRainbow;
       else {
         effect = Effect::solid;
         breakLoop = true;

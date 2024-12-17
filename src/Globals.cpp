@@ -305,16 +305,32 @@ const char *Globals::effectToString(Effect e) {
       return "Twinkle";
     case Effect::rainbow:
       return "Rainbow";
+    case Effect::slowRainbow:
+      return "Slow Rainbow";
     case Effect::chase_rainbow:
       return "Chase rainbow";
     case Effect::solid_rainbow:
       return "Solid rainbow";
-    case Effect::mixed_rainbow:
-      return "Mixed rainbow";
     case Effect::GlowWorm:
       return "GlowWorm";
     case Effect::GlowWormWifi:
       return "GlowWormWifi";
+    case Effect::randomColors:
+      return "randomColor";
+    case Effect::rainbowColors:
+      return "rainbowColors";
+    case Effect::meteor:
+      return "meteor";
+    case Effect::colorWaterfall:
+      return "colorWaterfall";
+    case Effect::randomMarquee:
+      return "randomMarquee";
+    case Effect::rainbowMarquee:
+      return "rainbowMarquee";
+    case Effect::pulsing_rainbow:
+      return "pulsing_rainbow";
+    case Effect::christmas:
+      return "christmas";
     default:
       return "Solid";
   }
@@ -334,8 +350,24 @@ const uint8_t Globals::effectToInt(Effect e) {
       return 7;
     case Effect::solid_rainbow:
       return 8;
-    case Effect::mixed_rainbow:
+    case Effect::slowRainbow:
       return 9;
+    case Effect::randomColors:
+      return 10;
+    case Effect::rainbowColors:
+      return 11;
+    case Effect::meteor:
+      return 12;
+    case Effect::colorWaterfall:
+      return 13;
+    case Effect::randomMarquee:
+      return 14;
+    case Effect::rainbowMarquee:
+      return 15;
+    case Effect::pulsing_rainbow:
+      return 16;
+    case Effect::christmas:
+      return 17;
     case Effect::GlowWorm:
       return 1;
     case Effect::GlowWormWifi:
