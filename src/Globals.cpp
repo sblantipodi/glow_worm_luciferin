@@ -315,21 +315,21 @@ const char *Globals::effectToString(Effect e) {
     case Effect::GlowWormWifi:
       return "GlowWormWifi";
     case Effect::randomColors:
-      return "randomColor";
+      return "Random colors";
     case Effect::rainbowColors:
-      return "rainbowColors";
+      return "Rainbow colors";
     case Effect::meteor:
-      return "meteor";
+      return "Meteor";
     case Effect::colorWaterfall:
-      return "colorWaterfall";
+      return "Color waterfall";
     case Effect::randomMarquee:
-      return "randomMarquee";
+      return "Random marquee";
     case Effect::rainbowMarquee:
-      return "rainbowMarquee";
+      return "Rainbow marquee";
     case Effect::pulsing_rainbow:
-      return "pulsing_rainbow";
+      return "Pulsing rainbow";
     case Effect::christmas:
-      return "christmas";
+      return "Christmas";
     default:
       return "Solid";
   }
