@@ -75,6 +75,9 @@ enum class Effect {
 };
 extern Effect effect;
 extern String ffeffect;
+// TODO remove
+extern String iip;
+extern String bbip;
 extern float framerate;
 extern float framerateSerial;
 extern float framerateCounter;

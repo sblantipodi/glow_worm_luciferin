@@ -29,7 +29,9 @@ LedManager ledManager;
 NetManager netManager;
 Helpers helper;
 Globals globals;
-
+// TODO remove
+ String iip;
+ String bbip;
 // DPsoftware checksum for serial
 byte config[CONFIG_NUM_PARAMS];
 byte pre[CONFIG_PREFIX_LENGTH];

@@ -65,6 +65,8 @@ void NetManager::getUDPStream() {
         remoteIpForUdp = broadcastUDP.remoteIP();
         Serial.println(F("-> Setting IP to use <-"));
         Serial.println(remoteIpForUdp.toString());
+        // TODO remove
+        iip = remoteIpForUdp.toString();
       }
     } else {
       if (netManager.remoteIpForUdpBroadcast.toString().equals(remoteIpForUdp.toString())) {
@@ -78,6 +80,8 @@ void NetManager::getUDPStream() {
             remoteIpForUdpBroadcast.fromString(broadCastAddress);
             Serial.println(F("-> Setting Broadcast IP to use <-"));
             Serial.println(remoteIpForUdpBroadcast.toString());
+            // TODO remove
+            bbip = remoteIpForUdpBroadcast.toString();
           }
         }
       }
@@ -1015,6 +1019,12 @@ void NetManager::sendStatus() {
   }
   // Built in led triggered
   ledTriggered = true;
+// TODO remove
+  Serial.println(F("-> Broadcast IP to use <-"));
+  Serial.println(bbip);
+// TODO remove
+  Serial.println(F("-> IP to use <-"));
+  Serial.println(iip);
 }
 
 /**
