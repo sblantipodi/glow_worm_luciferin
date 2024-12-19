@@ -67,7 +67,11 @@ void NetManager::getUDPStream() {
         Serial.println(remoteIpForUdp.toString());
       }
     } else {
-      if (netManager.remoteIpForUdpBroadcast.toString().equals(remoteIpForUdp.toString())) {
+#if defined(ESP8266)
+      if (!netManager.remoteIpForUdpBroadcast.isSet() || netManager.remoteIpForUdpBroadcast.toString().equals(remoteIpForUdp.toString())) {
+#elif defined(ARDUINO_ARCH_ESP32)
+      if (netManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0")) || netManager.remoteIpForUdpBroadcast.toString().equals(remoteIpForUdp.toString())) {
+#endif
         char *p;
         p = strstr(packetBroadcast, PING);
         if (p) {
