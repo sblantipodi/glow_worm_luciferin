@@ -12,7 +12,7 @@ read -p "Do you want to create a new release on Git? (y/N): " answerOne
 
 if [[ "$answerOne" =~ ^[Yy]$ ]]; then
   echo "Creating tag: $input_string"
-  git tag -a "$input_string" -m "v$input_string";
+  git tag -a "v$input_string" -m "v$input_string";
   echo "Pushing tags..."
   git push origin --tags;
   echo "GitHub Actions is building the project:"
