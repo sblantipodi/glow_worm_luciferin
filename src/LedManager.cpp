@@ -300,6 +300,63 @@ void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrde
 #endif
 }
 
+RgbColor convertRgbwToRgb(const RgbwColor &color) {
+  return RgbColor(color.R, color.G, color.B);
+}
+
+RgbColor LedManager::getPixelColor(uint16_t index) const {
+  RgbColor rgbColor;
+  RgbwColor rgbwColor;
+#if defined(ARDUINO_ARCH_ESP32)
+  switch (colorMode) {
+    case 1:
+      return ledsEsp32->GetPixelColor(index);
+    case 2:
+    case 3:
+    case 4:
+      return convertRgbwToRgb(ledsEsp32Rgbw->GetPixelColor(index));
+    case 5:
+      return ledsEsp32DotStar->GetPixelColor(index);
+  }
+#else
+  if (gpioInUse == 3) {
+    switch (colorMode) {
+      case 1:
+        return ledsDma->GetPixelColor(index);
+      case 2:
+      case 3:
+      case 4:
+        return convertRgbwToRgb(ledsDmaRgbw->GetPixelColor(index));
+      case 5:
+        return ledsDotStar->GetPixelColor(index);
+    }
+  } else if (gpioInUse == 2) {
+    switch (colorMode) {
+      case 1:
+        return ledsUart->GetPixelColor(index);
+      case 2:
+      case 3:
+      case 4:
+        return convertRgbwToRgb(ledsUartRgbw->GetPixelColor(index));
+      case 5:
+        return ledsDotStar->GetPixelColor(index);
+    }
+  } else {
+    switch (colorMode) {
+      case 1:
+        return ledsStandard->GetPixelColor(index);
+      case 2:
+      case 3:
+      case 4:
+        return convertRgbwToRgb(ledsStandardRgbw->GetPixelColor(index));
+      case 5:
+        return ledsDotStar->GetPixelColor(index);
+    }
+  }
+#endif
+  return RgbColor(0,0,0);
+}
+
 /**
  * Clean the LEDs before reinit
  */

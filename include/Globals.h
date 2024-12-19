@@ -70,10 +70,14 @@ extern byte bStored;
 extern byte brightnessStored;
 extern boolean autoSave;
 enum class Effect {
-    GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, mixed_rainbow
+    GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, slowRainbow, randomColors,
+    rainbowColors, meteor, colorWaterfall, randomMarquee, rainbowMarquee, pulsing_rainbow, christmas
 };
 extern Effect effect;
 extern String ffeffect;
+// TODO remove
+extern String iip;
+extern String bbip;
 extern float framerate;
 extern float framerateSerial;
 extern float framerateCounter;

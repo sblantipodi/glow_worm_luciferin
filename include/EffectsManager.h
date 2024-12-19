@@ -35,24 +35,39 @@ private:
 
 public:
 
-    static void fire(int cooling, int sparking, int speedDelay, int dynamicLedNum);
+    static void twinkleRandom();
 
-    static void twinkleRandom(int count, int speedDelay, boolean onlyOne, int dynamicLedNum);
+    void theaterChaseRainbow();
 
-    void theaterChaseRainbow(int dynamicLedNum);
+    void mixedRainbow();
 
-    void mixedRainbow(int dynamicLedNum);
+    void bpm();
 
-    void bpm(int dynamicLedNum);
-
-    void rainbow(int dynamicLedNum);
-
-    void solidRainbow(int dynamicLedNum);
-
-    void colorWipe(int dynamicLedNum, byte red, byte green, byte blue);
+    void colorWipe(byte red, byte green, byte blue);
 
     static RgbColor Wheel(uint8_t WheelPos);
 
+    void solidRainbow();
+
+    static void randomColors();
+
+    static void rainbowColors();
+
+    static void meteor();
+
+    static void colorWaterfall();
+
+    static void randomMarquee();
+
+    static void rainbowMarquee();
+
+    static void pulsing_rainbow();
+
+    static void christmas();
+
+    void fire(int cooling, int sparking, int speedDelay);
+
+    void rainbow(boolean slowdown);
 };
 
 #endif //GLOW_WORM_LUCIFERIN_EFFECTSMANAGER_H

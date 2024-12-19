@@ -268,7 +268,6 @@ void setApState(byte state) {
 }
 
 #endif
-
 /**
  * Main loop
  */
@@ -416,13 +415,37 @@ void mainLoop() {
                     effect = Effect::rainbow;
                     break;
                   case 11:
-                    effect = Effect::mixed_rainbow;
+                    effect = Effect::slowRainbow;
                     break;
                   case 12:
                     effect = Effect::chase_rainbow;
                     break;
                   case 13:
                     effect = Effect::solid_rainbow;
+                    break;
+                  case 14:
+                    effect = Effect::randomColors;
+                    break;
+                  case 15:
+                    effect = Effect::rainbowColors;
+                    break;
+                  case 16:
+                    effect = Effect::meteor;
+                    break;
+                  case 17:
+                    effect = Effect::colorWaterfall;
+                    break;
+                  case 18:
+                    effect = Effect::randomMarquee;
+                    break;
+                  case 19:
+                    effect = Effect::rainbowMarquee;
+                    break;
+                  case 20:
+                    effect = Effect::pulsing_rainbow;
+                    break;
+                  case 21:
+                    effect = Effect::christmas;
                     break;
                   case 100:
                     ledManager.fireflyEffectInUse = 0;
@@ -469,9 +492,7 @@ void mainLoop() {
                 }
                 ledManager.lastLedUpdate = millis();
                 framerateCounterSerial++;
-                if (effect != Effect::mixed_rainbow) {
-                  ledManager.ledShow();
-                }
+                ledManager.ledShow();
               }
             }
           }
@@ -482,48 +503,60 @@ void mainLoop() {
 #endif
   }
 
-  if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
-    temporaryDisableImprove = true;
-  } else {
+  if (effect == Effect::solid) {
     temporaryDisableImprove = false;
+  } else {
+    temporaryDisableImprove = true;
   }
 
   breakLoop = false;
 
-  //EFFECT BPM
   if (effect == Effect::bpm) {
-    effectsManager.bpm(ledManager.dynamicLedNum);
+    effectsManager.bpm();
   }
-
-  //EFFECT RAINBOW
-  if (effect == Effect::rainbow) {
-    effectsManager.rainbow(ledManager.dynamicLedNum);
-  }
-
-  //SOLID RAINBOW
-  if (effect == Effect::solid_rainbow) {
-    effectsManager.solidRainbow(ledManager.dynamicLedNum);
-  }
-
-  //FIRE
   if (effect == Effect::fire) {
-    EffectsManager::fire(55, 120, 15, ledManager.dynamicLedNum);
+    effectsManager.fire(55, 120, 15);
   }
-
-  //TWINKLE
+  if (effect == Effect::rainbow) {
+    effectsManager.rainbow(false);
+  }
+  if (effect == Effect::slowRainbow) {
+    effectsManager.rainbow(true);
+  }
+  if (effect == Effect::solid_rainbow) {
+    effectsManager.solidRainbow();
+  }
   if (effect == Effect::twinkle) {
-    EffectsManager::twinkleRandom(20, 100, false, ledManager.dynamicLedNum);
+    EffectsManager::twinkleRandom();
   }
-
-  //CHASE RAINBOW
   if (effect == Effect::chase_rainbow) {
-    effectsManager.theaterChaseRainbow(ledManager.dynamicLedNum);
+    effectsManager.theaterChaseRainbow();
+  }
+  if (effect == Effect::randomColors) {
+    EffectsManager::randomColors();
+  }
+  if (effect == Effect::rainbowColors) {
+    EffectsManager::rainbowColors();
+  }
+  if (effect == Effect::meteor) {
+    EffectsManager::meteor();
+  }
+  if (effect == Effect::colorWaterfall) {
+    EffectsManager::colorWaterfall();
+  }
+  if (effect == Effect::randomMarquee) {
+    EffectsManager::randomMarquee();
+  }
+  if (effect == Effect::rainbowMarquee) {
+    EffectsManager::rainbowMarquee();
+  }
+  if (effect == Effect::pulsing_rainbow) {
+    EffectsManager::pulsing_rainbow();
+  }
+  if (effect == Effect::christmas) {
+    EffectsManager::christmas();
   }
 
-  //MIXED RAINBOW
-  if (effect == Effect::mixed_rainbow) {
-    effectsManager.mixedRainbow(ledManager.dynamicLedNum);
-  }
 }
 
 void setSerialPixel(int j, byte r, byte g, byte b) {
