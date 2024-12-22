@@ -21,6 +21,25 @@
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 #include "GlowWormLuciferin.h"
 
+// TODO remove
+#include <lwip/icmp.h>
+#include <lwip/inet_chksum.h>
+
+// TODO remove
+bool ping() {
+  struct icmp_echo_hdr echo_req;
+  echo_req.type = ICMP_ECHO;
+  echo_req.code = 0;
+  echo_req.chksum = 0;
+  echo_req.seqno = 0;
+  echo_req.id = 0;
+  echo_req.chksum = inet_chksum(&echo_req, sizeof(echo_req));
+  WiFiClient client;
+  if (!client.connect(WiFi.gatewayIP(), 53)) { return false; }
+  client.write((uint8_t *) &echo_req, sizeof(echo_req));
+  client.stop();
+  return true;
+}
 
 /**
  * Setup function
@@ -637,7 +656,23 @@ void loop() {
       WiFi.reconnect();
     }
   }
+#else
+// TODO remove
+  if (currentMillisMainLoop - prevMillisPing > 30000) {
+    prevMillisPing = currentMillisMainLoop;
+    // Hey gateway, GlowWorm is here
+    if (ping()) {
+      Serial.println(F("Successo: l'host è raggiungibile"));
+    }
+    else {
+      Serial.println(F("Errore: l'host non è raggiungibile")=;
+      WiFi.reconnect();
+
+    }
+  }
 #endif
+
+
 #endif
   if (ldrEnabled) {
     if (ldrInterval == 0) {
