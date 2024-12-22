@@ -474,7 +474,7 @@ void NetManager::setLeds() {
     if (!netManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
       netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
-      if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
+      if (requestedEffect == F("GlowWorm") || requestedEffect == F("GlowWormWifi")) {
         netManager.broadcastUDP.print(ffeffect.c_str());
       } else {
         netManager.broadcastUDP.print(netManager.STOP_FF);
