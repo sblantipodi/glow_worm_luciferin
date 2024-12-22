@@ -665,7 +665,7 @@ void loop() {
       Serial.println(F("Successo: l'host è raggiungibile"));
     }
     else {
-      Serial.println(F("Errore: l'host non è raggiungibile")=;
+      Serial.println(F("Errore: l'host non è raggiungibile"));
       WiFi.reconnect();
 
     }
