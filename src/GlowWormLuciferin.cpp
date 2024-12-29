@@ -119,8 +119,7 @@ void setup() {
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
   String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
-  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME,
-                                                                     ledManager.LDR_INTER_PARAM);
+  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_INTER_PARAM);
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
   String ledOnFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LED_ON_PARAM);
@@ -164,6 +163,9 @@ void setup() {
     bStored = ledManager.blue;
     brightness = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
     brightnessStored = brightness;
+    String ef = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("effect"));
+    effect = Globals::stringToEffect(ef);
+    effectStored = Globals::stringToEffect(ef);
   }
   String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
   if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {

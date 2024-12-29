@@ -853,10 +853,6 @@ bool NetManager::processJson() {
     if (bootstrapManager.jsonDoc["brightness"].is<JsonVariant>()) {
       brightness = bootstrapManager.jsonDoc["brightness"];
     }
-    if (autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
-                     brightness != brightnessStored)) {
-      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness);
-    }
     if (skipMacCheck) {
       if (bootstrapManager.jsonDoc["whitetemp"].is<JsonVariant>()) {
         uint8_t wt = bootstrapManager.jsonDoc["whitetemp"];
@@ -868,26 +864,12 @@ bool NetManager::processJson() {
     if (bootstrapManager.jsonDoc["ffeffect"].is<JsonVariant>()) {
       ffeffect = bootstrapManager.jsonDoc["ffeffect"].as<String>();
     }
+    String requestedEffect;
     if (bootstrapManager.jsonDoc["effect"].is<JsonVariant>()) {
       boolean effectIsDifferent = (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi);
-      JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
-      if (requestedEffect == "Bpm") effect = Effect::bpm;
-      else if (requestedEffect == "Fire") effect = Effect::fire;
-      else if (requestedEffect == "Twinkle") effect = Effect::twinkle;
-      else if (requestedEffect == "Rainbow") effect = Effect::rainbow;
-      else if (requestedEffect == "Chase rainbow") effect = Effect::chase_rainbow;
-      else if (requestedEffect == "Solid rainbow") effect = Effect::solid_rainbow;
-      else if (requestedEffect == "Random colors") effect = Effect::randomColors;
-      else if (requestedEffect == "Rainbow colors") effect = Effect::rainbowColors;
-      else if (requestedEffect == "Meteor") effect = Effect::meteor;
-      else if (requestedEffect == "Color waterfall") effect = Effect::colorWaterfall;
-      else if (requestedEffect == "Random marquee") effect = Effect::randomMarquee;
-      else if (requestedEffect == "Rainbow marquee") effect = Effect::rainbowMarquee;
-      else if (requestedEffect == "Pulsing rainbow") effect = Effect::pulsing_rainbow;
-      else if (requestedEffect == "Christmas") effect = Effect::christmas;
-      else if (requestedEffect == "Slow rainbow") effect = Effect::slowRainbow;
-      else {
-        effect = Effect::solid;
+      requestedEffect = bootstrapManager.jsonDoc["effect"].as<String>();
+      effect = Globals::stringToEffect(requestedEffect);
+      if (effect == Effect::solid) {
         breakLoop = true;
       }
       if (skipMacCheck) {
@@ -905,6 +887,11 @@ bool NetManager::processJson() {
           lastStream = millis();
         }
       }
+    }
+    Effect reqEff = Globals::stringToEffect(requestedEffect);
+    if (autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
+                     brightness != brightnessStored) || reqEff != effectStored) {
+      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness, requestedEffect);
     }
   }
   return true;

@@ -42,6 +42,7 @@ byte rStored;
 byte gStored;
 byte bStored;
 byte brightnessStored;
+Effect effectStored;
 boolean autoSave;
 Effect effect;
 String ffeffect;
@@ -150,15 +151,21 @@ void Globals::setGpioClock(int gpioClockToUse) {
 
 /**
  * Store color and brightness info
- * @param gpio gpio to use
+ * @param r
+ * @param g
+ * @param b
+ * @param brightness
+ * @param requestedEffect
  */
-void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness) {
+void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness, String requestedEffect) {
   Serial.println(F("Saving color and brightness info"));
   JsonDocument gpioDoc;
   gpioDoc[F("r")] = rStored = r;
   gpioDoc[F("g")] = gStored = g;
   gpioDoc[F("b")] = bStored = b;
   gpioDoc[F("brightness")] = brightnessStored = brightness;
+  gpioDoc[F("effect")] = requestedEffect;
+  effectStored = Globals::stringToEffect(requestedEffect);
   BootstrapManager::writeToLittleFS(gpioDoc, COLOR_BRIGHT_FILENAME);
   delay(20);
 }
@@ -333,6 +340,37 @@ const char *Globals::effectToString(Effect e) {
     default:
       return "Solid";
   }
+}
+
+/**
+ * String to effect
+ * @param requestedEffect string
+ * @return effect
+ */
+Effect Globals::stringToEffect(String requestedEffect) {
+  Effect ef = Effect::solid;
+  if (requestedEffect == "Bpm") {
+    ef = Effect::bpm;
+  }
+  else if (requestedEffect == "Bpm") { ef = Effect::bpm; }
+  else if (requestedEffect == "Fire") { ef = Effect::fire; }
+  else if (requestedEffect == "Twinkle") { ef = Effect::twinkle; }
+  else if (requestedEffect == "Rainbow") { ef = Effect::rainbow; }
+  else if (requestedEffect == "Slow Rainbow") { ef = Effect::slowRainbow; }
+  else if (requestedEffect == "Chase rainbow") { ef = Effect::chase_rainbow; }
+  else if (requestedEffect == "Solid rainbow") { ef = Effect::solid_rainbow; }
+  else if (requestedEffect == "GlowWorm") { ef = Effect::GlowWorm; }
+  else if (requestedEffect == "GlowWormWifi") { ef = Effect::GlowWormWifi; }
+  else if (requestedEffect == "Random colors") { ef = Effect::randomColors; }
+  else if (requestedEffect == "Rainbow colors") { ef = Effect::rainbowColors; }
+  else if (requestedEffect == "Meteor") { ef = Effect::meteor; }
+  else if (requestedEffect == "Color waterfall") { ef = Effect::colorWaterfall; }
+  else if (requestedEffect == "Random marquee") { ef = Effect::randomMarquee; }
+  else if (requestedEffect == "Rainbow marquee") { ef = Effect::rainbowMarquee; }
+  else if (requestedEffect == "Pulsing rainbow") { ef = Effect::pulsing_rainbow; }
+  else if (requestedEffect == "Christmas") { ef = Effect::christmas; }
+  else if (requestedEffect == "Solid") { ef = Effect::solid; }
+  return ef;
 }
 
 const uint8_t Globals::effectToInt(Effect e) {
