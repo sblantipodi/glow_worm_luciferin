@@ -166,7 +166,7 @@ void setup() {
     brightnessStored = brightness;
     ef = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("effect"));
     effectStored = Globals::stringToEffect(ef);
-    ledOn = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("toggle"));
+    ledOn = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("toggle")).toInt();
   }
   String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
   if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
