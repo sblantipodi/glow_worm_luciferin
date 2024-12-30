@@ -60,7 +60,6 @@ public:
     const String LDR_INTER_PARAM = "ldrInterval";
     const String MIN_LDR_PARAM = "minLdr";
     const String MAX_LDR_PARAM = "maxLdr";
-    const String LED_ON_PARAM = "ledOn";
     const String RELAY_PIN_PARAM = "relayPin";
     const String SB_PIN_PARAM = "sbPin";
     const String LDR_PIN_PARAM = "ldrPin";
@@ -121,7 +120,7 @@ public:
 
     static void setWhiteTemp(int whiteTemp);
 
-    void setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr, boolean ledOn);
+    void setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr);
 
     void setLdr(int maxLdr);
 

@@ -43,6 +43,7 @@ byte gStored;
 byte bStored;
 byte brightnessStored;
 Effect effectStored;
+boolean toggleStored;
 boolean autoSave;
 Effect effect;
 String ffeffect;
@@ -151,19 +152,24 @@ void Globals::setGpioClock(int gpioClockToUse) {
 
 /**
  * Store color and brightness info
- * @param r
- * @param g
- * @param b
- * @param brightness
- * @param requestedEffect
+ * @param r red channel
+ * @param g green channel
+ * @param b blue channel
+ * @param brightness stored
+ * @param requestedEffect stored
+ * @param toggleStored stored
  */
-void Globals::saveColorBrightnessInfo(int r, int g, int b, int brightness, String requestedEffect) {
+void Globals::saveColorBrightnessInfo(int r, int g, int b, int bright, String requestedEffect, boolean toggle) {
   Serial.println(F("Saving color and brightness info"));
   JsonDocument gpioDoc;
   gpioDoc[F("r")] = rStored = r;
   gpioDoc[F("g")] = gStored = g;
   gpioDoc[F("b")] = bStored = b;
-  gpioDoc[F("brightness")] = brightnessStored = brightness;
+  gpioDoc[F("toggle")] = toggleStored = toggle;
+  gpioDoc[F("brightness")] = brightnessStored = bright;
+  if (requestedEffect == "GlowWormWifi" || requestedEffect == "GlowWorm") {
+    requestedEffect = "Solid";
+  }
   gpioDoc[F("effect")] = requestedEffect;
   effectStored = Globals::stringToEffect(requestedEffect);
   BootstrapManager::writeToLittleFS(gpioDoc, COLOR_BRIGHT_FILENAME);

@@ -74,6 +74,7 @@ extern byte gStored;
 extern byte bStored;
 extern byte brightnessStored;
 extern Effect effectStored;
+extern boolean toggleStored;
 extern boolean autoSave;
 extern Effect effect;
 extern String ffeffect;
@@ -95,7 +96,6 @@ const String BAUDRATE_FILENAME = "baudrate.json";
 extern bool ldrReading;
 extern int ldrValue;
 extern bool ldrEnabled;
-extern bool ledOn;
 extern uint8_t ldrInterval;
 extern bool ldrTurnOff;
 extern uint8_t ldrMin;
@@ -135,7 +135,7 @@ public:
 
     static void setGpioClock(int gpioClock);
 
-    static void saveColorBrightnessInfo(int r, int g, int b, int brightness, String variant);
+    static void saveColorBrightnessInfo(int r, int g, int b, int brightness, String requestedEffect, boolean toggle);
 
     static void setBaudRate(int bdRate);
 

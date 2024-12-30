@@ -306,8 +306,6 @@ void NetManager::listenOnHttpGet() {
       prefsData += ldrTurnOff;
       prefsData += F("\",\"ldrMin\":\"");
       prefsData += ldrMin;
-      prefsData += F("\",\"ledOn\":\"");
-      prefsData += ledOn;
       prefsData += F("\",\"relayPin\":\"");
       prefsData += relayPin;
       prefsData += F("\",\"sbPin\":\"");
@@ -890,8 +888,8 @@ bool NetManager::processJson() {
     }
     Effect reqEff = Globals::stringToEffect(requestedEffect);
     if (autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
-                     brightness != brightnessStored) || reqEff != effectStored) {
-      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness, requestedEffect);
+                     brightness != brightnessStored) || reqEff != effectStored || ledManager.stateOn != toggleStored) {
+      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness, requestedEffect, ledManager.stateOn);
     }
   }
   return true;
@@ -1113,13 +1111,11 @@ bool NetManager::processLDR() {
     String ldrIntervalMqtt = bootstrapManager.jsonDoc[F("ldrInterval")];
     String ldrMinMqtt = bootstrapManager.jsonDoc[F("ldrMin")];
     String ldrActionMqtt = bootstrapManager.jsonDoc[F("ldrAction")];
-    String ledOnMqtt = bootstrapManager.jsonDoc[F("ledOn")];
     String rPin = bootstrapManager.jsonDoc[F("relayPin")];
     String sPin = bootstrapManager.jsonDoc[F("sbPin")];
     String lPin = bootstrapManager.jsonDoc[F("ldrPin")];
     ldrEnabled = ldrEnabledMqtt == "true";
     ldrTurnOff = ldrTurnOffMqtt == "true";
-    ledOn = ledOnMqtt == "true";
     ldrInterval = ldrIntervalMqtt.toInt();
     ldrMin = ldrMinMqtt.toInt();
     if (ldrActionMqtt.toInt() == 2) {
@@ -1132,7 +1128,7 @@ bool NetManager::processLDR() {
       delay(DELAY_500);
     }
     ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true",
-                      ldrInterval, ldrMinMqtt.toInt(), ledOnMqtt == "true");
+                      ldrInterval, ldrMinMqtt.toInt());
     delay(DELAY_500);
     content = F("Success: rebooting the microcontroller using your credentials.");
     statusCode = 200;
