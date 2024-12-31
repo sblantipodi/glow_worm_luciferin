@@ -94,6 +94,7 @@ footer.ldrfoot {
     background-color: orange;
     font-size: 0.7em;
     width: 10em;
+    margin-bottom: 1em;
 }
 span#wifi {
     margin-left: 0.3em;
