@@ -11,6 +11,10 @@
     background-color: orange !important;
     border-color: orange !important;
 }
+#toggleLED:active:hover {
+    background-color: darkorange !important;
+    border-color: darkorange !important;
+}
 body {
     background-color: #f8f8f8;
     font-wight: bold;
@@ -90,4 +94,17 @@ footer.ldrfoot {
     background-color: orange;
     font-size: 0.7em;
     width: 10em;
+}
+span#wifi {
+    margin-left: 0.3em;
+}
+span#ldr {
+    margin-left: 0.3em;
+}
+span#fps {
+    margin-left: 0.3em;
+}
+.saveBtn:hover {
+    background-color: darkorange;
+    border: transparent;
 }
