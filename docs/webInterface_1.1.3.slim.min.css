@@ -1,0 +1,93 @@
+.container-fluid {
+    background:orange !important;
+}
+#toggleLED {
+    font-size: 1.8rem;
+    font-weight: bold;
+    background: lightgrey;
+    border-color: lightgrey;
+}
+#toggleLED:active {
+    background-color: orange !important;
+    border-color: orange !important;
+}
+body {
+    background-color: #f8f8f8;
+    font-wight: bold;
+}
+button {
+    width: 100%;
+}
+.btn-primary {
+    font-weight: bold;
+}
+.col-sm-12, col-sm-6, footer {
+    margin: 2vw 0vw 2vw 0vw;
+}
+.wrap {
+    max-width: 72vw;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+.form-check-input:checked {
+    background-color: orange;
+    border-color: orange;
+}
+.slider-margin {
+    margin-top: 1em;
+}
+.btn.btn-white {
+    background-color: orange;
+    color: white;
+    font-weight: bold;
+}
+.margin-2 {
+    margin-top: 2vw;
+}
+.btn.back-btn {
+    color:white; 
+    left: 1em; 
+    top: 1em; 
+    display: block; 
+    position: absolute; 
+    width: 5em;
+}
+.btn.right-btn {
+    color:white; 
+    right: 1em; 
+    top: 1em; 
+    display: block; 
+    position: absolute; 
+    width: 5em;
+}
+.btn-orange {
+    background-color: orange;
+    border-color: orange;
+    color: white;
+    font-weight: bold;
+}
+button.btn.btn-orange:hover {
+    background-color: darkorange;
+    border-color: orange;
+    color: white;
+    font-weight: bold;
+}
+footer.ldrfoot {
+    margin: 0px;
+}
+.mgntop-small {
+    margin-top: 0.5em;
+}
+.fa-ethernet {
+    margin-right: 0.4em;
+}
+.saveBtn {
+    border-color: transparent;
+    font-weight: bold;
+    background-color: orange;
+    font-size: 0.7em;
+    width: 10em;
+}
