@@ -11,7 +11,7 @@
     background-color: orange !important;
     border-color: orange !important;
 }
-#toggleLED:active:hover {
+#toggleLED:hover {
     background-color: darkorange !important;
     border-color: darkorange !important;
 }
