@@ -109,3 +109,7 @@ span#fps {
     background-color: darkorange;
     border: transparent;
 }
+#subtitle {
+    margin-top: 1.0em;
+    margin-bottom: 0.5em;
+}
