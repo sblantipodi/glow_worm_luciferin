@@ -1171,7 +1171,7 @@ void NetManager::checkConnection() {
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
   server.handleClient();
   currentMillisCheckConn = millis();
-  if (currentMillisCheckConn - prevMillisCheckConn1 > 10000) {
+  if (currentMillisCheckConn - prevMillisCheckConn1 > 1000) {
     prevMillisCheckConn1 = currentMillisCheckConn;
     // No updates since 7 seconds, turn off LEDs
     if ((!breakLoop && (effect == Effect::GlowWorm) && (currentMillisCheckConn > ledManager.lastLedUpdate + 10000)) ||
@@ -1181,7 +1181,7 @@ void NetManager::checkConnection() {
       ledManager.stateOn = false;
       Globals::turnOffRelay();
     }
-    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
+    framerate = framerateCounter > 0 ? framerateCounter / 1 : 0;
     framerateCounter = 0;
     NetManager::sendStatus();
   }
