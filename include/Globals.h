@@ -1,7 +1,7 @@
 /*
   Globals.h - Helper classes
   
-  Copyright © 2020 - 2024  Davide Perini
+  Copyright © 2020 - 2025  Davide Perini
   
   Permission is hereby granted, free of charge, to any person obtaining a copy of 
   this software and associated documentation files (the "Software"), to deal
@@ -58,6 +58,11 @@ extern byte pre[CONFIG_PREFIX_LENGTH];
 extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
         fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock;
 
+enum class Effect {
+    GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, slowRainbow, randomColors,
+    rainbowColors, meteor, colorWaterfall, randomMarquee, rainbowMarquee, pulsing_rainbow, christmas
+};
+
 extern uint8_t gpioInUse;
 extern uint8_t gpioClockInUse;
 extern uint8_t whiteTempInUse;
@@ -68,16 +73,11 @@ extern byte rStored;
 extern byte gStored;
 extern byte bStored;
 extern byte brightnessStored;
+extern Effect effectStored;
+extern boolean toggleStored;
 extern boolean autoSave;
-enum class Effect {
-    GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, slowRainbow, randomColors,
-    rainbowColors, meteor, colorWaterfall, randomMarquee, rainbowMarquee, pulsing_rainbow, christmas
-};
 extern Effect effect;
 extern String ffeffect;
-// TODO remove
-extern String iip;
-extern String bbip;
 extern float framerate;
 extern float framerateSerial;
 extern float framerateCounter;
@@ -96,7 +96,6 @@ const String BAUDRATE_FILENAME = "baudrate.json";
 extern bool ldrReading;
 extern int ldrValue;
 extern bool ldrEnabled;
-extern bool ledOn;
 extern uint8_t ldrInterval;
 extern bool ldrTurnOff;
 extern uint8_t ldrMin;
@@ -136,7 +135,7 @@ public:
 
     static void setGpioClock(int gpioClock);
 
-    static void saveColorBrightnessInfo(int r, int g, int b, int brightness);
+    static void saveColorBrightnessInfo(int r, int g, int b, int brightness, String requestedEffect, boolean toggle);
 
     static void setBaudRate(int bdRate);
 
@@ -152,6 +151,7 @@ public:
 
     static const uint8_t effectToInt(Effect e);
 
+    static Effect stringToEffect(String variant);
 };
 
 

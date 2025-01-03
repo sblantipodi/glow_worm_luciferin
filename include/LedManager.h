@@ -2,7 +2,7 @@
   LedManager.h - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2024  Davide Perini
+  Copyright © 2020 - 2025  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -60,7 +60,6 @@ public:
     const String LDR_INTER_PARAM = "ldrInterval";
     const String MIN_LDR_PARAM = "minLdr";
     const String MAX_LDR_PARAM = "maxLdr";
-    const String LED_ON_PARAM = "ledOn";
     const String RELAY_PIN_PARAM = "relayPin";
     const String SB_PIN_PARAM = "sbPin";
     const String LDR_PIN_PARAM = "ldrPin";
@@ -121,7 +120,7 @@ public:
 
     static void setWhiteTemp(int whiteTemp);
 
-    void setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr, boolean ledOn);
+    void setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr);
 
     void setLdr(int maxLdr);
 

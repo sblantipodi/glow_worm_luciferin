@@ -2,7 +2,7 @@
   NetManager.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2024  Davide Perini
+  Copyright © 2020 - 2025  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -306,8 +306,6 @@ void NetManager::listenOnHttpGet() {
       prefsData += ldrTurnOff;
       prefsData += F("\",\"ldrMin\":\"");
       prefsData += ldrMin;
-      prefsData += F("\",\"ledOn\":\"");
-      prefsData += ledOn;
       prefsData += F("\",\"relayPin\":\"");
       prefsData += relayPin;
       prefsData += F("\",\"sbPin\":\"");
@@ -474,7 +472,7 @@ void NetManager::setLeds() {
     if (!netManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
       netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
-      if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
+      if (requestedEffect == F("GlowWorm") || requestedEffect == F("GlowWormWifi")) {
         netManager.broadcastUDP.print(ffeffect.c_str());
       } else {
         netManager.broadcastUDP.print(netManager.STOP_FF);
@@ -853,10 +851,6 @@ bool NetManager::processJson() {
     if (bootstrapManager.jsonDoc["brightness"].is<JsonVariant>()) {
       brightness = bootstrapManager.jsonDoc["brightness"];
     }
-    if (autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
-                     brightness != brightnessStored)) {
-      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness);
-    }
     if (skipMacCheck) {
       if (bootstrapManager.jsonDoc["whitetemp"].is<JsonVariant>()) {
         uint8_t wt = bootstrapManager.jsonDoc["whitetemp"];
@@ -868,26 +862,12 @@ bool NetManager::processJson() {
     if (bootstrapManager.jsonDoc["ffeffect"].is<JsonVariant>()) {
       ffeffect = bootstrapManager.jsonDoc["ffeffect"].as<String>();
     }
+    String requestedEffect;
     if (bootstrapManager.jsonDoc["effect"].is<JsonVariant>()) {
       boolean effectIsDifferent = (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi);
-      JsonVariant requestedEffect = bootstrapManager.jsonDoc["effect"];
-      if (requestedEffect == "Bpm") effect = Effect::bpm;
-      else if (requestedEffect == "Fire") effect = Effect::fire;
-      else if (requestedEffect == "Twinkle") effect = Effect::twinkle;
-      else if (requestedEffect == "Rainbow") effect = Effect::rainbow;
-      else if (requestedEffect == "Chase rainbow") effect = Effect::chase_rainbow;
-      else if (requestedEffect == "Solid rainbow") effect = Effect::solid_rainbow;
-      else if (requestedEffect == "Random colors") effect = Effect::randomColors;
-      else if (requestedEffect == "Rainbow colors") effect = Effect::rainbowColors;
-      else if (requestedEffect == "Meteor") effect = Effect::meteor;
-      else if (requestedEffect == "Color waterfall") effect = Effect::colorWaterfall;
-      else if (requestedEffect == "Random marquee") effect = Effect::randomMarquee;
-      else if (requestedEffect == "Rainbow marquee") effect = Effect::rainbowMarquee;
-      else if (requestedEffect == "Pulsing rainbow") effect = Effect::pulsing_rainbow;
-      else if (requestedEffect == "Christmas") effect = Effect::christmas;
-      else if (requestedEffect == "Slow rainbow") effect = Effect::slowRainbow;
-      else {
-        effect = Effect::solid;
+      requestedEffect = bootstrapManager.jsonDoc["effect"].as<String>();
+      effect = Globals::stringToEffect(requestedEffect);
+      if (effect == Effect::solid) {
         breakLoop = true;
       }
       if (skipMacCheck) {
@@ -905,6 +885,11 @@ bool NetManager::processJson() {
           lastStream = millis();
         }
       }
+    }
+    Effect reqEff = Globals::stringToEffect(requestedEffect);
+    if (autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
+                     brightness != brightnessStored) || reqEff != effectStored || ledManager.stateOn != toggleStored) {
+      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness, requestedEffect, ledManager.stateOn);
     }
   }
   return true;
@@ -1126,13 +1111,11 @@ bool NetManager::processLDR() {
     String ldrIntervalMqtt = bootstrapManager.jsonDoc[F("ldrInterval")];
     String ldrMinMqtt = bootstrapManager.jsonDoc[F("ldrMin")];
     String ldrActionMqtt = bootstrapManager.jsonDoc[F("ldrAction")];
-    String ledOnMqtt = bootstrapManager.jsonDoc[F("ledOn")];
     String rPin = bootstrapManager.jsonDoc[F("relayPin")];
     String sPin = bootstrapManager.jsonDoc[F("sbPin")];
     String lPin = bootstrapManager.jsonDoc[F("ldrPin")];
     ldrEnabled = ldrEnabledMqtt == "true";
     ldrTurnOff = ldrTurnOffMqtt == "true";
-    ledOn = ledOnMqtt == "true";
     ldrInterval = ldrIntervalMqtt.toInt();
     ldrMin = ldrMinMqtt.toInt();
     if (ldrActionMqtt.toInt() == 2) {
@@ -1145,7 +1128,7 @@ bool NetManager::processLDR() {
       delay(DELAY_500);
     }
     ledManager.setLdr(ldrEnabledMqtt == "true", ldrTurnOffMqtt == "true",
-                      ldrInterval, ldrMinMqtt.toInt(), ledOnMqtt == "true");
+                      ldrInterval, ldrMinMqtt.toInt());
     delay(DELAY_500);
     content = F("Success: rebooting the microcontroller using your credentials.");
     statusCode = 200;
@@ -1188,7 +1171,7 @@ void NetManager::checkConnection() {
   bootstrapManager.bootstrapLoop(manageDisconnections, manageQueueSubscription, manageHardwareButton);
   server.handleClient();
   currentMillisCheckConn = millis();
-  if (currentMillisCheckConn - prevMillisCheckConn1 > 10000) {
+  if (currentMillisCheckConn - prevMillisCheckConn1 > 1000) {
     prevMillisCheckConn1 = currentMillisCheckConn;
     // No updates since 7 seconds, turn off LEDs
     if ((!breakLoop && (effect == Effect::GlowWorm) && (currentMillisCheckConn > ledManager.lastLedUpdate + 10000)) ||
@@ -1198,7 +1181,7 @@ void NetManager::checkConnection() {
       ledManager.stateOn = false;
       Globals::turnOffRelay();
     }
-    framerate = framerateCounter > 0 ? framerateCounter / 10 : 0;
+    framerate = framerateCounter > 0 ? framerateCounter / 1 : 0;
     framerateCounter = 0;
     NetManager::sendStatus();
   }
