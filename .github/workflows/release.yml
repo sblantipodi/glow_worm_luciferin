@@ -13,7 +13,7 @@ jobs:
   create_draft_release:
     env:
       commitmsg: ${{ github.event.head_commit.message }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Set env
@@ -38,7 +38,7 @@ jobs:
 
 
   build_esp8266_firmware_full:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
@@ -102,7 +102,7 @@ jobs:
 
 
   build_esp8266_firmware_light:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
@@ -154,7 +154,7 @@ jobs:
 
 
   build_esp32_firmware_full:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
@@ -268,7 +268,7 @@ jobs:
 
 
   build_esp32_firmware_light:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
@@ -370,7 +370,7 @@ jobs:
 
 
   web_tools_update:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build_esp8266_firmware_full, build_esp8266_firmware_light, build_esp32_firmware_full, build_esp32_firmware_light ]
 
     steps:
@@ -478,7 +478,7 @@ jobs:
 
   create_release:
     needs: [build_esp8266_firmware_full, build_esp8266_firmware_light, build_esp32_firmware_full, build_esp32_firmware_light, web_tools_update]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Set env

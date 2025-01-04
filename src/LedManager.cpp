@@ -2,7 +2,7 @@
   LedManager.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2024  Davide Perini
+  Copyright © 2020 - 2025  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -724,8 +724,7 @@ void LedManager::setColorOrder(int colorOrderToUse) {
  * @param minLdr min brightness when using LDR
  * @param ledOnParam turn on LEDs automatically at boot
  */
-void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr,
-                        boolean ledOnParam) {
+void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_t ldrIntervalToSet, uint8_t minLdr) {
   Serial.println(F("CHANGING LDR"));
   previousMillisLDR = 0;
   JsonDocument ldrDoc;
@@ -733,7 +732,6 @@ void LedManager::setLdr(boolean ldrEnabledToSet, boolean ldrTurnOffToSet, uint8_
   ldrDoc[LDR_TO_PARAM] = ldrTurnOffToSet;
   ldrDoc[LDR_INTER_PARAM] = ldrIntervalToSet;
   ldrDoc[MIN_LDR_PARAM] = minLdr;
-  ldrDoc[LED_ON_PARAM] = ledOnParam;
   BootstrapManager::writeToLittleFS(ldrDoc, LDR_FILENAME);
   delay(20);
 }

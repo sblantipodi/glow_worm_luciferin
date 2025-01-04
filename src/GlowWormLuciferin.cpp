@@ -2,7 +2,7 @@
   GlowWormLuciferin.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2024  Davide Perini
+  Copyright © 2020 - 2025  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 #include "GlowWormLuciferin.h"
-
 
 /**
  * Setup function
@@ -120,11 +119,9 @@ void setup() {
   // Color mode from configuration storage
   String ldrFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_PARAM);
   String ldrTurnOffFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_TO_PARAM);
-  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME,
-                                                                     ledManager.LDR_INTER_PARAM);
+  String ldrIntervalFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LDR_INTER_PARAM);
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
-  String ledOnFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.LED_ON_PARAM);
   String relayPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_PIN_PARAM);
   String sbPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.SB_PIN_PARAM);
   String ldrPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LDR_PIN_PARAM);
@@ -156,6 +153,8 @@ void setup() {
     }
   }
   String r = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r"));
+  String ef = Globals::effectToString(Effect::solid);
+  boolean ledOn = false;
   if (!r.isEmpty() && r != ERROR && r.toInt() != -1) {
     ledManager.red = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r")).toInt();
     rStored = ledManager.red;
@@ -165,6 +164,9 @@ void setup() {
     bStored = ledManager.blue;
     brightness = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
     brightnessStored = brightness;
+    ef = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("effect"));
+    effectStored = Globals::stringToEffect(ef);
+    ledOn = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("toggle")).toInt();
   }
   String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
   if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
@@ -189,14 +191,11 @@ void setup() {
 #endif
 #endif
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (!ledOnFromStorage.isEmpty() && ledOnFromStorage != ERROR) {
-    ledOn = ledOnFromStorage == "1";
-    if (ledOn) {
-      Globals::turnOnRelay();
-      ledManager.stateOn = true;
-      effect = Effect::solid;
-      NetManager::setColor();
-    }
+  if (ledOn) {
+    Globals::turnOnRelay();
+    ledManager.stateOn = true;
+    effect = Globals::stringToEffect(ef);
+    NetManager::setColor();
   }
 #endif
   LedManager::manageBuiltInLed(0, 0, 0);
@@ -340,7 +339,7 @@ void mainLoop() {
                 ldrTurnOff = ldrTo == 1;
                 ldrInterval = ldrInt;
                 ldrMin = ldrMn;
-                ledManager.setLdr(ldrEn == 1, ldrTo == 1, ldrInt, ldrMn, ledOn);
+                ledManager.setLdr(ldrEn == 1, ldrTo == 1, ldrInt, ldrMn);
                 delay(DELAY_500);
                 if (ldrAction == 2) {
                   ldrDivider = ldrValue;
@@ -672,7 +671,9 @@ void loop() {
   if ((builtInLedStatus || resetLedStatus) && wifiReconnectAttemp == 0 && mqttReconnectAttemp == 0) {
     builtInLedStatus = false;
     resetLedStatus = false;
-    LedManager::setColorNoSolid(0, 0, 0);
+    if (!ledManager.stateOn) {
+      LedManager::setColorNoSolid(0, 0, 0);
+    }
     disconnectionTime = currentMillisMainLoop;
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
     LedManager::manageBuiltInLed(0, 0, 0);
