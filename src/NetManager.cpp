@@ -887,8 +887,8 @@ bool NetManager::processJson() {
       }
     }
     Effect reqEff = Globals::stringToEffect(requestedEffect);
-    if (autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
-                     brightness != brightnessStored) || reqEff != effectStored || ledManager.stateOn != toggleStored) {
+    if ((autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
+                     brightness != brightnessStored || reqEff != effectStored || ledManager.stateOn != toggleStored))) {
       Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness, requestedEffect, ledManager.stateOn);
     }
   }
