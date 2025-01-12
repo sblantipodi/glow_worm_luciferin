@@ -887,7 +887,15 @@ void LedManager::setWhiteTemp(int wt) {
  * @param b blu
  */
 void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
+  if (LED_BUILTIN != gpioInUse) {
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-  neopixelWrite(LED_BUILTIN, r, g, b);
+    neopixelWrite(LED_BUILTIN, r, g, b);
+#elif defined(ESP8266)
+    if (r > 0 || g > 0 || b > 0) {
+      digitalWrite(LED_BUILTIN, LOW);
+    } else {
+      digitalWrite(LED_BUILTIN, HIGH);
+    }
 #endif
+  }
 }

@@ -208,6 +208,11 @@ void configureLeds() {
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
     gpioInUse = gpioFromStorage.toInt();
+#if defined(ESP8266)
+    if (LED_BUILTIN != gpioInUse) {
+      pinMode(LED_BUILTIN, OUTPUT);
+    }
+#endif
   }
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
@@ -674,9 +679,7 @@ void loop() {
       LedManager::setColorNoSolid(0, 0, 0);
     }
     disconnectionTime = currentMillisMainLoop;
-#if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
     LedManager::manageBuiltInLed(0, 0, 0);
-#endif
   }
 }
 
