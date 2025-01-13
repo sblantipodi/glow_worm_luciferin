@@ -318,7 +318,7 @@ const char *Globals::effectToString(Effect e) {
     case Effect::rainbow:
       return "Rainbow";
     case Effect::slowRainbow:
-      return "Slow Rainbow";
+      return "Slow rainbow";
     case Effect::chase_rainbow:
       return "Chase rainbow";
     case Effect::solid_rainbow:
@@ -362,7 +362,7 @@ Effect Globals::stringToEffect(String requestedEffect) {
   else if (requestedEffect == "Fire") { ef = Effect::fire; }
   else if (requestedEffect == "Twinkle") { ef = Effect::twinkle; }
   else if (requestedEffect == "Rainbow") { ef = Effect::rainbow; }
-  else if (requestedEffect == "Slow Rainbow") { ef = Effect::slowRainbow; }
+  else if (requestedEffect == "Slow rainbow") { ef = Effect::slowRainbow; }
   else if (requestedEffect == "Chase rainbow") { ef = Effect::chase_rainbow; }
   else if (requestedEffect == "Solid rainbow") { ef = Effect::solid_rainbow; }
   else if (requestedEffect == "GlowWorm") { ef = Effect::GlowWorm; }
