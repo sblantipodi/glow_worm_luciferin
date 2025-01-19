@@ -154,6 +154,30 @@ RgbwColor setColorOrderWhite(uint8_t r, uint8_t g, uint8_t b, uint8_t w) {
     case 4: return RgbwColor(b, r, g, w);
     case 5: return RgbwColor(r, b, g, w);
     case 6: return RgbwColor(g, b, r, w);
+    // Swap white channel g, r, b, w
+    case 7: return RgbwColor(g, r, w, b);
+    case 8: return RgbwColor(g, w, b, r);
+    case 9: return RgbwColor(w, r, b, g);
+    // Swap white channel r, g, b, w
+    case 10: return RgbwColor(r, g, w, b);
+    case 11: return RgbwColor(r, w, b, g);
+    case 12: return RgbwColor(w, g, b, r);
+    // Swap white channel b, g, r, w
+    case 13: return RgbwColor(b, g, w, r);
+    case 14: return RgbwColor(b, w, r, g);
+    case 15: return RgbwColor(w, g, r, b);
+    // Swap white channel b, r, g, w
+    case 16: return RgbwColor(b, r, w, g);
+    case 17: return RgbwColor(b, w, g, r);
+    case 18: return RgbwColor(w, r, g, b);
+    // Swap white channel r, b, g, w
+    case 19: return RgbwColor(r, b, w, g);
+    case 20: return RgbwColor(r, w, g, b);
+    case 21: return RgbwColor(w, b, g, r);
+    // Swap white channel g, b, r, w
+    case 22: return RgbwColor(g, b, w, r);
+    case 23: return RgbwColor(g, w, r, b);
+    case 24: return RgbwColor(w, b, r, g);
     default: return RgbwColor(r, g, b, w);
   }
 }
@@ -887,7 +911,17 @@ void LedManager::setWhiteTemp(int wt) {
  * @param b blu
  */
 void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
+#if defined(LED_BUILTIN)
+  if (LED_BUILTIN != gpioInUse) {
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-  neopixelWrite(LED_BUILTIN, r, g, b);
+    neopixelWrite(LED_BUILTIN, r, g, b);
+#elif defined(ESP8266)
+    if (r > 0 || g > 0 || b > 0) {
+      digitalWrite(LED_BUILTIN, LOW);
+    } else {
+      digitalWrite(LED_BUILTIN, HIGH);
+    }
+#endif
+  }
 #endif
 }

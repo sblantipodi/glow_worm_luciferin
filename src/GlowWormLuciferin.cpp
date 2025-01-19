@@ -154,7 +154,6 @@ void setup() {
   }
   String r = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r"));
   String ef = Globals::effectToString(Effect::solid);
-  boolean ledOn = false;
   if (!r.isEmpty() && r != ERROR && r.toInt() != -1) {
     ledManager.red = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r")).toInt();
     rStored = ledManager.red;
@@ -166,7 +165,7 @@ void setup() {
     brightnessStored = brightness;
     ef = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("effect"));
     effectStored = Globals::stringToEffect(ef);
-    ledOn = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("toggle")).toInt();
+    toggleStored = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("toggle")).toInt();
   }
   String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
   if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
@@ -191,7 +190,7 @@ void setup() {
 #endif
 #endif
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  if (ledOn) {
+  if (toggleStored) {
     Globals::turnOnRelay();
     ledManager.stateOn = true;
     effect = Globals::stringToEffect(ef);
@@ -209,6 +208,11 @@ void configureLeds() {
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
     gpioInUse = gpioFromStorage.toInt();
+#if defined(ESP8266)
+    if (LED_BUILTIN != gpioInUse) {
+      pinMode(LED_BUILTIN, OUTPUT);
+    }
+#endif
   }
   Serial.print(F("GPIO IN USE="));
   Serial.println(gpioInUse);
@@ -675,9 +679,7 @@ void loop() {
       LedManager::setColorNoSolid(0, 0, 0);
     }
     disconnectionTime = currentMillisMainLoop;
-#if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
     LedManager::manageBuiltInLed(0, 0, 0);
-#endif
   }
 }
 
