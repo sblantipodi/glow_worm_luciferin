@@ -294,6 +294,10 @@ void NetManager::listenOnHttpGet() {
         prefsData += F("\",\"ldr\":\"");
         prefsData += ((ldrValue * 100) / ldrDivider);
       }
+      if (!mqttConnected && mqttIP.length() > 0) {
+        prefsData += F("\",\"mqttError\":\"");
+        prefsData += !mqttConnected;
+      }
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
   });
@@ -317,6 +321,10 @@ void NetManager::listenOnHttpGet() {
         prefsData += ((ldrValue * 100) / ldrDivider);
       } else {
         prefsData += 0;
+      }
+      if (!mqttConnected && mqttIP.length() > 0) {
+        prefsData += F("\",\"mqttError\":\"");
+        prefsData += !mqttConnected;
       }
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
@@ -420,6 +428,10 @@ void NetManager::manageAPSetting(bool isSettingRoot) {
       prefsData += baudRateInUse;
       prefsData += F("\",\"ssid\":\"");
       prefsData += qsid.c_str();
+      if (!mqttConnected && mqttIP.length() > 0) {
+        prefsData += F("\",\"mqttError\":\"");
+        prefsData += !mqttConnected;
+      }
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
       startUDP();
