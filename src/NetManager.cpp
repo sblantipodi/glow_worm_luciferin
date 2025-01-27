@@ -294,7 +294,7 @@ void NetManager::listenOnHttpGet() {
         prefsData += F("\",\"ldr\":\"");
         prefsData += ((ldrValue * 100) / ldrDivider);
       }
-      if (!mqttConnected) {
+      if (!mqttConnected && mqttIP.length() > 0) {
         prefsData += F("\",\"mqttError\":\"");
         prefsData += !mqttConnected;
       }
@@ -322,7 +322,7 @@ void NetManager::listenOnHttpGet() {
       } else {
         prefsData += 0;
       }
-      if (!mqttConnected) {
+      if (!mqttConnected && mqttIP.length() > 0) {
         prefsData += F("\",\"mqttError\":\"");
         prefsData += !mqttConnected;
       }
@@ -428,7 +428,7 @@ void NetManager::manageAPSetting(bool isSettingRoot) {
       prefsData += baudRateInUse;
       prefsData += F("\",\"ssid\":\"");
       prefsData += qsid.c_str();
-      if (!mqttConnected) {
+      if (!mqttConnected && mqttIP.length() > 0) {
         prefsData += F("\",\"mqttError\":\"");
         prefsData += !mqttConnected;
       }
