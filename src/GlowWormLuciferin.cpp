@@ -113,6 +113,7 @@ void setup() {
   Serial.println(netManager.topicInUse);
 
   // Bootsrap setup() with Wifi and MQTT functions
+  blockingMqtt = false;
   bootstrapManager.bootstrapSetup(NetManager::manageDisconnections, NetManager::manageHardwareButton,
                                   NetManager::callback, true, manageApRoot);
 #endif
