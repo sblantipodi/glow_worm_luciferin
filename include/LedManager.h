@@ -73,6 +73,11 @@ public:
     uint lastLedUpdate = 10000;
     bool led_state = true;
     uint8_t fireflyEffectInUse;
+    RgbColor startColor;
+    RgbColor endColor;
+    const uint8_t totalSteps = 100;
+    uint8_t currentStep = 0;
+    bool transitioning = false;
 
     void cleanLEDs();
 
@@ -131,6 +136,9 @@ public:
     static void manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b);
 
     RgbColor getPixelColor(uint16_t index) const;
+
+    void updateTransition();
+
 };
 
 #endif //GLOW_WORM_LUCIFERIN_LEDMANAGER_H

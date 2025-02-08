@@ -324,8 +324,11 @@ void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrde
 #endif
 }
 
-RgbColor convertRgbwToRgb(const RgbwColor &color) {
-  return RgbColor(color.R, color.G, color.B);
+RgbColor convertRgbwToRgb(RgbwColor colorRGBW) {
+  uint8_t red = max(0, colorRGBW.R - colorRGBW.W);
+  uint8_t green = max(0, colorRGBW.G - colorRGBW.W);
+  uint8_t blue = max(0, colorRGBW.B - colorRGBW.W);
+  return RgbColor(red, green, blue);
 }
 
 RgbColor LedManager::getPixelColor(uint16_t index) const {
@@ -837,6 +840,24 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
 }
 
 /**
+ * Update transition from one color to another
+ */
+void LedManager::updateTransition() {
+  if (!transitioning || currentStep >= totalSteps) return;
+  float ratio = (float) currentStep / (float) (totalSteps - 1);
+  RgbColor interpolatedColor = RgbColor::LinearBlend(startColor, endColor, ratio);
+  for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+    ledManager.setPixelColor(i, interpolatedColor.R, interpolatedColor.G, interpolatedColor.B);
+  }
+  ledManager.ledShow();
+  currentStep++;
+  if (currentStep >= totalSteps) {
+    ledManager.startColor = ledManager.endColor;
+    temporaryDisableImprove = transitioning = false;
+  }
+}
+
+/**
  * Set led strip color
  * @param inR red color
  * @param inG green color
@@ -844,10 +865,11 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
  */
 void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
   if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
-    for (int i = 0; i < ledManager.dynamicLedNum; i++) {
-      ledManager.setPixelColor(i, inR, inG, inB);
+    if (!ledManager.transitioning) {
+      ledManager.endColor = RgbColor(inR, inG, inB);
+      ledManager.currentStep = 0;
+      temporaryDisableImprove = ledManager.transitioning = true;
     }
-    ledManager.ledShow();
   }
   Serial.print(F("Setting LEDs: "));
   Serial.print(F("r: "));
