@@ -845,9 +845,9 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
 void LedManager::updateTransition() {
   if (!transitioning || currentStep >= totalSteps) return;
   float ratio = (float) currentStep / (float) (totalSteps - 1);
-  RgbColor interpolatedColor = RgbColor::LinearBlend(startColor, endColor, ratio);
+  currentColor = RgbColor::LinearBlend(startColor, endColor, ratio);
   for (int i = 0; i < ledManager.dynamicLedNum; i++) {
-    ledManager.setPixelColor(i, interpolatedColor.R, interpolatedColor.G, interpolatedColor.B);
+    ledManager.setPixelColor(i, currentColor.R, currentColor.G, currentColor.B);
   }
   ledManager.ledShow();
   currentStep++;
@@ -865,18 +865,19 @@ void LedManager::updateTransition() {
  */
 void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
   if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
-    if (!ledManager.transitioning) {
       if (effect != Effect::solid) {
         for (int i = 0; i < ledManager.dynamicLedNum; i++) {
           ledManager.setPixelColor(i, inR, inG, inB);
         }
         ledManager.ledShow();
       } else {
+        if (ledManager.transitioning) {
+          ledManager.startColor = ledManager.currentColor;
+        }
         ledManager.endColor = RgbColor(inR, inG, inB);
         ledManager.currentStep = 0;
         temporaryDisableImprove = ledManager.transitioning = true;
       }
-    }
   }
   Serial.print(F("Setting LEDs: "));
   Serial.print(F("r: "));

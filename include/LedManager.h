@@ -75,6 +75,7 @@ public:
     uint8_t fireflyEffectInUse;
     RgbColor startColor;
     RgbColor endColor;
+    RgbColor currentColor;
     const uint8_t totalSteps = 100;
     uint8_t currentStep = 0;
     bool transitioning = false;
