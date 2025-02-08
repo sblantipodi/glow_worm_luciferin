@@ -866,9 +866,16 @@ void LedManager::updateTransition() {
 void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
   if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
     if (!ledManager.transitioning) {
-      ledManager.endColor = RgbColor(inR, inG, inB);
-      ledManager.currentStep = 0;
-      temporaryDisableImprove = ledManager.transitioning = true;
+      if (effect != Effect::solid) {
+        for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+          ledManager.setPixelColor(i, inR, inG, inB);
+        }
+        ledManager.ledShow();
+      } else {
+        ledManager.endColor = RgbColor(inR, inG, inB);
+        ledManager.currentStep = 0;
+        temporaryDisableImprove = ledManager.transitioning = true;
+      }
     }
   }
   Serial.print(F("Setting LEDs: "));
