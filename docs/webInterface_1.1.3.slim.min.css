@@ -113,3 +113,17 @@ span#fps {
     margin-top: 1.0em;
     margin-bottom: 0.5em;
 }
+body {
+    animation: container 1.5s;
+}
+@keyframes container {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+.container {
+    animation: fi 1.5s .7s both;
+}
