@@ -114,7 +114,7 @@ span#fps {
     margin-bottom: 0.5em;
 }
 body {
-    animation: container 1.0s;
+    animation: container 0.8s;
 }
 @keyframes container {
     from {
@@ -125,5 +125,5 @@ body {
     }
 }
 .container {
-    animation: fi 1.0s .5s both;
+    animation: fi 0.8s .4s both;
 }
