@@ -507,7 +507,7 @@ void mainLoop() {
 #endif
   }
 
-  if (effect == Effect::solid) {
+  if (effect == Effect::solid && !ledManager.transitioning) {
     temporaryDisableImprove = false;
   } else {
     temporaryDisableImprove = true;
@@ -682,6 +682,7 @@ void loop() {
     disconnectionTime = currentMillisMainLoop;
     LedManager::manageBuiltInLed(0, 0, 0);
   }
+  ledManager.updateTransition();
 }
 
 
