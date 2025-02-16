@@ -376,7 +376,7 @@ void mainLoop() {
                 ledManager.initLeds();
                 breakLoop = true;
               }
-              if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 8)) {
+              if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 10)) {
                 Globals::setBaudRate(baudRate);
 #if defined(ARDUINO_ARCH_ESP32)
                 ESP.restart();
