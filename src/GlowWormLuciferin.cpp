@@ -376,7 +376,7 @@ void mainLoop() {
                 ledManager.initLeds();
                 breakLoop = true;
               }
-              if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 8)) {
+              if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 10)) {
                 Globals::setBaudRate(baudRate);
 #if defined(ARDUINO_ARCH_ESP32)
                 ESP.restart();
@@ -507,7 +507,7 @@ void mainLoop() {
 #endif
   }
 
-  if (effect == Effect::solid) {
+  if (effect == Effect::solid && !ledManager.transitioning) {
     temporaryDisableImprove = false;
   } else {
     temporaryDisableImprove = true;
@@ -682,6 +682,7 @@ void loop() {
     disconnectionTime = currentMillisMainLoop;
     LedManager::manageBuiltInLed(0, 0, 0);
   }
+  ledManager.updateTransition();
 }
 
 
