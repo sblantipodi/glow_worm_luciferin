@@ -186,14 +186,17 @@ uint16_t lastKelvin = 0;
 byte colorCorrectionRGB[] = {0, 0, 0};
 
 /**
- * Apply white temp correction on RGB color
+ * Apply white temp correction on RGB color.
+ * This function kicks in is Luciferin is not in bias light mode.
+ *
  * @param r red channel
  * @param g green channel
  * @param b blue channel
  * @return RGB color
  */
 RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
-  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
+  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE
+    && (framerateCounter == 0 && framerateCounterSerial == 0)) {
     if (lastKelvin != whiteTempInUse) {
       colorKtoRGB(colorCorrectionRGB);
     }
@@ -211,6 +214,8 @@ RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
 /**
  * Apply white temp correction on RGB color and calculate W channel
  * colorMode can be: 1 = RGB, 2 = RGBW Accurate, 3 = RGBW Brighter, 4 = RGBW RGB only
+ * This function kicks in is Luciferin is not in bias light mode.
+ *
  * @param r red channel
  * @param g green channel
  * @param b blue channel
@@ -228,7 +233,8 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
     // RGB only, turn off white led
     w = 0;
   }
-  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
+  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE
+    && (framerateCounter == 0 && framerateCounterSerial == 0)) {
     if (lastKelvin != whiteTempInUse) {
       colorKtoRGB(colorCorrectionRGB);
     }
