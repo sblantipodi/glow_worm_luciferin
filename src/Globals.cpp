@@ -203,6 +203,12 @@ int Globals::setBaudRateInUse(int bdrate) {
     case 7:
       baudRateToUse = 2000000;
       break;
+    case 9:
+      baudRateToUse = 4000000;
+    break;
+    case 10:
+      baudRateToUse = 6000000;
+    break;
     case 8:
       baudRateToUse = 115200;
       break;

@@ -186,14 +186,17 @@ uint16_t lastKelvin = 0;
 byte colorCorrectionRGB[] = {0, 0, 0};
 
 /**
- * Apply white temp correction on RGB color
+ * Apply white temp correction on RGB color.
+ * This function kicks in is Luciferin is not in bias light mode.
+ *
  * @param r red channel
  * @param g green channel
  * @param b blue channel
  * @return RGB color
  */
 RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
-  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
+  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE
+    && (framerate == 0 && framerateSerial == 0)) {
     if (lastKelvin != whiteTempInUse) {
       colorKtoRGB(colorCorrectionRGB);
     }
@@ -211,6 +214,8 @@ RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
 /**
  * Apply white temp correction on RGB color and calculate W channel
  * colorMode can be: 1 = RGB, 2 = RGBW Accurate, 3 = RGBW Brighter, 4 = RGBW RGB only
+ * This function kicks in is Luciferin is not in bias light mode.
+ *
  * @param r red channel
  * @param g green channel
  * @param b blue channel
@@ -228,7 +233,8 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
     // RGB only, turn off white led
     w = 0;
   }
-  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE) {
+  if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE
+    && (framerate == 0 && framerateSerial == 0)) {
     if (lastKelvin != whiteTempInUse) {
       colorKtoRGB(colorCorrectionRGB);
     }
@@ -324,8 +330,11 @@ void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrde
 #endif
 }
 
-RgbColor convertRgbwToRgb(const RgbwColor &color) {
-  return RgbColor(color.R, color.G, color.B);
+RgbColor convertRgbwToRgb(RgbwColor colorRGBW) {
+  uint8_t red = max(0, colorRGBW.R - colorRGBW.W);
+  uint8_t green = max(0, colorRGBW.G - colorRGBW.W);
+  uint8_t blue = max(0, colorRGBW.B - colorRGBW.W);
+  return RgbColor(red, green, blue);
 }
 
 RgbColor LedManager::getPixelColor(uint16_t index) const {
@@ -837,6 +846,24 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
 }
 
 /**
+ * Update transition from one color to another
+ */
+void LedManager::updateTransition() {
+  if (!transitioning || currentStep >= totalSteps) return;
+  float ratio = (float) currentStep / (float) (totalSteps - 1);
+  currentColor = RgbColor::LinearBlend(startColor, endColor, ratio);
+  for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+    ledManager.setPixelColor(i, currentColor.R, currentColor.G, currentColor.B);
+  }
+  ledManager.ledShow();
+  currentStep++;
+  if (currentStep >= totalSteps) {
+    ledManager.startColor = ledManager.endColor;
+    temporaryDisableImprove = transitioning = false;
+  }
+}
+
+/**
  * Set led strip color
  * @param inR red color
  * @param inG green color
@@ -844,10 +871,19 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
  */
 void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
   if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
-    for (int i = 0; i < ledManager.dynamicLedNum; i++) {
-      ledManager.setPixelColor(i, inR, inG, inB);
-    }
-    ledManager.ledShow();
+      if (effect != Effect::solid) {
+        for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+          ledManager.setPixelColor(i, inR, inG, inB);
+        }
+        ledManager.ledShow();
+      } else {
+        if (ledManager.transitioning) {
+          ledManager.startColor = ledManager.currentColor;
+        }
+        ledManager.endColor = RgbColor(inR, inG, inB);
+        ledManager.currentStep = 0;
+        temporaryDisableImprove = ledManager.transitioning = true;
+      }
   }
   Serial.print(F("Setting LEDs: "));
   Serial.print(F("r: "));
