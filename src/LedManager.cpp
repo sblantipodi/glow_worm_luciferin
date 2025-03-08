@@ -196,7 +196,7 @@ byte colorCorrectionRGB[] = {0, 0, 0};
  */
 RgbColor calculateRgbMode(uint8_t r, uint8_t g, uint8_t b) {
   if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE
-    && (framerateCounter == 0 && framerateCounterSerial == 0)) {
+    && (framerate == 0 && framerateSerial == 0)) {
     if (lastKelvin != whiteTempInUse) {
       colorKtoRGB(colorCorrectionRGB);
     }
@@ -234,7 +234,7 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
     w = 0;
   }
   if (whiteTempInUse != WHITE_TEMP_CORRECTION_DISABLE
-    && (framerateCounter == 0 && framerateCounterSerial == 0)) {
+    && (framerate == 0 && framerateSerial == 0)) {
     if (lastKelvin != whiteTempInUse) {
       colorKtoRGB(colorCorrectionRGB);
     }
