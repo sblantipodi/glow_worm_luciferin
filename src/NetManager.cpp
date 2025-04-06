@@ -922,6 +922,8 @@ void NetManager::sendStatus() {
     fpsData += brightness;
     fpsData += F(",\"MAC\":\"");
     fpsData += MAC;
+    fpsData += F("\",\"color_mode\":\"");
+    fpsData += F("rgb");
     fpsData += F("\",\"lednum\":\"");
     fpsData += ledManager.dynamicLedNum;
     fpsData += F("\",\"framerate\":\"");
@@ -956,6 +958,7 @@ void NetManager::sendStatus() {
     color[F("b")] = ledManager.blue;
     color[F("colorMode")] = colorMode;
     color[F("colorOrder")] = colorOrder;
+    root[F("color_mode")] = F("rgb");
     root[F("brightness")] = brightness;
     root[F("effect")] = Globals::effectToString(effect);
     root[F("deviceName")] = deviceName;
