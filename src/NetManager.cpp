@@ -312,6 +312,8 @@ void NetManager::listenOnHttpGet() {
       prefsData += ldrMin;
       prefsData += F("\",\"relayPin\":\"");
       prefsData += relayPin;
+      prefsData += F("\",\"relInv\":\"");
+      prefsData += relInv;
       prefsData += F("\",\"sbPin\":\"");
       prefsData += sbPin;
       prefsData += F("\",\"ldrPin\":\"");
@@ -776,7 +778,7 @@ bool NetManager::processFirmwareConfig() {
         int ldrPinParam = (int) bootstrapManager.jsonDoc[ledManager.LDR_PIN_PARAM];
         if (ldrPin != ldrPinParam) {
           ldrPin = ldrPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -785,7 +787,7 @@ bool NetManager::processFirmwareConfig() {
         int relayPinParam = (int) bootstrapManager.jsonDoc[ledManager.RELAY_PIN_PARAM];
         if (relayPin != relayPinParam) {
           relayPin = relayPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -794,7 +796,7 @@ bool NetManager::processFirmwareConfig() {
         int sbrPinParam = (int) bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM];
         if (sbPin != sbrPinParam) {
           sbPin = sbrPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -1127,8 +1129,10 @@ bool NetManager::processLDR() {
     String ldrMinMqtt = bootstrapManager.jsonDoc[F("ldrMin")];
     String ldrActionMqtt = bootstrapManager.jsonDoc[F("ldrAction")];
     String rPin = bootstrapManager.jsonDoc[F("relayPin")];
+    String rInvStr = bootstrapManager.jsonDoc[F("relInv")];
     String sPin = bootstrapManager.jsonDoc[F("sbPin")];
     String lPin = bootstrapManager.jsonDoc[F("ldrPin")];
+    relInv = rInvStr == "true";
     ldrEnabled = ldrEnabledMqtt == "true";
     ldrTurnOff = ldrTurnOffMqtt == "true";
     ldrInterval = ldrIntervalMqtt.toInt();
@@ -1154,7 +1158,7 @@ bool NetManager::processLDR() {
       relayPin = rPin.toInt();
       sbPin = sPin.toInt();
       ldrPin = lPin.toInt();
-      ledManager.setPins(relayPin, sbPin, ldrPin);
+      ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
     }
     delay(DELAY_500);
     startUDP();

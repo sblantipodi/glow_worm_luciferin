@@ -96,6 +96,7 @@ const String BAUDRATE_FILENAME = "baudrate.json";
 extern bool ldrReading;
 extern int ldrValue;
 extern bool ldrEnabled;
+extern bool relInv;
 extern uint8_t ldrInterval;
 extern bool ldrTurnOff;
 extern uint8_t ldrMin;

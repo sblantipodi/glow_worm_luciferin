@@ -124,6 +124,7 @@ void setup() {
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
   String relayPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_PIN_PARAM);
+  String relayInvStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_INV);
   String sbPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.SB_PIN_PARAM);
   String ldrPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LDR_PIN_PARAM);
   if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
@@ -140,6 +141,9 @@ void setup() {
   }
   if (!relayPinFromStorage.isEmpty() && relayPinFromStorage != ERROR) {
     relayPin = relayPinFromStorage.toInt();
+  }
+  if (!relayInvStorage.isEmpty() && relayInvStorage != ERROR) {
+    relInv = relayInvStorage.toInt();
   }
   if (!sbPinFromStorage.isEmpty() && sbPinFromStorage != ERROR) {
     sbPin = sbPinFromStorage.toInt();
@@ -363,7 +367,7 @@ void mainLoop() {
                   relayPin = relaySerialPin;
                   sbPin = sbSerialPin;
                   ldrPin = ldrSerialPin;
-                  ledManager.setPins(relayPin, sbPin, ldrPin);
+                  ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
                 }
               }
               uint16_t numLedFromLuciferin = lo + (loSecondPart * SERIAL_CHUNK_SIZE) + 1;
