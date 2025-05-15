@@ -62,6 +62,7 @@ bool breakLoop = false;
 bool ldrReading = false;
 int ldrValue;
 bool ldrEnabled = false;
+bool relInv = false;
 uint8_t ldrInterval = 30;
 bool ldrTurnOff = false;
 uint8_t ldrMin = 20;
@@ -238,7 +239,7 @@ void Globals::setBaudRate(int bdRate) {
 void Globals::turnOnRelay() {
   if (!relayState) {
     relayState = true;
-    digitalWrite(relayPin, HIGH);
+    digitalWrite(relayPin, relInv ? LOW : HIGH);
     delay(10);
   }
 }
@@ -250,7 +251,7 @@ void Globals::turnOffRelay() {
   if (relayState) {
     relayState = false;
     delay(10);
-    digitalWrite(relayPin, LOW);
+    digitalWrite(relayPin, relInv ? HIGH : LOW);
   }
 }
 
