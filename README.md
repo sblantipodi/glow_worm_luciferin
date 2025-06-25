@@ -95,9 +95,3 @@ You can contribute to Luciferin by:
 - Testing new released features and report issues
 - Contributing missing documentation for features and devices
 - With a donation [![PayPal](https://img.shields.io/badge/donate-PayPal-blue)](https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A)
-
-## Thanks To 
-|  Thanks              |  For                           |
-|----------------------|--------------------------------|
-|<a href="https://www.jetbrains.com/"><img width="200" src="https://raw.githubusercontent.com/sblantipodi/arduino_bootstrapper/master/data/img/jetbrains.png"></a>| For the <a href="https://www.jetbrains.com/clion">CLion IDE</a> licenses.|
-
