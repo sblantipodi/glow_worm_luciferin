@@ -143,7 +143,7 @@ void setup() {
     relayPin = relayPinFromStorage.toInt();
   }
   if (!relayInvStorage.isEmpty() && relayInvStorage != ERROR) {
-    relInv = relayInvStorage.toInt();
+    relInv = true; // TODO change to relayInvStorage.toInt()
   }
   if (!sbPinFromStorage.isEmpty() && sbPinFromStorage != ERROR) {
     sbPin = sbPinFromStorage.toInt();
