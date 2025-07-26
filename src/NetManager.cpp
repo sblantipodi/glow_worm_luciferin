@@ -918,7 +918,8 @@ void NetManager::sendStatus() {
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
     fpsData = F("{\"deviceName\":\"");
     fpsData += deviceName;
-    fpsData += F("\",\"state\":\"");
+    fpsData += "\",\"color\": { \"r\": 255, \"g\": 190, \"b\": 140 }"; // Default for bias light
+    fpsData += F(",\"state\":\"");
     fpsData += (ledManager.stateOn) ? ON_CMD : OFF_CMD;
     fpsData += F("\",\"brightness\":");
     fpsData += brightness;
@@ -953,8 +954,8 @@ void NetManager::sendStatus() {
   } else {
     bootstrapManager.jsonDoc.clear();
     JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
-    JsonObject color = root["color"].to<JsonObject>();
     root[F("state")] = (ledManager.stateOn) ? ON_CMD : OFF_CMD;
+    JsonObject color = root["color"].to<JsonObject>();
     color[F("r")] = ledManager.red;
     color[F("g")] = ledManager.green;
     color[F("b")] = ledManager.blue;
