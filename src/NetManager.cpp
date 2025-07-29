@@ -791,6 +791,15 @@ bool NetManager::processFirmwareConfig() {
           ledManager.reinitLEDTriggered = true;
         }
       }
+      // INVERTED RELAY
+      if (bootstrapManager.jsonDoc[ledManager.RELAY_INV_PARAM].is<JsonVariant>()) {
+        bool relayInvParam =  bootstrapManager.jsonDoc[ledManager.RELAY_INV_PARAM];
+        if (relInv != relayInvParam) {
+          relInv = relayInvParam;
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+          ledManager.reinitLEDTriggered = true;
+        }
+      }
       // SB_PIN_PARAM
       if (bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM].is<JsonVariant>()) {
         int sbrPinParam = (int) bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM];
@@ -975,6 +984,7 @@ void NetManager::sendStatus() {
       root[F("ldr")] = ((ldrValue * 100) / ldrDivider);
     }
     root[F("relayPin")] = relayPin;
+    root[F("relayInv")] = relInv;
     root[F("sbPin")] = sbPin;
     root[F("ldrPin")] = ldrPin;
     root[BAUDRATE_PARAM] = baudRateInUse;

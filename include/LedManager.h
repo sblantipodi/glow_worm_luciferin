@@ -61,6 +61,7 @@ public:
     const String MIN_LDR_PARAM = "minLdr";
     const String MAX_LDR_PARAM = "maxLdr";
     const String RELAY_PIN_PARAM = "relayPin";
+    const String RELAY_INV_PARAM = "relayInv";
     const String RELAY_INV = "relayInv";
     const String SB_PIN_PARAM = "sbPin";
     const String LDR_PIN_PARAM = "ldrPin";
