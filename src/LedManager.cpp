@@ -788,13 +788,15 @@ void LedManager::setLdr(int maxLdr) {
  * @param ldrTurnOffToSet Turn off LEDs before LDR readings
  * @param ldrIntervalToSet Interval between readings
  * @param minLdr min brightness when using LDR
+ * @param relInv relay iverted
  */
-void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam) {
+void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam, bool relInv) {
   Serial.println(F("CHANGING PINs"));
   JsonDocument ldrDoc;
   ldrDoc[RELAY_PIN_PARAM] = relayPinParam;
   ldrDoc[SB_PIN_PARAM] = sbPinParam;
   ldrDoc[LDR_PIN_PARAM] = ldrPinParam;
+  ldrDoc[RELAY_INV] = relInv;
   BootstrapManager::writeToLittleFS(ldrDoc, PIN_FILENAME);
   delay(200);
 #if defined(ARDUINO_ARCH_ESP32)
