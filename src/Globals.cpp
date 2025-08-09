@@ -62,7 +62,7 @@ bool breakLoop = false;
 bool ldrReading = false;
 int ldrValue;
 bool ldrEnabled = false;
-bool relInv = true; // TODO change to false
+bool relInv = false;
 uint8_t ldrInterval = 30;
 bool ldrTurnOff = false;
 uint8_t ldrMin = 20;
