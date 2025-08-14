@@ -33,7 +33,7 @@
 #define LDR_DIVIDER 4096
 #endif
 #define SERIAL_SIZE_RX 2048
-#define CONFIG_NUM_PARAMS 20
+#define CONFIG_NUM_PARAMS 21
 #define CONFIG_PREFIX_LENGTH 6
 // This value must meet the one in Firefly Luciferin
 // We are transferring byte via Serial, the maximum decimal number that can be represented with 1 byte is 255.
@@ -56,7 +56,7 @@ extern class Globals globals;
 extern byte config[CONFIG_NUM_PARAMS];
 extern byte pre[CONFIG_PREFIX_LENGTH];
 extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
-        fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock;
+        fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, relayInvPin, sbSerialPin, ldrSerialPin, gpioClock;
 
 enum class Effect {
     GlowWormWifi, GlowWorm, solid, fire, twinkle, bpm, rainbow, chase_rainbow, solid_rainbow, slowRainbow, randomColors,
@@ -96,6 +96,7 @@ const String BAUDRATE_FILENAME = "baudrate.json";
 extern bool ldrReading;
 extern int ldrValue;
 extern bool ldrEnabled;
+extern bool relInv;
 extern uint8_t ldrInterval;
 extern bool ldrTurnOff;
 extern uint8_t ldrMin;

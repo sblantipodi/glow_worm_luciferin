@@ -33,7 +33,7 @@ Globals globals;
 byte config[CONFIG_NUM_PARAMS];
 byte pre[CONFIG_PREFIX_LENGTH];
 uint8_t prefix[] = {'D', 'P', 's', 'o', 'f', 't'}, hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp,
-        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, sbSerialPin, ldrSerialPin, gpioClock;
+        fireflyEffect, fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, relayInvPin, sbSerialPin, ldrSerialPin, gpioClock;
 uint8_t whiteTempInUse = WHITE_TEMP_CORRECTION_DISABLE;
 uint8_t colorMode = 1;
 uint8_t colorOrder = 1;
@@ -62,6 +62,7 @@ bool breakLoop = false;
 bool ldrReading = false;
 int ldrValue;
 bool ldrEnabled = false;
+bool relInv = false;
 uint8_t ldrInterval = 30;
 bool ldrTurnOff = false;
 uint8_t ldrMin = 20;
@@ -238,7 +239,7 @@ void Globals::setBaudRate(int bdRate) {
 void Globals::turnOnRelay() {
   if (!relayState) {
     relayState = true;
-    digitalWrite(relayPin, HIGH);
+    digitalWrite(relayPin, relInv ? LOW : HIGH);
     delay(10);
   }
 }
@@ -250,7 +251,7 @@ void Globals::turnOffRelay() {
   if (relayState) {
     relayState = false;
     delay(10);
-    digitalWrite(relayPin, LOW);
+    digitalWrite(relayPin, relInv ? HIGH : LOW);
   }
 }
 
@@ -301,6 +302,7 @@ void Globals::sendSerialInfo() {
         Serial.printf("ldr:%d\n", ((ldrValue * 100) / ldrDivider));
       }
       Serial.printf("relayPin:%d\n", relayPin);
+      Serial.printf("relInv:%d\n", relInv);
       Serial.printf("sbPin:%d\n", sbPin);
       Serial.printf("ldrPin:%d\n", ldrPin);
       Serial.flush();

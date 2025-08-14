@@ -312,6 +312,8 @@ void NetManager::listenOnHttpGet() {
       prefsData += ldrMin;
       prefsData += F("\",\"relayPin\":\"");
       prefsData += relayPin;
+      prefsData += F("\",\"relInv\":\"");
+      prefsData += relInv;
       prefsData += F("\",\"sbPin\":\"");
       prefsData += sbPin;
       prefsData += F("\",\"ldrPin\":\"");
@@ -776,7 +778,7 @@ bool NetManager::processFirmwareConfig() {
         int ldrPinParam = (int) bootstrapManager.jsonDoc[ledManager.LDR_PIN_PARAM];
         if (ldrPin != ldrPinParam) {
           ldrPin = ldrPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -785,7 +787,16 @@ bool NetManager::processFirmwareConfig() {
         int relayPinParam = (int) bootstrapManager.jsonDoc[ledManager.RELAY_PIN_PARAM];
         if (relayPin != relayPinParam) {
           relayPin = relayPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+          ledManager.reinitLEDTriggered = true;
+        }
+      }
+      // INVERTED RELAY
+      if (bootstrapManager.jsonDoc[ledManager.RELAY_INV_PARAM].is<JsonVariant>()) {
+        bool relayInvParam =  bootstrapManager.jsonDoc[ledManager.RELAY_INV_PARAM];
+        if (relInv != relayInvParam) {
+          relInv = relayInvParam;
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -794,7 +805,7 @@ bool NetManager::processFirmwareConfig() {
         int sbrPinParam = (int) bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM];
         if (sbPin != sbrPinParam) {
           sbPin = sbrPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -916,7 +927,8 @@ void NetManager::sendStatus() {
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
     fpsData = F("{\"deviceName\":\"");
     fpsData += deviceName;
-    fpsData += F("\",\"state\":\"");
+    fpsData += "\",\"color\": { \"r\": 255, \"g\": 190, \"b\": 140 }"; // Default for bias light
+    fpsData += F(",\"state\":\"");
     fpsData += (ledManager.stateOn) ? ON_CMD : OFF_CMD;
     fpsData += F("\",\"brightness\":");
     fpsData += brightness;
@@ -951,8 +963,8 @@ void NetManager::sendStatus() {
   } else {
     bootstrapManager.jsonDoc.clear();
     JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
-    JsonObject color = root["color"].to<JsonObject>();
     root[F("state")] = (ledManager.stateOn) ? ON_CMD : OFF_CMD;
+    JsonObject color = root["color"].to<JsonObject>();
     color[F("r")] = ledManager.red;
     color[F("g")] = ledManager.green;
     color[F("b")] = ledManager.blue;
@@ -972,6 +984,7 @@ void NetManager::sendStatus() {
       root[F("ldr")] = ((ldrValue * 100) / ldrDivider);
     }
     root[F("relayPin")] = relayPin;
+    root[F("relayInv")] = relInv;
     root[F("sbPin")] = sbPin;
     root[F("ldrPin")] = ldrPin;
     root[BAUDRATE_PARAM] = baudRateInUse;
@@ -1127,8 +1140,10 @@ bool NetManager::processLDR() {
     String ldrMinMqtt = bootstrapManager.jsonDoc[F("ldrMin")];
     String ldrActionMqtt = bootstrapManager.jsonDoc[F("ldrAction")];
     String rPin = bootstrapManager.jsonDoc[F("relayPin")];
+    String rInvStr = bootstrapManager.jsonDoc[F("relInv")];
     String sPin = bootstrapManager.jsonDoc[F("sbPin")];
     String lPin = bootstrapManager.jsonDoc[F("ldrPin")];
+    relInv = rInvStr == "true";
     ldrEnabled = ldrEnabledMqtt == "true";
     ldrTurnOff = ldrTurnOffMqtt == "true";
     ldrInterval = ldrIntervalMqtt.toInt();
@@ -1154,7 +1169,7 @@ bool NetManager::processLDR() {
       relayPin = rPin.toInt();
       sbPin = sPin.toInt();
       ldrPin = lPin.toInt();
-      ledManager.setPins(relayPin, sbPin, ldrPin);
+      ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
     }
     delay(DELAY_500);
     startUDP();

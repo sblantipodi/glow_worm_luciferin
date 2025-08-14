@@ -124,6 +124,7 @@ void setup() {
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
   String relayPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_PIN_PARAM);
+  String relayInvStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_INV);
   String sbPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.SB_PIN_PARAM);
   String ldrPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LDR_PIN_PARAM);
   if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
@@ -140,6 +141,9 @@ void setup() {
   }
   if (!relayPinFromStorage.isEmpty() && relayPinFromStorage != ERROR) {
     relayPin = relayPinFromStorage.toInt();
+  }
+  if (!relayInvStorage.isEmpty() && relayInvStorage != ERROR) {
+    relInv = relayInvStorage.toInt();
   }
   if (!sbPinFromStorage.isEmpty() && sbPinFromStorage != ERROR) {
     sbPin = sbPinFromStorage.toInt();
@@ -314,6 +318,7 @@ void mainLoop() {
           fireflyColorMode = config[i++];
           fireflyColorOrder = config[i++];
           relaySerialPin = config[i++];
+          relayInvPin = config[i++];
           sbSerialPin = config[i++];
           ldrSerialPin = config[i++];
           gpioClock = config[i++];
@@ -321,7 +326,7 @@ void mainLoop() {
           if (!(!breakLoop &&
                 (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
                          ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder
-                         ^ relaySerialPin ^ sbSerialPin ^ ldrSerialPin ^ gpioClock ^ 0x55)))) {
+                         ^ relaySerialPin ^ relayInvPin ^ sbSerialPin ^ ldrSerialPin ^ gpioClock ^ 0x55)))) {
             if (!breakLoop) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
               if (!relayState) {
@@ -359,11 +364,12 @@ void mainLoop() {
                 relaySerialPin = relaySerialPin - 10;
                 sbSerialPin = sbSerialPin - 10;
                 ldrSerialPin = ldrSerialPin - 10;
-                if ((relayPin != relaySerialPin) || (sbPin != sbSerialPin) || (ldrPin != ldrSerialPin)) {
+                if ((relayPin != relaySerialPin) || (sbPin != sbSerialPin) || (ldrPin != ldrSerialPin) || (relayInvPin == 10 && relInv) || (relayInvPin == 11 && !relInv)) {
                   relayPin = relaySerialPin;
                   sbPin = sbSerialPin;
                   ldrPin = ldrSerialPin;
-                  ledManager.setPins(relayPin, sbPin, ldrPin);
+                  relInv = relayInvPin == 11;
+                  ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
                 }
               }
               uint16_t numLedFromLuciferin = lo + (loSecondPart * SERIAL_CHUNK_SIZE) + 1;
