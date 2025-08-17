@@ -63,6 +63,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install platformio
+          pip install intelhex
           python --version
       - name: Install submodules
         run: |
@@ -127,6 +128,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install platformio
+          pip install intelhex
           python --version
       - name: Install submodules
         run: |
@@ -179,6 +181,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install platformio
+          pip install intelhex
           python --version
       - name: Install submodules
         run: |
@@ -293,6 +296,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install platformio
+          pip install intelhex
           python --version
       - name: Install submodules
         run: |
