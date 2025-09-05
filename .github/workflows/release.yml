@@ -56,7 +56,7 @@ jobs:
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
           echo "id=$id" >> $GITHUB_OUTPUT
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Install dependencies
@@ -120,7 +120,7 @@ jobs:
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
           echo "id=$id" >> $GITHUB_OUTPUT
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Install dependencies
@@ -172,7 +172,7 @@ jobs:
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
           echo "id=$id" >> $GITHUB_OUTPUT
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Install dependencies
@@ -286,7 +286,7 @@ jobs:
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
           echo "id=$id" >> $GITHUB_OUTPUT
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Install dependencies
