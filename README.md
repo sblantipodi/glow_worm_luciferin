@@ -8,7 +8,7 @@ Ambient Lighting or Bias Light is a technology that enhances your viewing experi
 _Written for Arduino IDE and PlatformIO._  
   
   
-<img align="right" width="100" height="100" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight_logo.png">
+<img align="right" width="100" height="100" src="https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/pc_ambilight_logo.png">
 
 
 [![Web Installer](https://img.shields.io/website/https/sblantipodi.github.io/glow_worm_luciferin.svg?label=Web%20Installer&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAD1BMVEUAAAD%2F%2F%2F%2F%2F%2F%2F%2F%2FVyL%2F%2F%2F8bK2t7AAAAA3RSTlMAARYXuUDOAAAAhklEQVR42u3WyQ2AMAwEQAz9lxxCCRCuONHse2XPy3JsS98EAAAAAAAAQDpAfLywAgAADAuoJ716dw4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAwgLcCAACQH%2FB3AAAAAAAAAPoDWovrxYdjBwAAmA7QerAKAADANICnD0sBAADIDjgAPijZuQgZskEAAAAASUVORK5CYII%3D)](https://sblantipodi.github.io/glow_worm_luciferin)
@@ -50,7 +50,7 @@ Why don't you build your own `Luciferin`?
 Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferin/wiki/Quick-start)  
 
 ## Glow Worm Luciferin + Firefly Luciferin (click to watch it on YouTube)
-[![IMAGE ALT TEXT HERE](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
+[![IMAGE ALT TEXT HERE](https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
 
 ## Components:
 - ESP8266/ESP32 
@@ -64,7 +64,7 @@ Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferi
 NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 
 ## Simple schematic
-![CIRCUITS](https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/ambilight_bb.png)
+![CIRCUITS](https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/ambilight_bb.png)
 **FULL firmware version adds support for remote control, if you flash FULL version you MUST configure** [WiFi and MQTT](https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access). With FULL firmware USB connection is optional.  
 **If you flash LIGHT firmware you MUST use USB cable**.  
 Note: If you want to use the FULL firmware without using a USB cable you need to connect the 5V microcontroller's PIN to the power supply.
@@ -82,7 +82,7 @@ Luciferin supports pre-build board like the [QuinLED-Dig-Uno](https://quinled.in
 ## Luciferin Web Interface
 Glow Worm Luciferin FULL firmware exposes a `Web Interface` to control your lights from your browser without the needs of the Firefly Luciferin PC client.
 
-<img align="center" width="750" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/web_interface.jpg?raw=true">
+<img align="center" width="750" src="https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/web_interface.jpg?raw=true">
 
 ## Home Assistant Mobile Client Screenshots  
 Glow Worm Luciferin firmware can be easily integrated in [Home Assistant](https://github.com/sblantipodi/firefly_luciferin/wiki/Home-Automation-configs).  
