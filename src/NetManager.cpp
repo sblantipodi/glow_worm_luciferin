@@ -711,12 +711,12 @@ bool NetManager::processFirmwareConfigWithReboot() {
   JsonDocument topicDoc;
   topicDoc[netManager.MQTT_PARAM] = mqttTopic;
   BootstrapManager::writeToLittleFS(topicDoc, netManager.TOPIC_FILENAME);
-  if (!bootstrapManager.jsonDoc[F("colorModeParam")].isNull()) {
+  if (!bootstrapManager.jsonDoc[F("colorMode")].isNull()) {
     delay(DELAY_500);
     ledManager.setColorMode(colorModeParam.toInt());
   }
   delay(DELAY_500);
-  if (!bootstrapManager.jsonDoc[F("colorOrderParam")].isNull()) {
+  if (!bootstrapManager.jsonDoc[F("colorOrder")].isNull()) {
     ledManager.setColorOrder(colorOrderParam.toInt());
     delay(DELAY_500);
   }
