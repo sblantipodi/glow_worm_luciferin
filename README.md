@@ -49,8 +49,11 @@ Project is bootstrapped with my [Arduino Bootstrapper](https://github.com/sblant
 Why don't you build your own `Luciferin`?  
 Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferin/wiki/Quick-start)  
 
-## Glow Worm Luciferin + Firefly Luciferin (click to watch it on YouTube)
+## Firefly Luciferin (PC Software) + Glow Worm Luciferin (Firmware)
 [![IMAGE ALT TEXT HERE](https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
+
+#### (click the image above to watch it on YouTube)
+
 
 ## Components:
 - ESP8266/ESP32 
