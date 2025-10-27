@@ -11,13 +11,13 @@
     background-color: orange !important;
     border-color: orange !important;
 }
-#toggleLED:hover {
-    background-color: #c6c6c6 !important;
-    border-color: #c6c6c6 !important;
-}
 #toggleLED:hover:active {
     background-color: darkorange !important;
     border-color: darkorange !important;
+}
+#toggleLED:hover {
+    background-color: #c6c6c6 !important;
+    border-color: #c6c6c6 !important;
 }
 body {
     background-color: #f8f8f8;
