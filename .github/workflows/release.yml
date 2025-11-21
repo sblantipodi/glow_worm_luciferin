@@ -15,7 +15,7 @@ jobs:
       commitmsg: ${{ github.event.head_commit.message }}
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set env
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Release version
@@ -42,7 +42,7 @@ jobs:
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: master
       - name: Set env
@@ -106,7 +106,7 @@ jobs:
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: master
       - name: Set env
@@ -158,7 +158,7 @@ jobs:
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: master
       - name: Set env
@@ -272,7 +272,7 @@ jobs:
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: master
       - name: Set env
@@ -374,7 +374,7 @@ jobs:
     needs: [ build_esp8266_firmware_full, build_esp8266_firmware_light, build_esp32_firmware_full, build_esp32_firmware_light ]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: master
           path: 'currentbranch'
@@ -480,7 +480,7 @@ jobs:
     needs: [build_esp8266_firmware_full, build_esp8266_firmware_light, build_esp32_firmware_full, build_esp32_firmware_light, web_tools_update]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set env
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Release version
