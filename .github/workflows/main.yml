@@ -22,11 +22,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install platformio
+          python -m pip install intelhex
           python --version
       - name: Install submodules
         run: |
@@ -70,11 +71,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install platformio
+          python -m pip install intelhex
           python --version
       - name: Install submodules
         run: |
@@ -118,11 +120,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install platformio
+          python -m pip install intelhex
           python --version
       - name: Install submodules
         run: |
@@ -228,11 +231,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install platformio
+          python -m pip install intelhex
           python --version
       - name: Install submodules
         run: |
