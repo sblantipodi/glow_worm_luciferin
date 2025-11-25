@@ -65,3 +65,7 @@ void configureLeds();
 void setSerialPixel(int j, byte r, byte g, byte b);
 
 void debounceSmartButton();
+
+void ldrTask(void *p);
+
+void manageLdr();
