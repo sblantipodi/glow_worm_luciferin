@@ -669,7 +669,7 @@ bool NetManager::processFirmwareConfigWithReboot() {
       doc[F("mqttuser")] = "";
       doc[F("mqttpass")] = "";
     }
-    doc[F("additionalParam")] = additionalParam;
+    doc[F("additionalParam")] = !bootstrapManager.jsonDoc[F("additionalParam")].isNull()? additionalParam : String(gpioInUse);
     content = F("Success: rebooting the microcontroller using your credentials.");
     statusCode = 200;
   } else {
@@ -692,12 +692,16 @@ bool NetManager::processFirmwareConfigWithReboot() {
     jsonFile.close();
     Serial.println(F("[setup.json] written correctly"));
   }
-  delay(DELAY_200);
-  Serial.println(F("Saving lednum"));
-  LedManager::setNumLed(lednum.toInt());
-  delay(DELAY_200);
-  Serial.println(F("Saving gpio"));
-  Globals::setGpio(additionalParam.toInt());
+  if (!bootstrapManager.jsonDoc[F("lednum")].isNull()) {
+    delay(DELAY_200);
+    Serial.println(F("Saving lednum"));
+    LedManager::setNumLed(lednum.toInt());
+  }
+  if (!bootstrapManager.jsonDoc[F("additionalParam")].isNull()) {
+    delay(DELAY_200);
+    Serial.println(F("Saving gpio"));
+    Globals::setGpio(additionalParam.toInt());
+  }
   if (!bootstrapManager.jsonDoc[F("gpioClock")].isNull()) {
     delay(DELAY_200);
     Serial.println(F("Saving gpio clock"));
@@ -707,15 +711,19 @@ bool NetManager::processFirmwareConfigWithReboot() {
   JsonDocument topicDoc;
   topicDoc[netManager.MQTT_PARAM] = mqttTopic;
   BootstrapManager::writeToLittleFS(topicDoc, netManager.TOPIC_FILENAME);
+  if (!bootstrapManager.jsonDoc[F("colorMode")].isNull()) {
+    delay(DELAY_500);
+    ledManager.setColorMode(colorModeParam.toInt());
+  }
   delay(DELAY_500);
-  ledManager.setColorMode(colorModeParam.toInt());
-  delay(DELAY_500);
-  if (colorOrderParam != NULL && colorOrderParam.toInt() != 0) {
+  if (!bootstrapManager.jsonDoc[F("colorOrder")].isNull()) {
     ledManager.setColorOrder(colorOrderParam.toInt());
     delay(DELAY_500);
   }
-  Globals::setBaudRateInUse(br.toInt());
-  Globals::setBaudRate(baudRateInUse);
+  if (!bootstrapManager.jsonDoc[F("br")].isNull()) {
+    Globals::setBaudRateInUse(br.toInt());
+    Globals::setBaudRate(baudRateInUse);
+  }
   delay(DELAY_1000);
 #if defined(ARDUINO_ARCH_ESP32)
   if (ethd > 0 && ethd != -1) {
