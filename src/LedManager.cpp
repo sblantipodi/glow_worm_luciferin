@@ -952,7 +952,7 @@ void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
 #if defined(LED_BUILTIN)
   if (LED_BUILTIN != gpioInUse) {
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-    neopixelWrite(LED_BUILTIN, r, g, b);
+    rgbLedWrite(LED_BUILTIN, r, g, b);
 #elif defined(ESP8266)
     if (r > 0 || g > 0 || b > 0) {
       digitalWrite(LED_BUILTIN, LOW);
