@@ -1003,9 +1003,11 @@ void NetManager::sendStatus() {
     root["board"] = "ESP32_C3_CDC";
 #elif CONFIG_IDF_TARGET_ESP32S2
     root["board"] = "ESP32_S2";
+#elif CONFIG_IDF_TARGET_ESP32C6
+    root["board"] = "ESP32_C6";    
 #elif CONFIG_IDF_TARGET_ESP32S3
 #if ARDUINO_USB_MODE==1
-    root["board"] = "ESP32_S3_CDC";
+    root["board"] = "ESP32_S3"; // CDC
 #else
     root["board"] = "ESP32_S3";
 #endif
