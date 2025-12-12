@@ -1088,7 +1088,9 @@ bool NetManager::processUpdate() {
 #endif
   }, []() {
       HTTPUpload &upload = server.upload();
+#if defined(ARDUINO_ARCH_ESP32)
       esp_task_wdt_reset();
+#endif
       if (upload.status == UPLOAD_FILE_START) {
         Serial.printf("Update: %s\n", upload.filename.c_str());
 #if defined(ARDUINO_ARCH_ESP32)
