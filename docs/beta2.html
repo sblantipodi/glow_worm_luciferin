@@ -27,7 +27,7 @@
         // https://unpkg.com/tasmota-esp-web-tools/dist/web/install-button.js?module
         // https://unpkg.com/esp-web-tools@8.0.6/dist/web/install-button.js?module
         import(
-            "https://unpkg.com/tasmota-esp-web-tools@8.3.3/dist/web/install-button.js?module"
+            "https://unpkg.com/esp-web-tools@10.1.1/dist/web/install-button.js?module"
             );
         window.addEventListener("load", function (event) {
             try {
@@ -430,7 +430,7 @@
         <b>If you are flashing an ESP32-C3, ESP32-S2 or ESP32-S3 <span id="esp-family"><a onClick="showHelp()">please read here.</a></span></b>
         <br>
     </p>
-    <p>
+    <p id="linux-block">
         <b>If you are running Linux <span id="linux-family"><a onClick="showLinuxHelp()">please read here.</a></span></b><br>
     </p>
     <div class="footer">
@@ -505,6 +505,15 @@
             sudo snap connect fireflyluciferin:raw-usb
 
         `;
+    }
+    function isWindows() {
+        if (navigator.userAgentData) {
+            return navigator.userAgentData.platform === "Windows";
+        }
+        return navigator.userAgent.toLowerCase().includes("windows");
+    }
+    if (!isLinux()) {
+        document.getElementById("linux-block").style.display = "none";
     }
 </script>
 </body>
