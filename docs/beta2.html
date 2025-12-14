@@ -513,7 +513,7 @@
         return navigator.userAgent.toLowerCase().includes("windows");
     }
     document.addEventListener("DOMContentLoaded", () => {
-        if (!isLinux()) {
+        if (isWindows()) {
             document.getElementById("linux-block").style.display = "none";
         }
     });
