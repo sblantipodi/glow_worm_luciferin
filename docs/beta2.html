@@ -512,9 +512,12 @@
         }
         return navigator.userAgent.toLowerCase().includes("windows");
     }
-    if (!isLinux()) {
-        document.getElementById("linux-block").style.display = "none";
-    }
+    document.addEventListener("DOMContentLoaded", () => {
+        if (!isLinux()) {
+            document.getElementById("linux-block").style.display = "none";
+        }
+    });
+
 </script>
 </body>
 </html>
