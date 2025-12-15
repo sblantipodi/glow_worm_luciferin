@@ -428,7 +428,7 @@ jobs:
           git add ./docs/static/firmware_build/manifest_light.json;
           git commit -m "CI release for firmware web installer";
           git push;
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           path: ci_artifacts
       - name: Display structure of downloaded files
