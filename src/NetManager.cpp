@@ -434,6 +434,24 @@ void NetManager::manageAPSetting(bool isSettingRoot) {
         prefsData += F("\",\"mqttError\":\"");
         prefsData += !mqttConnected;
       }
+#if defined(ARDUINO_ARCH_ESP32)
+      if (ethd >= spiStartIdx) {
+        if (ethd == spiStartIdx) {
+          prefsData += F("\",\"mosi\":\"");
+          prefsData += mosi;
+          prefsData += F("\",\"miso\":\"");
+          prefsData += miso;
+          prefsData += F("\",\"sclk\":\"");
+          prefsData += sclk;
+          prefsData += F("\",\"cs\":\"");
+          prefsData += cs;
+          prefsData += F("\",\"int\":\"");
+          prefsData += interrupt;
+          prefsData += F("\",\"rst\":\"");
+          prefsData += rst;
+        }
+      }
+#endif
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
       startUDP();
@@ -629,6 +647,7 @@ bool NetManager::processFirmwareConfigWithReboot() {
   String mqttCheckbox = bootstrapManager.jsonDoc[F("mqttCheckbox")];
   String setSsid = bootstrapManager.jsonDoc[F("ssid")];
   String setEthd = bootstrapManager.jsonDoc[F("ethd")];
+
 #if defined(ESP8266)
   setEthd = -1;
 #endif
@@ -651,6 +670,17 @@ bool NetManager::processFirmwareConfigWithReboot() {
       microcontrollerIP = "DHCP";
     }
     doc[F("ethd")] = bootstrapManager.jsonDoc[F("ethd")].isNull() ? String(ethd) : setEthd;
+#if defined(ARDUINO_ARCH_ESP32)
+    if (!bootstrapManager.jsonDoc[F("ethd")].isNull() && bootstrapManager.jsonDoc[F("ethd")].as<int8_t>() == 100) {
+      doc[F("mosi")] = bootstrapManager.jsonDoc[F("mosi")];
+      doc[F("miso")] = bootstrapManager.jsonDoc[F("miso")];
+      doc[F("sclk")] = bootstrapManager.jsonDoc[F("sclk")];
+      doc[F("cs")] = bootstrapManager.jsonDoc[F("cs")];
+      doc[F("interrupt")] = bootstrapManager.jsonDoc[F("interrupt")];
+      doc[F("rst")] = bootstrapManager.jsonDoc[F("rst")];
+    }
+#endif
+
     doc[F("deviceName")] = deviceName;
     doc[F("microcontrollerIP")] = microcontrollerIP;
     doc[F("qsid")] = (setSsid != NULL && !setSsid.isEmpty()) ? setSsid : qsid;

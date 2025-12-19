@@ -951,8 +951,8 @@ void LedManager::setWhiteTemp(int wt) {
 void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
 #if defined(LED_BUILTIN)
   if (LED_BUILTIN != gpioInUse) {
-    // C3 has pins that conflicts with this, skipping for C3
-#if CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
+    // C3/C6 I'd guess there is an overlap in the restricted TX channel set, C devices has only two TX channels, skipping for C3/C6
+#if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
     if (ethd == 0 || ethd == -1) {
       rgbLedWrite(LED_BUILTIN, r, g, b);
     }
