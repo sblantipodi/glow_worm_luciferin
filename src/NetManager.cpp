@@ -670,8 +670,16 @@ bool NetManager::processFirmwareConfigWithReboot() {
       microcontrollerIP = "DHCP";
     }
     doc[F("ethd")] = bootstrapManager.jsonDoc[F("ethd")].isNull() ? String(ethd) : setEthd;
+
 #if defined(ARDUINO_ARCH_ESP32)
-    if (!bootstrapManager.jsonDoc[F("ethd")].isNull() && bootstrapManager.jsonDoc[F("ethd")].as<int8_t>() == 100) {
+    if (bootstrapManager.jsonDoc[F("ethd")].isNull() && ethd == 100) {
+      doc[F("mosi")] = mosi;
+      doc[F("miso")] = miso;
+      doc[F("sclk")] = sclk;
+      doc[F("cs")] = cs;
+      doc[F("interrupt")] = interrupt;
+      doc[F("rst")] = rst;
+    } else if (!bootstrapManager.jsonDoc[F("ethd")].isNull()) {
       doc[F("mosi")] = bootstrapManager.jsonDoc[F("mosi")];
       doc[F("miso")] = bootstrapManager.jsonDoc[F("miso")];
       doc[F("sclk")] = bootstrapManager.jsonDoc[F("sclk")];
