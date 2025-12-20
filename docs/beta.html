@@ -430,6 +430,9 @@
         <b>If you are flashing an ESP32-C3, ESP32-S2 or ESP32-S3 <span id="esp-family"><a onClick="showHelp()">please read here.</a></span></b>
         <br>
     </p>
+    <p id="linux-block">
+        <b>If you are running Linux <span id="linux-family"><a onClick="showLinuxHelp()">please read here.</a></span></b><br>
+    </p>
     <div class="footer">
         <div>
             <a href="https://github.com/sblantipodi/firefly_luciferin"><img
@@ -483,6 +486,38 @@
             hit the reset button and try again by clicking the install button, you should now see the option to set up WiFi.
         `;
     }
+
+    function showLinuxHelp() {
+        document.getElementById('linux-family').innerHTML = `</br></br>
+            Your user may not be part of the groups required to access USB serial devices.</br>
+            This may prevent communication with the device.</br></br>
+
+            On most Linux distributions:</br>
+            sudo usermod -aG dialout $USER</br></br>
+
+            On Arch Linux:</br>
+             sudo usermod -aG uucp $USER</br></br>
+
+            After running the command, log out and log back in (or reboot the system).</br></br>
+
+            In addition to this, if you are running Firefly Luciferin as a Snap package. </br>
+            To enable USB access, please run the following command: </br>
+            sudo snap connect fireflyluciferin:raw-usb
+
+        `;
+    }
+    function isWindows() {
+        if (navigator.userAgentData) {
+            return navigator.userAgentData.platform === "Windows";
+        }
+        return navigator.userAgent.toLowerCase().includes("windows");
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        if (isWindows()) {
+            document.getElementById("linux-block").style.display = "none";
+        }
+    });
+
 </script>
 </body>
 </html>

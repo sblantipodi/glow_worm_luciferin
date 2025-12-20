@@ -434,6 +434,24 @@ void NetManager::manageAPSetting(bool isSettingRoot) {
         prefsData += F("\",\"mqttError\":\"");
         prefsData += !mqttConnected;
       }
+#if defined(ARDUINO_ARCH_ESP32)
+      if (ethd >= spiStartIdx) {
+        if (ethd == spiStartIdx) {
+          prefsData += F("\",\"mosi\":\"");
+          prefsData += mosi;
+          prefsData += F("\",\"miso\":\"");
+          prefsData += miso;
+          prefsData += F("\",\"sclk\":\"");
+          prefsData += sclk;
+          prefsData += F("\",\"cs\":\"");
+          prefsData += cs;
+          prefsData += F("\",\"int\":\"");
+          prefsData += interrupt;
+          prefsData += F("\",\"rst\":\"");
+          prefsData += rst;
+        }
+      }
+#endif
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
       startUDP();
@@ -629,6 +647,7 @@ bool NetManager::processFirmwareConfigWithReboot() {
   String mqttCheckbox = bootstrapManager.jsonDoc[F("mqttCheckbox")];
   String setSsid = bootstrapManager.jsonDoc[F("ssid")];
   String setEthd = bootstrapManager.jsonDoc[F("ethd")];
+
 #if defined(ESP8266)
   setEthd = -1;
 #endif
@@ -651,6 +670,25 @@ bool NetManager::processFirmwareConfigWithReboot() {
       microcontrollerIP = "DHCP";
     }
     doc[F("ethd")] = bootstrapManager.jsonDoc[F("ethd")].isNull() ? String(ethd) : setEthd;
+
+#if defined(ARDUINO_ARCH_ESP32)
+    if (bootstrapManager.jsonDoc[F("ethd")].isNull() && ethd == 100) {
+      doc[F("mosi")] = mosi;
+      doc[F("miso")] = miso;
+      doc[F("sclk")] = sclk;
+      doc[F("cs")] = cs;
+      doc[F("interrupt")] = interrupt;
+      doc[F("rst")] = rst;
+    } else if (!bootstrapManager.jsonDoc[F("ethd")].isNull()) {
+      doc[F("mosi")] = bootstrapManager.jsonDoc[F("mosi")];
+      doc[F("miso")] = bootstrapManager.jsonDoc[F("miso")];
+      doc[F("sclk")] = bootstrapManager.jsonDoc[F("sclk")];
+      doc[F("cs")] = bootstrapManager.jsonDoc[F("cs")];
+      doc[F("interrupt")] = bootstrapManager.jsonDoc[F("interrupt")];
+      doc[F("rst")] = bootstrapManager.jsonDoc[F("rst")];
+    }
+#endif
+
     doc[F("deviceName")] = deviceName;
     doc[F("microcontrollerIP")] = microcontrollerIP;
     doc[F("qsid")] = (setSsid != NULL && !setSsid.isEmpty()) ? setSsid : qsid;
@@ -1003,9 +1041,11 @@ void NetManager::sendStatus() {
     root["board"] = "ESP32_C3_CDC";
 #elif CONFIG_IDF_TARGET_ESP32S2
     root["board"] = "ESP32_S2";
+#elif CONFIG_IDF_TARGET_ESP32C6
+    root["board"] = "ESP32_C6";    
 #elif CONFIG_IDF_TARGET_ESP32S3
 #if ARDUINO_USB_MODE==1
-    root["board"] = "ESP32_S3_CDC";
+    root["board"] = "ESP32_S3"; // CDC
 #else
     root["board"] = "ESP32_S3";
 #endif
@@ -1059,62 +1099,75 @@ bool NetManager::processMqttUpdate() {
  */
 bool NetManager::processUpdate() {
   Serial.println(F("Starting web server"));
-  server.on("/update", HTTP_POST, []() {
-      server.sendHeader("Connection", "close");
-      bool error = Update.hasError();
-      server.send(200, "text/plain", error ? "KO" : "OK");
-      if (!error) {
-        if (mqttIP.length() > 0) {
-          BootstrapManager::publish(netManager.updateResultStateTopic.c_str(), deviceName.c_str(), false);
-        } else {
-#if defined(ESP8266)
-          if (netManager.remoteIpForUdp.isSet()) {
-#elif defined(ARDUINO_ARCH_ESP32)
-          if (!netManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
-#endif
-            netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
-            netManager.broadcastUDP.print(deviceName.c_str());
-            netManager.broadcastUDP.endPacket();
-          }
-        }
-      }
-      delay(DELAY_500);
-#if defined(ARDUINO_ARCH_ESP32)
-      ESP.restart();
-#elif defined(ESP8266)
-      EspClass::restart();
-#endif
-  }, []() {
+  server.on(
+    "/update",
+    HTTP_POST,
+    []() {
+    },
+    []() {
       HTTPUpload &upload = server.upload();
-      if (upload.status == UPLOAD_FILE_START) {
-        Serial.printf("Update: %s\n", upload.filename.c_str());
+      updateSize = 480000;
 #if defined(ARDUINO_ARCH_ESP32)
-        updateSize = UPDATE_SIZE_UNKNOWN;
-#elif defined(ESP8266)
-        updateSize = 480000;
+      esp_task_wdt_reset();
+      updateSize = UPDATE_SIZE_UNKNOWN;
 #endif
-        if (!Update.begin(updateSize)) { //start with max available size
+      if (upload.status == UPLOAD_FILE_START) {
+        Serial.printf("Update start: %s\n", upload.filename.c_str());
+        if (!Update.begin(updateSize)) {
           Update.printError(Serial);
         }
       } else if (upload.status == UPLOAD_FILE_WRITE) {
-        /* flashing firmware to ESP*/
         if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
           Update.printError(Serial);
         }
       } else if (upload.status == UPLOAD_FILE_END) {
-        if (Update.end(true)) { //true to set the size to the current progress
-          Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+        server.sendHeader("Connection", "close");
+        bool ok = Update.end(true);
+        if (ok) {
+          Serial.printf("Update success: %u bytes\n", upload.totalSize);
+          server.send(200, "text/plain", "OK");
         } else {
           Update.printError(Serial);
+          server.send(500, "text/plain", "KO");
         }
+#if defined(ARDUINO_ARCH_ESP32)
+        server.client().clear();
+        esp_task_wdt_reset();
+#endif
+        if (ok) {
+          if (mqttIP.length() > 0) {
+            BootstrapManager::publish(
+              netManager.updateResultStateTopic.c_str(),
+              deviceName.c_str(),
+              false
+            );
+          } else {
+#if defined(ESP8266)
+            if (netManager.remoteIpForUdp.isSet()) {
+#elif defined(ARDUINO_ARCH_ESP32)
+            if (!netManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
+#endif
+              netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
+              netManager.broadcastUDP.print(deviceName.c_str());
+              netManager.broadcastUDP.endPacket();
+            }
+          }
+        }
+        delay(200);
+#if defined(ARDUINO_ARCH_ESP32)
+        ESP.restart();
+#elif defined(ESP8266)
+        EspClass::restart();
+#endif
       }
-  });
+    }
+  );
   server.begin();
   Serial.println(F("Web server started"));
   firmwareUpgrade = true;
-
   return true;
 }
+
 
 /**
  * Reboot the microcontroller

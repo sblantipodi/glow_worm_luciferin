@@ -626,16 +626,17 @@ void setSerialPixel(int j, byte r, byte g, byte b) {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 void debounceSmartButton() {
   int reading = digitalRead(sbPin);
+
   if (reading != lastButtonState) {
     lastDebounceTime = currentMillisMainLoop;
   }
 
-  unsigned long currentMinusDebounce = currentMillisMainLoop - lastDebounceTime;
-  if (currentMinusDebounce > debounceDelay) {
+  if ((currentMillisMainLoop - lastDebounceTime) > debounceDelay) {
     if (reading != buttonState) {
       buttonState = reading;
-      if (buttonState == HIGH) {
-        // First boot triggers a continuous debounce, stop it for the initial milliseconds.
+
+      // LOW = premuto (INPUT_PULLUP)
+      if (buttonState == LOW) {
 #if defined(ARDUINO_ARCH_ESP32)
         if (currentMillisMainLoop > esp32DebouceInitialPeriod) {
 #else
@@ -654,8 +655,10 @@ void debounceSmartButton() {
       }
     }
   }
+
   lastButtonState = reading;
 }
+
 #endif
 
 /**
