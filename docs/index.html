@@ -531,7 +531,11 @@
       snowContainer.id = "snow";
       document.body.appendChild(snowContainer);
 
-      const flakesCount = 40;
+    const flakesCount =
+      window.innerWidth >= 1200 ? 40 :
+      window.innerWidth >= 992  ? 30 :
+      window.innerWidth >= 768  ? 24 :
+                                  16;
 
       for (let i = 0; i < flakesCount; i++) {
         const flake = document.createElement("div");
