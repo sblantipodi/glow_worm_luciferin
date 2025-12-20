@@ -142,7 +142,7 @@ body {
 .snowflake {
   position: absolute;
   top: -10px;
-  color: white;
+  color: gray;
   user-select: none;
   animation-name: fall;
   animation-timing-function: linear;
