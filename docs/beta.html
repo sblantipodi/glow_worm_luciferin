@@ -352,6 +352,35 @@
             cursor: pointer;
             text-decoration: underline;
         }
+
+            /* --- NEVE --- */
+        #snow {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 9999;
+          overflow: hidden;
+        }
+    
+        .snowflake {
+          position: absolute;
+          top: -10px;
+          color: white;
+          user-select: none;
+          animation-name: fall;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+    
+        @keyframes fall {
+          to {
+            transform: translateY(100vh);
+          }
+        }
+
     </style>
 
 </head>
@@ -483,6 +512,37 @@
             hit the reset button and try again by clicking the install button, you should now see the option to set up WiFi.
         `;
     }
+
+    const now = new Date();
+    const year = now.getFullYear();
+    
+    const start = new Date(year, 11, 14); 
+    const end = new Date(year + 1, 0, 1); 
+    
+    const isChristmas = now >= start && now <= end;
+
+    if (isChristmas) {
+      const snowContainer = document.createElement("div");
+      snowContainer.id = "snow";
+      document.body.appendChild(snowContainer);
+
+      const flakesCount = 40;
+
+      for (let i = 0; i < flakesCount; i++) {
+        const flake = document.createElement("div");
+        flake.className = "snowflake";
+        flake.textContent = "❄";
+
+        flake.style.left = Math.random() * 100 + "vw";
+        flake.style.fontSize = 12 + Math.random() * 14 + "px";
+        flake.style.opacity = Math.random();
+        flake.style.animationDuration = 6 + Math.random() * 6 + "s";
+        flake.style.animationDelay = Math.random() * 5 + "s";
+
+        snowContainer.appendChild(flake);
+      }
+    }
+
 </script>
 </body>
 </html>
