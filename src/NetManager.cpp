@@ -445,10 +445,6 @@ void NetManager::manageAPSetting(bool isSettingRoot) {
           prefsData += sclk;
           prefsData += F("\",\"cs\":\"");
           prefsData += cs;
-          prefsData += F("\",\"int\":\"");
-          prefsData += interrupt;
-          prefsData += F("\",\"rst\":\"");
-          prefsData += rst;
         }
       }
 #endif
@@ -677,15 +673,11 @@ bool NetManager::processFirmwareConfigWithReboot() {
       doc[F("miso")] = miso;
       doc[F("sclk")] = sclk;
       doc[F("cs")] = cs;
-      doc[F("interrupt")] = interrupt;
-      doc[F("rst")] = rst;
     } else if (!bootstrapManager.jsonDoc[F("ethd")].isNull()) {
       doc[F("mosi")] = bootstrapManager.jsonDoc[F("mosi")];
       doc[F("miso")] = bootstrapManager.jsonDoc[F("miso")];
       doc[F("sclk")] = bootstrapManager.jsonDoc[F("sclk")];
       doc[F("cs")] = bootstrapManager.jsonDoc[F("cs")];
-      doc[F("interrupt")] = bootstrapManager.jsonDoc[F("interrupt")];
-      doc[F("rst")] = bootstrapManager.jsonDoc[F("rst")];
     }
 #endif
 
