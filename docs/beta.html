@@ -456,8 +456,11 @@
         </i>
     </p>
     <p>
-        <b>If you are flashing an ESP32-C3, ESP32-S2 or ESP32-S3 <span id="esp-family"><a onClick="showHelp()">please read here.</a></span></b>
+        <b>If you are flashing a newer ESP device like the ESP32-[C3,C5,C6,S2,S3] <span id="esp-family"><a onClick="showHelp()">please read here.</a></span></b>
         <br>
+    </p>
+    <p id="linux-block">
+        <b>If you are running Linux <span id="linux-family"><a onClick="showLinuxHelp()">please read here.</a></span></b><br>
     </p>
     <div class="footer">
         <div>
@@ -499,7 +502,7 @@
 
     function showHelp() {
         document.getElementById('esp-family').innerHTML = `</br></br>
-            Web Installer for ESP32-C3, ESP32-S3, ESP32-S3 is a work in progress.</br>
+            Web Installer for newer ESP devices like the ESP32-[C3,C5,C6,S2,S3] is a work in progress.</br>
             If you are installing the firmware for the first time, please do the following.
             <ul>
                 <li>Put your boards into Device Firmware Upgrade (DFU) mode.</li>
@@ -510,6 +513,26 @@
             </ul>
             NOTE: If you are installing the FULL firmware and you don't see the option to configure WiFi after installation is complete,
             hit the reset button and try again by clicking the install button, you should now see the option to set up WiFi.
+        `;
+    }
+
+    function showLinuxHelp() {
+        document.getElementById('linux-family').innerHTML = `</br></br>
+            Your user may not be part of the groups required to access USB serial devices.</br>
+            This may prevent communication with the device.</br></br>
+
+            On most Linux distributions:</br>
+            sudo usermod -aG dialout $USER</br></br>
+
+            On Arch Linux:</br>
+             sudo usermod -aG uucp $USER</br></br>
+
+            After running the command, log out and log back in (or reboot the system).</br></br>
+
+            In addition to this, if you are running Firefly Luciferin as a Snap package. </br>
+            To enable USB access, please run the following command: </br>
+            sudo snap connect fireflyluciferin:raw-usb
+
         `;
     }
 
