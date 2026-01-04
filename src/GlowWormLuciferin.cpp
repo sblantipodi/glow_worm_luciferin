@@ -25,6 +25,11 @@
  * Setup function
  */
 void setup() {
+  String ledBiFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LED_BUILTIN_PARAM);
+  if (!ledBiFromStorage.isEmpty() && ledBiFromStorage != ERROR) {
+    ledBuiltin = ledBiFromStorage.toInt();
+  }
+
   LedManager::manageBuiltInLed(0, 0, 255);
   firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
@@ -416,7 +421,7 @@ void mainLoop() {
                   sbPin = sbSerialPin;
                   ldrPin = ldrSerialPin;
                   relInv = relayInvPin == 11;
-                  ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+                  ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
                 }
               }
 

@@ -318,6 +318,8 @@ void NetManager::listenOnHttpGet() {
       prefsData += sbPin;
       prefsData += F("\",\"ldrPin\":\"");
       prefsData += ldrPin;
+      prefsData += F("\",\"ledBuiltin\":\"");
+      prefsData += ledBuiltin;
       prefsData += F("\",\"ldrMax\":\"");
       if (ldrEnabled) {
         prefsData += ((ldrValue * 100) / ldrDivider);
@@ -816,7 +818,7 @@ bool NetManager::processFirmwareConfig() {
         int ldrPinParam = (int) bootstrapManager.jsonDoc[ledManager.LDR_PIN_PARAM];
         if (ldrPin != ldrPinParam) {
           ldrPin = ldrPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -825,7 +827,7 @@ bool NetManager::processFirmwareConfig() {
         int relayPinParam = (int) bootstrapManager.jsonDoc[ledManager.RELAY_PIN_PARAM];
         if (relayPin != relayPinParam) {
           relayPin = relayPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -834,7 +836,7 @@ bool NetManager::processFirmwareConfig() {
         bool relayInvParam =  bootstrapManager.jsonDoc[ledManager.RELAY_INV_PARAM];
         if (relInv != relayInvParam) {
           relInv = relayInvParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -843,7 +845,16 @@ bool NetManager::processFirmwareConfig() {
         int sbrPinParam = (int) bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM];
         if (sbPin != sbrPinParam) {
           sbPin = sbrPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
+          ledManager.reinitLEDTriggered = true;
+        }
+      }
+      // BUILTIN LED
+      if (bootstrapManager.jsonDoc[ledManager.LED_BUILTIN_PARAM].is<JsonVariant>()) {
+        int ledBiParam = (int) bootstrapManager.jsonDoc[ledManager.LED_BUILTIN_PARAM];
+        if (sbPin != ledBiParam) {
+          ledBuiltin = ledBiParam;
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -1025,6 +1036,7 @@ void NetManager::sendStatus() {
     root[F("relayInv")] = relInv;
     root[F("sbPin")] = sbPin;
     root[F("ldrPin")] = ldrPin;
+    root[F("ledBuiltin")] = ledBuiltin;
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
     root[F("board")] = F("ESP8266");
@@ -1196,6 +1208,7 @@ bool NetManager::processLDR() {
     String rInvStr = bootstrapManager.jsonDoc[F("relInv")];
     String sPin = bootstrapManager.jsonDoc[F("sbPin")];
     String lPin = bootstrapManager.jsonDoc[F("ldrPin")];
+    String ledBi = bootstrapManager.jsonDoc[F("ledBuiltin")];
     relInv = rInvStr == "true";
     ldrEnabled = ldrEnabledMqtt == "true";
     ldrTurnOff = ldrTurnOffMqtt == "true";
@@ -1222,7 +1235,8 @@ bool NetManager::processLDR() {
       relayPin = rPin.toInt();
       sbPin = sPin.toInt();
       ldrPin = lPin.toInt();
-      ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+      ledBuiltin = ledBi.toInt();
+      ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
     }
     delay(DELAY_500);
     startUDP();

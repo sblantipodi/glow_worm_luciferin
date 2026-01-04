@@ -788,15 +788,17 @@ void LedManager::setLdr(int maxLdr) {
  * @param ldrTurnOffToSet Turn off LEDs before LDR readings
  * @param ldrIntervalToSet Interval between readings
  * @param minLdr min brightness when using LDR
+ * @param ledBuiltin built in led
  * @param relInv relay iverted
  */
-void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam, bool relInv) {
+void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam, bool relInv, uint8_t ledBuiltin) {
   Serial.println(F("CHANGING PINs"));
   JsonDocument ldrDoc;
   ldrDoc[RELAY_PIN_PARAM] = relayPinParam;
   ldrDoc[SB_PIN_PARAM] = sbPinParam;
   ldrDoc[LDR_PIN_PARAM] = ldrPinParam;
   ldrDoc[RELAY_INV] = relInv;
+  ldrDoc[LED_BUILTIN_PARAM] = ledBuiltin;
   BootstrapManager::writeToLittleFS(ldrDoc, PIN_FILENAME);
   delay(200);
 #if defined(ARDUINO_ARCH_ESP32)
@@ -954,7 +956,7 @@ void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
     // C3/C6 I'd guess there is an overlap in the restricted TX channel set, C devices has only two TX channels, skipping for C3/C6
 #if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
     if (ethd == 0 || ethd == -1) {
-      rgbLedWrite(LED_BUILTIN, r, g, b);
+      rgbLedWrite(ledBuiltin, r, g, b);
     }
 #elif defined(ESP8266)
     if (r > 0 || g > 0 || b > 0) {

@@ -66,6 +66,7 @@ bool relInv = false;
 uint8_t ldrInterval = 30;
 bool ldrTurnOff = false;
 uint8_t ldrMin = 20;
+uint8_t ledBuiltin = BUILTIN_LED;
 #if defined(ESP8266)
 uint8_t gpioInUse = 2;
 uint8_t relayPin = 12;

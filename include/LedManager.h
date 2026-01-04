@@ -62,6 +62,7 @@ public:
     const String MAX_LDR_PARAM = "maxLdr";
     const String RELAY_PIN_PARAM = "relayPin";
     const String RELAY_INV_PARAM = "relayInv";
+    const String LED_BUILTIN_PARAM = "ledBuiltin";
     const String RELAY_INV = "relayInv";
     const String SB_PIN_PARAM = "sbPin";
     const String LDR_PIN_PARAM = "ldrPin";
@@ -132,7 +133,7 @@ public:
 
     void setLdr(int maxLdr);
 
-    void setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam, bool relInv);
+    void setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam, bool relInv, uint8_t ledBuiltin);
 
     void flushSerial();
 
