@@ -955,7 +955,32 @@ void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
   if (LED_BUILTIN != gpioInUse) {
     // C3/C6 I'd guess there is an overlap in the restricted TX channel set, C devices has only two TX channels, skipping for C3/C6
 #if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-    if (ethd == 0 || ethd == -1) {
+    int values[4];
+    bool gpioIsUsedForEth = false;
+    if (ethd > 0 && ethd < spiStartIdx) {
+      values[0] = ethernetDevices[ethd].address;
+      values[1] = ethernetDevices[ethd].mdc;
+      values[2] = ethernetDevices[ethd].mdio;
+      values[3] = ethernetDevices[ethd].power;
+    } else if (ethd == spiStartIdx) {
+      values[0] = miso;
+      values[1] = mosi;
+      values[2] = sclk;
+      values[3] = cs;
+    } else if (ethd > spiStartIdx) {
+      int deviceNumber = ethd - spiStartIdx - 1;
+      values[0] = ethernetDevicesSpi[deviceNumber].cs_pin;
+      values[1] = ethernetDevicesSpi[deviceNumber].sclk_sck_pin;
+      values[2] = ethernetDevicesSpi[deviceNumber].miso_pin;
+      values[3] = ethernetDevicesSpi[deviceNumber].mosi_pin;
+    }
+    for (int i = 0; i < 4; i++) {
+      if (values[i] == ledBuiltin || values[i] == LED_BUILTIN - SOC_GPIO_PIN_COUNT) {
+        gpioIsUsedForEth = true;
+        break;
+      }
+    }
+    if (!gpioIsUsedForEth) {
       rgbLedWrite(ledBuiltin, r, g, b);
     }
 #elif defined(ESP8266)

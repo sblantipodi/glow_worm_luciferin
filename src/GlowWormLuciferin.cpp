@@ -29,6 +29,7 @@ void setup() {
   if (!ledBiFromStorage.isEmpty() && ledBiFromStorage != ERROR) {
     ledBuiltin = ledBiFromStorage.toInt();
   }
+  BootstrapManager::isWifiConfigured();
 
   LedManager::manageBuiltInLed(0, 0, 255);
   firmwareVersion = VERSION;
