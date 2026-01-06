@@ -441,11 +441,7 @@ void mainLoop() {
 
               if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 10)) {
                 Globals::setBaudRate(baudRate);
-#if defined(ARDUINO_ARCH_ESP32)
-                ESP.restart();
-#elif defined(ESP8266)
-                EspClass::restart();
-#endif
+                Helpers::safeRestart();
               }
 
               if (whiteTemp != 0 && whiteTempInUse != whiteTemp && (whiteTemp >= 20 && whiteTemp <= 110)) {
@@ -790,4 +786,7 @@ void loop() {
   }
 
   ledManager.updateTransition();
+
+  Helpers::safeRestartGuard();
+
 }

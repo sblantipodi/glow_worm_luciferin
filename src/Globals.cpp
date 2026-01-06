@@ -124,9 +124,6 @@ unsigned long prevMillisCheckConn2 = 0;
 
 unsigned long currentMillisSendSerial = 0;
 unsigned long prevMillisSendSerial = 0;
-
-unsigned long currentMillisMainLoop = 0;
-
 unsigned long prevMillisPing = 0;
 
 /**

@@ -801,11 +801,7 @@ void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrP
   ldrDoc[LED_BUILTIN_PARAM] = ledBuiltin;
   BootstrapManager::writeToLittleFS(ldrDoc, PIN_FILENAME);
   delay(200);
-#if defined(ARDUINO_ARCH_ESP32)
-  ESP.restart();
-#elif defined(ESP8266)
-  EspClass::restart();
-#endif
+  Helpers::safeRestart();
 }
 
 /**

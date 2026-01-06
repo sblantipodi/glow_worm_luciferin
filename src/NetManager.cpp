@@ -709,10 +709,10 @@ bool NetManager::processFirmwareConfigWithReboot() {
     statusCode = 404;
     Serial.println(F("Sending 404"));
   }
-  delay(DELAY_500);
+  delay(DELAY_200);
   server.sendHeader(F("Access-Control-Allow-Origin"), "*");
   server.send(statusCode, F("text/plain"), content);
-  delay(DELAY_500);
+  delay(DELAY_200);
   // Write to LittleFS
   Serial.println(F("Saving setup.json"));
   File jsonFile = LittleFS.open("/setup.json", FILE_WRITE);
@@ -739,32 +739,30 @@ bool NetManager::processFirmwareConfigWithReboot() {
     Serial.println(F("Saving gpio clock"));
     Globals::setGpioClock(gpioClockParam.toInt());
   }
-  delay(DELAY_500);
+  delay(DELAY_200);
   JsonDocument topicDoc;
   topicDoc[netManager.MQTT_PARAM] = mqttTopic;
   BootstrapManager::writeToLittleFS(topicDoc, netManager.TOPIC_FILENAME);
   if (!bootstrapManager.jsonDoc[F("colorMode")].isNull()) {
-    delay(DELAY_500);
+    delay(DELAY_200);
     ledManager.setColorMode(colorModeParam.toInt());
   }
-  delay(DELAY_500);
+  delay(DELAY_200);
   if (!bootstrapManager.jsonDoc[F("colorOrder")].isNull()) {
     ledManager.setColorOrder(colorOrderParam.toInt());
-    delay(DELAY_500);
+    delay(DELAY_200);
   }
   if (!bootstrapManager.jsonDoc[F("br")].isNull()) {
     Globals::setBaudRateInUse(br.toInt());
     Globals::setBaudRate(baudRateInUse);
   }
-  delay(DELAY_1000);
+  delay(DELAY_200);
 #if defined(ARDUINO_ARCH_ESP32)
   if (ethd > 0 && ethd != -1) {
     EthManager::deallocateEthernetPins(ethd);
   }
-  ESP.restart();
-#elif defined(ESP8266)
-  EspClass::restart();
 #endif
+  Helpers::safeRestart();
   return true;
 }
 
@@ -864,11 +862,7 @@ bool NetManager::processFirmwareConfig() {
         ledManager.initLeds();
       }
       if (espRestart) {
-#if defined(ARDUINO_ARCH_ESP32)
-        ESP.restart();
-#elif defined(ESP8266)
-        EspClass::restart();
-#endif
+        Helpers::safeRestart();
       }
     }
   }
@@ -1157,12 +1151,8 @@ bool NetManager::processUpdate() {
             }
           }
         }
-        delay(200);
-#if defined(ARDUINO_ARCH_ESP32)
-        ESP.restart();
-#elif defined(ESP8266)
-        EspClass::restart();
-#endif
+        delay(DELAY_200);
+        Helpers::safeRestart();
       }
     }
   );
@@ -1182,12 +1172,8 @@ bool NetManager::processGlowWormLuciferinRebootCmnd() {
   if (bootstrapManager.jsonDoc[VALUE] == OFF_CMD) {
     ledManager.stateOn = false;
     sendStatus();
-    delay(1500);
-#if defined(ARDUINO_ARCH_ESP32)
-    ESP.restart();
-#elif defined(ESP8266)
-    EspClass::restart();
-#endif
+    delay(DELAY_1500);
+    Helpers::safeRestart();
   }
   return true;
 }

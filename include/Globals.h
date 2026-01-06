@@ -120,9 +120,6 @@ extern unsigned long prevMillisCheckConn2;
 
 extern unsigned long currentMillisSendSerial;
 extern unsigned long prevMillisSendSerial;
-
-extern unsigned long currentMillisMainLoop;
-
 extern unsigned long prevMillisPing;
 
 extern uint8_t baudRateInUse;
