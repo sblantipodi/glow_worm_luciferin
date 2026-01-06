@@ -25,12 +25,11 @@
  * Setup function
  */
 void setup() {
-  // TODO remove comment
-  // String ledBiFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LED_BUILTIN_PARAM);
-  // if (!ledBiFromStorage.isEmpty() && ledBiFromStorage != ERROR) {
-  //   ledBuiltin = ledBiFromStorage.toInt();
-  // }
-  // BootstrapManager::isWifiConfigured();
+  String ledBiFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LED_BUILTIN_PARAM);
+  if (!ledBiFromStorage.isEmpty() && ledBiFromStorage != ERROR) {
+    ledBuiltin = ledBiFromStorage.toInt();
+  }
+  BootstrapManager::isWifiConfigured();
   LedManager::manageBuiltInLed(0, 0, 255);
 
   firmwareVersion = VERSION;
