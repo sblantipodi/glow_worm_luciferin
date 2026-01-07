@@ -327,10 +327,12 @@ void mainLoop() {
   NetManager::checkConnection();
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
-  if (Serial.peek() != -1) { // Using peek() instead of available() because it's non blocking
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-    if (effect == Effect::GlowWorm) {
+  if (effect == Effect::GlowWorm && Serial.peek() != -1) { // Using peek() instead of available() because it's non blocking
+#else
+  if (Serial.peek() != -1) {
 #endif
+
       if (!ledManager.led_state) ledManager.led_state = true;
 
       int i = 0;
@@ -568,9 +570,6 @@ void mainLoop() {
           }
         }
       }
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-    }
-#endif
   }
 
   if (effect == Effect::solid && !ledManager.transitioning) {

@@ -885,6 +885,7 @@ void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
         temporaryDisableImprove = ledManager.transitioning = true;
       }
   }
+  Serial.print("\n");
   Serial.print(F("Setting LEDs: "));
   Serial.print(F("r: "));
   Serial.print(inR);
