@@ -312,7 +312,6 @@ void Globals::sendSerialInfo() {
       Serial.printf("relInv:%d\r\n", relInv);
       Serial.printf("sbPin:%d\r\n", sbPin);
       Serial.printf("ldrPin:%d\r\n", ldrPin);
-      Serial.flush();
     }
   }
 }
