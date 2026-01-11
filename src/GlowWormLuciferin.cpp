@@ -69,7 +69,7 @@ void setup() {
   if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
     ledManager.dynamicLedNum = ledNumToUse.toInt();
   } else {
-    ledManager.dynamicLedNum = 100;
+    ledManager.dynamicLedNum = 50;
   }
 
   Serial.print(F("\nUsing LEDs="));
@@ -145,10 +145,10 @@ void setup() {
   String ldrPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LDR_PIN_PARAM);
 
   if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
-    ldrEnabled = ldrFromStorage == "1";
+    ldrEnabled = ldrFromStorage == TRUE;
   }
   if (!ldrTurnOffFromStorage.isEmpty() && ldrTurnOffFromStorage != ERROR) {
-    ldrTurnOff = ldrTurnOffFromStorage == "1";
+    ldrTurnOff = ldrTurnOffFromStorage == TRUE;
   }
   if (!ldrIntervalFromStorage.isEmpty() && ldrIntervalFromStorage != ERROR) {
     ldrInterval = ldrIntervalFromStorage.toInt();
@@ -160,7 +160,7 @@ void setup() {
     relayPin = relayPinFromStorage.toInt();
   }
   if (!relayInvStorage.isEmpty() && relayInvStorage != ERROR) {
-    relInv = relayInvStorage.toInt();
+    relInv = relayInvStorage == TRUE;
   }
   if (!sbPinFromStorage.isEmpty() && sbPinFromStorage != ERROR) {
     sbPin = sbPinFromStorage.toInt();
@@ -188,7 +188,7 @@ void setup() {
     brightnessStored = brightness;
     ef = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("effect"));
     effectStored = Globals::stringToEffect(ef);
-    toggleStored = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("toggle")).toInt();
+    toggleStored = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("toggle")) == TRUE;
   }
 
   String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));

@@ -127,6 +127,8 @@ extern bool relayState;
 extern bool breakLoop;
 extern bool apFileRead;
 
+extern String TRUE;
+
 class Globals {
 
 public:

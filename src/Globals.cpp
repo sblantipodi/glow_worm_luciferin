@@ -126,6 +126,8 @@ unsigned long currentMillisSendSerial = 0;
 unsigned long prevMillisSendSerial = 0;
 unsigned long prevMillisPing = 0;
 
+String TRUE = "true";
+
 /**
  * Set gpio received by the Firefly Luciferin software
  * @param gpio gpio to use
