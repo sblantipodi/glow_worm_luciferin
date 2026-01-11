@@ -535,20 +535,6 @@
 
         `;
     }
-    function isWindows() {
-        if (navigator.userAgentData) {
-            return navigator.userAgentData.platform === "Windows";
-        }
-        return navigator.userAgent.toLowerCase().includes("windows");
-    }
-    document.addEventListener("DOMContentLoaded", () => {
-        if (isWindows()) {
-            document.getElementById("l
-                                    
-                                    
-                                    ck").style.display = "none";
-        }
-    });
 
     const now = new Date();
     const year = now.getFullYear();
