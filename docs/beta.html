@@ -352,6 +352,35 @@
             cursor: pointer;
             text-decoration: underline;
         }
+
+        /* --- NEVE --- */
+        #snow {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 9999;
+          overflow: hidden;
+        }
+    
+        .snowflake {
+          position: absolute;
+          top: -10px;
+          color: white;
+          user-select: none;
+          animation-name: fall;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+    
+        @keyframes fall {
+          to {
+            transform: translateY(100vh);
+          }
+        }
+
     </style>
 
 </head>
@@ -427,7 +456,7 @@
         </i>
     </p>
     <p>
-        <b>If you are flashing an ESP32-C3, ESP32-S2 or ESP32-S3 <span id="esp-family"><a onClick="showHelp()">please read here.</a></span></b>
+        <b>If you are flashing a newer ESP device like the ESP32-[C3,C5,C6,S2,S3] <span id="esp-family"><a onClick="showHelp()">please read here.</a></span></b>
         <br>
     </p>
     <p id="linux-block">
@@ -473,7 +502,7 @@
 
     function showHelp() {
         document.getElementById('esp-family').innerHTML = `</br></br>
-            Web Installer for ESP32-C3, ESP32-S3, ESP32-S3 is a work in progress.</br>
+            Web Installer for newer ESP devices like the ESP32-[C3,C5,C6,S2,S3] is a work in progress.</br>
             If you are installing the firmware for the first time, please do the following.
             <ul>
                 <li>Put your boards into Device Firmware Upgrade (DFU) mode.</li>
@@ -514,9 +543,46 @@
     }
     document.addEventListener("DOMContentLoaded", () => {
         if (isWindows()) {
-            document.getElementById("linux-block").style.display = "none";
+            document.getElementById("l
+                                    
+                                    
+                                    ck").style.display = "none";
         }
     });
+
+    const now = new Date();
+    const year = now.getFullYear();
+    
+    const start = new Date(year, 11, 14); 
+    const end = new Date(year + 1, 0, 6); 
+    
+    const isChristmas = now >= start && now <= end;
+
+    if (isChristmas) {
+      const snowContainer = document.createElement("div");
+      snowContainer.id = "snow";
+      document.body.appendChild(snowContainer);
+
+    const flakesCount =
+      window.innerWidth >= 1200 ? 40 :
+      window.innerWidth >= 992  ? 30 :
+      window.innerWidth >= 768  ? 24 :
+                                  16;
+
+      for (let i = 0; i < flakesCount; i++) {
+        const flake = document.createElement("div");
+        flake.className = "snowflake";
+        flake.textContent = "❄";
+
+        flake.style.left = Math.random() * 100 + "vw";
+        flake.style.fontSize = 12 + Math.random() * 14 + "px";
+        flake.style.opacity = Math.random();
+        flake.style.animationDuration = 6 + Math.random() * 6 + "s";
+        flake.style.animationDelay = Math.random() * 5 + "s";
+
+        snowContainer.appendChild(flake);
+      }
+    }
 
 </script>
 </body>
