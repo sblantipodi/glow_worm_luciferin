@@ -52,6 +52,7 @@ public:
 
     String lightStateTopic = "lights/glowwormluciferin";
     String updateStateTopic = "lights/glowwormluciferin/update";
+    String helloTopic = "stat/glowwormluciferin/hello";
     String updateResultStateTopic = "lights/glowwormluciferin/update/result";
     String lightSetTopic = "lights/glowwormluciferin/set";
     String effectToGw = "lights/glowwormluciferin/effectToGw";

@@ -209,6 +209,7 @@ void NetManager::manageQueueSubscription() {
   // TODO remove subscription to topic that doesn't need MQTT, some topics can be managed via HTTP only
   BootstrapManager::subscribe(netManager.streamTopic.c_str(), 0);
   BootstrapManager::subscribe(netManager.unsubscribeTopic.c_str());
+  BootstrapManager::publish(netManager.helloTopic.c_str(), Helpers::string2char(F("HELLO")), true);
   apFileRead = false;
 }
 
@@ -241,6 +242,7 @@ void NetManager::swapTopicReplace(const String &customtopic) {
   netManager.streamTopic.replace(netManager.BASE_TOPIC, customtopic);
   netManager.unsubscribeTopic.replace(netManager.BASE_TOPIC, customtopic);
   netManager.cmndReboot.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.helloTopic.replace(netManager.BASE_TOPIC, customtopic);
 }
 
 /**
