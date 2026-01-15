@@ -1,6 +1,9 @@
 .container-fluid {
     background:orange !important;
 }
+.container-fluid h1 {
+    padding-top: 0.1em;
+}
 #toggleLED {
     font-size: 1.8rem;
     font-weight: bold;
@@ -58,7 +61,7 @@ button {
     display: block; 
     position: absolute; 
     width: 5em;
-    animation: pulseb 2s infinite;
+    animation: pulse 2s infinite;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .btn.right-btn {
@@ -114,8 +117,8 @@ span#fps {
     border: transparent;
 }
 #subtitle {
-    margin-top: 1.0em;
-    margin-bottom: 0.5em;
+    margin-top: 1em;
+    margin-bottom: 0.2em;
 }
 
 @keyframes pulse {
@@ -124,15 +127,6 @@ span#fps {
   }
   70% {
     box-shadow: 0 0 0 5px rgba(255, 245, 230, 0);
-  }
-}
-
-@keyframes pulseb {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 245, 230, 0.8);
-  }
-  70% {
-    box-shadow: 0 0 0 8px rgba(255, 245, 230, 0);
   }
 }
 
