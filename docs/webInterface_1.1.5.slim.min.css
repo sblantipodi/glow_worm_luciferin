@@ -1,0 +1,156 @@
+.container-fluid {
+    background:orange !important;
+}
+#toggleLED {
+    font-size: 1.8rem;
+    font-weight: bold;
+    background: lightgrey;
+    border-color: lightgrey;
+}
+#toggleLED:hover {
+    background-color: #c6c6c6 !important;
+    border-color: #c6c6c6 !important;
+}
+#toggleLED.active:hover {
+    background-color: darkorange !important;
+    border-color: darkorange !important;
+}
+body {
+    background-color: #f8f8f8;
+    font-wight: bold;
+}
+button {
+    width: 100%;
+}
+.btn-primary {
+    font-weight: bold;
+}
+.col-sm-12, col-sm-6, footer {
+    margin: 2vw 0vw 2vw 0vw;
+}
+.wrap {
+    max-width: 72vw;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+.form-check-input:checked {
+    background-color: orange;
+    border-color: orange;
+}
+.slider-margin {
+    margin-top: 1em;
+}
+.btn.btn-white {
+    background-color: orange;
+    color: white;
+    font-weight: bold;
+}
+.margin-2 {
+    margin-top: 2vw;
+}
+.btn.back-btn {
+    color:white; 
+    left: 1em; 
+    top: 1em; 
+    display: block; 
+    position: absolute; 
+    width: 5em;
+}
+.btn.right-btn {
+    color:white; 
+    right: 1em; 
+    top: 1em; 
+    display: block; 
+    position: absolute; 
+    width: 5em;
+}
+.btn-orange {
+    background-color: orange;
+    border-color: orange;
+    color: white;
+    font-weight: bold;
+}
+button.btn.btn-orange:hover {
+    background-color: darkorange;
+    border-color: orange;
+    color: white;
+    font-weight: bold;
+}
+footer.ldrfoot {
+    margin: 0px;
+}
+.mgntop-small {
+    margin-top: 0.5em;
+}
+.fa-ethernet {
+    margin-right: 0.4em;
+}
+.saveBtn {
+    border-color: transparent;
+    font-weight: bold;
+    background-color: orange;
+    font-size: 0.7em;
+    width: 10em;
+    margin-bottom: 1em;
+}
+span#wifi {
+    margin-left: 0.3em;
+}
+span#ldr {
+    margin-left: 0.3em;
+}
+span#fps {
+    margin-left: 0.3em;
+}
+.saveBtn:hover {
+    background-color: darkorange;
+    border: transparent;
+}
+#subtitle {
+    margin-top: 1.0em;
+    margin-bottom: 0.5em;
+}
+body {
+    animation: container 0.8s;
+}
+@keyframes container {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+.container {
+    animation: fi 0.8s .4s both;
+}
+/* --- NEVE --- */
+#snow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  color: gray;
+  user-select: none;
+  animation-name: fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh);
+  }
+}
