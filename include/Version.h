@@ -1,9 +1,9 @@
 
     // AUTO GENERATED FILE, DO NOT EDIT
     #ifndef VERSION
-        #define VERSION "5.23.119"
+        #define VERSION "5.23.123"
     #endif
     #ifndef BUILD_TIMESTAMP
-        #define BUILD_TIMESTAMP "2026-01-16 14:25:55.826872"
+        #define BUILD_TIMESTAMP "2026-01-18 18:27:00.910414"
     #endif
     
