@@ -502,17 +502,16 @@
 
     function showHelp() {
         document.getElementById('esp-family').innerHTML = `</br></br>
-            Web Installer for newer ESP devices like the ESP32-[C3,C5,C6,S2,S3] is a work in progress.</br>
-            If you are installing the firmware for the first time, please do the following.
+            If you are flashing a brand-new ESP32-[C3, C5, C6, S2, S3] and the installation fails, you may need to put the device into Device Firmware Upgrade (DFU) mode.</br>
+            To do this, follow these steps:
             <ul>
-                <li>Put your boards into Device Firmware Upgrade (DFU) mode.</li>
-                <li>Hold on Button Boot</li>
-                <li>Press Button Reset</li>
-                <li>Release Button Boot when you hear the prompt tone on usb reconnection</li>
-                <li>The device is now into DFU mode, you can now click the install button.</li>
+                <li>Press and hold the BOOT button</li>
+                <li>Press the RESET button</li>
+                <li>Release the BOOT button when you hear the prompt tone after USB reconnection</li>
+                <li>The device is now in DFU mode. You can now click the Install button.</li>
             </ul>
-            NOTE: If you are installing the FULL firmware and you don't see the option to configure WiFi after installation is complete,
-            hit the reset button and try again by clicking the install button, you should now see the option to set up WiFi.
+            NOTE: If you are installing the FULL firmware and you do not see the option to configure WiFi after the installation completes,
+            press the RESET button and click the Install button again. You should now see the option to set up WiFi.
         `;
     }
 
@@ -535,6 +534,7 @@
 
         `;
     }
+    
     function isWindows() {
         if (navigator.userAgentData) {
             return navigator.userAgentData.platform === "Windows";
@@ -543,43 +543,38 @@
     }
     document.addEventListener("DOMContentLoaded", () => {
         if (isWindows()) {
-            document.getElementById("l
-                                    
-                                    
-                                    ck").style.display = "none";
+            document.getElementById("linux-block").style.display = "none";
         }
     });
-
+    
     const now = new Date();
-    const year = now.getFullYear();
+    const month = now.getMonth(); 
+    const day = now.getDate();
     
-    const start = new Date(year, 11, 14); 
-    const end = new Date(year + 1, 0, 6); 
+    const isChristmas = (month === 11 && day >= 14) || (month === 0  && day <= 6);    
     
-    const isChristmas = now >= start && now <= end;
-
     if (isChristmas) {
       const snowContainer = document.createElement("div");
       snowContainer.id = "snow";
       document.body.appendChild(snowContainer);
-
-    const flakesCount =
-      window.innerWidth >= 1200 ? 40 :
-      window.innerWidth >= 992  ? 30 :
-      window.innerWidth >= 768  ? 24 :
-                                  16;
-
+    
+      const flakesCount =
+        window.innerWidth >= 1200 ? 40 :
+        window.innerWidth >= 992  ? 30 :
+        window.innerWidth >= 768  ? 24 :
+                                    16;
+    
       for (let i = 0; i < flakesCount; i++) {
         const flake = document.createElement("div");
         flake.className = "snowflake";
         flake.textContent = "❄";
-
+    
         flake.style.left = Math.random() * 100 + "vw";
         flake.style.fontSize = 12 + Math.random() * 14 + "px";
         flake.style.opacity = Math.random();
         flake.style.animationDuration = 6 + Math.random() * 6 + "s";
         flake.style.animationDelay = Math.random() * 5 + "s";
-
+    
         snowContainer.appendChild(flake);
       }
     }
