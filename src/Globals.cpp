@@ -97,6 +97,11 @@ uint8_t gpioInUse = 5;
 uint8_t relayPin = 15;
 uint8_t sbPin = 1;
 uint8_t ldrPin = 2;
+#elif CONFIG_IDF_TARGET_ESP32C5
+uint8_t gpioInUse = 5;
+uint8_t relayPin = 15;
+uint8_t sbPin = 1;
+uint8_t ldrPin = 2;
 #elif CONFIG_IDF_TARGET_ESP32
 uint8_t gpioInUse = 2;
 uint8_t relayPin = 12; // 22 for PICO
@@ -287,7 +292,11 @@ void Globals::sendSerialInfo() {
         Serial.printf("board:%s\r\n", "ESP8266");
 #endif
 #if CONFIG_IDF_TARGET_ESP32C3
-        Serial.printf("board:%s\r\n", "ESP32_C3_CDC");
+      Serial.printf("board:%s\r\n", "ESP32_C3");
+#elif CONFIG_IDF_TARGET_ESP32C6
+      Serial.printf("board:%s\r\n", "ESP32_C6");
+#elif CONFIG_IDF_TARGET_ESP32C5
+      Serial.printf("board:%s\r\n", "ESP32_C5");
 #elif CONFIG_IDF_TARGET_ESP32S2
         Serial.printf("board:%s\r\n", "ESP32_S2");
 #elif CONFIG_IDF_TARGET_ESP32S3
