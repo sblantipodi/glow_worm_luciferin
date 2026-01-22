@@ -103,7 +103,7 @@ extern uint8_t ldrMin;
 extern uint8_t relayPin;
 extern uint8_t sbPin;
 extern uint8_t ldrPin;
-extern uint8_t ledBuiltin;
+extern int8_t ledBuiltin;
 extern int ldrDivider;
 extern const unsigned int LDR_RECOVER_TIME;
 extern unsigned long previousMillisLDR;

@@ -67,46 +67,52 @@ uint8_t ldrInterval = 30;
 bool ldrTurnOff = false;
 uint8_t ldrMin = 20;
 #ifdef LED_BUILTIN
-uint8_t ledBuiltin = LED_BUILTIN;
 #else
-uint8_t ledBuiltin = 0;
+int8_t ledBuiltin = 0;
 #endif
 #if defined(ESP8266)
 uint8_t gpioInUse = 2;
 uint8_t relayPin = 12;
 uint8_t sbPin = 0;
 uint8_t ldrPin = A0;
+int8_t ledBuiltin = -1;
 #endif
 #if CONFIG_IDF_TARGET_ESP32C3
 uint8_t gpioInUse = 6;
 uint8_t relayPin = 0;
 uint8_t sbPin = 9;
 uint8_t ldrPin = 3;
+int8_t ledBuiltin = 7;
 #elif CONFIG_IDF_TARGET_ESP32S2
 uint8_t gpioInUse = 16;
 uint8_t relayPin = 9;
 uint8_t sbPin = 0;
 uint8_t ldrPin = 3;
+int8_t ledBuiltin = 15;
 #elif CONFIG_IDF_TARGET_ESP32S3
 uint8_t gpioInUse = 16;
 uint8_t relayPin = 13;
 uint8_t sbPin = 0;
 uint8_t ldrPin = 2;
+int8_t ledBuiltin = 47;
 #elif CONFIG_IDF_TARGET_ESP32C6
 uint8_t gpioInUse = 5;
 uint8_t relayPin = 15;
 uint8_t sbPin = 1;
 uint8_t ldrPin = 2;
+int8_t ledBuiltin = 8;
 #elif CONFIG_IDF_TARGET_ESP32C5
 uint8_t gpioInUse = 5;
 uint8_t relayPin = 15;
 uint8_t sbPin = 1;
 uint8_t ldrPin = 2;
+int8_t ledBuiltin = 8;
 #elif CONFIG_IDF_TARGET_ESP32
 uint8_t gpioInUse = 2;
-uint8_t relayPin = 12; // 22 for PICO
+uint8_t relayPin = 12;
 uint8_t sbPin = 0;
-uint8_t ldrPin = 36; // 33 for PICO
+uint8_t ldrPin = 36;
+int8_t ledBuiltin = -1;
 #endif
 uint8_t gpioClockInUse = 2;
 
