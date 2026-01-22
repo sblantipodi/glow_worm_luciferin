@@ -34,8 +34,8 @@ const uint8_t WHITE_TEMP_CORRECTION_DISABLE = 65;
 class LedManager {
 
 public:
-    NeoPixelBus<NeoRgbFeature, NeoEsp32BitBangWs2812xMethod> *builtInLed = NULL;
 #if defined(ARDUINO_ARCH_ESP32)
+    NeoPixelBus<NeoRgbFeature, NeoEsp32BitBangWs2812xMethod> *builtInLed = NULL;
     NeoPixelBus<NeoRgbFeature, NeoWs2812xMethod> *ledsEsp32 = NULL; // Hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<NeoRgbwFeature, NeoSk6812Method> *ledsEsp32Rgbw = NULL; // Hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<DotStarRgbFeature, DotStarMethod> *ledsEsp32DotStar = NULL; // Hardware, ALL GPIO, yes serial read/write

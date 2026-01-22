@@ -950,7 +950,7 @@ void LedManager::setWhiteTemp(int wt) {
 void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
   if (ledBuiltin != -1) {
     if (ledBuiltin != gpioInUse) {
-  #if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32C6
+#if defined(ARDUINO_ARCH_ESP32)
       int values[4];
       bool gpioIsUsedForEth = false;
       if (ethd > 0 && ethd < spiStartIdx) {
@@ -984,13 +984,13 @@ void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
         ledManager.builtInLed->SetPixelColor(0, RgbColor(r, g, b));
         ledManager.builtInLed->Show();
       }
-  #elif defined(ESP8266)
+#else
       if (r > 0 || g > 0 || b > 0) {
         digitalWrite(LED_BUILTIN, LOW);
       } else {
         digitalWrite(LED_BUILTIN, HIGH);
       }
-  #endif
+#endif
     }
   }
 }
