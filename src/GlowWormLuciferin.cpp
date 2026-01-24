@@ -250,7 +250,7 @@ void ldrTask(void*) {
 void configureLeds() {
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
-  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
+  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR) {
     gpioInUse = gpioFromStorage.toInt();
 #if defined(ESP8266)
     if (LED_BUILTIN != gpioInUse) {
