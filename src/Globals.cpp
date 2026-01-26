@@ -141,9 +141,6 @@ String TRUE = "true";
  */
 void Globals::setGpio(int gpioToUse) {
   Serial.println("CHANGING GPIO");
-  if (gpioToUse == 0) {
-    gpioToUse = 2;
-  }
   gpioInUse = gpioToUse;
   JsonDocument gpioDoc;
   gpioDoc[GPIO_PARAM] = gpioInUse;
@@ -157,9 +154,6 @@ void Globals::setGpio(int gpioToUse) {
  */
 void Globals::setGpioClock(int gpioClockToUse) {
   Serial.println("CHANGING GPIO CLOCK");
-  if (gpioClockToUse == 0) {
-    gpioClockToUse = 2;
-  }
   gpioClockInUse = gpioClockToUse;
   JsonDocument gpioClockDoc;
   gpioClockDoc[GPIO_CLOCK_PARAM] = gpioClockInUse;

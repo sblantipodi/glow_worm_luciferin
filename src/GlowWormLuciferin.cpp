@@ -264,7 +264,7 @@ void configureLeds() {
 
   // GPIO clock pin from configuration storage
   String gpioClockFromStorage = bootstrapManager.readValueFromFile(GPIO_CLOCK_FILENAME, GPIO_CLOCK_PARAM);
-  if (!gpioClockFromStorage.isEmpty() && gpioClockFromStorage != ERROR && gpioClockFromStorage.toInt() != 0) {
+  if (!gpioClockFromStorage.isEmpty() && gpioClockFromStorage != ERROR) {
     gpioClockInUse = gpioClockFromStorage.toInt();
   }
 
@@ -387,12 +387,12 @@ void mainLoop() {
                 brightness = usbBrightness;
               }
 
-              if (gpio != 0 && gpioInUse != gpio) {
+              if (gpioInUse != gpio) {
                 Globals::setGpio(gpio);
                 ledManager.reinitLEDTriggered = true;
               }
 
-              if (gpioClock != 0 && gpioClockInUse != gpioClock) {
+              if (gpioClockInUse != gpioClock) {
                 Globals::setGpioClock(gpioClock);
                 ledManager.reinitLEDTriggered = true;
               }

@@ -781,23 +781,23 @@ bool NetManager::processFirmwareConfig() {
     if (macToUpdate == MAC) {
       // GPIO
       if (bootstrapManager.jsonDoc[GPIO_PARAM].is<JsonVariant>()) {
-        int gpioFromConfig = (int) bootstrapManager.jsonDoc[GPIO_PARAM];
-        if (gpioFromConfig != 0 && gpioInUse != gpioFromConfig) {
+        int gpioFromConfig = bootstrapManager.jsonDoc[GPIO_PARAM];
+        if (gpioInUse != gpioFromConfig) {
           Globals::setGpio(gpioFromConfig);
           ledManager.reinitLEDTriggered = true;
         }
       }
       // GPIO CLOCK
       if (bootstrapManager.jsonDoc[GPIO_CLOCK_PARAM].is<JsonVariant>()) {
-        int gpioClockFromConfig = (int) bootstrapManager.jsonDoc[GPIO_CLOCK_PARAM];
-        if (gpioClockFromConfig != 0 && gpioClockInUse != gpioClockFromConfig) {
+        int gpioClockFromConfig = bootstrapManager.jsonDoc[GPIO_CLOCK_PARAM];
+        if (gpioClockInUse != gpioClockFromConfig) {
           Globals::setGpioClock(gpioClockFromConfig);
           ledManager.reinitLEDTriggered = true;
         }
       }
       // COLOR_MODE
       if (bootstrapManager.jsonDoc[ledManager.COLOR_MODE_PARAM].is<JsonVariant>()) {
-        int colorModeParam = (int) bootstrapManager.jsonDoc[ledManager.COLOR_MODE_PARAM];
+        int colorModeParam = bootstrapManager.jsonDoc[ledManager.COLOR_MODE_PARAM];
         if (colorMode != colorModeParam) {
           colorMode = colorModeParam;
           ledManager.setColorMode(colorMode);
