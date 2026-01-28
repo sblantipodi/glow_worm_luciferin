@@ -2,7 +2,7 @@
   GlowWormLuciferin.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2025  Davide Perini
+  Copyright © 2020 - 2026  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,13 @@
  * Setup function
  */
 void setup() {
+  String ledBiFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LED_BUILTIN_PARAM);
+  if (!ledBiFromStorage.isEmpty() && ledBiFromStorage != ERROR) {
+    ledBuiltin = ledBiFromStorage.toInt();
+  }
+  BootstrapManager::isWifiConfigured();
   LedManager::manageBuiltInLed(0, 0, 255);
+
   firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
   fastDisconnectionManagement = true;
@@ -63,7 +69,7 @@ void setup() {
   if (!ledNumToUse.isEmpty() && ledNumToUse != ERROR && ledNumToUse.toInt() != 0) {
     ledManager.dynamicLedNum = ledNumToUse.toInt();
   } else {
-    ledManager.dynamicLedNum = 100;
+    ledManager.dynamicLedNum = 50;
   }
 
   Serial.print(F("\nUsing LEDs="));
@@ -139,10 +145,10 @@ void setup() {
   String ldrPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LDR_PIN_PARAM);
 
   if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
-    ldrEnabled = ldrFromStorage == "1";
+    ldrEnabled = ldrFromStorage == TRUE;
   }
   if (!ldrTurnOffFromStorage.isEmpty() && ldrTurnOffFromStorage != ERROR) {
-    ldrTurnOff = ldrTurnOffFromStorage == "1";
+    ldrTurnOff = ldrTurnOffFromStorage == TRUE;
   }
   if (!ldrIntervalFromStorage.isEmpty() && ldrIntervalFromStorage != ERROR) {
     ldrInterval = ldrIntervalFromStorage.toInt();
@@ -154,7 +160,7 @@ void setup() {
     relayPin = relayPinFromStorage.toInt();
   }
   if (!relayInvStorage.isEmpty() && relayInvStorage != ERROR) {
-    relInv = relayInvStorage.toInt();
+    relInv = relayInvStorage == TRUE;
   }
   if (!sbPinFromStorage.isEmpty() && sbPinFromStorage != ERROR) {
     sbPin = sbPinFromStorage.toInt();
@@ -182,7 +188,7 @@ void setup() {
     brightnessStored = brightness;
     ef = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("effect"));
     effectStored = Globals::stringToEffect(ef);
-    toggleStored = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("toggle")).toInt();
+    toggleStored = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("toggle")) == TRUE;
   }
 
   String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
@@ -244,7 +250,7 @@ void ldrTask(void*) {
 void configureLeds() {
   // GPIO pin from configuration storage, overwrite the one saved during initial Arduino Bootstrapper config
   String gpioFromStorage = bootstrapManager.readValueFromFile(GPIO_FILENAME, GPIO_PARAM);
-  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR && gpioFromStorage.toInt() != 0) {
+  if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR) {
     gpioInUse = gpioFromStorage.toInt();
 #if defined(ESP8266)
     if (LED_BUILTIN != gpioInUse) {
@@ -258,7 +264,7 @@ void configureLeds() {
 
   // GPIO clock pin from configuration storage
   String gpioClockFromStorage = bootstrapManager.readValueFromFile(GPIO_CLOCK_FILENAME, GPIO_CLOCK_PARAM);
-  if (!gpioClockFromStorage.isEmpty() && gpioClockFromStorage != ERROR && gpioClockFromStorage.toInt() != 0) {
+  if (!gpioClockFromStorage.isEmpty() && gpioClockFromStorage != ERROR) {
     gpioClockInUse = gpioClockFromStorage.toInt();
   }
 
@@ -321,10 +327,12 @@ void mainLoop() {
   NetManager::checkConnection();
 
   // GLOW_WORM_LUCIFERIN, serial connection with Firefly Luciferin
-  if (Serial.peek() != -1) { // Using peek() instead of available() because it's non blocking
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-    if (effect == Effect::GlowWorm) {
+  if (effect == Effect::GlowWorm && Serial.peek() != -1) { // Using peek() instead of available() because it's non blocking
+#else
+  if (Serial.peek() != -1) {
 #endif
+
       if (!ledManager.led_state) ledManager.led_state = true;
 
       int i = 0;
@@ -379,12 +387,12 @@ void mainLoop() {
                 brightness = usbBrightness;
               }
 
-              if (gpio != 0 && gpioInUse != gpio) {
+              if (gpioInUse != gpio) {
                 Globals::setGpio(gpio);
                 ledManager.reinitLEDTriggered = true;
               }
 
-              if (gpioClock != 0 && gpioClockInUse != gpioClock) {
+              if (gpioClockInUse != gpioClock) {
                 Globals::setGpioClock(gpioClock);
                 ledManager.reinitLEDTriggered = true;
               }
@@ -416,7 +424,7 @@ void mainLoop() {
                   sbPin = sbSerialPin;
                   ldrPin = ldrSerialPin;
                   relInv = relayInvPin == 11;
-                  ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+                  ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
                 }
               }
 
@@ -434,11 +442,7 @@ void mainLoop() {
 
               if (baudRate != 0 && baudRateInUse != baudRate && (baudRate >= 1 && baudRate <= 10)) {
                 Globals::setBaudRate(baudRate);
-#if defined(ARDUINO_ARCH_ESP32)
-                ESP.restart();
-#elif defined(ESP8266)
-                EspClass::restart();
-#endif
+                Helpers::safeRestart();
               }
 
               if (whiteTemp != 0 && whiteTempInUse != whiteTemp && (whiteTemp >= 20 && whiteTemp <= 110)) {
@@ -566,9 +570,6 @@ void mainLoop() {
           }
         }
       }
-#ifdef TARGET_GLOWWORMLUCIFERINFULL
-    }
-#endif
   }
 
   if (effect == Effect::solid && !ledManager.transitioning) {
@@ -626,16 +627,17 @@ void setSerialPixel(int j, byte r, byte g, byte b) {
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 void debounceSmartButton() {
   int reading = digitalRead(sbPin);
+
   if (reading != lastButtonState) {
     lastDebounceTime = currentMillisMainLoop;
   }
 
-  unsigned long currentMinusDebounce = currentMillisMainLoop - lastDebounceTime;
-  if (currentMinusDebounce > debounceDelay) {
+  if ((currentMillisMainLoop - lastDebounceTime) > debounceDelay) {
     if (reading != buttonState) {
       buttonState = reading;
-      if (buttonState == HIGH) {
-        // First boot triggers a continuous debounce, stop it for the initial milliseconds.
+
+      // LOW = premuto (INPUT_PULLUP)
+      if (buttonState == LOW) {
 #if defined(ARDUINO_ARCH_ESP32)
         if (currentMillisMainLoop > esp32DebouceInitialPeriod) {
 #else
@@ -654,8 +656,10 @@ void debounceSmartButton() {
       }
     }
   }
+
   lastButtonState = reading;
 }
+
 #endif
 
 /**
@@ -699,6 +703,14 @@ void manageLdr() {
 #endif
     // Read ADC
     int raw = analogRead(ldrPin);
+    // zero value means that the GPIO in use doesn't support ADC, fallback to digital read
+    if (raw == 0) {
+      pinMode(ldrPin, OUTPUT);
+      digitalWrite(ldrPin, LOW);
+      pinMode(ldrPin, INPUT);
+      raw = digitalRead(ldrPin);
+      raw = raw == 1 ? LDR_DIVIDER : LDR_DIVIDER * 60 / 100;
+    }
 #if defined(ESP8266)
     yield();
 #endif
@@ -780,4 +792,7 @@ void loop() {
   }
 
   ledManager.updateTransition();
+
+  Helpers::safeRestartGuard();
+
 }

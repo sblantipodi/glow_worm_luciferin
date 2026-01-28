@@ -2,7 +2,7 @@
   LedManager.h - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2025  Davide Perini
+  Copyright © 2020 - 2026  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -34,8 +34,8 @@ const uint8_t WHITE_TEMP_CORRECTION_DISABLE = 65;
 class LedManager {
 
 public:
-
 #if defined(ARDUINO_ARCH_ESP32)
+    NeoPixelBus<NeoRgbFeature, NeoEsp32BitBangWs2812xMethod> *builtInLed = NULL;
     NeoPixelBus<NeoRgbFeature, NeoWs2812xMethod> *ledsEsp32 = NULL; // Hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<NeoRgbwFeature, NeoSk6812Method> *ledsEsp32Rgbw = NULL; // Hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<DotStarRgbFeature, DotStarMethod> *ledsEsp32DotStar = NULL; // Hardware, ALL GPIO, yes serial read/write
@@ -62,6 +62,7 @@ public:
     const String MAX_LDR_PARAM = "maxLdr";
     const String RELAY_PIN_PARAM = "relayPin";
     const String RELAY_INV_PARAM = "relayInv";
+    const String LED_BUILTIN_PARAM = "ledBuiltin";
     const String RELAY_INV = "relayInv";
     const String SB_PIN_PARAM = "sbPin";
     const String LDR_PIN_PARAM = "ldrPin";
@@ -132,7 +133,7 @@ public:
 
     void setLdr(int maxLdr);
 
-    void setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam, bool relInv);
+    void setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam, bool relInv, uint8_t ledBuiltin);
 
     void flushSerial();
 

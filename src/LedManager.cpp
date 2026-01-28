@@ -2,7 +2,7 @@
   LedManager.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2025  Davide Perini
+  Copyright © 2020 - 2026  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -788,22 +788,20 @@ void LedManager::setLdr(int maxLdr) {
  * @param ldrTurnOffToSet Turn off LEDs before LDR readings
  * @param ldrIntervalToSet Interval between readings
  * @param minLdr min brightness when using LDR
+ * @param ledBuiltin built in led
  * @param relInv relay iverted
  */
-void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam, bool relInv) {
+void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrPinParam, bool relInv, uint8_t ledBuiltin) {
   Serial.println(F("CHANGING PINs"));
   JsonDocument ldrDoc;
   ldrDoc[RELAY_PIN_PARAM] = relayPinParam;
   ldrDoc[SB_PIN_PARAM] = sbPinParam;
   ldrDoc[LDR_PIN_PARAM] = ldrPinParam;
   ldrDoc[RELAY_INV] = relInv;
+  ldrDoc[LED_BUILTIN_PARAM] = ledBuiltin;
   BootstrapManager::writeToLittleFS(ldrDoc, PIN_FILENAME);
   delay(200);
-#if defined(ARDUINO_ARCH_ESP32)
-  ESP.restart();
-#elif defined(ESP8266)
-  EspClass::restart();
-#endif
+  Helpers::safeRestart();
 }
 
 /**
@@ -887,6 +885,7 @@ void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
         temporaryDisableImprove = ledManager.transitioning = true;
       }
   }
+  Serial.print("\n");
   Serial.print(F("Setting LEDs: "));
   Serial.print(F("r: "));
   Serial.print(inR);
@@ -949,17 +948,49 @@ void LedManager::setWhiteTemp(int wt) {
  * @param b blu
  */
 void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
-#if defined(LED_BUILTIN)
-  if (LED_BUILTIN != gpioInUse) {
-#if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-    neopixelWrite(LED_BUILTIN, r, g, b);
-#elif defined(ESP8266)
-    if (r > 0 || g > 0 || b > 0) {
-      digitalWrite(LED_BUILTIN, LOW);
-    } else {
-      digitalWrite(LED_BUILTIN, HIGH);
+  if (ledBuiltin != -1) {
+    if (ledBuiltin != gpioInUse) {
+#if defined(ARDUINO_ARCH_ESP32)
+      int values[4];
+      bool gpioIsUsedForEth = false;
+      if (ethd > 0 && ethd < spiStartIdx) {
+        values[0] = ethernetDevices[ethd].address;
+        values[1] = ethernetDevices[ethd].mdc;
+        values[2] = ethernetDevices[ethd].mdio;
+        values[3] = ethernetDevices[ethd].power;
+      } else if (ethd == spiStartIdx) {
+        values[0] = miso;
+        values[1] = mosi;
+        values[2] = sclk;
+        values[3] = cs;
+      } else if (ethd > spiStartIdx) {
+        int deviceNumber = ethd - spiStartIdx - 1;
+        values[0] = ethernetDevicesSpi[deviceNumber].cs_pin;
+        values[1] = ethernetDevicesSpi[deviceNumber].sclk_sck_pin;
+        values[2] = ethernetDevicesSpi[deviceNumber].miso_pin;
+        values[3] = ethernetDevicesSpi[deviceNumber].mosi_pin;
+      }
+      for (int i = 0; i < 4; i++) {
+        if (values[i] == ledBuiltin) {
+          gpioIsUsedForEth = true;
+          break;
+        }
+      }
+      if (!gpioIsUsedForEth) {
+        if (!ledManager.builtInLed) {
+          ledManager.builtInLed = new NeoPixelBus<NeoRgbFeature, NeoEsp32BitBangWs2812xMethod>(1, ledBuiltin);
+          ledManager.builtInLed->Begin();
+        }
+        ledManager.builtInLed->SetPixelColor(0, RgbColor(r, g, b));
+        ledManager.builtInLed->Show();
+      }
+#else
+      if (r > 0 || g > 0 || b > 0) {
+        digitalWrite(LED_BUILTIN, LOW);
+      } else {
+        digitalWrite(LED_BUILTIN, HIGH);
+      }
+#endif
     }
-#endif
   }
-#endif
 }

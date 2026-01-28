@@ -24,7 +24,7 @@ If you like **Glow Worm Luciferin**, give it a star, or fork it and contribute!
 
 [![GitHub stars](https://img.shields.io/github/stars/sblantipodi/pc_ambilight.svg?style=social&label=Star)](https://github.com/sblantipodi/pc_ambilight/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/sblantipodi/pc_ambilight.svg?style=social&label=Fork)](https://github.com/sblantipodi/pc_ambilight/network)
-[![Downloads](https://img.shields.io/github/downloads/sblantipodi/firefly_luciferin/total.svg?logoColor=white&color=5865F2&label=downloads)](https://github.com/sblantipodi/firefly_luciferin/releases)
+[![Downloads](https://img.shields.io/badge/dynamic/json?color=5865F2&label=downloads&query=%24.installs_total&url=https://dpsoftware.org/luciferin_download.out)](https://github.com/sblantipodi/firefly_luciferin/releases)
 [![CI Build](https://github.com/sblantipodi/glow_worm_luciferin/actions/workflows/main.yml/badge.svg)](https://github.com/sblantipodi/glow_worm_luciferin/actions)
 [![CodeQL Analysis](https://github.com/sblantipodi/glow_worm_luciferin/actions/workflows/codeql.yml/badge.svg)](https://github.com/sblantipodi/glow_worm_luciferin/actions/workflows/codeql.yml)
 
@@ -67,15 +67,15 @@ Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferi
 NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
 
 ## Simple schematic
-![CIRCUITS](https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/ambilight_bb.png)
+<a href="https://github.com/sblantipodi/firefly_luciferin/wiki/Compatible-Hardware"><img src="https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/ambilight_bb.png?raw=true"></a>
 **FULL firmware version adds support for remote control, if you flash FULL version you MUST configure** [WiFi and MQTT](https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access). With FULL firmware USB connection is optional.  
 **If you flash LIGHT firmware you MUST use USB cable**.  
 Note: If you want to use the FULL firmware without using a USB cable you need to connect the 5V microcontroller's PIN to the power supply.
 
 ## Luciferin Official PCB
 
-<img align="center" width="700" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/CAD_schematics/PCB_ESP8266/img/PCB_front.jpg?raw=true">
-<img align="center" width="700" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/CAD_schematics/PCB_ESP8266/img/pre_after.jpg?raw=true">
+<a href="https://github.com/sblantipodi/firefly_luciferin/wiki/Ready-to-print-PCB"><img width="700" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/CORE3_IDF5/assets/CAD_schematics/luciferin_official_pcb/img/PCB_front.jpg?raw=true"></a>
+<a href="https://github.com/sblantipodi/firefly_luciferin/wiki/Ready-to-print-PCB"><img width="700" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/CORE3_IDF5/assets/CAD_schematics/luciferin_official_pcb/img/pre_after.jpg?raw=true"></a>
 
 If you don't want to design your own PCB and you have a soldering iron, you might find [Luciferin's official PCB](https://github.com/sblantipodi/firefly_luciferin/wiki/Ready-to-print-PCB) interesting.
 
@@ -85,12 +85,12 @@ Luciferin supports pre-build board like the [QuinLED-Dig-Uno](https://quinled.in
 ## Luciferin Web Interface
 Glow Worm Luciferin FULL firmware exposes a `Web Interface` to control your lights from your browser without the needs of the Firefly Luciferin PC client.
 
-<img align="center" width="750" src="https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/web_interface.jpg?raw=true">
+<a href="https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access"><img width="750" src="https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/web_interface.jpg?raw=true"></a>
 
 ## Home Assistant Mobile Client Screenshots  
 Glow Worm Luciferin firmware can be easily integrated in [Home Assistant](https://github.com/sblantipodi/firefly_luciferin/wiki/Home-Automation-configs).  
 <br>
-<img align="center" width="800" src="https://github.com/sblantipodi/firefly_luciferin/blob/master/data/img/ha_luciferin.jpg?raw=true">  
+<a href="https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access"><img width="800" src="https://github.com/sblantipodi/firefly_luciferin/blob/master/data/img/ha_luciferin.jpg?raw=true"></a>
   
 ## Contribute
 You can contribute to Luciferin by:
