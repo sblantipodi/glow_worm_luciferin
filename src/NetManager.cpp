@@ -155,35 +155,11 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
  */
 void NetManager::manageDisconnections() {
   Serial.print(F("managing disconnections..."));
-  if (wifiReconnectAttemp > 10 && wifiReconnectAttemp <= 20) {
-    disconnectionTime = millis();
-    disconnectionResetEnable = true;
-  }
-  if ((mqttReconnectAttemp > 10 && mqttReconnectAttemp <= 20) && (mqttIP.length() > 0)) {
-    disconnectionTime = millis();
-    disconnectionResetEnable = true;
-  }
-  if (disconnectionResetEnable && !builtInLedStatus) {
-    builtInLedStatus = true;
-    LedManager::manageBuiltInLed(0, 125, 255);
-  }
-  if (millis() - disconnectionTime > (secondsBeforeReset * 2)) {
+  if (apState == 0 && (mqttReconnectAttemp > 10 || wifiReconnectAttemp > 10) && millis() - disconnectionTime > secondsBeforeReset) {
     disconnectionTime = millis();
     ledManager.stateOn = true;
     effect = Effect::solid;
-    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0)) {
-      JsonDocument asDoc;
-      asDoc[AP_PARAM] = 0;
-      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
-    }
-    LedManager::manageBuiltInLed(0, 0, 0);
-    LedManager::setColor(0, 0, 0);
-  } else if ((millis() - disconnectionTime > secondsBeforeReset) && disconnectionResetEnable) {
-    resetLedStatus = true;
-    disconnectionResetEnable = false;
-    ledManager.stateOn = true;
-    effect = Effect::solid;
+    apState = 10;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
     if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 10)) {
       JsonDocument asDoc;
@@ -192,6 +168,9 @@ void NetManager::manageDisconnections() {
     }
     LedManager::manageBuiltInLed(255, 0, 0);
     LedManager::setColorLoop(255, 0, 0);
+  }
+  if ((mqttReconnectAttemp > 10 || wifiReconnectAttemp > 10) && millis() - disconnectionTime > secondsBeforeReset * 3) {
+    LedManager::setColorLoop(0, 0, 0);
   }
 }
 
@@ -764,7 +743,15 @@ bool NetManager::processFirmwareConfigWithReboot() {
     EthManager::deallocateEthernetPins(ethd);
   }
 #endif
-  Helpers::safeRestart();
+  if (!bootstrapManager.jsonDoc[F("of")].isNull()) {
+#if defined(ARDUINO_ARCH_ESP32)
+      ESP.restart();
+#elif defined(ESP8266)
+      EspClass::restart();
+#endif
+  } else {
+    Helpers::safeRestart();
+  }
   return true;
 }
 
@@ -1059,10 +1046,9 @@ void NetManager::sendStatus() {
     root[F("gpioClock")] = gpioClockInUse;
     root[F("mqttopic")] = netManager.topicInUse;
     root[F("whitetemp")] = whiteTempInUse;
-    if (effect == Effect::solid && !ledManager.stateOn) {
+    if (effect == Effect::solid && !ledManager.stateOn && apState == 0 && wifiReconnectAttemp == 0 && mqttReconnectAttemp == 0) {
       LedManager::setColor(0, 0, 0);
     }
-
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
     if (mqttIP.length() > 0) {
       BootstrapManager::publish(netManager.lightStateTopic.c_str(), root, true);

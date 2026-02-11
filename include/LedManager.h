@@ -69,8 +69,8 @@ public:
     const String EFFECT_FILENAME = "effect.json";
     uint16_t dynamicLedNum = 511;
     byte red = 255;
-    byte green = 255;
-    byte blue = 255;
+    byte green = 82;
+    byte blue = 0;
     bool stateOn = false;
     boolean reinitLEDTriggered = false;
     uint lastLedUpdate = 10000;

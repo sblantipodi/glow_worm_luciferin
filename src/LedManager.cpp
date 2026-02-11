@@ -902,18 +902,16 @@ void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
  * @param inB blu color
  */
 void LedManager::setColorLoop(uint8_t inR, uint8_t inG, uint8_t inB) {
-  for (int j = 0; j < 5; j++) {
-    if (inR == 0 && inG == 0 && inB == 0) {
-      effect = Effect::solid;
-    }
-    if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
-      for (int i = 0; i < ledManager.dynamicLedNum; i++) {
-        ledManager.setPixelColor(i, inR, inG, inB);
-      }
-      ledManager.ledShow();
-    }
-    delay(DELAY_10);
+  if (inR == 0 && inG == 0 && inB == 0) {
+    effect = Effect::solid;
   }
+  if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
+    for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+      ledManager.setPixelColor(i, inR, inG, inB);
+    }
+    ledManager.ledShow();
+  }
+  delay(DELAY_10);
 }
 
 /**

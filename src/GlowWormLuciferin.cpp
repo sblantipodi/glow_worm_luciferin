@@ -309,6 +309,7 @@ void manageApRoot() {
 }
 
 void setApState(byte state) {
+  apState = state;
   configureLeds();
   JsonDocument asDoc;
   asDoc[AP_PARAM] = state;
@@ -748,14 +749,6 @@ void loop() {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   debounceSmartButton();
-  if (!apFileRead) {
-    apFileRead = true;
-    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-    if (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0) {
-      setApState(0);
-      LedManager::setColor(0, 0, 0);
-    }
-  }
 #endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -781,14 +774,10 @@ void loop() {
   manageLdr();
 #endif
 
-  if ((builtInLedStatus || resetLedStatus) && wifiReconnectAttemp == 0 && mqttReconnectAttemp == 0) {
-    builtInLedStatus = false;
-    resetLedStatus = false;
-    if (!ledManager.stateOn) {
-      LedManager::setColorNoSolid(0, 0, 0);
-    }
-    disconnectionTime = currentMillisMainLoop;
+  if (wifiReconnectAttemp == 0 && mqttReconnectAttemp == 0 && apState > 0) {
+    setApState(0);
     LedManager::manageBuiltInLed(0, 0, 0);
+    LedManager::setColor(0, 0, 0);
   }
 
   ledManager.updateTransition();
