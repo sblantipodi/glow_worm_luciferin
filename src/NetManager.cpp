@@ -155,6 +155,9 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
  */
 void NetManager::manageDisconnections() {
   Serial.print(F("managing disconnections..."));
+  if (mqttReconnectAttemp == 10 || wifiReconnectAttemp == 10) {
+    disconnectionTime = millis();
+  }
   if (apState == 0 && (mqttReconnectAttemp > 10 || wifiReconnectAttemp > 10) && millis() - disconnectionTime > secondsBeforeReset) {
     disconnectionTime = millis();
     ledManager.stateOn = true;
