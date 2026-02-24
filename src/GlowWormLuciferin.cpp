@@ -308,6 +308,8 @@ void manageApRoot() {
   netManager.manageAPSetting(true);
 }
 
+#endif
+
 void setApState(byte state) {
   apState = state;
   configureLeds();
@@ -317,8 +319,6 @@ void setApState(byte state) {
   effect = Effect::solid;
   ledManager.stateOn = true;
 }
-
-#endif
 
 /**
  * Main loop (workhorse)
