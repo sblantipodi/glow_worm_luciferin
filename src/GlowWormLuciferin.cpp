@@ -94,16 +94,19 @@ void setup() {
   String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
   if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 10) {
     setApState(11);
+    ledManager.stateOn = true;
     LedManager::setColorLoop(0, 255, 0);
     LedManager::manageBuiltInLed(0, 255, 0);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 11) {
     setApState(12);
+    ledManager.stateOn = true;
     LedManager::setColorLoop(0, 0, 255);
     LedManager::manageBuiltInLed(0, 0, 255);
   } else if (!ap.isEmpty() && ap != ERROR && ap.toInt() == 12) {
     bootstrapManager.littleFsInit();
     BootstrapManager::isWifiConfigured();
     setApState(13);
+    ledManager.stateOn = true;
     LedManager::setColorLoop(255, 75, 0);
     LedManager::manageBuiltInLed(255, 75, 0);
     bootstrapManager.launchWebServerCustom(false, manageApRoot);
@@ -317,7 +320,6 @@ void setApState(byte state) {
   asDoc[AP_PARAM] = state;
   BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
   effect = Effect::solid;
-  ledManager.stateOn = true;
 }
 
 /**
@@ -778,6 +780,7 @@ void loop() {
     setApState(0);
     LedManager::manageBuiltInLed(0, 0, 0);
     LedManager::setColor(0, 0, 0);
+    ledManager.stateOn = false;
   }
 
   ledManager.updateTransition();
