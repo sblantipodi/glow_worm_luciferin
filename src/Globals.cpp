@@ -99,7 +99,7 @@ uint8_t ldrPin = 2;
 int8_t ledBuiltin = 8;
 #elif CONFIG_IDF_TARGET_ESP32C5
 uint8_t gpioInUse = 5;
-uint8_t relayPin = 15;
+uint8_t relayPin = 10; // don't use 15
 uint8_t sbPin = 1;
 uint8_t ldrPin = 2;
 int8_t ledBuiltin = 8;
