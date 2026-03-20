@@ -543,6 +543,7 @@ jobs:
         run: |
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
           echo "id=$id" >> $GITHUB_OUTPUT
+          echo "### ✅ [Release had been drafted](https://github.com/sblantipodi/glow_worm_luciferin/releases). Please test it and set it as the latest release." >> $GITHUB_STEP_SUMMARY
 
 #      - name: Publish release
 #        env:
