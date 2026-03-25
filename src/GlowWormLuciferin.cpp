@@ -706,14 +706,6 @@ void manageLdr() {
 #endif
     // Read ADC
     int raw = analogRead(ldrPin);
-    // zero value means that the GPIO in use doesn't support ADC, fallback to digital read
-    if (raw == 0) {
-      pinMode(ldrPin, OUTPUT);
-      digitalWrite(ldrPin, LOW);
-      pinMode(ldrPin, INPUT);
-      raw = digitalRead(ldrPin);
-      raw = raw == 1 ? LDR_DIVIDER : 0;
-    }
 #if defined(ESP8266)
     yield();
 #endif
