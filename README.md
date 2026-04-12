@@ -2,12 +2,12 @@
 Ambient Lighting or Bias Light is a technology that enhances your viewing experience by projecting colored lights onto the wall behind your TV/Monitor, matching the colors on the screen. This creates a more immersive and engaging atmosphere, making your favorite shows, movies, and games feel even more captivating.
 
 **Luciferin** is a generic term for the light-emitting compound found in organisms that generate bioluminescence like Fireflies and Glow Worms.
-`Glow Worm Luciferin is a firmware` for ESP8266/ESP32 boards designed for the  
-[Firefly Luciferin](https://github.com/sblantipodi/firefly_luciferin) software, the combination of these software create the perfect  
-`Bias Lighting and Ambient Light system for PC`.  
-_Written for Arduino IDE and PlatformIO._  
-  
-  
+
+[Firefly Luciferin](https://github.com/sblantipodi/firefly_luciferin) is a Java Fast Screen Capture PC software designed for the [Glow Worm Luciferin](https://github.com/sblantipodi/glow_worm_luciferin) firmware,  
+the combination of these software create the perfect `Bias Lighting and Ambient Light system for PC`.  
+_Written in Java with a native flavour for Windows and Linux._
+
+
 <img align="right" width="100" height="100" src="https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/pc_ambilight_logo.png">
 
 
@@ -24,19 +24,17 @@ If you like **Glow Worm Luciferin**, give it a star, or fork it and contribute!
 
 [![GitHub stars](https://img.shields.io/github/stars/sblantipodi/pc_ambilight.svg?style=social&label=Star)](https://github.com/sblantipodi/pc_ambilight/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/sblantipodi/pc_ambilight.svg?style=social&label=Fork)](https://github.com/sblantipodi/pc_ambilight/network)
-[![Downloads](https://img.shields.io/github/downloads/sblantipodi/firefly_luciferin/total.svg?logoColor=white&color=5865F2&label=downloads)](https://github.com/sblantipodi/firefly_luciferin/releases)
+[![Downloads](https://img.shields.io/badge/dynamic/json?color=5865F2&label=downloads&query=%24.installs_total&url=https://dpsoftware.org/luciferin_download.out)](https://github.com/sblantipodi/firefly_luciferin/releases)
 [![CI Build](https://github.com/sblantipodi/glow_worm_luciferin/actions/workflows/main.yml/badge.svg)](https://github.com/sblantipodi/glow_worm_luciferin/actions)
 [![CodeQL Analysis](https://github.com/sblantipodi/glow_worm_luciferin/actions/workflows/codeql.yml/badge.svg)](https://github.com/sblantipodi/glow_worm_luciferin/actions/workflows/codeql.yml)
-
-Project is bootstrapped with my [Arduino Bootstrapper](https://github.com/sblantipodi/arduino_bootstrapper) library and my [PlatformIO version increment](https://github.com/sblantipodi/platformio_version_increment) script.
 
 ## Key features
 - **Best in class performance** combined with ultra low CPU/GPU usage.
 - Advanced algorithms for [**smooth colors transitions**](https://github.com/sblantipodi/firefly_luciferin/wiki/Smoothing-color-transitions) and [**color correction**](https://github.com/sblantipodi/firefly_luciferin/wiki/Color-Grading-(Hue-Saturation-and-Lightness-tuning)). Seeing is believing.
 - [**Wireless or cabled, local or remote**](https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access)? Choose your flavour with **MQTT** support and  [**Home Assistant integration**](https://github.com/sblantipodi/firefly_luciferin/wiki/Home-Automation-configs).
 - [**Multi monitor**](https://github.com/sblantipodi/firefly_luciferin/wiki/Multi-monitor-support) support with **single or multiple instances**.
-- [**Surround lighting**](https://github.com/sblantipodi/firefly_luciferin/wiki/Surround-lighting-with-satellites) with satellites.  
-- [**Web browser firmware installer**](https://sblantipodi.github.io/glow_worm_luciferin/) and [**Web Interface**](https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access#luciferin-web-interface).  
+- [**Surround lighting**](https://github.com/sblantipodi/firefly_luciferin/wiki/Surround-lighting-with-satellites) with satellites.
+- [**Web browser firmware installer**](https://sblantipodi.github.io/glow_worm_luciferin/) and [**Web Interface**](https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access#luciferin-web-interface).
 - [**Programmable firmware**](https://github.com/sblantipodi/firefly_luciferin/wiki/Supported-GPIO-and-Baud-Rate), change your microcontroller's settings on the fly.
 - Frequent updates, [**upgrade**](https://github.com/sblantipodi/firefly_luciferin/wiki/Luciferin-update-management) your PC software and your firmware **in one click**.
 - Automatic [**switching between aspect ratios**](https://github.com/sblantipodi/firefly_luciferin/wiki/Aspect-ratio) based on your video content.
@@ -46,55 +44,105 @@ Project is bootstrapped with my [Arduino Bootstrapper](https://github.com/sblant
 - Have a question? [**Get answered on the community**](https://discord.gg/aXf9jeN).
 
 ## Quick start
+
+You can **download the Firefly Lucferin installer for Windows or Linux [here](https://github.com/sblantipodi/firefly_luciferin/releases)**.  
+The Linux version is also available on [Flathub](https://flathub.org/apps/org.dpsoftware.FireflyLuciferin)
+and [Snap Store](https://github.com/sblantipodi/firefly_luciferin/issues/207).
+
+This software can run on any Desktop PC using **Windows or Linux**. MacOS support will be added later.
+
+To get the full `Bias Lighting` experience you need a microcontroller (ex. ESP8266, ESP32)
+running [Glow Worm Luciferin](https://github.com/sblantipodi/glow_worm_luciferin) firmware. You can connect the
+microcontroller to the PC via USB or via wireless (WiFi/Ethernet, MQTT server is optional).
+
+**Glow Worm Luciferin firmware can be flashed on your device using the**  
+[![Web Installer](https://img.shields.io/website/https/sblantipodi.github.io/glow_worm_luciferin.svg?label=Web%20Installer&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAD1BMVEUAAAD%2F%2F%2F%2F%2F%2F%2F%2F%2FVyL%2F%2F%2F8bK2t7AAAAA3RSTlMAARYXuUDOAAAAhklEQVR42u3WyQ2AMAwEQAz9lxxCCRCuONHse2XPy3JsS98EAAAAAAAAQDpAfLywAgAADAuoJ716dw4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAwgLcCAACQH%2FB3AAAAAAAAAPoDWovrxYdjBwAAmA7QerAKAADANICnD0sBAADIDjgAPijZuQgZskEAAAAASUVORK5CYII%3D)](https://sblantipodi.github.io/glow_worm_luciferin)
+
 Why don't you build your own `Luciferin`?  
-Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferin/wiki/Quick-start)  
+Here's a [**Quick Start guide**](https://github.com/sblantipodi/firefly_luciferin/wiki/Quick-start)
 
 ## Firefly Luciferin (PC Software) + Glow Worm Luciferin (Firmware)
-[![IMAGE ALT TEXT HERE](https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/pc_ambilight.png)](https://www.youtube.com/watch?v=68pnR5HMCTU)
+
+[![Luciferin YouTube Video #1](https://raw.githubusercontent.com/sblantipodi/firefly_luciferin/master/data/img/ambilight_color.png)](https://youtu.be/PO37JC7-Nn4?si=nxVYd5b_qlfqo6HP)
 
 #### (click the image above to watch it on YouTube)
 
+## Easy to learn, easy to use
 
-## Components:
-- ESP8266/ESP32 
-- WS2812B/SK6812 5V LED Strip (60 LEDs per meter is recommended)
-- 3.3V/5V Logic Level Converter 
-- 220Ω resistor
-- 1000uf capacitor
-- Raspberry + Home Assistant for Web GUI, automations and MQTT server (optional)
-- Google Home Mini for Voice Recognition (optional)
+Effortless setup with minimal configuration required, yet highly customizable to meet specific needs.
 
-NOTE: 3.3V to 5V logic level converter is not mandatory but it is really recommended, without it, some input on the led strip digital pin could be lost. If you use a 5V microcontroller like Arduino Nano or similar you don't need it.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/sblantipodi/firefly_luciferin/master/data/img/settings_1.png">
+</p>
 
-## Simple schematic
-![CIRCUITS](https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/ambilight_bb.png)
-**FULL firmware version adds support for remote control, if you flash FULL version you MUST configure** [WiFi and MQTT](https://github.com/sblantipodi/firefly_luciferin/wiki/Remote-Access). With FULL firmware USB connection is optional.  
-**If you flash LIGHT firmware you MUST use USB cable**.  
-Note: If you want to use the FULL firmware without using a USB cable you need to connect the 5V microcontroller's PIN to the power supply.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/sblantipodi/firefly_luciferin/master/data/img/settings_2.png">
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/sblantipodi/firefly_luciferin/master/data/img/settings_3.png">
+</p>
+
+[<img width="900" src="https://github.com/sblantipodi/firefly_luciferin/blob/master/data/img/test_image_anim_color.gif?raw=true">](https://youtu.be/j7IV9rQr7J8)
+
+#### (click the image above to watch it on YouTube)
 
 ## Luciferin Official PCB
 
-<img align="center" width="700" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/CAD_schematics/PCB_ESP8266/img/PCB_front.jpg?raw=true">
-<img align="center" width="700" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/CAD_schematics/PCB_ESP8266/img/pre_after.jpg?raw=true">
+<a href="https://github.com/sblantipodi/firefly_luciferin/wiki/Ready-to-print-PCB"><img width="700" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/CORE3_IDF5/assets/CAD_schematics/luciferin_official_pcb/img/PCB_front.jpg?raw=true"></a>
+<a href="https://github.com/sblantipodi/firefly_luciferin/wiki/Ready-to-print-PCB"><img width="700" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/CORE3_IDF5/assets/CAD_schematics/luciferin_official_pcb/img/pre_after.jpg?raw=true"></a>
 
-If you don't want to design your own PCB and you have a soldering iron, you might find [Luciferin's official PCB](https://github.com/sblantipodi/firefly_luciferin/wiki/Ready-to-print-PCB) interesting.
+If you don't want to design your own PCB and you have a soldering iron, you might
+find [Luciferin's official PCB](https://github.com/sblantipodi/firefly_luciferin/wiki/Ready-to-print-PCB) interesting.  
+This page provides more information about
 
-## Pre-build boards support
-Luciferin supports pre-build board like the [QuinLED-Dig-Uno](https://quinled.info/pre-assembled-quinled-dig-uno/).  
+Luciferin's [hardware compatibility](https://github.com/sblantipodi/firefly_luciferin/wiki/Compatible-Hardware), along with a list of the **supported pre-built boards**.
+
+## What is the Performance Impact on your System?
+Firefly Luciferin is a very optimized software and it has **nearly no impact on your system performance**.  
+By default Firefly Luciferin captures at 30FPS, if you want you can unlock the framerate.
+
+If you are using a slow microcontroller, capturing at a very high framerate will not help. If you right click the tray icon and then click `FPS`,
+you can see the output as shown in the image below. In that output you can see how fast the software is capturing the screen (producing)
+and how fast your microcontroller is able to process (consume) this data.
+
+<p align="center">
+  <img width="600" src="https://raw.githubusercontent.com/sblantipodi/firefly_luciferin/master/data/img/info_screen.png">
+</p>
+
+Producer framerate should not exceed the consuming one, all data that is not consumed in time, is lost.   
+A good WiFi signal is required for wireless stream.  
+Are you interested in the achievable framerate? Click [here](https://github.com/sblantipodi/firefly_luciferin/wiki/Very-fast-capture).
+
+## GPU Hardware Acceleration
+
+Screen capturing is pretty slow and very CPU intensive in Windows systems (Linux is much more efficient in this regard),
+for this reason I wrapped the Windows GDI32 C class using [Java Native Access](https://github.com/java-native-access/jna) to access Windows hardware acceleration.
+
+This API captures and delivers captured frames in GPU memory.
+
+If you are running Windows 8 or Windows 10/11 you can use `Desktop Duplication API (DDUPL)`, it's the fastest implementation yet, no lag,
+no stutter, very small usage of resources. DDUPL is accessed via [JNA](https://github.com/java-native-access/jna) using the [GStreamer bindings for Java](https://gstreamer.freedesktop.org/bindings/java.html).
+
+## Deep integration with your OS
+Thanks to the `Java Foreign Function and Memory API`, Luciferin is deeply integrated with your operating system through a series of bindings to native libraries. This guarantees maximum efficiency and compatibility.
 
 ## Luciferin Web Interface
 Glow Worm Luciferin FULL firmware exposes a `Web Interface` to control your lights from your browser without the needs of the Firefly Luciferin PC client.
 
-<img align="center" width="750" src="https://raw.githubusercontent.com/sblantipodi/glow_worm_luciferin/master/assets/img/web_interface.jpg?raw=true">
+<img align="center" width="750" src="https://github.com/sblantipodi/glow_worm_luciferin/blob/master/assets/img/web_interface.jpg?raw=true">
 
-## Home Assistant Mobile Client Screenshots  
+## Home Assistant Mobile Client Screenshots
 Glow Worm Luciferin firmware can be easily integrated in [Home Assistant](https://github.com/sblantipodi/firefly_luciferin/wiki/Home-Automation-configs).  
 <br>
-<img align="center" width="800" src="https://github.com/sblantipodi/firefly_luciferin/blob/master/data/img/ha_luciferin.jpg?raw=true">  
-  
+<img align="center" width="800" src="https://github.com/sblantipodi/firefly_luciferin/blob/master/data/img/ha_luciferin.jpg?raw=true">
+
 ## Contribute
 You can contribute to Luciferin by:
 - Providing Pull Requests (Features, Proof of Concepts, Language files or Fixes)
 - Testing new released features and report issues
 - Contributing missing documentation for features and devices
 - With a donation [![PayPal](https://img.shields.io/badge/donate-PayPal-blue)](https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A)
+
+## Credits
+- Davide Perini

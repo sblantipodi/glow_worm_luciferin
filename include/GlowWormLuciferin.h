@@ -2,7 +2,7 @@
   GlowWormLuciferin.h - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2025  Davide Perini
+  Copyright © 2020 - 2026  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -46,9 +46,9 @@ byte ledBuffer[LED_BUFF];
 int buttonState;            // the current reading from the input pin
 int lastButtonState = LOW;  // the previous reading from the input pin
 #if defined(ARDUINO_ARCH_ESP32)
-unsigned long esp32DebouceInitialPeriod = 30000;
+unsigned long esp32DebouceInitialPeriod = 5000;
 #else
-unsigned long esp8266DebouceInitialPeriod = 60000;
+unsigned long esp8266DebouceInitialPeriod = 5000;
 #endif
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
