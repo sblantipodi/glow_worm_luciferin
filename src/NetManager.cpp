@@ -1109,7 +1109,9 @@ bool NetManager::processUpdate() {
           server.send(500, "text/plain", "Update begin failed");
         }
       } else if (upload.status == UPLOAD_FILE_WRITE) {
+#if defined(ARDUINO_ARCH_ESP32)
         esp_task_wdt_reset();
+#endif
         if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
           Update.printError(Serial);
         }
