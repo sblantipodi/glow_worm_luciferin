@@ -1106,8 +1106,10 @@ bool NetManager::processUpdate() {
         Serial.printf("Update start: %s\n", upload.filename.c_str());
         if (!Update.begin(updateSize)) {
           Update.printError(Serial);
+          server.send(500, "text/plain", "Update begin failed");
         }
       } else if (upload.status == UPLOAD_FILE_WRITE) {
+        esp_task_wdt_reset();
         if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
           Update.printError(Serial);
         }
