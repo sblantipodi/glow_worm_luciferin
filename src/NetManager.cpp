@@ -1097,12 +1097,16 @@ bool NetManager::processUpdate() {
     },
     []() {
       HTTPUpload &upload = server.upload();
-      updateSize = 480000;
 #if defined(ARDUINO_ARCH_ESP32)
       esp_task_wdt_reset();
-      updateSize = UPDATE_SIZE_UNKNOWN;
 #endif
       if (upload.status == UPLOAD_FILE_START) {
+        String contentLength = server.header("Content-Length");
+        updateSize = 480000; // unknown for ESP8266
+#if defined(ARDUINO_ARCH_ESP32)
+        updateSize = UPDATE_SIZE_UNKNOWN;
+#endif
+        updateSize = contentLength.length() > 0 ? contentLength.toInt() : updateSize;
         Serial.printf("Update start: %s\n", upload.filename.c_str());
         if (!Update.begin(updateSize)) {
           Update.printError(Serial);
