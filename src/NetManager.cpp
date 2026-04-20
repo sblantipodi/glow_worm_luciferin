@@ -271,7 +271,7 @@ void NetManager::listenOnHttpGet() {
       prefsData += F("\",\"wifi\":\"");
       prefsData += BootstrapManager::getWifiQuality();
       prefsData += F("\",\"framerate\":\"");
-      prefsData += framerate;
+      prefsData += framerate > framerateSerial ? framerate : framerateSerial;
       prefsData += F("\",\"autosave\":\"");
       prefsData += autoSave;
       if (ldrEnabled) {
