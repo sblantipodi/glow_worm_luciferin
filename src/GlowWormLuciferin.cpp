@@ -53,8 +53,13 @@ void setup() {
   Serial.setTimeout(10);
   Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
 
-#if CONFIG_IDF_TARGET_ESP32 || defined(ESP8266)
-  while (!Serial); // wait for serial attach
+#if defined(ESP8266)
+  while (!Serial);
+#elif defined(ARDUINO_ARCH_ESP32)
+  unsigned long start = millis();
+  while (!Serial && millis() - start < 3000) {
+    delay(10);
+  }
 #endif
 
   Serial.print(F("BAUDRATE IN USE="));
