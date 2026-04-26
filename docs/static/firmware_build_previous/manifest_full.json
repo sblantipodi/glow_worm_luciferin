@@ -40,6 +40,15 @@
       ]
     },
     {
+      "chipFamily": "ESP32-C5",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_C5_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
       "chipFamily": "ESP32-S2",
       "parts": [
         {
