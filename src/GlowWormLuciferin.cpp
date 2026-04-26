@@ -30,7 +30,7 @@ void setup() {
     ledBuiltin = ledBiFromStorage.toInt();
   }
   BootstrapManager::isWifiConfigured();
-  LedManager::manageBuiltInLed(0, 0, 255);
+  LedManager::manageBuiltInLed(0, 240, 255);
 
   firmwareVersion = VERSION;
   // if fastDisconnectionManagement we need to execute the disconnection callback immediately
@@ -232,8 +232,6 @@ void setup() {
     NetManager::setColor();
   }
 #endif
-
-  LedManager::manageBuiltInLed(0, 0, 0);
 
 #if defined(ARDUINO_ARCH_ESP32)
   xTaskCreatePinnedToCore(ldrTask, "ldr", 2048, NULL, 1, NULL, 0);
@@ -779,6 +777,19 @@ void loop() {
     LedManager::setColor(0, 0, 0);
     ledManager.stateOn = false;
   }
+
+  if (bLed && wifiReconnectAttemp == 0 && mqttReconnectAttemp == 0 && apState == 0) {
+    LedManager::manageBuiltInLed(0, 0, 0);
+    bLed = false;
+    disconnectionTime = millis();
+  } else if (mqttReconnectAttemp > 10 && apState == 0) {
+    LedManager::manageBuiltInLed(0, 255, 125);
+    bLed = true;
+  } else if (wifiReconnectAttemp > 10 && apState == 0) {
+    LedManager::manageBuiltInLed(0, 240, 255);
+    bLed = true;
+  }
+
 
   ledManager.updateTransition();
 

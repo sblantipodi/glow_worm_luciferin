@@ -52,7 +52,7 @@ unsigned long esp8266DebouceInitialPeriod = 5000;
 #endif
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
-
+bool bLed = true;
 
 void mainLoop();
 
