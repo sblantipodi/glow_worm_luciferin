@@ -155,10 +155,20 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
  */
 void NetManager::manageDisconnections() {
   Serial.print(F("managing disconnections..."));
-  if (mqttReconnectAttemp == 10 || wifiReconnectAttemp == 10) {
+  bool wifiReconnecting = wifiReconnectAttemp > 10;
+  bool mqttReconnecting = mqttReconnectAttemp > 10;
+  static int lastWifiReconnectAttempt = 0;
+  static int lastMqttReconnectAttempt = 0;
+
+  // Start a new timer only when a new reconnect cycle begins.
+  if ((wifiReconnecting && lastWifiReconnectAttempt <= 10)
+      || (mqttReconnecting && lastMqttReconnectAttempt <= 10)
+      || (wifiReconnecting && wifiReconnectAttemp < lastWifiReconnectAttempt)
+      || (mqttReconnecting && mqttReconnectAttemp < lastMqttReconnectAttempt)) {
     disconnectionTime = millis();
   }
-  if (apState == 0 && (mqttReconnectAttemp > 10 || wifiReconnectAttemp > 10) && millis() - disconnectionTime > secondsBeforeReset) {
+
+  if (apState == 0 && (wifiReconnecting || mqttReconnecting) && millis() - disconnectionTime > secondsBeforeReset) {
     disconnectionTime = millis();
     ledManager.stateOn = true;
     effect = Effect::solid;
@@ -172,9 +182,12 @@ void NetManager::manageDisconnections() {
     LedManager::manageBuiltInLed(255, 0, 0);
     LedManager::setColorLoop(255, 0, 0);
   }
-  if ((mqttReconnectAttemp > 10 || wifiReconnectAttemp > 10) && millis() - disconnectionTime > secondsBeforeReset * 3) {
+  if ((wifiReconnecting || mqttReconnecting) && millis() - disconnectionTime > secondsBeforeReset * 3) {
     LedManager::setColorLoop(0, 0, 0);
   }
+
+  lastWifiReconnectAttempt = wifiReconnectAttemp;
+  lastMqttReconnectAttempt = mqttReconnectAttemp;
 }
 
 /**
