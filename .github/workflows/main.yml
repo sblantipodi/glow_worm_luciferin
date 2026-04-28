@@ -368,22 +368,14 @@ jobs:
         with:
           ref: master
           path: 'currentbranch'
-      - name: Retrieve version
+      - name: Retrieve and set version
         id: vars
         run: |
           echo "TAG_NAME=$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/version)" >> $GITHUB_OUTPUT
-      - name: Set property version in a ESP Web Tools json file
-        uses: benday-inc/set-property-value-in-appsettings@v1.6
-        with:
-          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_full.json'
-          keyname1: 'version'
-          valuetoset: '${{ steps.vars.outputs.TAG_NAME }}'
-      - name: Set property version in a ESP Web Tools json file
-        uses: benday-inc/set-property-value-in-appsettings@v1.6
-        with:
-          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_light.json'
-          keyname1: 'version'
-          valuetoset: "${{ steps.vars.outputs.TAG_NAME }}"
+          sudo apt-get update
+          sudo apt-get install -y jq 
+          jq --arg v "${{ steps.vars.outputs.TAG_NAME }}" '.version = $v' manifest_full.json > tmp.json && mv tmp.json manifest_full.json
+          jq --arg v "${{ steps.vars.outputs.TAG_NAME }}" '.version = $v' manifest_light.json > tmp.json && mv tmp.json manifest_light.json
       - name: Save JSON file to GIT
         continue-on-error: true
         env:
