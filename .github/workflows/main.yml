@@ -373,7 +373,6 @@ jobs:
         run: |
           echo "TAG_NAME=$(cat /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/beta/version)" >> $GITHUB_OUTPUT
       - name: Set version
-        id: vars
         run: |
           sudo apt-get update
           sudo apt-get install -y jq 
