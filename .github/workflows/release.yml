@@ -446,18 +446,12 @@ jobs:
         run: |
           id=$(echo $RELEASE_VERSION | cut -dv -f2)
           echo "id=$id" >> $GITHUB_OUTPUT
-      - name: Set property version in a ESP Web Tools json file
-        uses: benday-inc/set-property-value-in-appsettings@v1.6
-        with:
-          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build/manifest_full.json'
-          keyname1: 'version'
-          valuetoset: '${{steps.get-id.outputs.id}}'
-      - name: Set property version in a ESP Web Tools json file
-        uses: benday-inc/set-property-value-in-appsettings@v1.6
-        with:
-          pathtosettingsfile: '/home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build/manifest_light.json'
-          keyname1: 'version'
-          valuetoset: "${{steps.get-id.outputs.id}}"
+      - name: Set version
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq 
+          jq --arg v "${{steps.get-id.outputs.id}}" '.version = $v' /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build/manifest_full.json > tmp.json && mv tmp.json /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build/manifest_full.json
+          jq --arg v "${{steps.get-id.outputs.id}}" '.version = $v' /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build/manifest_light.json > tmp.json && mv tmp.json /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build/manifest_light.json
       - name: Save JSON file to GIT
         continue-on-error: true
         env:
