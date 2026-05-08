@@ -283,6 +283,10 @@ void NetManager::listenOnHttpGet() {
       prefsData += brightness;
       prefsData += F("\",\"wifi\":\"");
       prefsData += BootstrapManager::getWifiQuality();
+      if (ethConnected) {
+        prefsData += F("\",\"eth\":\"");
+        prefsData += ethConnected;
+      }
       prefsData += F("\",\"framerate\":\"");
       prefsData += framerate > framerateSerial ? framerate : framerateSerial;
       prefsData += F("\",\"autosave\":\"");
