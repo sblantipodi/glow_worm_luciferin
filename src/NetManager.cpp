@@ -2,7 +2,7 @@
   NetManager.cpp - Glow Worm Luciferin for Firefly Luciferin
   All in one Bias Lighting system for PC
 
-  Copyright © 2020 - 2025  Davide Perini
+  Copyright © 2020 - 2026  Davide Perini
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -155,35 +155,24 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
  */
 void NetManager::manageDisconnections() {
   Serial.print(F("managing disconnections..."));
-  if (wifiReconnectAttemp > 10 && wifiReconnectAttemp <= 20) {
+  bool wifiReconnecting = wifiReconnectAttemp > 10;
+  bool mqttReconnecting = mqttReconnectAttemp > 10;
+  static int lastWifiReconnectAttempt = 0;
+  static int lastMqttReconnectAttempt = 0;
+
+  // Start a new timer only when a new reconnect cycle begins.
+  if ((wifiReconnecting && lastWifiReconnectAttempt <= 10)
+      || (mqttReconnecting && lastMqttReconnectAttempt <= 10)
+      || (wifiReconnecting && wifiReconnectAttemp < lastWifiReconnectAttempt)
+      || (mqttReconnecting && mqttReconnectAttemp < lastMqttReconnectAttempt)) {
     disconnectionTime = millis();
-    disconnectionResetEnable = true;
   }
-  if ((mqttReconnectAttemp > 10 && mqttReconnectAttemp <= 20) && (mqttIP.length() > 0)) {
-    disconnectionTime = millis();
-    disconnectionResetEnable = true;
-  }
-  if (disconnectionResetEnable && !builtInLedStatus) {
-    builtInLedStatus = true;
-    LedManager::manageBuiltInLed(0, 125, 255);
-  }
-  if (millis() - disconnectionTime > (secondsBeforeReset * 2)) {
+
+  if (apState == 0 && (wifiReconnecting || mqttReconnecting) && millis() - disconnectionTime > secondsBeforeReset) {
     disconnectionTime = millis();
     ledManager.stateOn = true;
     effect = Effect::solid;
-    String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
-    if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 0)) {
-      JsonDocument asDoc;
-      asDoc[AP_PARAM] = 0;
-      BootstrapManager::writeToLittleFS(asDoc, AP_FILENAME);
-    }
-    LedManager::manageBuiltInLed(0, 0, 0);
-    LedManager::setColor(0, 0, 0);
-  } else if ((millis() - disconnectionTime > secondsBeforeReset) && disconnectionResetEnable) {
-    resetLedStatus = true;
-    disconnectionResetEnable = false;
-    ledManager.stateOn = true;
-    effect = Effect::solid;
+    apState = 10;
     String ap = bootstrapManager.readValueFromFile(AP_FILENAME, AP_PARAM);
     if ((ap.isEmpty() || ap == ERROR) || (!ap.isEmpty() && ap != ERROR && ap.toInt() != 10)) {
       JsonDocument asDoc;
@@ -193,6 +182,12 @@ void NetManager::manageDisconnections() {
     LedManager::manageBuiltInLed(255, 0, 0);
     LedManager::setColorLoop(255, 0, 0);
   }
+  if ((wifiReconnecting || mqttReconnecting) && millis() - disconnectionTime > secondsBeforeReset * 3) {
+    LedManager::setColorLoop(0, 0, 0);
+  }
+
+  lastWifiReconnectAttempt = wifiReconnectAttemp;
+  lastMqttReconnectAttempt = mqttReconnectAttemp;
 }
 
 /**
@@ -209,6 +204,7 @@ void NetManager::manageQueueSubscription() {
   // TODO remove subscription to topic that doesn't need MQTT, some topics can be managed via HTTP only
   BootstrapManager::subscribe(netManager.streamTopic.c_str(), 0);
   BootstrapManager::subscribe(netManager.unsubscribeTopic.c_str());
+  BootstrapManager::publish(netManager.helloTopic.c_str(), Helpers::string2char(F("HELLO")), true);
   apFileRead = false;
 }
 
@@ -241,6 +237,7 @@ void NetManager::swapTopicReplace(const String &customtopic) {
   netManager.streamTopic.replace(netManager.BASE_TOPIC, customtopic);
   netManager.unsubscribeTopic.replace(netManager.BASE_TOPIC, customtopic);
   netManager.cmndReboot.replace(netManager.BASE_TOPIC, customtopic);
+  netManager.helloTopic.replace(netManager.BASE_TOPIC, customtopic);
 }
 
 /**
@@ -286,8 +283,12 @@ void NetManager::listenOnHttpGet() {
       prefsData += brightness;
       prefsData += F("\",\"wifi\":\"");
       prefsData += BootstrapManager::getWifiQuality();
+      if (ethConnected) {
+        prefsData += F("\",\"eth\":\"");
+        prefsData += ethConnected;
+      }
       prefsData += F("\",\"framerate\":\"");
-      prefsData += framerate;
+      prefsData += framerate > framerateSerial ? framerate : framerateSerial;
       prefsData += F("\",\"autosave\":\"");
       prefsData += autoSave;
       if (ldrEnabled) {
@@ -318,6 +319,8 @@ void NetManager::listenOnHttpGet() {
       prefsData += sbPin;
       prefsData += F("\",\"ldrPin\":\"");
       prefsData += ldrPin;
+      prefsData += F("\",\"ledBuiltin\":\"");
+      prefsData += ledBuiltin;
       prefsData += F("\",\"ldrMax\":\"");
       if (ldrEnabled) {
         prefsData += ((ldrValue * 100) / ldrDivider);
@@ -434,6 +437,20 @@ void NetManager::manageAPSetting(bool isSettingRoot) {
         prefsData += F("\",\"mqttError\":\"");
         prefsData += !mqttConnected;
       }
+#if defined(ARDUINO_ARCH_ESP32)
+      if (ethd >= spiStartIdx) {
+        if (ethd == spiStartIdx) {
+          prefsData += F("\",\"mosi\":\"");
+          prefsData += mosi;
+          prefsData += F("\",\"miso\":\"");
+          prefsData += miso;
+          prefsData += F("\",\"sclk\":\"");
+          prefsData += sclk;
+          prefsData += F("\",\"cs\":\"");
+          prefsData += cs;
+        }
+      }
+#endif
       prefsData += F("\"}");
       server.send(200, F("application/json"), prefsData);
       startUDP();
@@ -629,6 +646,7 @@ bool NetManager::processFirmwareConfigWithReboot() {
   String mqttCheckbox = bootstrapManager.jsonDoc[F("mqttCheckbox")];
   String setSsid = bootstrapManager.jsonDoc[F("ssid")];
   String setEthd = bootstrapManager.jsonDoc[F("ethd")];
+
 #if defined(ESP8266)
   setEthd = -1;
 #endif
@@ -651,6 +669,21 @@ bool NetManager::processFirmwareConfigWithReboot() {
       microcontrollerIP = "DHCP";
     }
     doc[F("ethd")] = bootstrapManager.jsonDoc[F("ethd")].isNull() ? String(ethd) : setEthd;
+
+#if defined(ARDUINO_ARCH_ESP32)
+    if (bootstrapManager.jsonDoc[F("ethd")].isNull() && ethd == 100) {
+      doc[F("mosi")] = mosi;
+      doc[F("miso")] = miso;
+      doc[F("sclk")] = sclk;
+      doc[F("cs")] = cs;
+    } else if (!bootstrapManager.jsonDoc[F("ethd")].isNull()) {
+      doc[F("mosi")] = bootstrapManager.jsonDoc[F("mosi")];
+      doc[F("miso")] = bootstrapManager.jsonDoc[F("miso")];
+      doc[F("sclk")] = bootstrapManager.jsonDoc[F("sclk")];
+      doc[F("cs")] = bootstrapManager.jsonDoc[F("cs")];
+    }
+#endif
+
     doc[F("deviceName")] = deviceName;
     doc[F("microcontrollerIP")] = microcontrollerIP;
     doc[F("qsid")] = (setSsid != NULL && !setSsid.isEmpty()) ? setSsid : qsid;
@@ -677,10 +710,10 @@ bool NetManager::processFirmwareConfigWithReboot() {
     statusCode = 404;
     Serial.println(F("Sending 404"));
   }
-  delay(DELAY_500);
+  delay(DELAY_200);
   server.sendHeader(F("Access-Control-Allow-Origin"), "*");
   server.send(statusCode, F("text/plain"), content);
-  delay(DELAY_500);
+  delay(DELAY_200);
   // Write to LittleFS
   Serial.println(F("Saving setup.json"));
   File jsonFile = LittleFS.open("/setup.json", FILE_WRITE);
@@ -707,32 +740,38 @@ bool NetManager::processFirmwareConfigWithReboot() {
     Serial.println(F("Saving gpio clock"));
     Globals::setGpioClock(gpioClockParam.toInt());
   }
-  delay(DELAY_500);
+  delay(DELAY_200);
   JsonDocument topicDoc;
   topicDoc[netManager.MQTT_PARAM] = mqttTopic;
   BootstrapManager::writeToLittleFS(topicDoc, netManager.TOPIC_FILENAME);
   if (!bootstrapManager.jsonDoc[F("colorMode")].isNull()) {
-    delay(DELAY_500);
+    delay(DELAY_200);
     ledManager.setColorMode(colorModeParam.toInt());
   }
-  delay(DELAY_500);
+  delay(DELAY_200);
   if (!bootstrapManager.jsonDoc[F("colorOrder")].isNull()) {
     ledManager.setColorOrder(colorOrderParam.toInt());
-    delay(DELAY_500);
+    delay(DELAY_200);
   }
   if (!bootstrapManager.jsonDoc[F("br")].isNull()) {
     Globals::setBaudRateInUse(br.toInt());
     Globals::setBaudRate(baudRateInUse);
   }
-  delay(DELAY_1000);
+  delay(DELAY_200);
 #if defined(ARDUINO_ARCH_ESP32)
   if (ethd > 0 && ethd != -1) {
     EthManager::deallocateEthernetPins(ethd);
   }
-  ESP.restart();
-#elif defined(ESP8266)
-  EspClass::restart();
 #endif
+  if (!bootstrapManager.jsonDoc[F("of")].isNull()) {
+#if defined(ARDUINO_ARCH_ESP32)
+      ESP.restart();
+#elif defined(ESP8266)
+      EspClass::restart();
+#endif
+  } else {
+    Helpers::safeRestart();
+  }
   return true;
 }
 
@@ -749,23 +788,23 @@ bool NetManager::processFirmwareConfig() {
     if (macToUpdate == MAC) {
       // GPIO
       if (bootstrapManager.jsonDoc[GPIO_PARAM].is<JsonVariant>()) {
-        int gpioFromConfig = (int) bootstrapManager.jsonDoc[GPIO_PARAM];
-        if (gpioFromConfig != 0 && gpioInUse != gpioFromConfig) {
+        int gpioFromConfig = bootstrapManager.jsonDoc[GPIO_PARAM];
+        if (gpioInUse != gpioFromConfig) {
           Globals::setGpio(gpioFromConfig);
           ledManager.reinitLEDTriggered = true;
         }
       }
       // GPIO CLOCK
       if (bootstrapManager.jsonDoc[GPIO_CLOCK_PARAM].is<JsonVariant>()) {
-        int gpioClockFromConfig = (int) bootstrapManager.jsonDoc[GPIO_CLOCK_PARAM];
-        if (gpioClockFromConfig != 0 && gpioClockInUse != gpioClockFromConfig) {
+        int gpioClockFromConfig = bootstrapManager.jsonDoc[GPIO_CLOCK_PARAM];
+        if (gpioClockInUse != gpioClockFromConfig) {
           Globals::setGpioClock(gpioClockFromConfig);
           ledManager.reinitLEDTriggered = true;
         }
       }
       // COLOR_MODE
       if (bootstrapManager.jsonDoc[ledManager.COLOR_MODE_PARAM].is<JsonVariant>()) {
-        int colorModeParam = (int) bootstrapManager.jsonDoc[ledManager.COLOR_MODE_PARAM];
+        int colorModeParam = bootstrapManager.jsonDoc[ledManager.COLOR_MODE_PARAM];
         if (colorMode != colorModeParam) {
           colorMode = colorModeParam;
           ledManager.setColorMode(colorMode);
@@ -786,7 +825,7 @@ bool NetManager::processFirmwareConfig() {
         int ldrPinParam = (int) bootstrapManager.jsonDoc[ledManager.LDR_PIN_PARAM];
         if (ldrPin != ldrPinParam) {
           ldrPin = ldrPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -795,7 +834,7 @@ bool NetManager::processFirmwareConfig() {
         int relayPinParam = (int) bootstrapManager.jsonDoc[ledManager.RELAY_PIN_PARAM];
         if (relayPin != relayPinParam) {
           relayPin = relayPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -804,7 +843,7 @@ bool NetManager::processFirmwareConfig() {
         bool relayInvParam =  bootstrapManager.jsonDoc[ledManager.RELAY_INV_PARAM];
         if (relInv != relayInvParam) {
           relInv = relayInvParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -813,7 +852,16 @@ bool NetManager::processFirmwareConfig() {
         int sbrPinParam = (int) bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM];
         if (sbPin != sbrPinParam) {
           sbPin = sbrPinParam;
-          ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
+          ledManager.reinitLEDTriggered = true;
+        }
+      }
+      // BUILTIN LED
+      if (bootstrapManager.jsonDoc[ledManager.LED_BUILTIN_PARAM].is<JsonVariant>()) {
+        int ledBiParam = (int) bootstrapManager.jsonDoc[ledManager.LED_BUILTIN_PARAM];
+        if (sbPin != ledBiParam) {
+          ledBuiltin = ledBiParam;
+          ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
           ledManager.reinitLEDTriggered = true;
         }
       }
@@ -823,11 +871,7 @@ bool NetManager::processFirmwareConfig() {
         ledManager.initLeds();
       }
       if (espRestart) {
-#if defined(ARDUINO_ARCH_ESP32)
-        ESP.restart();
-#elif defined(ESP8266)
-        EspClass::restart();
-#endif
+        Helpers::safeRestart();
       }
     }
   }
@@ -995,17 +1039,22 @@ void NetManager::sendStatus() {
     root[F("relayInv")] = relInv;
     root[F("sbPin")] = sbPin;
     root[F("ldrPin")] = ldrPin;
+    root[F("ledBuiltin")] = ledBuiltin;
     root[BAUDRATE_PARAM] = baudRateInUse;
 #if defined(ESP8266)
     root[F("board")] = F("ESP8266");
 #endif
 #if CONFIG_IDF_TARGET_ESP32C3
-    root["board"] = "ESP32_C3_CDC";
+    root["board"] = "ESP32_C3";
 #elif CONFIG_IDF_TARGET_ESP32S2
     root["board"] = "ESP32_S2";
+#elif CONFIG_IDF_TARGET_ESP32C6
+    root["board"] = "ESP32_C6";
+#elif CONFIG_IDF_TARGET_ESP32C5
+    root["board"] = "ESP32_C5";
 #elif CONFIG_IDF_TARGET_ESP32S3
 #if ARDUINO_USB_MODE==1
-    root["board"] = "ESP32_S3_CDC";
+    root["board"] = "ESP32_S3"; // CDC
 #else
     root["board"] = "ESP32_S3";
 #endif
@@ -1017,10 +1066,9 @@ void NetManager::sendStatus() {
     root[F("gpioClock")] = gpioClockInUse;
     root[F("mqttopic")] = netManager.topicInUse;
     root[F("whitetemp")] = whiteTempInUse;
-    if (effect == Effect::solid && !ledManager.stateOn) {
+    if (effect == Effect::solid && !ledManager.stateOn && apState == 0 && wifiReconnectAttemp == 0 && mqttReconnectAttemp == 0) {
       LedManager::setColor(0, 0, 0);
     }
-
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
     if (mqttIP.length() > 0) {
       BootstrapManager::publish(netManager.lightStateTopic.c_str(), root, true);
@@ -1059,62 +1107,79 @@ bool NetManager::processMqttUpdate() {
  */
 bool NetManager::processUpdate() {
   Serial.println(F("Starting web server"));
-  server.on("/update", HTTP_POST, []() {
-      server.sendHeader("Connection", "close");
-      bool error = Update.hasError();
-      server.send(200, "text/plain", error ? "KO" : "OK");
-      if (!error) {
-        if (mqttIP.length() > 0) {
-          BootstrapManager::publish(netManager.updateResultStateTopic.c_str(), deviceName.c_str(), false);
-        } else {
-#if defined(ESP8266)
-          if (netManager.remoteIpForUdp.isSet()) {
-#elif defined(ARDUINO_ARCH_ESP32)
-          if (!netManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
-#endif
-            netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
-            netManager.broadcastUDP.print(deviceName.c_str());
-            netManager.broadcastUDP.endPacket();
-          }
-        }
-      }
-      delay(DELAY_500);
-#if defined(ARDUINO_ARCH_ESP32)
-      ESP.restart();
-#elif defined(ESP8266)
-      EspClass::restart();
-#endif
-  }, []() {
+  server.on(
+    "/update",
+    HTTP_POST,
+    []() {
+    },
+    []() {
       HTTPUpload &upload = server.upload();
+#if defined(ARDUINO_ARCH_ESP32)
+      esp_task_wdt_reset();
+#endif
       if (upload.status == UPLOAD_FILE_START) {
-        Serial.printf("Update: %s\n", upload.filename.c_str());
+        String contentLength = server.header("Content-Length");
+        updateSize = 480000; // unknown for ESP8266
 #if defined(ARDUINO_ARCH_ESP32)
         updateSize = UPDATE_SIZE_UNKNOWN;
-#elif defined(ESP8266)
-        updateSize = 480000;
 #endif
-        if (!Update.begin(updateSize)) { //start with max available size
+        updateSize = contentLength.length() > 0 ? contentLength.toInt() : updateSize;
+        Serial.printf("Update start: %s\n", upload.filename.c_str());
+        if (!Update.begin(updateSize)) {
           Update.printError(Serial);
+          server.send(500, "text/plain", "Update begin failed");
         }
       } else if (upload.status == UPLOAD_FILE_WRITE) {
-        /* flashing firmware to ESP*/
+#if defined(ARDUINO_ARCH_ESP32)
+        esp_task_wdt_reset();
+#endif
         if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
           Update.printError(Serial);
         }
       } else if (upload.status == UPLOAD_FILE_END) {
-        if (Update.end(true)) { //true to set the size to the current progress
-          Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+        server.sendHeader("Connection", "close");
+        bool ok = Update.end(true);
+        if (ok) {
+          Serial.printf("Update success: %u bytes\n", upload.totalSize);
+          server.send(200, "text/plain", "OK");
         } else {
           Update.printError(Serial);
+          server.send(500, "text/plain", "KO");
         }
+#if defined(ARDUINO_ARCH_ESP32)
+        server.client().clear();
+        esp_task_wdt_reset();
+#endif
+        if (ok) {
+          if (mqttIP.length() > 0) {
+            BootstrapManager::publish(
+              netManager.updateResultStateTopic.c_str(),
+              deviceName.c_str(),
+              false
+            );
+          } else {
+#if defined(ESP8266)
+            if (netManager.remoteIpForUdp.isSet()) {
+#elif defined(ARDUINO_ARCH_ESP32)
+            if (!netManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
+#endif
+              netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
+              netManager.broadcastUDP.print(deviceName.c_str());
+              netManager.broadcastUDP.endPacket();
+            }
+          }
+        }
+        delay(DELAY_200);
+        Helpers::safeRestart();
       }
-  });
+    }
+  );
   server.begin();
   Serial.println(F("Web server started"));
   firmwareUpgrade = true;
-
   return true;
 }
+
 
 /**
  * Reboot the microcontroller
@@ -1125,12 +1190,8 @@ bool NetManager::processGlowWormLuciferinRebootCmnd() {
   if (bootstrapManager.jsonDoc[VALUE] == OFF_CMD) {
     ledManager.stateOn = false;
     sendStatus();
-    delay(1500);
-#if defined(ARDUINO_ARCH_ESP32)
-    ESP.restart();
-#elif defined(ESP8266)
-    EspClass::restart();
-#endif
+    delay(DELAY_1500);
+    Helpers::safeRestart();
   }
   return true;
 }
@@ -1151,6 +1212,7 @@ bool NetManager::processLDR() {
     String rInvStr = bootstrapManager.jsonDoc[F("relInv")];
     String sPin = bootstrapManager.jsonDoc[F("sbPin")];
     String lPin = bootstrapManager.jsonDoc[F("ldrPin")];
+    String ledBi = bootstrapManager.jsonDoc[F("ledBuiltin")];
     relInv = rInvStr == "true";
     ldrEnabled = ldrEnabledMqtt == "true";
     ldrTurnOff = ldrTurnOffMqtt == "true";
@@ -1177,7 +1239,8 @@ bool NetManager::processLDR() {
       relayPin = rPin.toInt();
       sbPin = sPin.toInt();
       ldrPin = lPin.toInt();
-      ledManager.setPins(relayPin, sbPin, ldrPin, relInv);
+      ledBuiltin = ledBi.toInt();
+      ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
     }
     delay(DELAY_500);
     startUDP();

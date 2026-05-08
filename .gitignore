@@ -8,3 +8,5 @@ secrets.ini
 cmake-build-*
 CMakeLists.txt
 CMakeListsPrivate.txt
+/src/idf_component.yml
+/src/idf_component.yml.orig

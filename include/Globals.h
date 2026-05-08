@@ -1,7 +1,7 @@
 /*
   Globals.h - Helper classes
   
-  Copyright © 2020 - 2025  Davide Perini
+  Copyright © 2020 - 2026  Davide Perini
   
   Permission is hereby granted, free of charge, to any person obtaining a copy of 
   this software and associated documentation files (the "Software"), to deal
@@ -103,14 +103,12 @@ extern uint8_t ldrMin;
 extern uint8_t relayPin;
 extern uint8_t sbPin;
 extern uint8_t ldrPin;
+extern int8_t ledBuiltin;
 extern int ldrDivider;
 extern const unsigned int LDR_RECOVER_TIME;
 extern unsigned long previousMillisLDR;
 extern unsigned long lastUdpMsgReceived;
 extern unsigned long disconnectionTime;
-extern bool disconnectionResetEnable;
-extern bool builtInLedStatus;
-extern bool resetLedStatus;
 extern unsigned long secondsBeforeReset;
 
 extern unsigned long currentMillisCheckConn;
@@ -119,15 +117,14 @@ extern unsigned long prevMillisCheckConn2;
 
 extern unsigned long currentMillisSendSerial;
 extern unsigned long prevMillisSendSerial;
-
-extern unsigned long currentMillisMainLoop;
-
 extern unsigned long prevMillisPing;
 
 extern uint8_t baudRateInUse;
 extern bool relayState;
 extern bool breakLoop;
 extern bool apFileRead;
+
+extern String TRUE;
 
 class Globals {
 
