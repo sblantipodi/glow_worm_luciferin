@@ -393,12 +393,12 @@ void mainLoop() {
                 brightness = usbBrightness;
               }
 
-              if (gpioInUse != gpio) {
+              if (gpio != 255 && gpioInUse != gpio) {
                 Globals::setGpio(gpio);
                 ledManager.reinitLEDTriggered = true;
               }
 
-              if (gpioClockInUse != gpioClock) {
+              if (gpioClock != 255 && gpioClockInUse != gpioClock) {
                 Globals::setGpioClock(gpioClock);
                 ledManager.reinitLEDTriggered = true;
               }
