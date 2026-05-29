@@ -374,7 +374,6 @@ void NetManager::listenOnHttpGet() {
   server.on(("/" + netManager.firmwareConfigTopic).c_str(), []() {
       httpCallback(processFirmwareConfig);
   });
-  // TODO remove or not
   server.on(F("/setip"), [this]() {
     httpCallback(processSetIp);
   });
@@ -1200,7 +1199,6 @@ bool NetManager::processGlowWormLuciferinRebootCmnd() {
   return true;
 }
 
-// TODO remove or not
 /**
  * Process IP for static IP routing
  * @return true if message is correctly processed
