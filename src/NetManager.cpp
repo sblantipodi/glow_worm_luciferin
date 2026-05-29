@@ -374,6 +374,9 @@ void NetManager::listenOnHttpGet() {
   server.on(("/" + netManager.firmwareConfigTopic).c_str(), []() {
       httpCallback(processFirmwareConfig);
   });
+  server.on(F("/setip"), [this]() {
+    httpCallback(processSetIp);
+  });
   server.onNotFound([]() {
       server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
@@ -1193,6 +1196,22 @@ bool NetManager::processGlowWormLuciferinRebootCmnd() {
     delay(DELAY_1500);
     Helpers::safeRestart();
   }
+  return true;
+}
+
+/**
+ * Process IP for static IP routing
+ * @return true if message is correctly processed
+ */
+bool NetManager::processSetIp() {
+  stopUDP();
+  String ip = server.arg(F("payload"));
+  netManager.remoteIpForUdpBroadcast.fromString(ip);
+  netManager.remoteIpForUdp.fromString(ip);
+  Serial.println(F("-> Setting IP to use via TCP <-"));
+  Serial.println(netManager.remoteIpForUdpBroadcast.toString());
+  delay(DELAY_500);
+  startUDP();
   return true;
 }
 

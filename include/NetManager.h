@@ -110,6 +110,9 @@ public:
 
     static bool processGlowWormLuciferinRebootCmnd();
 
+    // TODO remove or not
+    static bool processSetIp();
+
     static bool processLDR();
 
     static bool processUnSubscribeStream();
