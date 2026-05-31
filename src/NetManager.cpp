@@ -93,6 +93,10 @@ void NetManager::getUDPStream() {
  * Get data from the stream and send to the strip
  * @param payload stream data
  */
+uint8_t groupMap[500];   // groupSize per ogni capogruppo
+uint16_t numGroups = 0;
+bool groupMapReceived = false;
+
 void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   uint32_t myLeds;
   char delimiters[] = ",";
@@ -100,27 +104,43 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   char *saveptr;
   char *ptrAtoi;
 
-  uint16_t index;
+
   ptr = strtok_r(payload, delimiters, &saveptr);
-  // Discard packet if header does not match the correct one
-  if (strcmp(ptr, "DPsoftware") != 0) {
-    return;
-  }
+  if (strcmp(ptr, "DPsoftware") != 0) return;
+
   lastUdpMsgReceived = millis();
   ptr = strtok_r(nullptr, delimiters, &saveptr);
   uint16_t numLedFromLuciferin = strtoul(ptr, &ptrAtoi, 10);
   ptr = strtok_r(nullptr, delimiters, &saveptr);
   uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
-  ptr = strtok_r(nullptr, delimiters, &saveptr);
   if (brightness != audioBrightness && !ldrEnabled) {
     brightness = audioBrightness;
   }
-  uint8_t chunkTot, chunkNum;
-  chunkTot = strtoul(ptr, &ptrAtoi, 10);
   ptr = strtok_r(nullptr, delimiters, &saveptr);
-  chunkNum = strtoul(ptr, &ptrAtoi, 10);
+  uint8_t chunkTot = strtoul(ptr, &ptrAtoi, 10);
   ptr = strtok_r(nullptr, delimiters, &saveptr);
-  index = UDP_CHUNK_SIZE * chunkNum;
+  uint8_t chunkNum = strtoul(ptr, &ptrAtoi, 10);
+  ptr = strtok_r(nullptr, delimiters, &saveptr);
+
+  // Parse RLE map if this is chunk 0
+  if (chunkNum == 0) {
+    uint16_t numRleEntries = strtoul(ptr, &ptrAtoi, 10);
+    ptr = strtok_r(nullptr, delimiters, &saveptr);
+    numGroups = 0;
+    for (uint16_t e = 0; e < numRleEntries && ptr != nullptr; e++) {
+      char *xPtr = strchr(ptr, 'x');
+      if (xPtr == nullptr) break;
+      *xPtr = '\0';
+      uint16_t count = strtoul(ptr, &ptrAtoi, 10);
+      uint8_t size   = strtoul(xPtr + 1, &ptrAtoi, 10);
+      for (uint16_t k = 0; k < count && numGroups < 500; k++) {
+        groupMap[numGroups++] = size;
+      }
+      ptr = strtok_r(nullptr, delimiters, &saveptr);
+    }
+    groupMapReceived = true;
+  }
+
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
   } else {
@@ -128,15 +148,44 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
       LedManager::setNumLed(numLedFromLuciferin);
       ledManager.initLeds();
     }
-    while (ptr != nullptr) {
-      myLeds = strtoul(ptr, &ptrAtoi, 10);
-      if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
-        ledManager.setPixelColor(index, 0, 0, 0);
-      } else {
-        ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+    if (groupMapReceived) {
+      // Calculate physical index offset for this chunk
+      uint16_t colorIndex = UDP_CHUNK_SIZE * chunkNum;
+      uint16_t physIndex = 0;
+      for (uint16_t g = 0; g < colorIndex && g < numGroups; g++) {
+        physIndex += groupMap[g];
       }
-      index++;
-      ptr = strtok_r(nullptr, delimiters, &saveptr);
+      while (ptr != nullptr) {
+        myLeds = strtoul(ptr, &ptrAtoi, 10);
+        uint8_t r = (myLeds >> 16 & 0xFF);
+        uint8_t g = (myLeds >> 8  & 0xFF);
+        uint8_t b = (myLeds >> 0  & 0xFF);
+        if (colorIndex < numGroups) {
+          for (uint8_t rep = 0; rep < groupMap[colorIndex]; rep++) {
+            if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
+              ledManager.setPixelColor(physIndex, 0, 0, 0);
+            } else {
+              ledManager.setPixelColor(physIndex, r, g, b);
+            }
+            physIndex++;
+          }
+        }
+        colorIndex++;
+        ptr = strtok_r(nullptr, delimiters, &saveptr);
+      }
+    } else {
+      // Fallback: no RLE map yet, send 1:1
+      uint16_t index = UDP_CHUNK_SIZE * chunkNum;
+      while (ptr != nullptr) {
+        myLeds = strtoul(ptr, &ptrAtoi, 10);
+        if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
+          ledManager.setPixelColor(index, 0, 0, 0);
+        } else {
+          ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
+        }
+        index++;
+        ptr = strtok_r(nullptr, delimiters, &saveptr);
+      }
     }
   }
   if (effect != Effect::solid) {
