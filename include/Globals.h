@@ -126,6 +126,10 @@ extern bool apFileRead;
 
 extern String TRUE;
 
+extern uint8_t groupMap[500];   // groupSize per ogni capogruppo
+extern uint16_t numGroups;
+extern bool groupMapReceived;
+
 class Globals {
 
 public:

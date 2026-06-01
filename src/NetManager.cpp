@@ -93,10 +93,6 @@ void NetManager::getUDPStream() {
  * Get data from the stream and send to the strip
  * @param payload stream data
  */
-uint8_t groupMap[500];   // groupSize per ogni capogruppo
-uint16_t numGroups = 0;
-bool groupMapReceived = false;
-
 void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   uint32_t myLeds;
   char delimiters[] = ",";

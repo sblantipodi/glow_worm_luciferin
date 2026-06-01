@@ -533,30 +533,71 @@ void mainLoop() {
                 ledManager.setColorOrderInit(fireflyColorOrder);
               }
 
+              // --- INIZIO LETTURA BLOCCO RLE DA SERIALE ---
+              byte rleMode = 0;
+              bool groupMapReceived = false;
+              numGroups = 0;
+
+              if (Serial.readBytes(&rleMode, 1) == 1) {
+                if (rleMode == 1) {
+                  byte numRleEntries = 0;
+                  if (Serial.readBytes(&numRleEntries, 1) == 1) {
+                    uint16_t rleBytesCount = numRleEntries * 2;
+                    byte rleBuffer[500]; // Buffer temporaneo per memorizzare le coppie RLE
+                    if (Serial.readBytes(rleBuffer, rleBytesCount) == rleBytesCount) {
+                      for (byte e = 0; e < numRleEntries; e++) {
+                        byte count = rleBuffer[e * 2];
+                        byte size  = rleBuffer[e * 2 + 1];
+                        for (uint16_t k = 0; k < count && numGroups < 500; k++) {
+                          groupMap[numGroups++] = size;
+                        }
+                      }
+                      groupMapReceived = true;
+                    }
+                  }
+                }
+              }
+              // --- FINE LETTURA BLOCCO RLE DA SERIALE ---
+
+              // Calcola quanti colori (e quindi quanti byte) ricevere
+              uint16_t numColorsToRead = groupMapReceived ? numGroups : numLedFromLuciferin;
+
               int rlenChunk;
-              if ((numLedFromLuciferin * 3) < LED_BUFF) {
-                rlenChunk = numLedFromLuciferin * 3;
+              if ((numColorsToRead * 3) < LED_BUFF) {
+                rlenChunk = numColorsToRead * 3;
               } else {
                 rlenChunk = LED_BUFF;
               }
 
-              // Serial buffer is read with a single block using Serial.readBytes()
+              // Lettura rapida a pacchetto del primo blocco
               yield();
               int rlen = Serial.readBytes((byte *) ledBuffer, rlenChunk);
               if (rlenChunk == rlen) {
                 i = 0;
-                int j = 0;
+                int j = 0;          // Indice del colore/gruppo letto
+                int physIndex = 0;  // Indice del LED fisico reale sulla striscia
+
+                // Elaborazione dei pixel dal buffer veloce
                 while (i < rlen) {
-                  byte r, g, b;
-                  r = ledBuffer[i++];
-                  g = ledBuffer[i++];
-                  b = ledBuffer[i++];
-                  setSerialPixel(j, r, g, b);
-                  j++;
+                  byte r = ledBuffer[i++];
+                  byte g = ledBuffer[i++];
+                  byte b = ledBuffer[i++];
+
+                  if (groupMapReceived) {
+                    if (j < numGroups) {
+                      for (uint8_t rep = 0; rep < groupMap[j]; rep++) {
+                        setSerialPixel(physIndex++, r, g, b);
+                      }
+                    }
+                    j++;
+                  } else {
+                    setSerialPixel(physIndex++, r, g, b);
+                    j++;
+                  }
                 }
 
-                // If there are many LEDs and buffer is too small, read the first block with Serial.readBytes() and then continue with Serial.read()
-                while (j < numLedFromLuciferin) {
+                // Se la striscia ha molti LED e il buffer non è bastato, leggiamo i rimanenti singolarmente
+                while (j < numColorsToRead) {
                   byte r, g, b;
                   while (!breakLoop && !Serial.available()) NetManager::checkConnection();
                   r = serialRead();
@@ -564,8 +605,18 @@ void mainLoop() {
                   g = serialRead();
                   while (!breakLoop && !Serial.available()) NetManager::checkConnection();
                   b = serialRead();
-                  setSerialPixel(j, r, g, b);
-                  j++;
+
+                  if (groupMapReceived) {
+                    if (j < numGroups) {
+                      for (uint8_t rep = 0; rep < groupMap[j]; rep++) {
+                        setSerialPixel(physIndex++, r, g, b);
+                      }
+                    }
+                    j++;
+                  } else {
+                    setSerialPixel(physIndex++, r, g, b);
+                    j++;
+                  }
                 }
 
                 ledManager.lastLedUpdate = millis();
@@ -586,7 +637,7 @@ void mainLoop() {
 
   breakLoop = false;
 
-  // Effects dispatch
+  // Dispatch degli effetti locali
   if (effect == Effect::bpm) {
     effectsManager.bpm();
   } else if (effect == Effect::fire) {
@@ -619,7 +670,6 @@ void mainLoop() {
     EffectsManager::christmas();
   }
 }
-
 // Helper used by serial stream processing
 void setSerialPixel(int j, byte r, byte g, byte b) {
   if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
