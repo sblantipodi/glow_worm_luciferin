@@ -126,7 +126,8 @@ extern bool apFileRead;
 
 extern String TRUE;
 
-extern uint8_t groupMap[500];   // groupSize per ogni capogruppo
+#define RLE_GRP_MAP_SIZE 500
+extern uint8_t groupMap[RLE_GRP_MAP_SIZE];
 extern uint16_t numGroups;
 extern bool groupMapReceived;
 

@@ -130,9 +130,8 @@ unsigned long currentMillisSendSerial = 0;
 unsigned long prevMillisSendSerial = 0;
 unsigned long prevMillisPing = 0;
 
-uint8_t groupMap[500];   // groupSize per ogni capogruppo
+uint8_t groupMap[RLE_GRP_MAP_SIZE];
 uint16_t numGroups = 0;
-bool groupMapReceived = false;
 
 String TRUE = "true";
 

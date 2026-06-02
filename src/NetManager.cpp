@@ -100,7 +100,6 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   char *saveptr;
   char *ptrAtoi;
 
-
   ptr = strtok_r(payload, delimiters, &saveptr);
   if (strcmp(ptr, "DPsoftware") != 0) return;
 
@@ -129,12 +128,11 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
       *xPtr = '\0';
       uint16_t count = strtoul(ptr, &ptrAtoi, 10);
       uint8_t size   = strtoul(xPtr + 1, &ptrAtoi, 10);
-      for (uint16_t k = 0; k < count && numGroups < 500; k++) {
+      for (uint16_t k = 0; k < count && numGroups < numLedFromLuciferin; k++) {
         groupMap[numGroups++] = size;
       }
       ptr = strtok_r(nullptr, delimiters, &saveptr);
     }
-    groupMapReceived = true;
   }
 
   if (numLedFromLuciferin == 0) {
@@ -144,44 +142,29 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
       LedManager::setNumLed(numLedFromLuciferin);
       ledManager.initLeds();
     }
-    if (groupMapReceived) {
-      // Calculate physical index offset for this chunk
-      uint16_t colorIndex = UDP_CHUNK_SIZE * chunkNum;
-      uint16_t physIndex = 0;
-      for (uint16_t g = 0; g < colorIndex && g < numGroups; g++) {
-        physIndex += groupMap[g];
-      }
-      while (ptr != nullptr) {
-        myLeds = strtoul(ptr, &ptrAtoi, 10);
-        uint8_t r = (myLeds >> 16 & 0xFF);
-        uint8_t g = (myLeds >> 8  & 0xFF);
-        uint8_t b = (myLeds >> 0  & 0xFF);
-        if (colorIndex < numGroups) {
-          for (uint8_t rep = 0; rep < groupMap[colorIndex]; rep++) {
-            if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
-              ledManager.setPixelColor(physIndex, 0, 0, 0);
-            } else {
-              ledManager.setPixelColor(physIndex, r, g, b);
-            }
-            physIndex++;
+    // Calculate physical index offset for this chunk
+    uint16_t colorIndex = UDP_CHUNK_SIZE * chunkNum;
+    uint16_t physIndex = 0;
+    for (uint16_t g = 0; g < colorIndex && g < numGroups; g++) {
+      physIndex += groupMap[g];
+    }
+    while (ptr != nullptr) {
+      myLeds = strtoul(ptr, &ptrAtoi, 10);
+      uint8_t r = (myLeds >> 16 & 0xFF);
+      uint8_t g = (myLeds >> 8  & 0xFF);
+      uint8_t b = (myLeds >> 0  & 0xFF);
+      if (colorIndex < numGroups) {
+        for (uint8_t rep = 0; rep < groupMap[colorIndex]; rep++) {
+          if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
+            ledManager.setPixelColor(physIndex, 0, 0, 0);
+          } else {
+            ledManager.setPixelColor(physIndex, r, g, b);
           }
+          physIndex++;
         }
-        colorIndex++;
-        ptr = strtok_r(nullptr, delimiters, &saveptr);
       }
-    } else {
-      // Fallback: no RLE map yet, send 1:1
-      uint16_t index = UDP_CHUNK_SIZE * chunkNum;
-      while (ptr != nullptr) {
-        myLeds = strtoul(ptr, &ptrAtoi, 10);
-        if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
-          ledManager.setPixelColor(index, 0, 0, 0);
-        } else {
-          ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
-        }
-        index++;
-        ptr = strtok_r(nullptr, delimiters, &saveptr);
-      }
+      colorIndex++;
+      ptr = strtok_r(nullptr, delimiters, &saveptr);
     }
   }
   if (effect != Effect::solid) {

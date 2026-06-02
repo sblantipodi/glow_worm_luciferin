@@ -543,12 +543,12 @@ void mainLoop() {
                   byte numRleEntries = 0;
                   if (Serial.readBytes(&numRleEntries, 1) == 1) {
                     uint16_t rleBytesCount = numRleEntries * 2;
-                    byte rleBuffer[500]; // Buffer temporaneo per memorizzare le coppie RLE
+                    byte rleBuffer[numLedFromLuciferin]; // Buffer temporaneo per memorizzare le coppie RLE
                     if (Serial.readBytes(rleBuffer, rleBytesCount) == rleBytesCount) {
                       for (byte e = 0; e < numRleEntries; e++) {
                         byte count = rleBuffer[e * 2];
                         byte size  = rleBuffer[e * 2 + 1];
-                        for (uint16_t k = 0; k < count && numGroups < 500; k++) {
+                        for (uint16_t k = 0; k < count && numGroups < numLedFromLuciferin; k++) {
                           groupMap[numGroups++] = size;
                         }
                       }
