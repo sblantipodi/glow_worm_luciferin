@@ -126,10 +126,7 @@ extern bool apFileRead;
 
 extern String TRUE;
 
-#define RLE_GRP_MAP_SIZE 500
-extern uint8_t groupMap[RLE_GRP_MAP_SIZE];
-extern uint16_t numGroups;
-extern bool groupMapReceived;
+#define RLE_GRP_MAP_SIZE 128
 
 class Globals {
 

@@ -26,7 +26,6 @@ size_t NetManager::updateSize = 0;
 String NetManager::fpsData;
 
 
-
 /**
  * Parse UDP packet
  */
@@ -46,16 +45,17 @@ void NetManager::getUDPStream() {
     uint16_t packetSizeBroadcast = broadcastUDP.parsePacket();
     broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE);
     packetBroadcast[packetSizeBroadcast] = '\0';
-    char * dn;
-    char * dnStatic;
-    dn = strstr (packetBroadcast, DN);
-    dnStatic = strstr (packetBroadcast, DNStatic);
+    char* dn;
+    char* dnStatic;
+    dn = strstr(packetBroadcast, DN);
+    dnStatic = strstr(packetBroadcast, DNStatic);
     if (dn || dnStatic) {
       if (dnStatic) {
         for (uint16_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
           dname[dnIdx] = packetBroadcast[dnIdx + strlen(DNStatic)];
         }
-      } else {
+      }
+      else {
         for (uint16_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
           dname[dnIdx] = packetBroadcast[dnIdx + strlen(DN)];
         }
@@ -66,13 +66,16 @@ void NetManager::getUDPStream() {
         Serial.println(F("-> Setting IP to use <-"));
         Serial.println(remoteIpForUdp.toString());
       }
-    } else {
+    }
+    else {
 #if defined(ESP8266)
-      if (!netManager.remoteIpForUdpBroadcast.isSet() || netManager.remoteIpForUdpBroadcast.toString().equals(remoteIpForUdp.toString())) {
+      if (!netManager.remoteIpForUdpBroadcast.isSet() || netManager.remoteIpForUdpBroadcast.toString().equals(
+        remoteIpForUdp.toString())) {
 #elif defined(ARDUINO_ARCH_ESP32)
-      if (netManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0")) || netManager.remoteIpForUdpBroadcast.toString().equals(remoteIpForUdp.toString())) {
+      if (netManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0")) || netManager.remoteIpForUdpBroadcast.
+        toString().equals(remoteIpForUdp.toString())) {
 #endif
-        char *p;
+        char* p;
         p = strstr(packetBroadcast, PING);
         if (p) {
           for (uint16_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
@@ -96,85 +99,140 @@ void NetManager::getUDPStream() {
 void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   uint32_t myLeds;
   char delimiters[] = ",";
-  char *ptr;
-  char *saveptr;
-  char *ptrAtoi;
+  char* ptr;
+  char* saveptr;
+  char* ptrAtoi;
 
   ptr = strtok_r(payload, delimiters, &saveptr);
   if (strcmp(ptr, "DPsoftware") != 0) return;
 
   lastUdpMsgReceived = millis();
+
+  // Header
   ptr = strtok_r(nullptr, delimiters, &saveptr);
   uint16_t numLedFromLuciferin = strtoul(ptr, &ptrAtoi, 10);
+
   ptr = strtok_r(nullptr, delimiters, &saveptr);
   uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
   if (brightness != audioBrightness && !ldrEnabled) {
     brightness = audioBrightness;
   }
+
   ptr = strtok_r(nullptr, delimiters, &saveptr);
   uint8_t chunkTot = strtoul(ptr, &ptrAtoi, 10);
+
   ptr = strtok_r(nullptr, delimiters, &saveptr);
   uint8_t chunkNum = strtoul(ptr, &ptrAtoi, 10);
+
   ptr = strtok_r(nullptr, delimiters, &saveptr);
 
-  // Parse RLE map if this is chunk 0
+  // RLE compressed structure
+  struct RleEntry {
+    uint16_t count; // how many times to repeat
+    uint8_t size; // group dimension
+  };
+
+  static RleEntry rle[RLE_GRP_MAP_SIZE]; // up to RLE_GRP_MAP_SIZE groups
+  static uint8_t numRleEntries = 0;
+
+  // RLE parsing on first chunk only
   if (chunkNum == 0) {
-    uint16_t numRleEntries = strtoul(ptr, &ptrAtoi, 10);
+    numRleEntries = strtoul(ptr, &ptrAtoi, 10);
     ptr = strtok_r(nullptr, delimiters, &saveptr);
-    numGroups = 0;
-    for (uint16_t e = 0; e < numRleEntries && ptr != nullptr; e++) {
-      char *xPtr = strchr(ptr, 'x');
-      if (xPtr == nullptr) break;
+
+    uint8_t idx = 0;
+    while (idx < numRleEntries && ptr != nullptr) {
+      char* xPtr = strchr(ptr, 'x');
+      if (!xPtr) break;
+
       *xPtr = '\0';
-      uint16_t count = strtoul(ptr, &ptrAtoi, 10);
-      uint8_t size   = strtoul(xPtr + 1, &ptrAtoi, 10);
-      for (uint16_t k = 0; k < count && numGroups < numLedFromLuciferin; k++) {
-        groupMap[numGroups++] = size;
-      }
+      rle[idx].count = strtoul(ptr, &ptrAtoi, 10);
+      rle[idx].size = strtoul(xPtr + 1, &ptrAtoi, 10);
+
+      idx++;
       ptr = strtok_r(nullptr, delimiters, &saveptr);
     }
   }
 
+  // No led fallback
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
-  } else {
-    if (ledManager.dynamicLedNum != numLedFromLuciferin) {
-      LedManager::setNumLed(numLedFromLuciferin);
-      ledManager.initLeds();
-    }
-    // Calculate physical index offset for this chunk
-    uint16_t colorIndex = UDP_CHUNK_SIZE * chunkNum;
-    uint16_t physIndex = 0;
-    for (uint16_t g = 0; g < colorIndex && g < numGroups; g++) {
-      physIndex += groupMap[g];
-    }
-    while (ptr != nullptr) {
-      myLeds = strtoul(ptr, &ptrAtoi, 10);
-      uint8_t r = (myLeds >> 16 & 0xFF);
-      uint8_t g = (myLeds >> 8  & 0xFF);
-      uint8_t b = (myLeds >> 0  & 0xFF);
-      if (colorIndex < numGroups) {
-        for (uint8_t rep = 0; rep < groupMap[colorIndex]; rep++) {
-          if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
-            ledManager.setPixelColor(physIndex, 0, 0, 0);
-          } else {
-            ledManager.setPixelColor(physIndex, r, g, b);
-          }
-          physIndex++;
-        }
-      }
-      colorIndex++;
-      ptr = strtok_r(nullptr, delimiters, &saveptr);
-    }
+    return;
   }
-  if (effect != Effect::solid) {
-    if (chunkNum == chunkTot - 1) {
-      framerateCounter++;
-      lastStream = millis();
-      ledManager.ledShow();
+
+  // Update LED number
+  if (ledManager.dynamicLedNum != numLedFromLuciferin) {
+    LedManager::setNumLed(numLedFromLuciferin);
+    ledManager.initLeds();
+  }
+
+  // Calculate physical offset
+  auto computePhysOffset = [&](uint16_t colorIndex) {
+    uint16_t phys = 0;
+    uint16_t g = 0;
+
+    for (uint8_t i = 0; i < numRleEntries; i++) {
+      uint16_t blockCount = rle[i].count;
+      uint8_t blockSize = rle[i].size;
+
+      if (g + blockCount <= colorIndex) {
+        phys += blockCount * blockSize;
+        g += blockCount;
+      }
+      else {
+        phys += (colorIndex - g) * blockSize;
+        break;
+      }
     }
+    return phys;
+  };
+
+  // Get the group size
+  auto getGroupSize = [&](uint16_t index) {
+    uint16_t g = 0;
+    for (uint8_t i = 0; i < numRleEntries; i++) {
+      if (index < g + rle[i].count) return rle[i].size;
+      g += rle[i].count;
+    }
+    return (uint8_t)1;
+  };
+
+  // Calculate offset for this chunk
+  uint16_t colorIndex = UDP_CHUNK_SIZE * chunkNum;
+  uint16_t physIndex = computePhysOffset(colorIndex);
+
+  // Set the colors
+  while (ptr != nullptr) {
+    myLeds = strtoul(ptr, &ptrAtoi, 10);
+
+    uint8_t r = (myLeds >> 16) & 0xFF;
+    uint8_t g = (myLeds >> 8) & 0xFF;
+    uint8_t b = (myLeds >> 0) & 0xFF;
+
+    uint8_t groupSize = getGroupSize(colorIndex);
+
+    for (uint8_t rep = 0; rep < groupSize; rep++) {
+      if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
+        ledManager.setPixelColor(physIndex, 0, 0, 0);
+      }
+      else {
+        ledManager.setPixelColor(physIndex, r, g, b);
+      }
+      physIndex++;
+    }
+
+    colorIndex++;
+    ptr = strtok_r(nullptr, delimiters, &saveptr);
+  }
+
+  // Show after the last chunk has been received
+  if (effect != Effect::solid && chunkNum == chunkTot - 1) {
+    framerateCounter++;
+    lastStream = millis();
+    ledManager.ledShow();
   }
 }
+
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 
@@ -190,9 +248,9 @@ void NetManager::manageDisconnections() {
 
   // Start a new timer only when a new reconnect cycle begins.
   if ((wifiReconnecting && lastWifiReconnectAttempt <= 10)
-      || (mqttReconnecting && lastMqttReconnectAttempt <= 10)
-      || (wifiReconnecting && wifiReconnectAttemp < lastWifiReconnectAttempt)
-      || (mqttReconnecting && mqttReconnectAttemp < lastMqttReconnectAttempt)) {
+    || (mqttReconnecting && lastMqttReconnectAttempt <= 10)
+    || (wifiReconnecting && wifiReconnectAttemp < lastWifiReconnectAttempt)
+    || (mqttReconnecting && mqttReconnectAttemp < lastMqttReconnectAttempt)) {
     disconnectionTime = millis();
   }
 
@@ -253,7 +311,7 @@ void NetManager::swapTopicUnsubscribe() {
  * Swap MQTT topi with the custom one
  * @param customtopic custom MQTT topic to use, received by Firefly Luciferin
  */
-void NetManager::swapTopicReplace(const String &customtopic) {
+void NetManager::swapTopicReplace(const String& customtopic) {
   // No firmwareConfigTopic unsubscribe because that topic needs MAC, no need to swap topic
   netManager.lightStateTopic.replace(netManager.BASE_TOPIC, customtopic);
   netManager.effectToGw.replace(netManager.BASE_TOPIC, customtopic);
@@ -286,127 +344,128 @@ void NetManager::swapTopicSubscribe() {
  */
 void NetManager::listenOnHttpGet() {
   server.on(F("/"), []() {
-      stopUDP();
-      server.send(200, F("text/html"), settingsPage);
-      startUDP();
+    stopUDP();
+    server.send(200, F("text/html"), settingsPage);
+    startUDP();
   });
   server.on(F("/prefs"), [this]() {
-      prefsData = F("{\"VERSION\":\"");
-      prefsData += VERSION;
-      prefsData += F("\",\"cp\":\"");
-      prefsData += ledManager.red;
-      prefsData += F(",");
-      prefsData += ledManager.green;
-      prefsData += F(",");
-      prefsData += ledManager.blue;
-      prefsData += F("\",\"toggle\":\"");
-      prefsData += ledManager.stateOn;
-      prefsData += F("\",\"effect\":\"");
-      prefsData += Globals::effectToString(effect);
-      prefsData += F("\",\"ffeffect\":\"");
-      prefsData += ffeffect;
-      prefsData += F("\",\"whiteTemp\":\"");
-      prefsData += whiteTempInUse;
-      prefsData += F("\",\"brightness\":\"");
-      prefsData += brightness;
-      prefsData += F("\",\"wifi\":\"");
-      prefsData += BootstrapManager::getWifiQuality();
-      if (ethConnected) {
-        prefsData += F("\",\"eth\":\"");
-        prefsData += ethConnected;
-      }
-      prefsData += F("\",\"framerate\":\"");
-      prefsData += framerate > framerateSerial ? framerate : framerateSerial;
-      prefsData += F("\",\"autosave\":\"");
-      prefsData += autoSave;
-      if (ldrEnabled) {
-        prefsData += F("\",\"ldr\":\"");
-        prefsData += ((ldrValue * 100) / ldrDivider);
-      }
-      if (!mqttConnected && mqttIP.length() > 0) {
-        prefsData += F("\",\"mqttError\":\"");
-        prefsData += !mqttConnected;
-      }
-      prefsData += F("\"}");
-      server.send(200, F("application/json"), prefsData);
+    prefsData = F("{\"VERSION\":\"");
+    prefsData += VERSION;
+    prefsData += F("\",\"cp\":\"");
+    prefsData += ledManager.red;
+    prefsData += F(",");
+    prefsData += ledManager.green;
+    prefsData += F(",");
+    prefsData += ledManager.blue;
+    prefsData += F("\",\"toggle\":\"");
+    prefsData += ledManager.stateOn;
+    prefsData += F("\",\"effect\":\"");
+    prefsData += Globals::effectToString(effect);
+    prefsData += F("\",\"ffeffect\":\"");
+    prefsData += ffeffect;
+    prefsData += F("\",\"whiteTemp\":\"");
+    prefsData += whiteTempInUse;
+    prefsData += F("\",\"brightness\":\"");
+    prefsData += brightness;
+    prefsData += F("\",\"wifi\":\"");
+    prefsData += BootstrapManager::getWifiQuality();
+    if (ethConnected) {
+      prefsData += F("\",\"eth\":\"");
+      prefsData += ethConnected;
+    }
+    prefsData += F("\",\"framerate\":\"");
+    prefsData += framerate > framerateSerial ? framerate : framerateSerial;
+    prefsData += F("\",\"autosave\":\"");
+    prefsData += autoSave;
+    if (ldrEnabled) {
+      prefsData += F("\",\"ldr\":\"");
+      prefsData += ((ldrValue * 100) / ldrDivider);
+    }
+    if (!mqttConnected && mqttIP.length() > 0) {
+      prefsData += F("\",\"mqttError\":\"");
+      prefsData += !mqttConnected;
+    }
+    prefsData += F("\"}");
+    server.send(200, F("application/json"), prefsData);
   });
   server.on(F("/getLdr"), [this]() {
-      prefsData = F("{\"ldrEnabled\":\"");
-      prefsData += ldrEnabled;
-      prefsData += F("\",\"ldrInterval\":\"");
-      prefsData += ldrInterval;
-      prefsData += F("\",\"ldrTurnOff\":\"");
-      prefsData += ldrTurnOff;
-      prefsData += F("\",\"ldrMin\":\"");
-      prefsData += ldrMin;
-      prefsData += F("\",\"relayPin\":\"");
-      prefsData += relayPin;
-      prefsData += F("\",\"relInv\":\"");
-      prefsData += relInv;
-      prefsData += F("\",\"sbPin\":\"");
-      prefsData += sbPin;
-      prefsData += F("\",\"ldrPin\":\"");
-      prefsData += ldrPin;
-      prefsData += F("\",\"ledBuiltin\":\"");
-      prefsData += ledBuiltin;
-      prefsData += F("\",\"ldrMax\":\"");
-      if (ldrEnabled) {
-        prefsData += ((ldrValue * 100) / ldrDivider);
-      } else {
-        prefsData += 0;
-      }
-      if (!mqttConnected && mqttIP.length() > 0) {
-        prefsData += F("\",\"mqttError\":\"");
-        prefsData += !mqttConnected;
-      }
-      prefsData += F("\"}");
-      server.send(200, F("application/json"), prefsData);
+    prefsData = F("{\"ldrEnabled\":\"");
+    prefsData += ldrEnabled;
+    prefsData += F("\",\"ldrInterval\":\"");
+    prefsData += ldrInterval;
+    prefsData += F("\",\"ldrTurnOff\":\"");
+    prefsData += ldrTurnOff;
+    prefsData += F("\",\"ldrMin\":\"");
+    prefsData += ldrMin;
+    prefsData += F("\",\"relayPin\":\"");
+    prefsData += relayPin;
+    prefsData += F("\",\"relInv\":\"");
+    prefsData += relInv;
+    prefsData += F("\",\"sbPin\":\"");
+    prefsData += sbPin;
+    prefsData += F("\",\"ldrPin\":\"");
+    prefsData += ldrPin;
+    prefsData += F("\",\"ledBuiltin\":\"");
+    prefsData += ledBuiltin;
+    prefsData += F("\",\"ldrMax\":\"");
+    if (ldrEnabled) {
+      prefsData += ((ldrValue * 100) / ldrDivider);
+    }
+    else {
+      prefsData += 0;
+    }
+    if (!mqttConnected && mqttIP.length() > 0) {
+      prefsData += F("\",\"mqttError\":\"");
+      prefsData += !mqttConnected;
+    }
+    prefsData += F("\"}");
+    server.send(200, F("application/json"), prefsData);
   });
   server.on(F("/setldr"), []() {
-      stopUDP();
-      server.send(200, F("text/html"), setLdrPage);
-      startUDP();
+    stopUDP();
+    server.send(200, F("text/html"), setLdrPage);
+    startUDP();
   });
   server.on(F("/setAutoSave"), []() {
-      stopUDP();
-      autoSave = server.arg(F("autosave")).toInt();
-      JsonDocument asDoc;
-      asDoc[F("autosave")] = autoSave;
-      BootstrapManager::writeToLittleFS(asDoc, AUTO_SAVE_FILENAME);
-      delay(20);
-      server.send(200, F("text/html"), F("Stored"));
-      startUDP();
+    stopUDP();
+    autoSave = server.arg(F("autosave")).toInt();
+    JsonDocument asDoc;
+    asDoc[F("autosave")] = autoSave;
+    BootstrapManager::writeToLittleFS(asDoc, AUTO_SAVE_FILENAME);
+    delay(20);
+    server.send(200, F("text/html"), F("Stored"));
+    startUDP();
   });
   server.on(F("/ldr"), []() {
-      httpCallback(processLDR);
+    httpCallback(processLDR);
   });
   server.on(("/" + netManager.lightSetTopic).c_str(), []() {
-      httpCallback(nullptr);
-      setLeds();
-      setColor();
+    httpCallback(nullptr);
+    setLeds();
+    setColor();
   });
   server.on(F("/set"), []() {
-      httpCallback(nullptr);
-      setLeds();
-      setColor();
+    httpCallback(nullptr);
+    setLeds();
+    setColor();
   });
   server.on(("/" + netManager.cmndReboot).c_str(), []() {
-      httpCallback(processGlowWormLuciferinRebootCmnd);
+    httpCallback(processGlowWormLuciferinRebootCmnd);
   });
   server.on(("/" + netManager.updateStateTopic).c_str(), []() {
-      httpCallback(processUpdate);
+    httpCallback(processUpdate);
   });
   server.on(("/" + netManager.unsubscribeTopic).c_str(), []() {
-      httpCallback(processUnSubscribeStream);
+    httpCallback(processUnSubscribeStream);
   });
   server.on(("/" + netManager.firmwareConfigTopic).c_str(), []() {
-      httpCallback(processFirmwareConfig);
+    httpCallback(processFirmwareConfig);
   });
   server.on(F("/setip"), [this]() {
     httpCallback(processSetIp);
   });
   server.onNotFound([]() {
-      server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
+    server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
   manageAPSetting(false);
 
@@ -419,76 +478,77 @@ void NetManager::listenOnHttpGet() {
 void NetManager::manageAPSetting(bool isSettingRoot) {
   if (isSettingRoot) {
     server.on(F("/"), []() {
-        server.send(200, F("text/html"), setSettingsPageOffline);
+      server.send(200, F("text/html"), setSettingsPageOffline);
     });
-  } else {
+  }
+  else {
     server.on(F("/setsettings"), []() {
-        stopUDP();
-        server.send(200, F("text/html"), setSettingsPage);
-        startUDP();
+      stopUDP();
+      server.send(200, F("text/html"), setSettingsPage);
+      startUDP();
     });
   }
   server.on(F("/getsettings"), [this]() {
-      stopUDP();
-      prefsData = F("{\"deviceName\":\"");
-      prefsData += deviceName;
-      prefsData += F("\",\"dhcp\":\"");
-      prefsData += dhcpInUse;
-      prefsData += F("\",\"ip\":\"");
-      prefsData += microcontrollerIP;
-      prefsData += F("\",\"dhcp\":\"");
-      prefsData += dhcpInUse;
-      prefsData += F("\",\"ethd\":\"");
-      prefsData += ethd;
-      prefsData += F("\",\"mqttuser\":\"");
-      prefsData += mqttuser;
-      prefsData += F("\",\"mqttIp\":\"");
-      prefsData += mqttIP;
-      prefsData += F("\",\"mqttpass\":\"");
-      prefsData += mqttpass;
-      prefsData += F("\",\"mqttPort\":\"");
-      prefsData += mqttPort;
-      prefsData += F("\",\"mqttTopic\":\"");
-      prefsData += netManager.topicInUse;
-      prefsData += F("\",\"lednum\":\"");
-      prefsData += ledManager.dynamicLedNum;
-      prefsData += F("\",\"gpio\":\"");
-      prefsData += gpioInUse;
-      prefsData += F("\",\"gpioClock\":\"");
-      prefsData += gpioClockInUse;
-      prefsData += F("\",\"colorMode\":\"");
-      prefsData += colorMode;
-      prefsData += F("\",\"colorOrder\":\"");
-      prefsData += colorOrder;
-      prefsData += F("\",\"br\":\"");
-      prefsData += baudRateInUse;
-      prefsData += F("\",\"ssid\":\"");
-      prefsData += qsid.c_str();
-      if (!mqttConnected && mqttIP.length() > 0) {
-        prefsData += F("\",\"mqttError\":\"");
-        prefsData += !mqttConnected;
-      }
+    stopUDP();
+    prefsData = F("{\"deviceName\":\"");
+    prefsData += deviceName;
+    prefsData += F("\",\"dhcp\":\"");
+    prefsData += dhcpInUse;
+    prefsData += F("\",\"ip\":\"");
+    prefsData += microcontrollerIP;
+    prefsData += F("\",\"dhcp\":\"");
+    prefsData += dhcpInUse;
+    prefsData += F("\",\"ethd\":\"");
+    prefsData += ethd;
+    prefsData += F("\",\"mqttuser\":\"");
+    prefsData += mqttuser;
+    prefsData += F("\",\"mqttIp\":\"");
+    prefsData += mqttIP;
+    prefsData += F("\",\"mqttpass\":\"");
+    prefsData += mqttpass;
+    prefsData += F("\",\"mqttPort\":\"");
+    prefsData += mqttPort;
+    prefsData += F("\",\"mqttTopic\":\"");
+    prefsData += netManager.topicInUse;
+    prefsData += F("\",\"lednum\":\"");
+    prefsData += ledManager.dynamicLedNum;
+    prefsData += F("\",\"gpio\":\"");
+    prefsData += gpioInUse;
+    prefsData += F("\",\"gpioClock\":\"");
+    prefsData += gpioClockInUse;
+    prefsData += F("\",\"colorMode\":\"");
+    prefsData += colorMode;
+    prefsData += F("\",\"colorOrder\":\"");
+    prefsData += colorOrder;
+    prefsData += F("\",\"br\":\"");
+    prefsData += baudRateInUse;
+    prefsData += F("\",\"ssid\":\"");
+    prefsData += qsid.c_str();
+    if (!mqttConnected && mqttIP.length() > 0) {
+      prefsData += F("\",\"mqttError\":\"");
+      prefsData += !mqttConnected;
+    }
 #if defined(ARDUINO_ARCH_ESP32)
-      if (ethd >= spiStartIdx) {
-        if (ethd == spiStartIdx) {
-          prefsData += F("\",\"mosi\":\"");
-          prefsData += mosi;
-          prefsData += F("\",\"miso\":\"");
-          prefsData += miso;
-          prefsData += F("\",\"sclk\":\"");
-          prefsData += sclk;
-          prefsData += F("\",\"cs\":\"");
-          prefsData += cs;
-        }
+    if (ethd >= spiStartIdx) {
+      if (ethd == spiStartIdx) {
+        prefsData += F("\",\"mosi\":\"");
+        prefsData += mosi;
+        prefsData += F("\",\"miso\":\"");
+        prefsData += miso;
+        prefsData += F("\",\"sclk\":\"");
+        prefsData += sclk;
+        prefsData += F("\",\"cs\":\"");
+        prefsData += cs;
       }
+    }
 #endif
-      prefsData += F("\"}");
-      server.send(200, F("application/json"), prefsData);
-      startUDP();
+    prefsData += F("\"}");
+    server.send(200, F("application/json"), prefsData);
+    startUDP();
   });
   server.on(F("/setting"), []() {
-      stopUDP();
-      httpCallback(processFirmwareConfigWithReboot);
+    stopUDP();
+    httpCallback(processFirmwareConfigWithReboot);
   });
 }
 
@@ -499,7 +559,8 @@ void NetManager::setColor() {
   if (ledManager.stateOn) {
     LedManager::setColor(map(ledManager.red, 0, 255, 0, brightness), map(ledManager.green, 0, 255, 0, brightness),
                          map(ledManager.blue, 0, 255, 0, brightness));
-  } else {
+  }
+  else {
     LedManager::setColor(0, 0, 0);
   }
 }
@@ -511,7 +572,7 @@ void NetManager::setLeds() {
   String requestedEffect = bootstrapManager.jsonDoc[F("effect")];
   ffeffect = bootstrapManager.jsonDoc[F("effect")].as<String>();
   if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")
-      || requestedEffect.indexOf("Music") > -1 || requestedEffect.indexOf("Bias") > -1) {
+    || requestedEffect.indexOf("Music") > -1 || requestedEffect.indexOf("Bias") > -1) {
     bootstrapManager.jsonDoc[F("effect")].set(F("GlowWormWifi"));
     requestedEffect = "GlowWormWifi";
   }
@@ -519,15 +580,18 @@ void NetManager::setLeds() {
   if (mqttIP.length() > 0) {
     if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
       BootstrapManager::publish(netManager.effectToFw.c_str(), ffeffect.c_str(), false);
-    } else {
+    }
+    else {
       if (ledManager.stateOn) {
         BootstrapManager::publish(netManager.effectToFw.c_str(), ffeffect.c_str(), false);
-      } else {
+      }
+      else {
         BootstrapManager::publish(netManager.effectToFw.c_str(), OFF_CMD.c_str(), false);
       }
       framerate = framerateCounter = 0;
     }
-  } else {
+  }
+  else {
 #if defined(ESP8266)
     if (netManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
@@ -536,7 +600,8 @@ void NetManager::setLeds() {
       netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
       if (requestedEffect == F("GlowWorm") || requestedEffect == F("GlowWormWifi")) {
         netManager.broadcastUDP.print(ffeffect.c_str());
-      } else {
+      }
+      else {
         netManager.broadcastUDP.print(netManager.STOP_FF);
         framerate = framerateCounter = 0;
       }
@@ -576,31 +641,38 @@ void NetManager::manageHardwareButton() {
  * @param payload MQTT payload
  * @param length MQTT message length
  */
-void NetManager::callback(char *topic, byte *payload, unsigned int length) {
+void NetManager::callback(char* topic, byte* payload, unsigned int length) {
   if (netManager.streamTopic.equals(topic)) {
     if (effect == Effect::GlowWormWifi) {
-      fromMqttStreamToStrip(reinterpret_cast<char *>(payload));
+      fromMqttStreamToStrip(reinterpret_cast<char*>(payload));
     }
-  } else {
+  }
+  else {
     bootstrapManager.jsonDoc.clear();
     bootstrapManager.parseQueueMsg(topic, payload, length);
     if (netManager.cmndReboot.equals(topic)) {
       processGlowWormLuciferinRebootCmnd();
-    } else if (netManager.lightSetTopic.equals(topic)) {
+    }
+    else if (netManager.lightSetTopic.equals(topic)) {
       processJson();
-    } else if (netManager.effectToGw.equals(topic)) {
+    }
+    else if (netManager.effectToGw.equals(topic)) {
       setLeds();
-    } else if (netManager.updateStateTopic.equals(topic)) {
+    }
+    else if (netManager.updateStateTopic.equals(topic)) {
       processMqttUpdate();
-    } else if (netManager.firmwareConfigTopic.equals(topic)) {
+    }
+    else if (netManager.firmwareConfigTopic.equals(topic)) {
       processFirmwareConfig();
-    } else if (netManager.unsubscribeTopic.equals(topic)) {
+    }
+    else if (netManager.unsubscribeTopic.equals(topic)) {
       processUnSubscribeStream();
     }
     if (ledManager.stateOn) {
       LedManager::setColor(map(ledManager.red, 0, 255, 0, brightness), map(ledManager.green, 0, 255, 0, brightness),
                            map(ledManager.blue, 0, 255, 0, brightness));
-    } else {
+    }
+    else {
       LedManager::setColor(0, 0, 0);
     }
   }
@@ -625,12 +697,12 @@ void NetManager::httpCallback(bool (*callback)()) {
  * Get data from the stream and send to the strip
  * @param payload stream data
  */
-void NetManager::fromMqttStreamToStrip(char *payload) {
+void NetManager::fromMqttStreamToStrip(char* payload) {
   uint32_t myLeds;
   char delimiters[] = ",";
-  char *ptr;
-  char *saveptr;
-  char *ptrAtoi;
+  char* ptr;
+  char* saveptr;
+  char* ptrAtoi;
 
   uint16_t index = 0;
   ptr = strtok_r(payload, delimiters, &saveptr);
@@ -643,7 +715,8 @@ void NetManager::fromMqttStreamToStrip(char *payload) {
   }
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
-  } else {
+  }
+  else {
     if (ledManager.dynamicLedNum != numLedFromLuciferin) {
       LedManager::setNumLed(numLedFromLuciferin);
       ledManager.initLeds();
@@ -652,7 +725,8 @@ void NetManager::fromMqttStreamToStrip(char *payload) {
       myLeds = strtoul(ptr, &ptrAtoi, 10);
       if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
         ledManager.setPixelColor(index, 0, 0, 0);
-      } else {
+      }
+      else {
         ledManager.setPixelColor(index, (myLeds >> 16 & 0xFF), (myLeds >> 8 & 0xFF), (myLeds >> 0 & 0xFF));
       }
       index++;
@@ -695,7 +769,7 @@ bool NetManager::processFirmwareConfigWithReboot() {
   String br = bootstrapManager.jsonDoc[F("br")];
   JsonDocument doc;
   if (deviceName.length() > 0 &&
-      ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0 && mqttTopic.length() > 0))) {
+    ((mqttCheckbox == "false") || (mqttIP.length() > 0 && mqttPort.length() > 0 && mqttTopic.length() > 0))) {
     if (microcontrollerIP.length() == 0) {
       microcontrollerIP = "DHCP";
     }
@@ -707,7 +781,8 @@ bool NetManager::processFirmwareConfigWithReboot() {
       doc[F("miso")] = miso;
       doc[F("sclk")] = sclk;
       doc[F("cs")] = cs;
-    } else if (!bootstrapManager.jsonDoc[F("ethd")].isNull()) {
+    }
+    else if (!bootstrapManager.jsonDoc[F("ethd")].isNull()) {
       doc[F("mosi")] = bootstrapManager.jsonDoc[F("mosi")];
       doc[F("miso")] = bootstrapManager.jsonDoc[F("miso")];
       doc[F("sclk")] = bootstrapManager.jsonDoc[F("sclk")];
@@ -726,17 +801,21 @@ bool NetManager::processFirmwareConfigWithReboot() {
       doc[F("mqttTopic")] = mqttTopic;
       doc[F("mqttuser")] = mqttuser;
       doc[F("mqttpass")] = mqttpass;
-    } else {
+    }
+    else {
       doc[F("mqttIP")] = "";
       doc[F("mqttPort")] = "";
       doc[F("mqttTopic")] = "";
       doc[F("mqttuser")] = "";
       doc[F("mqttpass")] = "";
     }
-    doc[F("additionalParam")] = !bootstrapManager.jsonDoc[F("additionalParam")].isNull()? additionalParam : String(gpioInUse);
+    doc[F("additionalParam")] = !bootstrapManager.jsonDoc[F("additionalParam")].isNull()
+                                  ? additionalParam
+                                  : String(gpioInUse);
     content = F("Success: rebooting the microcontroller using your credentials.");
     statusCode = 200;
-  } else {
+  }
+  else {
     content = F("Error: missing required fields.");
     statusCode = 404;
     Serial.println(F("Sending 404"));
@@ -750,7 +829,8 @@ bool NetManager::processFirmwareConfigWithReboot() {
   File jsonFile = LittleFS.open("/setup.json", FILE_WRITE);
   if (!jsonFile) {
     Serial.println(F("Failed to open [setup.json] file for writing"));
-  } else {
+  }
+  else {
     serializeJsonPretty(doc, Serial);
     serializeJson(doc, jsonFile);
     jsonFile.close();
@@ -796,11 +876,12 @@ bool NetManager::processFirmwareConfigWithReboot() {
 #endif
   if (!bootstrapManager.jsonDoc[F("of")].isNull()) {
 #if defined(ARDUINO_ARCH_ESP32)
-      ESP.restart();
+    ESP.restart();
 #elif defined(ESP8266)
-      EspClass::restart();
+    EspClass::restart();
 #endif
-  } else {
+  }
+  else {
     Helpers::safeRestart();
   }
   return true;
@@ -844,7 +925,7 @@ bool NetManager::processFirmwareConfig() {
       }
       // COLOR_ORDER
       if (bootstrapManager.jsonDoc[ledManager.COLOR_ORDER_PARAM].is<JsonVariant>()) {
-        int colorOrderParam = (int) bootstrapManager.jsonDoc[ledManager.COLOR_ORDER_PARAM];
+        int colorOrderParam = (int)bootstrapManager.jsonDoc[ledManager.COLOR_ORDER_PARAM];
         if (colorOrder != colorOrderParam) {
           colorOrder = colorOrderParam;
           ledManager.setColorOrder(colorOrder);
@@ -853,7 +934,7 @@ bool NetManager::processFirmwareConfig() {
       }
       // LDR_PIN_PARAM
       if (bootstrapManager.jsonDoc[ledManager.LDR_PIN_PARAM].is<JsonVariant>()) {
-        int ldrPinParam = (int) bootstrapManager.jsonDoc[ledManager.LDR_PIN_PARAM];
+        int ldrPinParam = (int)bootstrapManager.jsonDoc[ledManager.LDR_PIN_PARAM];
         if (ldrPin != ldrPinParam) {
           ldrPin = ldrPinParam;
           ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
@@ -862,7 +943,7 @@ bool NetManager::processFirmwareConfig() {
       }
       // RELAY_PIN_PARAM
       if (bootstrapManager.jsonDoc[ledManager.RELAY_PIN_PARAM].is<JsonVariant>()) {
-        int relayPinParam = (int) bootstrapManager.jsonDoc[ledManager.RELAY_PIN_PARAM];
+        int relayPinParam = (int)bootstrapManager.jsonDoc[ledManager.RELAY_PIN_PARAM];
         if (relayPin != relayPinParam) {
           relayPin = relayPinParam;
           ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
@@ -871,7 +952,7 @@ bool NetManager::processFirmwareConfig() {
       }
       // INVERTED RELAY
       if (bootstrapManager.jsonDoc[ledManager.RELAY_INV_PARAM].is<JsonVariant>()) {
-        bool relayInvParam =  bootstrapManager.jsonDoc[ledManager.RELAY_INV_PARAM];
+        bool relayInvParam = bootstrapManager.jsonDoc[ledManager.RELAY_INV_PARAM];
         if (relInv != relayInvParam) {
           relInv = relayInvParam;
           ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
@@ -880,7 +961,7 @@ bool NetManager::processFirmwareConfig() {
       }
       // SB_PIN_PARAM
       if (bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM].is<JsonVariant>()) {
-        int sbrPinParam = (int) bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM];
+        int sbrPinParam = (int)bootstrapManager.jsonDoc[ledManager.SB_PIN_PARAM];
         if (sbPin != sbrPinParam) {
           sbPin = sbrPinParam;
           ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
@@ -889,7 +970,7 @@ bool NetManager::processFirmwareConfig() {
       }
       // BUILTIN LED
       if (bootstrapManager.jsonDoc[ledManager.LED_BUILTIN_PARAM].is<JsonVariant>()) {
-        int ledBiParam = (int) bootstrapManager.jsonDoc[ledManager.LED_BUILTIN_PARAM];
+        int ledBiParam = (int)bootstrapManager.jsonDoc[ledManager.LED_BUILTIN_PARAM];
         if (sbPin != ledBiParam) {
           ledBuiltin = ledBiParam;
           ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
@@ -938,14 +1019,15 @@ bool NetManager::processUnSubscribeStream() {
 bool NetManager::processJson() {
   ledManager.lastLedUpdate = millis();
   boolean skipMacCheck = ((bootstrapManager.jsonDoc["MAC"].is<JsonVariant>() && bootstrapManager.jsonDoc["MAC"] == MAC)
-                          || bootstrapManager.jsonDoc["allInstances"].is<JsonVariant>());
+    || bootstrapManager.jsonDoc["allInstances"].is<JsonVariant>());
   if (!bootstrapManager.jsonDoc["MAC"].is<JsonVariant>() || skipMacCheck) {
     if (bootstrapManager.jsonDoc["state"].is<JsonVariant>()) {
       String state = bootstrapManager.jsonDoc["state"];
       if (state == ON_CMD) {
         Globals::turnOnRelay();
         ledManager.stateOn = true;
-      } else if (state == OFF_CMD) {
+      }
+      else if (state == OFF_CMD) {
         ledManager.stateOn = false;
       }
     }
@@ -983,7 +1065,8 @@ bool NetManager::processJson() {
           }
           effect = Effect::GlowWorm;
           ledManager.lastLedUpdate = millis();
-        } else if (requestedEffect == "GlowWormWifi") {
+        }
+        else if (requestedEffect == "GlowWormWifi") {
           if (effectIsDifferent) {
             previousMillisLDR = 0;
           }
@@ -994,8 +1077,9 @@ bool NetManager::processJson() {
     }
     Effect reqEff = Globals::stringToEffect(requestedEffect);
     if ((autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
-                     brightness != brightnessStored || reqEff != effectStored || ledManager.stateOn != toggleStored))) {
-      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness, requestedEffect, ledManager.stateOn);
+      brightness != brightnessStored || reqEff != effectStored || ledManager.stateOn != toggleStored))) {
+      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness, requestedEffect,
+                                       ledManager.stateOn);
     }
   }
   return true;
@@ -1032,7 +1116,8 @@ void NetManager::sendStatus() {
     fpsData += F("\"}");
     if (mqttIP.length() > 0) {
       BootstrapManager::publish(netManager.lightStateTopic.c_str(), fpsData.c_str(), false);
-    } else {
+    }
+    else {
 #if defined(ESP8266)
       if (netManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
@@ -1043,7 +1128,8 @@ void NetManager::sendStatus() {
         netManager.broadcastUDP.endPacket();
       }
     }
-  } else {
+  }
+  else {
     bootstrapManager.jsonDoc.clear();
     JsonObject root = bootstrapManager.jsonDoc.to<JsonObject>();
     root[F("state")] = (ledManager.stateOn) ? ON_CMD : OFF_CMD;
@@ -1097,13 +1183,15 @@ void NetManager::sendStatus() {
     root[F("gpioClock")] = gpioClockInUse;
     root[F("mqttopic")] = netManager.topicInUse;
     root[F("whitetemp")] = whiteTempInUse;
-    if (effect == Effect::solid && !ledManager.stateOn && apState == 0 && wifiReconnectAttemp == 0 && mqttReconnectAttemp == 0) {
+    if (effect == Effect::solid && !ledManager.stateOn && apState == 0 && wifiReconnectAttemp == 0 &&
+      mqttReconnectAttemp == 0) {
       LedManager::setColor(0, 0, 0);
     }
     // This topic should be retained, we don't want unknown values on battery voltage or wifi signal
     if (mqttIP.length() > 0) {
       BootstrapManager::publish(netManager.lightStateTopic.c_str(), root, true);
-    } else {
+    }
+    else {
       String output;
       serializeJson(root, output);
 #if defined(ESP8266)
@@ -1144,7 +1232,7 @@ bool NetManager::processUpdate() {
     []() {
     },
     []() {
-      HTTPUpload &upload = server.upload();
+      HTTPUpload& upload = server.upload();
 #if defined(ARDUINO_ARCH_ESP32)
       esp_task_wdt_reset();
 #endif
@@ -1160,20 +1248,23 @@ bool NetManager::processUpdate() {
           Update.printError(Serial);
           server.send(500, "text/plain", "Update begin failed");
         }
-      } else if (upload.status == UPLOAD_FILE_WRITE) {
+      }
+      else if (upload.status == UPLOAD_FILE_WRITE) {
 #if defined(ARDUINO_ARCH_ESP32)
         esp_task_wdt_reset();
 #endif
         if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
           Update.printError(Serial);
         }
-      } else if (upload.status == UPLOAD_FILE_END) {
+      }
+      else if (upload.status == UPLOAD_FILE_END) {
         server.sendHeader("Connection", "close");
         bool ok = Update.end(true);
         if (ok) {
           Serial.printf("Update success: %u bytes\n", upload.totalSize);
           server.send(200, "text/plain", "OK");
-        } else {
+        }
+        else {
           Update.printError(Serial);
           server.send(500, "text/plain", "KO");
         }
@@ -1188,7 +1279,8 @@ bool NetManager::processUpdate() {
               deviceName.c_str(),
               false
             );
-          } else {
+          }
+          else {
 #if defined(ESP8266)
             if (netManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
@@ -1269,7 +1361,8 @@ bool NetManager::processLDR() {
       ldrDivider = ldrValue;
       ledManager.setLdr(ldrDivider);
       delay(DELAY_500);
-    } else if (ldrActionMqtt.toInt() == 3) {
+    }
+    else if (ldrActionMqtt.toInt() == 3) {
       ldrDivider = LDR_DIVIDER;
       ledManager.setLdr(-1);
       delay(DELAY_500);
@@ -1282,7 +1375,8 @@ bool NetManager::processLDR() {
     server.sendHeader(F("Access-Control-Allow-Origin"), "*");
     server.send(statusCode, F("text/plain"), content);
     delay(DELAY_500);
-    if (!bootstrapManager.jsonDoc[F("relayPin")].isNull() && !bootstrapManager.jsonDoc[F("sbPin")].isNull() && !bootstrapManager.jsonDoc[F("ldrPin")].isNull()) {
+    if (!bootstrapManager.jsonDoc[F("relayPin")].isNull() && !bootstrapManager.jsonDoc[F("sbPin")].isNull() && !
+      bootstrapManager.jsonDoc[F("ldrPin")].isNull()) {
       relayPin = rPin.toInt();
       sbPin = sPin.toInt();
       ldrPin = lPin.toInt();
@@ -1300,7 +1394,7 @@ bool NetManager::processLDR() {
  * Execute the MQTT topic swap
  * @param customtopic new topic to use
  */
-void NetManager::executeMqttSwap(const String &customtopic) {
+void NetManager::executeMqttSwap(const String& customtopic) {
   Serial.println("Swapping topic=" + customtopic);
   netManager.topicInUse = customtopic;
   swapTopicUnsubscribe();
@@ -1323,7 +1417,7 @@ void NetManager::checkConnection() {
     prevMillisCheckConn1 = currentMillisCheckConn;
     // No updates since 7 seconds, turn off LEDs
     if ((!breakLoop && (effect == Effect::GlowWorm) && (currentMillisCheckConn > ledManager.lastLedUpdate + 10000)) ||
-        (!breakLoop && (effect == Effect::GlowWormWifi) && (currentMillisCheckConn > lastStream + 10000))) {
+      (!breakLoop && (effect == Effect::GlowWormWifi) && (currentMillisCheckConn > lastStream + 10000))) {
       breakLoop = true;
       effect = Effect::solid;
       ledManager.stateOn = false;
@@ -1338,7 +1432,7 @@ void NetManager::checkConnection() {
   if (currentMillisCheckConn - prevMillisCheckConn2 > 15000) {
     prevMillisCheckConn2 = currentMillisCheckConn;
     // No updates since 15 seconds, turn off LEDs
-    if(currentMillisCheckConn > ledManager.lastLedUpdate + 10000){
+    if (currentMillisCheckConn > ledManager.lastLedUpdate + 10000) {
       LedManager::setColor(0, 0, 0);
       globals.turnOffRelay();
     }

@@ -130,9 +130,6 @@ unsigned long currentMillisSendSerial = 0;
 unsigned long prevMillisSendSerial = 0;
 unsigned long prevMillisPing = 0;
 
-uint8_t groupMap[RLE_GRP_MAP_SIZE];
-uint16_t numGroups = 0;
-
 String TRUE = "true";
 
 /**
