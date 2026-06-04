@@ -365,7 +365,6 @@ void mainLoop() {
       if (configLen == CONFIG_NUM_PARAMS) {
         hi = config[i++];
         lo = config[i++];
-        loSecondPart = config[i++];
         usbBrightness = config[i++];
         gpio = config[i++];
         baudRate = config[i++];
@@ -386,7 +385,7 @@ void mainLoop() {
         chk = config[i++];
 
         if (!(!breakLoop &&
-          (chk != (hi ^ lo ^ loSecondPart ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
+          (chk != (hi ^ lo ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
             ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder
             ^ relaySerialPin ^ relayInvPin ^ sbSerialPin ^ ldrSerialPin ^ gpioClock ^ 0x55)))) {
           if (!breakLoop) {
@@ -442,8 +441,9 @@ void mainLoop() {
                 ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
               }
             }
+            // Byte is limited to 255, use byte splitting via byte shifting
+            uint16_t numLedFromLuciferin = (hi << 8) | lo;
 
-            uint16_t numLedFromLuciferin = lo + (loSecondPart * SERIAL_CHUNK_SIZE) + 1;
             if (ledManager.dynamicLedNum != numLedFromLuciferin) {
               LedManager::setNumLed(numLedFromLuciferin);
               ledManager.reinitLEDTriggered = true;
@@ -569,8 +569,8 @@ void mainLoop() {
                 }
               }
             }
-            // RLE reading finished
 
+            // RLE reading finished
             auto getGroupSize = [&](uint16_t index) {
               uint16_t g = 0;
               for (uint8_t i = 0; i < numRleEntries; i++) {
@@ -588,8 +588,7 @@ void mainLoop() {
                 if (g + rle[i].count <= colorIndex) {
                   phys += rle[i].count * rle[i].size;
                   g += rle[i].count;
-                }
-                else {
+                } else {
                   phys += (colorIndex - g) * rle[i].size;
                   break;
                 }
@@ -603,8 +602,7 @@ void mainLoop() {
               for (uint8_t i = 0; i < numRleEntries; i++) {
                 numColorsToRead += rle[i].count;
               }
-            }
-            else {
+            } else {
               numColorsToRead = numLedFromLuciferin;
             }
 
@@ -626,13 +624,13 @@ void mainLoop() {
               for (uint8_t rep = 0; rep < groupSize; rep++) {
                 setSerialPixel(physIndex++, r, g, b);
               }
-
               colorIndex++;
             }
 
             ledManager.lastLedUpdate = millis();
             framerateCounterSerial++;
             ledManager.ledShow();
+
           }
         }
       }
