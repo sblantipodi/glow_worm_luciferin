@@ -122,7 +122,7 @@ extern bool apFileRead;
 
 extern String TRUE;
 
-#define RLE_GRP_MAP_SIZE 128
+#define RLE_GRP_MAP_SIZE 256
 
 class Globals {
 

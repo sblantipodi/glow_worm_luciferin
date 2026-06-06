@@ -558,16 +558,26 @@ void mainLoop() {
               if (rleMode == 1) {
                 if (Serial.readBytes(&numRleEntries, 1) == 1) {
                   uint16_t rleBytesCount = numRleEntries * 2;
-                  static byte rleBuffer[RLE_GRP_MAP_SIZE];
+                  static byte rleBuffer[RLE_GRP_MAP_SIZE * 2];
                   if (Serial.readBytes(rleBuffer, rleBytesCount) == rleBytesCount) {
+                    memset(rle, 0, sizeof(rle));
                     for (byte e = 0; e < numRleEntries; e++) {
                       rle[e].count = rleBuffer[e * 2];
                       rle[e].size = rleBuffer[e * 2 + 1];
                     }
                     rleReceived = true;
+                  } else {
+                    while(Serial.available() > 0) Serial.read();
+                    return;
                   }
+                } else {
+                  while(Serial.available() > 0) Serial.read();
+                  return;
                 }
               }
+            } else {
+              while(Serial.available() > 0) Serial.read();
+              return;
             }
 
             // RLE reading finished
