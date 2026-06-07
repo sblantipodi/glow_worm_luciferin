@@ -26,15 +26,20 @@
 #include "LedManager.h"
 #include "NetManager.h"
 
+#define SERIAL_TIMEOUT 10
 #if defined(ESP8266)
 #define LDR_DIVIDER 1024
 #endif
 #if defined(ARDUINO_ARCH_ESP32)
 #define LDR_DIVIDER 4096
 #endif
-#define SERIAL_SIZE_RX 2048
+#define SERIAL_SIZE_RX 4096
+#define RLE_GRP_MAP_SIZE 256
+
 #define CONFIG_NUM_PARAMS 20
 #define CONFIG_PREFIX_LENGTH 6
+
+const int DROP_THRESHOLD = SERIAL_SIZE_RX * 3 / 4;
 
 extern class BootstrapManager bootstrapManager;
 
@@ -121,8 +126,6 @@ extern bool breakLoop;
 extern bool apFileRead;
 
 extern String TRUE;
-
-#define RLE_GRP_MAP_SIZE 256
 
 class Globals {
 

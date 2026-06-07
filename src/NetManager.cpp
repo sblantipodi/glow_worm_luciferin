@@ -128,7 +128,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
 
   // RLE compressed structure
   struct RleEntry {
-    uint16_t count; // how many times to repeat
+    uint8_t count; // how many times to repeat
     uint8_t size; // group dimension
   };
 
@@ -138,6 +138,23 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   // RLE parsing on first chunk only
   if (chunkNum == 0) {
     numRleEntries = strtoul(ptr, &ptrAtoi, 10);
+    // FIX: evita overflow della tabella RLE
+    if (numRleEntries > RLE_GRP_MAP_SIZE) {
+      return;
+    }
+    // --- RLE VALIDATION ---
+    uint16_t totalPhys = 0;
+    for (uint8_t i = 0; i < numRleEntries; i++) {
+      totalPhys += (uint16_t)rle[i].count * (uint16_t)rle[i].size;
+    }
+
+    if (totalPhys != numLedFromLuciferin) {
+      // Frame invalido → scarta
+      return;
+    }
+    // --- END RLE VALIDATION ---
+
+
     ptr = strtok_r(nullptr, delimiters, &saveptr);
 
     uint8_t idx = 0;
@@ -199,6 +216,8 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
 
   // Calculate offset for this chunk
   uint16_t colorIndex = UDP_CHUNK_SIZE * chunkNum;
+  if (colorIndex >= numLedFromLuciferin) return;
+
   uint16_t physIndex = computePhysOffset(colorIndex);
 
   // Set the colors
@@ -212,6 +231,9 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
     uint8_t groupSize = getGroupSize(colorIndex);
 
     for (uint8_t rep = 0; rep < groupSize; rep++) {
+      if (physIndex >= ledManager.dynamicLedNum) {
+        break;
+      }
       if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
         ledManager.setPixelColor(physIndex, 0, 0, 0);
       }
