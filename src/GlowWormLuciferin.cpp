@@ -50,7 +50,7 @@ void setup() {
 #endif
 
   Serial.begin(baudRateToUse);
-  Serial.setTimeout(10);
+  Serial.setTimeout(SERIAL_TIMEOUT);
   Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
 
 #if defined(ESP8266)
@@ -657,24 +657,18 @@ void mainLoop() {
 
             // Lettura robusta: se non arrivano abbastanza byte, abortiamo il frame
             // Timeout più aggressivo solo per la fase colori
-            Serial.setTimeout(2);
 
-            while (colorIndex < numColorsToRead) {
-              byte r, g, b;
 
               if (Serial.readBytes(&r, 1) != 1) {
                 while (Serial.available() > 0) Serial.read();
-                Serial.setTimeout(SERIAL_TIMEOUT);
                 return;
               }
               if (Serial.readBytes(&g, 1) != 1) {
                 while (Serial.available() > 0) Serial.read();
-                Serial.setTimeout(SERIAL_TIMEOUT);
                 return;
               }
               if (Serial.readBytes(&b, 1) != 1) {
                 while (Serial.available() > 0) Serial.read();
-                Serial.setTimeout(SERIAL_TIMEOUT);
                 return;
               }
 
@@ -689,20 +683,7 @@ void mainLoop() {
               colorIndex++;
             }
 
-            // Ripristina il timeout originale
-            Serial.setTimeout(SERIAL_TIMEOUT);
 
-            uint8_t groupSize = rleReceived ? getGroupSize(colorIndex) : 1;
-
-            for (uint8_t rep = 0; rep < groupSize; rep++) {
-              if (physIndex >= ledManager.dynamicLedNum) {
-                // Evita out-of-bounds
-                break;
-              }
-              setSerialPixel(physIndex++, r, g, b);
-            }
-            colorIndex++;
-          }
 
 
           ledManager.lastLedUpdate = millis();
