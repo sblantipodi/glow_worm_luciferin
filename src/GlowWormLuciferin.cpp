@@ -573,10 +573,10 @@ void mainLoop() {
                 }
 
                 uint16_t rleBytesCount = numRleEntries * 2;
-                static byte rleBuffer[RLE_GRP_MAP_SIZE * 2];
+                static uint8_t rleBuffer[RLE_GRP_MAP_SIZE * 2];
                 if (Serial.readBytes(rleBuffer, rleBytesCount) == rleBytesCount) {
                   memset(rle, 0, sizeof(rle));
-                  for (byte e = 0; e < numRleEntries; e++) {
+                  for (uint16_t e = 0; e < numRleEntries; e++) {
                     rle[e].count = rleBuffer[e * 2];
                     rle[e].size  = rleBuffer[e * 2 + 1];
                   }
