@@ -26,7 +26,7 @@
 #include "LedManager.h"
 #include "NetManager.h"
 
-#define SERIAL_TIMEOUT 10
+#define SERIAL_TIMEOUT 5
 #if defined(ESP8266)
 #define LDR_DIVIDER 1024
 #endif
@@ -34,7 +34,7 @@
 #define LDR_DIVIDER 4096
 #endif
 #define SERIAL_SIZE_RX 4096
-#define RLE_GRP_MAP_SIZE 256
+#define RLE_GRP_MAP_SIZE 250
 
 #define CONFIG_NUM_PARAMS 20
 #define CONFIG_PREFIX_LENGTH 6
