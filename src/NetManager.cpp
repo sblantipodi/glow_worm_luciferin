@@ -134,26 +134,24 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
 
   static RleEntry rle[RLE_GRP_MAP_SIZE]; // up to RLE_GRP_MAP_SIZE groups
   static uint8_t numRleEntries = 0;
+  static bool currentFrameValid = false;
+  static uint8_t lastProcessedChunkNum = 0;
+  static unsigned long lastChunkTime = 0;
+
+  unsigned long now = millis();
+  if (now - lastChunkTime > 15) {
+    currentFrameValid = false;
+  }
+  lastChunkTime = now;
 
   // RLE parsing on first chunk only
   if (chunkNum == 0) {
     numRleEntries = strtoul(ptr, &ptrAtoi, 10);
     // FIX: evita overflow della tabella RLE
     if (numRleEntries > RLE_GRP_MAP_SIZE) {
+      currentFrameValid = false;
       return;
     }
-    // --- RLE VALIDATION ---
-    uint16_t totalPhys = 0;
-    for (uint8_t i = 0; i < numRleEntries; i++) {
-      totalPhys += (uint16_t)rle[i].count * (uint16_t)rle[i].size;
-    }
-
-    if (totalPhys != numLedFromLuciferin) {
-      // Frame invalido → scarta
-      return;
-    }
-    // --- END RLE VALIDATION ---
-
 
     ptr = strtok_r(nullptr, delimiters, &saveptr);
 
@@ -169,11 +167,39 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
       idx++;
       ptr = strtok_r(nullptr, delimiters, &saveptr);
     }
+
+    if (idx != numRleEntries) {
+      currentFrameValid = false;
+      return;
+    }
+
+    // --- RLE VALIDATION ---
+    uint16_t totalPhys = 0;
+    for (uint8_t i = 0; i < numRleEntries; i++) {
+      totalPhys += (uint16_t)rle[i].count * (uint16_t)rle[i].size;
+    }
+
+    if (totalPhys != numLedFromLuciferin) {
+      // Frame invalido → scarta
+      currentFrameValid = false;
+      return;
+    }
+    // --- END RLE VALIDATION ---
+
+    currentFrameValid = true;
+    lastProcessedChunkNum = 0;
+  }
+  else {
+    if (!currentFrameValid || chunkNum != lastProcessedChunkNum + 1) {
+      return;
+    }
+    lastProcessedChunkNum = chunkNum;
   }
 
   // No led fallback
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
+    currentFrameValid = false;
     return;
   }
 
@@ -252,6 +278,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
     framerateCounter++;
     lastStream = millis();
     ledManager.ledShow();
+    currentFrameValid = false;
   }
 }
 
