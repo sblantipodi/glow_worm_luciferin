@@ -125,24 +125,21 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   uint8_t chunkNum = strtoul(ptr, &ptrAtoi, 10);
 
   ptr = strtok_r(nullptr, delimiters, &saveptr);
+  uint8_t incomingFrameNum = strtoul(ptr, &ptrAtoi, 10);
+
+  ptr = strtok_r(nullptr, delimiters, &saveptr);
 
   // RLE compressed structure
   struct RleEntry {
     uint8_t count; // how many times to repeat
-    uint8_t size; // group dimension
+    uint8_t size;  // group dimension
   };
 
   static RleEntry rle[RLE_GRP_MAP_SIZE]; // up to RLE_GRP_MAP_SIZE groups
   static uint8_t numRleEntries = 0;
   static bool currentFrameValid = false;
   static uint8_t lastProcessedChunkNum = 0;
-  static unsigned long lastChunkTime = 0;
-
-  unsigned long now = millis();
-  if (now - lastChunkTime > 15) {
-    currentFrameValid = false;
-  }
-  lastChunkTime = now;
+  static uint8_t lastChunkFrame = 0;   // frameNum of the frame currently being assembled
 
   // RLE parsing on first chunk only
   if (chunkNum == 0) {
@@ -186,11 +183,18 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
     }
     // --- END RLE VALIDATION ---
 
+    // Frame valid: record its sequence number and reset chunk tracking
     currentFrameValid = true;
+    lastChunkFrame = incomingFrameNum;
     lastProcessedChunkNum = 0;
   }
   else {
-    if (!currentFrameValid || chunkNum != lastProcessedChunkNum + 1) {
+    // Reject if: no valid frame started, wrong frameNum (stale chunk from old frame),
+    // or chunk arrived out of order.
+    if (!currentFrameValid
+        || incomingFrameNum != lastChunkFrame
+        || chunkNum != lastProcessedChunkNum + 1) {
+      currentFrameValid = false;
       return;
     }
     lastProcessedChunkNum = chunkNum;
