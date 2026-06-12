@@ -93,6 +93,49 @@ void NetManager::getUDPStream() {
 }
 
 /**
+ * Parse a "DPsoftwareGRP,<numLedsPhysical>,<numRleEntries>,<count1>x<size1>,..." packet
+ * and cache the RLE table for use by fromUDPStreamToStrip().
+ * @param saveptr strtok_r state, already positioned after "DPsoftwareGRP"
+ */
+void NetManager::parseRleGroupMap(char* saveptr) {
+  char delimiters[] = ",";
+  char* ptrAtoi;
+
+  char* ptr = strtok_r(nullptr, delimiters, &saveptr);
+  if (!ptr) { rleTableValid = false; return; }
+  uint16_t numLedsPhysical = strtoul(ptr, &ptrAtoi, 10);
+
+  ptr = strtok_r(nullptr, delimiters, &saveptr);
+  if (!ptr) { rleTableValid = false; return; }
+  uint8_t entries = strtoul(ptr, &ptrAtoi, 10);
+  if (entries > RLE_GRP_MAP_SIZE) {
+    rleTableValid = false;
+    return;
+  }
+
+  uint16_t totalPhys = 0;
+  for (uint8_t idx = 0; idx < entries; idx++) {
+    ptr = strtok_r(nullptr, delimiters, &saveptr);
+    if (!ptr) { rleTableValid = false; return; }
+    char* xPtr = strchr(ptr, 'x');
+    if (!xPtr) { rleTableValid = false; return; }
+    *xPtr = '\0';
+    rle[idx].count = strtoul(ptr, &ptrAtoi, 10);
+    rle[idx].size = strtoul(xPtr + 1, &ptrAtoi, 10);
+    totalPhys += (uint16_t)rle[idx].count * (uint16_t)rle[idx].size;
+  }
+
+  if (totalPhys != numLedsPhysical) {
+    rleTableValid = false;
+    return;
+  }
+
+  numRleEntries = entries;
+  cachedRleTotalPhys = totalPhys;
+  rleTableValid = true;
+}
+
+/**
  * Get data from the stream and send to the strip
  * @param payload stream data
  */
@@ -104,6 +147,12 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   char* ptrAtoi;
 
   ptr = strtok_r(payload, delimiters, &saveptr);
+  if (!ptr) return;
+
+  if (strcmp(ptr, "DPsoftwareGRP") == 0) {
+    parseRleGroupMap(saveptr);
+    return;
+  }
   if (strcmp(ptr, "DPsoftware") != 0) return;
 
   lastUdpMsgReceived = millis();
@@ -127,63 +176,14 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   ptr = strtok_r(nullptr, delimiters, &saveptr);
   uint8_t incomingFrameNum = strtoul(ptr, &ptrAtoi, 10);
 
-  ptr = strtok_r(nullptr, delimiters, &saveptr);
+  ptr = strtok_r(nullptr, delimiters, &saveptr); // first color value (or nullptr)
 
-  // RLE compressed structure
-  struct RleEntry {
-    uint8_t count; // how many times to repeat
-    uint8_t size;  // group dimension
-  };
-
-  static RleEntry rle[RLE_GRP_MAP_SIZE]; // up to RLE_GRP_MAP_SIZE groups
-  static uint8_t numRleEntries = 0;
-  static bool currentFrameValid = false;
-  static uint8_t lastProcessedChunkNum = 0;
-  static uint8_t lastChunkFrame = 0;   // frameNum of the frame currently being assembled
-
-  // RLE parsing on first chunk only
   if (chunkNum == 0) {
-    numRleEntries = strtoul(ptr, &ptrAtoi, 10);
-    // FIX: evita overflow della tabella RLE
-    if (numRleEntries > RLE_GRP_MAP_SIZE) {
+    // Validate against the RLE table cached from the most recent DPsoftwareGRP packet
+    if (!rleTableValid || cachedRleTotalPhys != numLedFromLuciferin) {
       currentFrameValid = false;
       return;
     }
-
-    ptr = strtok_r(nullptr, delimiters, &saveptr);
-
-    uint8_t idx = 0;
-    while (idx < numRleEntries && ptr != nullptr) {
-      char* xPtr = strchr(ptr, 'x');
-      if (!xPtr) break;
-
-      *xPtr = '\0';
-      rle[idx].count = strtoul(ptr, &ptrAtoi, 10);
-      rle[idx].size = strtoul(xPtr + 1, &ptrAtoi, 10);
-
-      idx++;
-      ptr = strtok_r(nullptr, delimiters, &saveptr);
-    }
-
-    if (idx != numRleEntries) {
-      currentFrameValid = false;
-      return;
-    }
-
-    // --- RLE VALIDATION ---
-    uint16_t totalPhys = 0;
-    for (uint8_t i = 0; i < numRleEntries; i++) {
-      totalPhys += (uint16_t)rle[i].count * (uint16_t)rle[i].size;
-    }
-
-    if (totalPhys != numLedFromLuciferin) {
-      // Frame invalido → scarta
-      currentFrameValid = false;
-      return;
-    }
-    // --- END RLE VALIDATION ---
-
-    // Frame valid: record its sequence number and reset chunk tracking
     currentFrameValid = true;
     lastChunkFrame = incomingFrameNum;
     lastProcessedChunkNum = 0;
@@ -285,7 +285,6 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
     currentFrameValid = false;
   }
 }
-
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 
