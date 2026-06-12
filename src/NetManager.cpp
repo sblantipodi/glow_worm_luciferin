@@ -31,19 +31,45 @@ String NetManager::fpsData;
 void NetManager::getUDPStream() {
   yield();
   if (!servingWebPages) {
-    // If packet received...
-    uint16_t packetSize = UDP.parsePacket();
-    UDP.read(packet, UDP_MAX_BUFFER_SIZE);
-    if (effect == Effect::GlowWormWifi) {
-      if (packetSize > 20) {
-        packet[packetSize] = '\0';
+    uint8_t packetsProcessed = 0;
+    bool packetLimitReached = false;
+
+    // Drain the UDP queue before showing LEDs. If the sender is faster than ledShow(),
+    // older frames can pile up here; consuming them first lets us keep the latest frame.
+    while (UDP.parsePacket() > 0) {
+      int len = UDP.read(packet, UDP_MAX_BUFFER_SIZE - 1);
+      if (effect == Effect::GlowWormWifi && len > 20) {
+        packet[len] = '\0';
         fromUDPStreamToStrip(packet);
       }
+      packetsProcessed++;
+      if (packetsProcessed >= UDP_MAX_PACKETS_PER_LOOP) {
+        packetLimitReached = true;
+        break;
+      }
+      yield();
     }
+
+    // Show only after the queue has been drained. If the packet cap was reached,
+    // we are still behind, so drop this ready frame and continue catching up next loop.
+    if (udpFrameReady && !packetLimitReached) {
+      framerateCounter++;
+      ledManager.ledShow();
+      udpFrameReady = false;
+    }
+    else if (packetLimitReached) {
+      udpFrameReady = false;
+    }
+
     // If packet received...
     uint16_t packetSizeBroadcast = broadcastUDP.parsePacket();
-    broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE);
-    packetBroadcast[packetSizeBroadcast] = '\0';
+    if (packetSizeBroadcast > 0) {
+      int lenBroadcast = broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE - 1);
+      packetBroadcast[lenBroadcast] = '\0';
+    }
+    else {
+      packetBroadcast[0] = '\0';
+    }
     char* dn;
     char* dnStatic;
     dn = strstr(packetBroadcast, DN);
@@ -153,6 +179,8 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   if (!ptr) return;
 
   if (strcmp(ptr, "DPsoftwareGRP") == 0) {
+    // A group map belongs to a new frame sequence; do not show a pending older frame.
+    udpFrameReady = false;
     parseRleGroupMap(saveptr);
     return;
   }
@@ -185,6 +213,8 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   ptr = strtok_r(nullptr, delimiters, &saveptr); // numRleEntries (se inline) oppure primo colore
 
   if (chunkNum == 0) {
+    // A new frame starts here. Any previous complete-but-not-shown frame is now stale.
+    udpFrameReady = false;
     if (rleInline) {
       numRleEntries = strtoul(ptr, &ptrAtoi, 10);
       if (numRleEntries > RLE_GRP_MAP_SIZE) {
@@ -239,6 +269,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
         || incomingFrameNum != lastChunkFrame
         || chunkNum != lastProcessedChunkNum + 1) {
       currentFrameValid = false;
+      udpFrameReady = false;
       return;
     }
     lastProcessedChunkNum = chunkNum;
@@ -323,9 +354,10 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
 
   // Show after the last chunk has been received
   if (effect != Effect::solid && chunkNum == chunkTot - 1) {
-    framerateCounter++;
     lastStream = millis();
-    ledManager.ledShow();
+    // Defer ledShow() to getUDPStream(), after queued packets have been drained.
+    // This keeps latency low when Firefly sends more FPS than the strip can display.
+    udpFrameReady = true;
     currentFrameValid = false;
   }
 }

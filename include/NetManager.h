@@ -30,12 +30,19 @@ const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Fir
 const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
 const uint16_t UDP_BR_MAX_BUFFER_SIZE = 50;
 
+// Safety cap: drain a bounded number of queued UDP packets per loop() iteration.
+// This prevents UDP bursts from starving web server, button, LDR, and watchdog tasks.
+// This is not a fixed delay: when the UDP queue is almost empty, the loop exits immediately.
+// The value matters only when packets are piling up faster than the firmware can display them.
+static const uint8_t UDP_MAX_PACKETS_PER_LOOP = 32;
+static bool udpFrameReady = false;
+
 struct RleEntry {
     uint8_t count;
     uint8_t size;
 };
 
-static RleEntry rle[250];
+static RleEntry rle[RLE_GRP_MAP_SIZE];
 static uint8_t numRleEntries;
 static bool rleTableValid;
 static uint16_t cachedRleTotalPhys;

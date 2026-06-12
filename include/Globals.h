@@ -21,10 +21,6 @@
 #define _DPSOFTWARE_GLOBALS_UTILS_H
 
 #include <Arduino.h>
-#include "BootstrapManager.h"
-#include "EffectsManager.h"
-#include "LedManager.h"
-#include "NetManager.h"
 
 #define SERIAL_TIMEOUT 5
 #if defined(ESP8266)
@@ -38,6 +34,11 @@
 
 #define CONFIG_NUM_PARAMS 20
 #define CONFIG_PREFIX_LENGTH 6
+
+#include "BootstrapManager.h"
+#include "EffectsManager.h"
+#include "LedManager.h"
+#include "NetManager.h"
 
 const int DROP_THRESHOLD = SERIAL_SIZE_RX * 3 / 4;
 
