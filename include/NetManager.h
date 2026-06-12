@@ -29,14 +29,17 @@
 const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Firefly Luciferin
 const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
 const uint16_t UDP_BR_MAX_BUFFER_SIZE = 50;
+
 struct RleEntry {
     uint8_t count;
     uint8_t size;
 };
+
 static RleEntry rle[250];
 static uint8_t numRleEntries;
 static bool rleTableValid;
 static uint16_t cachedRleTotalPhys;
+static uint8_t cachedRleFrameNum;
 static bool currentFrameValid;
 static uint8_t lastProcessedChunkNum;
 static uint8_t lastChunkFrame;

@@ -25,7 +25,6 @@ uint16_t NetManager::part = 1;
 size_t NetManager::updateSize = 0;
 String NetManager::fpsData;
 
-
 /**
  * Parse UDP packet
  */
@@ -93,7 +92,7 @@ void NetManager::getUDPStream() {
 }
 
 /**
- * Parse a "DPsoftwareGRP,<numLedsPhysical>,<numRleEntries>,<count1>x<size1>,..." packet
+ * Parse a "DPsoftwareGRP,<numLedsPhysical>,<numRleEntries>,<count1>x<size1>,...,<frameNum>" packet
  * and cache the RLE table for use by fromUDPStreamToStrip().
  * @param saveptr strtok_r state, already positioned after "DPsoftwareGRP"
  */
@@ -129,6 +128,10 @@ void NetManager::parseRleGroupMap(char* saveptr) {
     rleTableValid = false;
     return;
   }
+
+  ptr = strtok_r(nullptr, delimiters, &saveptr); // frameNum
+  if (!ptr) { rleTableValid = false; return; }
+  cachedRleFrameNum = strtoul(ptr, &ptrAtoi, 10);
 
   numRleEntries = entries;
   cachedRleTotalPhys = totalPhys;
@@ -176,21 +179,62 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   ptr = strtok_r(nullptr, delimiters, &saveptr);
   uint8_t incomingFrameNum = strtoul(ptr, &ptrAtoi, 10);
 
-  ptr = strtok_r(nullptr, delimiters, &saveptr); // first color value (or nullptr)
+  ptr = strtok_r(nullptr, delimiters, &saveptr);
+  bool rleInline = (strcmp(ptr, "1") == 0);
+
+  ptr = strtok_r(nullptr, delimiters, &saveptr); // numRleEntries (se inline) oppure primo colore
 
   if (chunkNum == 0) {
-    // Validate against the RLE table cached from the most recent DPsoftwareGRP packet
-    if (!rleTableValid || cachedRleTotalPhys != numLedFromLuciferin) {
-      currentFrameValid = false;
-      return;
+    if (rleInline) {
+      numRleEntries = strtoul(ptr, &ptrAtoi, 10);
+      if (numRleEntries > RLE_GRP_MAP_SIZE) {
+        currentFrameValid = false;
+        return;
+      }
+      ptr = strtok_r(nullptr, delimiters, &saveptr);
+
+      uint8_t idx = 0;
+      while (idx < numRleEntries && ptr != nullptr) {
+        char* xPtr = strchr(ptr, 'x');
+        if (!xPtr) break;
+        *xPtr = '\0';
+        rle[idx].count = strtoul(ptr, &ptrAtoi, 10);
+        rle[idx].size = strtoul(xPtr + 1, &ptrAtoi, 10);
+        idx++;
+        ptr = strtok_r(nullptr, delimiters, &saveptr);
+      }
+      if (idx != numRleEntries) {
+        currentFrameValid = false;
+        return;
+      }
+      uint16_t totalPhys = 0;
+      for (uint8_t i = 0; i < numRleEntries; i++) {
+        totalPhys += (uint16_t)rle[i].count * (uint16_t)rle[i].size;
+      }
+      if (totalPhys != numLedFromLuciferin) {
+        currentFrameValid = false;
+        return;
+      }
+      rleTableValid = true;
+      cachedRleTotalPhys = totalPhys;
+      cachedRleFrameNum = incomingFrameNum;
     }
+    else {
+      // RLE map arrivata su packet separato (DPsoftwareGRP)
+      if (!rleTableValid
+          || cachedRleTotalPhys != numLedFromLuciferin
+          || cachedRleFrameNum != incomingFrameNum) {
+        currentFrameValid = false;
+        return;
+      }
+      // ptr punta già al primo colore
+    }
+
     currentFrameValid = true;
     lastChunkFrame = incomingFrameNum;
     lastProcessedChunkNum = 0;
   }
   else {
-    // Reject if: no valid frame started, wrong frameNum (stale chunk from old frame),
-    // or chunk arrived out of order.
     if (!currentFrameValid
         || incomingFrameNum != lastChunkFrame
         || chunkNum != lastProcessedChunkNum + 1) {
