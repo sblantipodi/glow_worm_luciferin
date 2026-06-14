@@ -135,6 +135,7 @@ void NetManager::parseRleGroupMap(char* saveptr) {
   uint8_t entries = strtoul(ptr, &ptrAtoi, 10);
   if (entries > RLE_GRP_MAP_SIZE) {
     rleTableValid = false;
+    Serial.println(F("RLE group map too big"));
     return;
   }
 
@@ -152,6 +153,7 @@ void NetManager::parseRleGroupMap(char* saveptr) {
 
   if (totalPhys != numLedsPhysical) {
     rleTableValid = false;
+    Serial.println(F("RLE group map total physical size mismatch"));
     return;
   }
 
@@ -219,6 +221,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
       numRleEntries = strtoul(ptr, &ptrAtoi, 10);
       if (numRleEntries > RLE_GRP_MAP_SIZE) {
         currentFrameValid = false;
+        Serial.println(F("RLE group map too big"));
         return;
       }
       ptr = strtok_r(nullptr, delimiters, &saveptr);
@@ -235,6 +238,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
       }
       if (idx != numRleEntries) {
         currentFrameValid = false;
+        Serial.println(F("RLE group map too short"));
         return;
       }
       uint16_t totalPhys = 0;
@@ -243,6 +247,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
       }
       if (totalPhys != numLedFromLuciferin) {
         currentFrameValid = false;
+        Serial.println(F("RLE group map total physical size mismatch"));
         return;
       }
       rleTableValid = true;
@@ -255,6 +260,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
           || cachedRleTotalPhys != numLedFromLuciferin
           || cachedRleFrameNum != incomingFrameNum) {
         currentFrameValid = false;
+        Serial.println(F("RLE group map not valid"));
         return;
       }
       // ptr punta già al primo colore
@@ -270,6 +276,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
         || chunkNum != lastProcessedChunkNum + 1) {
       currentFrameValid = false;
       udpFrameReady = false;
+      Serial.println(F("Frame out of order"));
       return;
     }
     lastProcessedChunkNum = chunkNum;
@@ -279,6 +286,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
   if (numLedFromLuciferin == 0) {
     effect = Effect::solid;
     currentFrameValid = false;
+    Serial.println(F("No LEDs in frame"));
     return;
   }
 
