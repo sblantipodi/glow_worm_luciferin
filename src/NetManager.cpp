@@ -61,16 +61,10 @@ void NetManager::getUDPStream() {
     else if (packetLimitReached) {
       udpFrameReady = false;
     }
-
     // If packet received...
     uint16_t packetSizeBroadcast = broadcastUDP.parsePacket();
-    if (packetSizeBroadcast > 0) {
-      int lenBroadcast = broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE - 1);
-      packetBroadcast[lenBroadcast] = '\0';
-    }
-    else {
-      packetBroadcast[0] = '\0';
-    }
+    broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE);
+    packetBroadcast[packetSizeBroadcast] = '\0';
     char* dn;
     char* dnStatic;
     dn = strstr(packetBroadcast, DN);
@@ -80,8 +74,7 @@ void NetManager::getUDPStream() {
         for (uint16_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
           dname[dnIdx] = packetBroadcast[dnIdx + strlen(DNStatic)];
         }
-      }
-      else {
+      } else {
         for (uint16_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
           dname[dnIdx] = packetBroadcast[dnIdx + strlen(DN)];
         }
