@@ -27,7 +27,7 @@
 #include "Globals.h"
 
 const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Firefly Luciferin
-const uint16_t UDP_MAX_BUFFER_SIZE = 2048; // this value must match with the one in Firefly Luciferin
+const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
 const uint8_t UDP_BR_MAX_BUFFER_SIZE = 50;
 
 // Safety cap: drain a bounded number of queued UDP packets per loop() iteration.
