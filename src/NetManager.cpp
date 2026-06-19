@@ -37,7 +37,7 @@ void NetManager::getUDPStream() {
     // Drain the UDP queue before showing LEDs. If the sender is faster than ledShow(),
     // older frames can pile up here; consuming them first lets us keep the latest frame.
     while (UDP.parsePacket() > 0) {
-      int len = UDP.read(packet, UDP_MAX_BUFFER_SIZE);
+      int len = UDP.read(packet, UDP_MAX_BUFFER_SIZE - 1);
       //Serial.printf("UDP packet size: %d - > Free heap: %d, Max block: %d\n", len, ESP.getFreeHeap(), ESP.getMaxFreeBlockSize());
       if (effect == Effect::GlowWormWifi && len > 20) {
         packet[len] = '\0';
