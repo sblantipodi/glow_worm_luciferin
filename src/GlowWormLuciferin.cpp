@@ -590,9 +590,9 @@ void mainLoop() {
             while (Serial.available() > 0) Serial.read();
             return;
           }
-
           // RLE reading finished
-          // --- RLE VALIDATION: ensure total physical LEDs match expected count ---
+
+          // RLE VALIDATION: ensure total physical LEDs match expected count
           uint16_t totalPhys = 0;
           for (uint8_t i = 0; i < numRleEntries; i++) {
             totalPhys += (uint16_t)rle[i].count * (uint16_t)rle[i].size;
@@ -649,11 +649,6 @@ void mainLoop() {
 
           while (colorIndex < numColorsToRead) {
             byte r, g, b;
-
-            // Lettura robusta: se non arrivano abbastanza byte, abortiamo il frame
-            // Timeout più aggressivo solo per la fase colori
-
-
               if (Serial.readBytes(&r, 1) != 1) {
                 while (Serial.available() > 0) Serial.read();
                 return;
@@ -666,9 +661,7 @@ void mainLoop() {
                 while (Serial.available() > 0) Serial.read();
                 return;
               }
-
               uint8_t groupSize = rleReceived ? getGroupSize(colorIndex) : 1;
-
               for (uint8_t rep = 0; rep < groupSize; rep++) {
                 if (physIndex >= ledManager.dynamicLedNum) {
                   break;
@@ -768,8 +761,7 @@ void debounceSmartButton() {
   if ((currentMillisMainLoop - lastDebounceTime) > debounceDelay) {
     if (reading != buttonState) {
       buttonState = reading;
-
-      // LOW = premuto (INPUT_PULLUP)
+      // LOW = pressed (INPUT_PULLUP)
       if (buttonState == LOW) {
 #if defined(ARDUINO_ARCH_ESP32)
         if (currentMillisMainLoop > esp32DebouceInitialPeriod) {

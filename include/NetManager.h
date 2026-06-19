@@ -57,8 +57,8 @@ public:
     WiFiUDP UDP;
     WiFiUDP broadcastUDP;
 
-#define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
-#define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
+    #define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
+    #define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
     char packet[UDP_MAX_BUFFER_SIZE];
     char packetBroadcast[UDP_BR_MAX_BUFFER_SIZE];
     char broadCastAddress[UDP_BR_MAX_BUFFER_SIZE];
@@ -129,7 +129,6 @@ public:
 
     static bool processGlowWormLuciferinRebootCmnd();
 
-    // TODO remove or not
     static bool processSetIp();
 
     static bool processLDR();

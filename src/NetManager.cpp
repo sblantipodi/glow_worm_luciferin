@@ -57,8 +57,7 @@ void NetManager::getUDPStream() {
       framerateCounter++;
       ledManager.ledShow();
       udpFrameReady = false;
-    }
-    else if (packetLimitReached) {
+    } else if (packetLimitReached) {
       udpFrameReady = false;
     }
     // If packet received...
