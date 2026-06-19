@@ -560,25 +560,21 @@ void mainLoop() {
             uint8_t size;
           };
 
-          static RleEntry rle[RLE_GRP_MAP_SIZE * 2];
+          static RleEntry rle[RLE_GRP_MAP_SIZE];
           static uint8_t numRleEntries = 0;
 
           if (Serial.readBytes(&rleMode, 1) == 1) {
             if (rleMode == 1) {
               if (Serial.readBytes(&numRleEntries, 1) == 1) {
-                // FIX: evita overflow sugli array RLE
                 if (numRleEntries > RLE_GRP_MAP_SIZE) {
                   while (Serial.available() > 0) Serial.read();
                   return;
                 }
 
                 uint16_t rleBytesCount = numRleEntries * 2;
-                static uint8_t rleBuffer[RLE_GRP_MAP_SIZE * 2];
-                if (Serial.readBytes(rleBuffer, rleBytesCount) == rleBytesCount) {
-                  memset(rle, 0, sizeof(rle));
-                  for (uint16_t e = 0; e < numRleEntries; e++) {
-                    rle[e].count = rleBuffer[e * 2];
-                    rle[e].size  = rleBuffer[e * 2 + 1];
+                if (Serial.readBytes(reinterpret_cast<uint8_t*>(rle), rleBytesCount) == rleBytesCount) {
+                  if (numRleEntries < RLE_GRP_MAP_SIZE) {
+                    memset(&rle[numRleEntries], 0, (RLE_GRP_MAP_SIZE - numRleEntries) * sizeof(RleEntry));
                   }
                   rleReceived = true;
                 } else {
@@ -586,15 +582,14 @@ void mainLoop() {
                   return;
                 }
               } else {
-                while(Serial.available() > 0) Serial.read();
+                while (Serial.available() > 0) Serial.read();
                 return;
               }
             }
           } else {
-            while(Serial.available() > 0) Serial.read();
+            while (Serial.available() > 0) Serial.read();
             return;
           }
-
 
           // RLE reading finished
           // --- RLE VALIDATION: ensure total physical LEDs match expected count ---
@@ -683,9 +678,6 @@ void mainLoop() {
               colorIndex++;
             }
 
-
-
-
           ledManager.lastLedUpdate = millis();
           framerateCounterSerial++;
           ledManager.ledShow();
@@ -749,6 +741,9 @@ void mainLoop() {
   }
   else if (effect == Effect::christmas) {
     EffectsManager::christmas();
+  }
+  if (effect != Effect::fire) {
+    effectsManager.freeFireBuffer();
   }
 }
 
