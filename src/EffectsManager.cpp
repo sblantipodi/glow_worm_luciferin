@@ -31,45 +31,53 @@ int position = 0;
  * @param speedDelay config effect param
  */
 void EffectsManager::fire(int cooling, int sparking, int speedDelay) {
-  static byte heat[NUM_LEDS];
   int cooldown;
-  // Step 1.  Cool down every cell a little
+
+  if (heat == nullptr || heatSize != ledManager.dynamicLedNum) {
+    if (heat != nullptr) {
+      delete[] heat;
+    }
+    heatSize = ledManager.dynamicLedNum;
+    heat = new byte[heatSize]();
+  }
+
+  // Cool down every cell a little
   for (int i = 0; i < ledManager.dynamicLedNum; i++) {
     cooldown = random(0, ((cooling * 10) / ledManager.dynamicLedNum) + 2);
-    if (cooldown > heat[i]) {
-      heat[i] = 0;
-    } else {
-      heat[i] = heat[i] - cooldown;
-    }
+    heat[i] = (cooldown > heat[i]) ? 0 : heat[i] - cooldown;
   }
-  // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+  // Heat from each cell drifts 'up' and diffuses a little
   for (int k = ledManager.dynamicLedNum - 1; k >= 2; k--) {
     heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
   }
-  // Step 3.  Randomly ignite new 'sparks' near the bottom
+  // Randomly ignite new 'sparks' near the bottom
   if (random(255) < sparking) {
     int y = random(7);
     heat[y] = heat[y] + random(160, 255);
-    //heat[y] = random(160,255);
   }
-  // Step 4.  Convert heat to LED colors
+  // Convert heat to LED colors
   for (int j = 0; j < ledManager.dynamicLedNum; j++) {
-    // Scale 'heat' down from 0-255 to 0-191
     byte t192 = (byte) round((heat[j] / 255.0) * 191);
-    // calculate ramp up from
-    byte heatramp = t192 & 0x3F; // 0..63
-    heatramp <<= 2; // scale up to 0..252
-    // figure out which third of the spectrum we're in:
-    if (t192 > 0x80) {                     // hottest
+    byte heatramp = t192 & 0x3F;
+    heatramp <<= 2;
+    if (t192 > 0x80) {
       ledManager.setPixelColor(j, 255, 255, heatramp);
-    } else if (t192 > 0x40) {             // middle
+    } else if (t192 > 0x40) {
       ledManager.setPixelColor(j, 255, heatramp, 0);
-    } else {                               // coolest
+    } else {
       ledManager.setPixelColor(j, heatramp, 0, 0);
     }
   }
   ledManager.ledShow();
   delay(speedDelay);
+}
+
+void EffectsManager::freeFireBuffer() {
+  if (heat != nullptr) {
+    delete[] heat;
+    heat = nullptr;
+    heatSize = 0;
+  }
 }
 
 void EffectsManager::randomColors() {

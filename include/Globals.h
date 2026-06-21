@@ -21,24 +21,26 @@
 #define _DPSOFTWARE_GLOBALS_UTILS_H
 
 #include <Arduino.h>
-#include "BootstrapManager.h"
-#include "EffectsManager.h"
-#include "LedManager.h"
-#include "NetManager.h"
 
+#define SERIAL_TIMEOUT 5
 #if defined(ESP8266)
 #define LDR_DIVIDER 1024
 #endif
 #if defined(ARDUINO_ARCH_ESP32)
 #define LDR_DIVIDER 4096
 #endif
-#define SERIAL_SIZE_RX 2048
-#define CONFIG_NUM_PARAMS 21
+#define SERIAL_SIZE_RX 4096
+#define RLE_GRP_MAP_SIZE 250
+
+#define CONFIG_NUM_PARAMS 20
 #define CONFIG_PREFIX_LENGTH 6
-// This value must meet the one in Firefly Luciferin
-// We are transferring byte via Serial, the maximum decimal number that can be represented with 1 byte is 255.
-// Use a multiplier to set a much bigger number using only 2 bytes.
-const int SERIAL_CHUNK_SIZE = 250;
+
+#include "BootstrapManager.h"
+#include "EffectsManager.h"
+#include "LedManager.h"
+#include "NetManager.h"
+
+const int DROP_THRESHOLD = SERIAL_SIZE_RX * 3 / 4;
 
 extern class BootstrapManager bootstrapManager;
 
@@ -55,7 +57,7 @@ extern class Globals globals;
 // Change this number if you increase/decrease the usb serial config variables
 extern byte config[CONFIG_NUM_PARAMS];
 extern byte pre[CONFIG_PREFIX_LENGTH];
-extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
+extern uint8_t prefix[], hi, lo, chk, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
         fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, relayInvPin, sbSerialPin, ldrSerialPin, gpioClock;
 
 enum class Effect {

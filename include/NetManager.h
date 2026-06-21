@@ -27,9 +27,28 @@
 #include "Globals.h"
 
 const uint8_t UDP_CHUNK_SIZE = 140; // this value must match with the one in Firefly Luciferin
-const uint16_t UDP_MAX_BUFFER_SIZE = 4096; // this value must match with the one in Firefly Luciferin
-const uint16_t UDP_BR_MAX_BUFFER_SIZE = 50;
+const uint16_t UDP_MAX_BUFFER_SIZE = (UDP_CHUNK_SIZE * 10) + 51; // this value must match with the one in Firefly Luciferin
+const uint8_t UDP_BR_MAX_BUFFER_SIZE = 50;
+// Safety cap: drain a bounded number of queued UDP packets per loop() iteration.
+// This prevents UDP bursts from starving web server, button, LDR, and watchdog tasks.
+// This is not a fixed delay: when the UDP queue is almost empty, the loop exits immediately.
+// The value matters only when packets are piling up faster than the firmware can display them.
+static const uint8_t UDP_MAX_PACKETS_PER_LOOP = 12;
+static bool udpFrameReady = false;
 
+struct RleEntry {
+    uint8_t count;
+    uint8_t size;
+};
+
+static RleEntry rle[RLE_GRP_MAP_SIZE];
+static uint8_t numRleEntries;
+static bool rleTableValid;
+static uint16_t cachedRleTotalPhys;
+static uint8_t cachedRleFrameNum;
+static bool currentFrameValid;
+static uint8_t lastProcessedChunkNum;
+static uint8_t lastChunkFrame;
 
 class NetManager {
 
@@ -38,10 +57,10 @@ public:
     WiFiUDP UDP;
     WiFiUDP broadcastUDP;
 
-#define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
-#define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
+    #define UDP_PORT 4210 // this value must match with the one in Firefly Luciferin
+    #define UDP_BROADCAST_PORT 5001 // this value must match with the one in Firefly Luciferin
     char packet[UDP_MAX_BUFFER_SIZE];
-    char packetBroadcast[UDP_MAX_BUFFER_SIZE];
+    char packetBroadcast[UDP_BR_MAX_BUFFER_SIZE];
     char broadCastAddress[UDP_BR_MAX_BUFFER_SIZE];
     char dname[UDP_BR_MAX_BUFFER_SIZE];
     const char *PING = "PING";
@@ -110,7 +129,6 @@ public:
 
     static bool processGlowWormLuciferinRebootCmnd();
 
-    // TODO remove or not
     static bool processSetIp();
 
     static bool processLDR();
@@ -136,6 +154,9 @@ public:
     static void setColor();
 
     void manageAPSetting(bool isSettingRoot);
+
+    static void parseRleGroupMap(char* saveptr);
+
 };
 
 #endif //GLOW_WORM_LUCIFERIN_NET_MANAGER_H
