@@ -246,8 +246,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
       rleTableValid = true;
       cachedRleTotalPhys = totalPhys;
       cachedRleFrameNum = incomingFrameNum;
-    }
-    else {
+    } else {
       // RLE map arrivata su packet separato (DPsoftwareGRP)
       if (!rleTableValid
           || cachedRleTotalPhys != numLedFromLuciferin
