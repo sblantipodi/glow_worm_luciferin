@@ -12,15 +12,15 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: 'currentbranch'
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: master
           path: 'beta'
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - name: Install dependencies
@@ -61,15 +61,15 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: 'currentbranch'
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: master
           path: 'beta'
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - name: Install dependencies
@@ -110,15 +110,15 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: 'currentbranch'
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: master
           path: 'beta'
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - name: Install dependencies
@@ -233,15 +233,15 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: 'currentbranch'
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: master
           path: 'beta'
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - name: Install dependencies
@@ -361,10 +361,10 @@ jobs:
     needs: [ build_esp8266_full, build_esp8266_light, build_esp32_full, build_esp32_light ]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: 'beta'
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: master
           path: 'currentbranch'
