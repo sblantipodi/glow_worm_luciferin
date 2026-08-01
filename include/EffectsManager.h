@@ -25,13 +25,13 @@
 #include "LedManager.h"
 #include "Globals.h"
 
-const int NUM_LEDS = 511;
-
 class EffectsManager {
 
 private:
 
     unsigned long lastAnim = 0;
+    byte* heat = nullptr;
+    int heatSize = 0;
 
 public:
 
@@ -66,6 +66,7 @@ public:
     static void christmas();
 
     void fire(int cooling, int sparking, int speedDelay);
+    void freeFireBuffer();
 
     void rainbow(boolean slowdown);
 };
