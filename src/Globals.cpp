@@ -373,10 +373,7 @@ const char *Globals::effectToString(Effect e) {
  */
 Effect Globals::stringToEffect(String requestedEffect) {
   Effect ef = Effect::solid;
-  if (requestedEffect == "Bpm") {
-    ef = Effect::bpm;
-  }
-  else if (requestedEffect == "Bpm") { ef = Effect::bpm; }
+  if (requestedEffect == "Bpm") { ef = Effect::bpm; }
   else if (requestedEffect == "Fire") { ef = Effect::fire; }
   else if (requestedEffect == "Twinkle") { ef = Effect::twinkle; }
   else if (requestedEffect == "Rainbow") { ef = Effect::rainbow; }
