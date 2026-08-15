@@ -699,14 +699,13 @@ void NetManager::setColor() {
 void NetManager::setLeds() {
   String requestedEffect = bootstrapManager.jsonDoc[F("effect")];
   ffeffect = bootstrapManager.jsonDoc[F("effect")].as<String>();
-  if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")
-    || requestedEffect.indexOf("Music") > -1 || requestedEffect.indexOf("Bias") > -1) {
+  if (requestedEffect == F("GlowWormWifi") || requestedEffect.indexOf("Music") > -1 || requestedEffect.indexOf("Bias") > -1) {
     bootstrapManager.jsonDoc[F("effect")].set(F("GlowWormWifi"));
     requestedEffect = "GlowWormWifi";
   }
   processJson();
   if (mqttIP.length() > 0) {
-    if (requestedEffect == F("GlowWormWifi") || requestedEffect == F("GlowWormWifi")) {
+    if (requestedEffect == F("GlowWormWifi")) {
       BootstrapManager::publish(netManager.effectToFw.c_str(), ffeffect.c_str(), false);
     }
     else {
