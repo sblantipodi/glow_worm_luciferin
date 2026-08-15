@@ -291,7 +291,6 @@ void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrde
     switch (colorMode) {
       case 1:
         ledsDma->SetPixelColor(index, rgbColor); break;
-        break;
       case 2:
       case 3:
       case 4:
