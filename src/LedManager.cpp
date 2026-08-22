@@ -116,7 +116,7 @@ byte *colorKtoRGB(byte *rgb) {
  * @return corrected brightness
  */
 uint8_t applyBrightnessCorrection(int c) {
-  return (c && brightness) > 0 ? (c * ((brightness * 100) / 255)) / 100 : c;
+  return brightness == 0 ? 0 : (uint16_t(c) * brightness) / 255;
 }
 
 /**
@@ -257,6 +257,9 @@ RgbwColor calculateRgbwMode(uint8_t r, uint8_t g, uint8_t b) {
  * @param b blu channel
  */
 void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrder, uint8_t bToOrder) const {
+  if (index >= dynamicLedNum) {
+    return;
+  }
   RgbColor rgbColor;
   RgbwColor rgbwColor;
   switch (colorMode) {
@@ -295,7 +298,6 @@ void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrde
       case 3:
       case 4:
         ledsDmaRgbw->SetPixelColor(index, rgbwColor); break;
-        break;
       case 5:
         ledsDotStar->SetPixelColor(index, rgbColor); break;
     }
@@ -303,12 +305,10 @@ void LedManager::setPixelColor(uint16_t index, uint8_t rToOrder, uint8_t gToOrde
     switch (colorMode) {
       case 1:
         ledsUart->SetPixelColor(index, rgbColor); break;
-        break;
       case 2:
       case 3:
       case 4:
         ledsUartRgbw->SetPixelColor(index, rgbwColor); break;
-        break;
       case 5:
         ledsDotStar->SetPixelColor(index, rgbColor); break;
     }
@@ -418,38 +418,32 @@ void LedManager::cleanLEDs() {
     cleared = true;
     delete ledsDma;
     ledsDma = nullptr;
-  }
-  if (ledsDmaRgbw != nullptr) {
+  } else if (ledsDmaRgbw != nullptr) {
     while (!ledsDmaRgbw->CanShow()) { yield(); }
     cleared = true;
     delete ledsDmaRgbw;
     ledsDmaRgbw = nullptr;
-  }
-  if (ledsUart != nullptr) {
+  } else if (ledsUart != nullptr) {
     while (!ledsUart->CanShow()) { yield(); }
     cleared = true;
     delete ledsUart;
     ledsUart = nullptr;
-  }
-  if (ledsUartRgbw != nullptr) {
+  } else if (ledsUartRgbw != nullptr) {
     while (!ledsUartRgbw->CanShow()) { yield(); }
     cleared = true;
     delete ledsUartRgbw;
     ledsUartRgbw = nullptr;
-  }
-  if (ledsStandard != nullptr) {
+  } else if (ledsStandard != nullptr) {
     while (!ledsStandard->CanShow()) { yield(); }
     cleared = true;
     delete ledsStandard;
     ledsStandard = nullptr;
-  }
-  if (ledsStandardRgbw != nullptr) {
+  } else if (ledsStandardRgbw != nullptr) {
     while (!ledsStandardRgbw->CanShow()) { yield(); }
     cleared = true;
     delete ledsStandardRgbw;
     ledsStandardRgbw = nullptr;
-  }
-  if (ledsDotStar != nullptr) {
+  } else if (ledsDotStar != nullptr) {
     while (!ledsDotStar->CanShow()) { yield(); }
     cleared = true;
     delete ledsDotStar;
@@ -470,7 +464,6 @@ void LedManager::initStandard() {
   if (ledsStandard == nullptr) {
     Serial.println(F("OUT OF MEMORY"));
   }
-  while (!Serial); // wait for serial attach
   Serial.println();
   Serial.println(F("Initializing..."));
   flushSerial();
@@ -489,7 +482,6 @@ void LedManager::initStandardRgbw() {
   if (ledsStandardRgbw == nullptr) {
     Serial.println(F("OUT OF MEMORY"));
   }
-  while (!Serial); // wait for serial attach
   Serial.println();
   Serial.println(F("Initializing..."));
 
@@ -509,7 +501,6 @@ void LedManager::initUart() {
   if (ledsUart == nullptr) {
     Serial.println(F("OUT OF MEMORY"));
   }
-  while (!Serial); // wait for serial attach
   Serial.println();
   Serial.println(F("Initializing..."));
   flushSerial();
@@ -528,7 +519,6 @@ void LedManager::initUartRgbw() {
   if (ledsUartRgbw == nullptr) {
     Serial.println(F("OUT OF MEMORY"));
   }
-  while (!Serial); // wait for serial attach
   Serial.println();
   Serial.println(F("Initializing..."));
   flushSerial();
@@ -796,7 +786,7 @@ void LedManager::setPins(uint8_t relayPinParam, uint8_t sbPinParam, uint8_t ldrP
   ldrDoc[RELAY_PIN_PARAM] = relayPinParam;
   ldrDoc[SB_PIN_PARAM] = sbPinParam;
   ldrDoc[LDR_PIN_PARAM] = ldrPinParam;
-  ldrDoc[RELAY_INV] = relInv;
+  ldrDoc[RELAY_INV_PARAM] = relInv;
   ldrDoc[LED_BUILTIN_PARAM] = ledBuiltin;
   BootstrapManager::writeToLittleFS(ldrDoc, PIN_FILENAME);
   delay(200);
@@ -811,12 +801,12 @@ void LedManager::setColorModeInit(uint8_t newColorMode) {
   if (colorMode != newColorMode) {
     setColorMode(newColorMode);
   }
-  // Do not init leds if it is not required (switch from RGB to RGBW or from RGBW to RGB)
-  if ((newColorMode > 1 && colorMode == 1) || (newColorMode == 1 && colorMode > 1)) {
-    colorMode = newColorMode;
+  // single assignment: re-init is only needed when crossing the RGB/RGBW boundary, but initLeds() picks the strip from colorMode, so the value must be set before the call
+  bool reinit = (newColorMode > 1 && colorMode == 1) || (newColorMode == 1 && colorMode > 1);
+  colorMode = newColorMode;
+  if (reinit) {
     initLeds();
   }
-  colorMode = newColorMode;
 }
 
 /**
@@ -832,15 +822,25 @@ void LedManager::setColorOrderInit(uint8_t newColorOrder) {
 }
 
 /**
+ * Explicit side effect of a black (0,0,0) color command: the Firefly Luciferin
+ * software sends black to turn the strip off, so the solid effect is forced otherwise
+ * a running effect (fire, twinkle, ...) would repaint the strip on the next frame.
+ */
+static void forceSolidForBlack(uint8_t inR, uint8_t inG, uint8_t inB) {
+  if (inR == 0 && inG == 0 && inB == 0) {
+    effect = Effect::solid;
+  }
+}
+
+/**
  * Set led strip color
+ * Side effect: a black (0,0,0) command also forces the solid effect (see forceSolidForBlack).
  * @param inR red color
  * @param inG green color
  * @param inB blu color
  */
 void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
-  if (inR == 0 && inG == 0 && inB == 0) {
-    effect = Effect::solid;
-  }
+  forceSolidForBlack(inR, inG, inB);
   setColorNoSolid(inR, inG, inB);
 }
 
@@ -884,14 +884,19 @@ void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
         temporaryDisableImprove = ledManager.transitioning = true;
       }
   }
-  Serial.print("\n");
-  Serial.print(F("Setting LEDs: "));
-  Serial.print(F("r: "));
-  Serial.print(inR);
-  Serial.print(F(", g: "));
-  Serial.print(inG);
-  Serial.print(F(", b: "));
-  Serial.println(inB);
+  // Log only when not streaming: while Firefly Luciferin streams frames this line
+  // would print on every color call and flood the serial (same "not streaming" idiom as
+  // calculateRgbMode()/calculateRgbwMode())
+  if (framerate == 0 && framerateSerial == 0) {
+    Serial.print("\n");
+    Serial.print(F("Setting LEDs: "));
+    Serial.print(F("r: "));
+    Serial.print(inR);
+    Serial.print(F(", g: "));
+    Serial.print(inG);
+    Serial.print(F(", b: "));
+    Serial.println(inB);
+  }
 }
 
 /**
@@ -901,9 +906,7 @@ void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
  * @param inB blu color
  */
 void LedManager::setColorLoop(uint8_t inR, uint8_t inG, uint8_t inB) {
-  if (inR == 0 && inG == 0 && inB == 0) {
-    effect = Effect::solid;
-  }
+  forceSolidForBlack(inR, inG, inB);
   if (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi) {
     for (int i = 0; i < ledManager.dynamicLedNum; i++) {
       ledManager.setPixelColor(i, inR, inG, inB);
@@ -945,7 +948,7 @@ void LedManager::setWhiteTemp(int wt) {
  * @param b blu
  */
 void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
-#if !defined(CONFIG_IDF_TARGET_ESP32C5)
+#if !defined(false)
   if (ledBuiltin != -1) {
     if (ledBuiltin != gpioInUse) {
 #if defined(ARDUINO_ARCH_ESP32)

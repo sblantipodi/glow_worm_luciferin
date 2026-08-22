@@ -19,11 +19,64 @@
 */
 
 #include "NetManager.h"
+#include <stdarg.h>
+#include <stdio.h>
 
-uint16_t NetManager::part = 1;
+static constexpr const char *PING = "PING";
+static constexpr const char *DN = "DN";
+static constexpr const char *DNStatic = "DNStatic";
+
 [[maybe_unused]] boolean NetManager::firmwareUpgrade = false;
 size_t NetManager::updateSize = 0;
-String NetManager::fpsData;
+
+static char jsonStatus[512];
+static char jsonUdp[512];
+static char jsonPrefs[512];
+
+// ffeffect is written from the network (setLeds/processJson); clamping it makes the
+// /prefs fixed buffer overflow-proof (same treatment as deviceName / DEVICE_NAME_MAX_LEN)
+static constexpr size_t FFEFFECT_MAX_LEN = 64;
+
+/**
+ * Append formatted data to a fixed JSON buffer
+ * @param buf destination buffer
+ * @param size buffer size
+ * @param len current payload length (updated on success)
+ * @param fmt printf-style format
+ * @return false if the buffer would overflow (caller must fall back to a dynamic build)
+ */
+static bool jsonAppend(char *buf, size_t size, size_t &len, const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  int n = vsnprintf(buf + len, size - len, fmt, ap);
+  va_end(ap);
+  if (n < 0 || (size_t) n >= size - len) {
+    return false;
+  }
+  len += (size_t) n;
+  return true;
+}
+
+/**
+ * Highest framerate between the UDP and the serial counters
+ * @return max framerate
+ */
+static float maxFramerate() {
+  return framerate > framerateSerial ? framerate : framerateSerial;
+}
+
+bool udpFrameReady = false;
+RleEntry rle[RLE_GRP_MAP_SIZE];
+uint8_t numRleEntries = 0;
+bool rleTableValid = false;
+uint16_t cachedRleTotalPhys = 0;
+uint8_t cachedRleFrameNum = 0;
+bool currentFrameValid = false;
+uint8_t lastProcessedChunkNum = 0;
+uint8_t lastChunkFrame = 0;
+// cumulative tables for O(1)/O(log) RLE lookups: rebuilt by rleBuildCumTables() at every site that writes rle[]
+uint16_t rleCumCount[RLE_GRP_MAP_SIZE + 1];
+uint16_t rleCumPhys[RLE_GRP_MAP_SIZE + 1];
 
 /**
  * Parse UDP packet
@@ -62,21 +115,28 @@ void NetManager::getUDPStream() {
     }
     // If packet received...
     uint16_t packetSizeBroadcast = broadcastUDP.parsePacket();
-    broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE);
-    packetBroadcast[packetSizeBroadcast] = '\0';
+    int lenBroadcast = packetSizeBroadcast > 0 ? broadcastUDP.read(packetBroadcast, UDP_BR_MAX_BUFFER_SIZE - 1) : 0;
+    if (lenBroadcast < 0) {
+      lenBroadcast = 0;
+    }
+    packetBroadcast[lenBroadcast] = '\0';
     char* dn;
     char* dnStatic;
     dn = strstr(packetBroadcast, DN);
     dnStatic = strstr(packetBroadcast, DNStatic);
     if (dn || dnStatic) {
-      if (dnStatic) {
-        for (uint16_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
-          dname[dnIdx] = packetBroadcast[dnIdx + strlen(DNStatic)];
+      // Extract the device name after the prefix, bounds-checked and NUL terminated
+      const char *prefix = dnStatic ? DNStatic : DN;
+      size_t off = strlen(prefix);
+      if (off < (size_t)lenBroadcast) {
+        size_t dnLen = (size_t)lenBroadcast - off;
+        if (dnLen >= sizeof(dname)) {
+          dnLen = sizeof(dname) - 1;
         }
+        memcpy(dname, packetBroadcast + off, dnLen);
+        dname[dnLen] = '\0';
       } else {
-        for (uint16_t dnIdx = 0; dnIdx < packetSizeBroadcast; dnIdx++) {
-          dname[dnIdx] = packetBroadcast[dnIdx + strlen(DN)];
-        }
+        dname[0] = '\0';
       }
       if (!remoteIpForUdp.toString().equals(broadcastUDP.remoteIP().toString())
         && ((strcmp(dname, deviceName.c_str()) == 0) || (strcmp(dname, microcontrollerIP.c_str()) == 0))) {
@@ -96,8 +156,17 @@ void NetManager::getUDPStream() {
         char* p;
         p = strstr(packetBroadcast, PING);
         if (p) {
-          for (uint16_t brIdx = 0; brIdx < packetSizeBroadcast; brIdx++) {
-            broadCastAddress[brIdx] = packetBroadcast[brIdx + strlen(PING)];
+          // Extract the IP after the PING prefix, bounds-checked and NUL terminated
+          size_t off = strlen(PING);
+          if (off < (size_t)lenBroadcast) {
+            size_t ipLen = (size_t)lenBroadcast - off;
+            if (ipLen >= sizeof(broadCastAddress)) {
+              ipLen = sizeof(broadCastAddress) - 1;
+            }
+            memcpy(broadCastAddress, packetBroadcast + off, ipLen);
+            broadCastAddress[ipLen] = '\0';
+          } else {
+            broadCastAddress[0] = '\0';
           }
           if (!remoteIpForUdpBroadcast.toString().equals(broadCastAddress)) {
             remoteIpForUdpBroadcast.fromString(broadCastAddress);
@@ -132,7 +201,6 @@ void NetManager::parseRleGroupMap(char* saveptr) {
     return;
   }
 
-  uint16_t totalPhys = 0;
   for (uint8_t idx = 0; idx < entries; idx++) {
     ptr = strtok_r(nullptr, delimiters, &saveptr);
     if (!ptr) { rleTableValid = false; return; }
@@ -141,8 +209,10 @@ void NetManager::parseRleGroupMap(char* saveptr) {
     *xPtr = '\0';
     rle[idx].count = strtoul(ptr, &ptrAtoi, 10);
     rle[idx].size = strtoul(xPtr + 1, &ptrAtoi, 10);
-    totalPhys += (uint16_t)rle[idx].count * (uint16_t)rle[idx].size;
   }
+  // rebuild cumulative tables; totalPhys comes from them
+  rleBuildCumTables(rle, entries, rleCumCount, rleCumPhys);
+  uint16_t totalPhys = rleTotalPhys(rleCumPhys, entries);
 
   if (totalPhys != numLedsPhysical) {
     rleTableValid = false;
@@ -234,10 +304,9 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
         Serial.println(F("RLE group map too short"));
         return;
       }
-      uint16_t totalPhys = 0;
-      for (uint8_t i = 0; i < numRleEntries; i++) {
-        totalPhys += (uint16_t)rle[i].count * (uint16_t)rle[i].size;
-      }
+      // rebuild cumulative tables; totalPhys comes from them
+      rleBuildCumTables(rle, numRleEntries, rleCumCount, rleCumPhys);
+      uint16_t totalPhys = rleTotalPhys(rleCumPhys, numRleEntries);
       if (totalPhys != numLedFromLuciferin) {
         currentFrameValid = false;
         Serial.println(F("RLE group map total physical size mismatch"));
@@ -247,7 +316,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
       cachedRleTotalPhys = totalPhys;
       cachedRleFrameNum = incomingFrameNum;
     } else {
-      // RLE map arrivata su packet separato (DPsoftwareGRP)
+      // RLE map received on a separate packet (DPsoftwareGRP)
       if (!rleTableValid
           || cachedRleTotalPhys != numLedFromLuciferin
           || cachedRleFrameNum != incomingFrameNum) {
@@ -288,42 +357,11 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
     ledManager.initLeds();
   }
 
-  // Calculate physical offset
-  auto computePhysOffset = [&](uint16_t colorIndex) {
-    uint16_t phys = 0;
-    uint16_t g = 0;
-
-    for (uint8_t i = 0; i < numRleEntries; i++) {
-      uint16_t blockCount = rle[i].count;
-      uint8_t blockSize = rle[i].size;
-
-      if (g + blockCount <= colorIndex) {
-        phys += blockCount * blockSize;
-        g += blockCount;
-      }
-      else {
-        phys += (colorIndex - g) * blockSize;
-        break;
-      }
-    }
-    return phys;
-  };
-
-  // Get the group size
-  auto getGroupSize = [&](uint16_t index) {
-    uint16_t g = 0;
-    for (uint8_t i = 0; i < numRleEntries; i++) {
-      if (index < g + rle[i].count) return rle[i].size;
-      g += rle[i].count;
-    }
-    return (uint8_t)1;
-  };
-
-  // Calculate offset for this chunk
+  // Calculate offset for this chunk (RLE helpers shared with the serial path)
   uint16_t colorIndex = UDP_CHUNK_SIZE * chunkNum;
   if (colorIndex >= numLedFromLuciferin) return;
 
-  uint16_t physIndex = computePhysOffset(colorIndex);
+  uint16_t physIndex = rleComputePhysOffset(rle, rleCumCount, rleCumPhys, numRleEntries, colorIndex);
 
   // Set the colors
   while (ptr != nullptr) {
@@ -333,7 +371,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
     uint8_t g = (myLeds >> 8) & 0xFF;
     uint8_t b = (myLeds >> 0) & 0xFF;
 
-    uint8_t groupSize = getGroupSize(colorIndex);
+    uint8_t groupSize = rleGetGroupSize(rle, rleCumCount, numRleEntries, colorIndex);
 
     for (uint8_t rep = 0; rep < groupSize; rep++) {
       if (physIndex >= ledManager.dynamicLedNum) {
@@ -477,77 +515,51 @@ void NetManager::listenOnHttpGet() {
     startUDP();
   });
   server.on(F("/prefs"), [this]() {
-    prefsData = F("{\"VERSION\":\"");
-    prefsData += VERSION;
-    prefsData += F("\",\"cp\":\"");
-    prefsData += ledManager.red;
-    prefsData += F(",");
-    prefsData += ledManager.green;
-    prefsData += F(",");
-    prefsData += ledManager.blue;
-    prefsData += F("\",\"toggle\":\"");
-    prefsData += ledManager.stateOn;
-    prefsData += F("\",\"effect\":\"");
-    prefsData += Globals::effectToString(effect);
-    prefsData += F("\",\"ffeffect\":\"");
-    prefsData += ffeffect;
-    prefsData += F("\",\"whiteTemp\":\"");
-    prefsData += whiteTempInUse;
-    prefsData += F("\",\"brightness\":\"");
-    prefsData += brightness;
-    prefsData += F("\",\"wifi\":\"");
-    prefsData += BootstrapManager::getWifiQuality();
+    // All fields are bounded (ffeffect clamped to FFEFFECT_MAX_LEN at every write site),
+    // so the fixed buffer cannot overflow: same style as the GlowWorm branch of sendStatus
+    size_t len = 0;
+    jsonAppend(jsonPrefs, sizeof(jsonPrefs), len,
+               "{\"VERSION\":\"%s\",\"cp\":\"%d,%d,%d\",\"toggle\":\"%s\",\"effect\":\"%s\","
+               "\"ffeffect\":\"%s\",\"whiteTemp\":\"%d\",\"brightness\":\"%d\",\"wifi\":\"%d\"",
+               VERSION, (int) ledManager.red, (int) ledManager.green, (int) ledManager.blue,
+               ledManager.stateOn ? "1" : "0", Globals::effectToString(effect),
+               ffeffect.c_str(), (int) whiteTempInUse, (int) brightness,
+               (int) BootstrapManager::getWifiQuality());
     if (ethConnected) {
-      prefsData += F("\",\"eth\":\"");
-      prefsData += ethConnected;
+      jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"eth\":\"1\"");
     }
-    prefsData += F("\",\"framerate\":\"");
-    prefsData += framerate > framerateSerial ? framerate : framerateSerial;
-    prefsData += F("\",\"autosave\":\"");
-    prefsData += autoSave;
+    jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"framerate\":\"%.2f\",\"autosave\":\"%s\"",
+               maxFramerate(), autoSave ? "1" : "0");
     if (ldrEnabled) {
-      prefsData += F("\",\"ldr\":\"");
-      prefsData += ((ldrValue * 100) / ldrDivider);
+      jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"ldr\":\"%d\"", (int) Globals::ldrPercent());
     }
     if (!mqttConnected && mqttIP.length() > 0) {
-      prefsData += F("\",\"mqttError\":\"");
-      prefsData += !mqttConnected;
+      jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"mqttError\":\"1\"");
     }
-    prefsData += F("\"}");
-    server.send(200, F("application/json"), prefsData);
+    jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, "}");
+    server.send(200, F("application/json"), String(jsonPrefs));
   });
   server.on(F("/getLdr"), [this]() {
-    prefsData = F("{\"ldrEnabled\":\"");
-    prefsData += ldrEnabled;
-    prefsData += F("\",\"ldrInterval\":\"");
-    prefsData += ldrInterval;
-    prefsData += F("\",\"ldrTurnOff\":\"");
-    prefsData += ldrTurnOff;
-    prefsData += F("\",\"ldrMin\":\"");
-    prefsData += ldrMin;
-    prefsData += F("\",\"relayPin\":\"");
-    prefsData += relayPin;
-    prefsData += F("\",\"relInv\":\"");
-    prefsData += relInv;
-    prefsData += F("\",\"sbPin\":\"");
-    prefsData += sbPin;
-    prefsData += F("\",\"ldrPin\":\"");
-    prefsData += ldrPin;
-    prefsData += F("\",\"ledBuiltin\":\"");
-    prefsData += ledBuiltin;
-    prefsData += F("\",\"ldrMax\":\"");
-    if (ldrEnabled) {
-      prefsData += ((ldrValue * 100) / ldrDivider);
+    size_t len = 0;
+    bool ok = jsonAppend(jsonPrefs, sizeof(jsonPrefs), len,
+                         "{\"ldrEnabled\":\"%s\",\"ldrInterval\":\"%d\",\"ldrTurnOff\":\"%s\","
+                         "\"ldrMin\":\"%d\",\"relayPin\":\"%d\",\"relInv\":\"%s\",\"sbPin\":\"%d\","
+                         "\"ldrPin\":\"%d\",\"ledBuiltin\":\"%d\",\"ldrMax\":\"%d\"",
+                         ldrEnabled ? "1" : "0", (int) ldrInterval,
+                         ldrTurnOff ? "1" : "0", (int) ldrMin, (int) relayPin,
+                         relInv ? "1" : "0", (int) sbPin, (int) ldrPin, (int) ledBuiltin,
+                         ldrEnabled ? Globals::ldrPercent() : 0);
+    if (ok && !mqttConnected && mqttIP.length() > 0) {
+      ok = jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"mqttError\":\"1\"");
     }
-    else {
-      prefsData += 0;
+    if (ok) {
+      ok = jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, "}");
     }
-    if (!mqttConnected && mqttIP.length() > 0) {
-      prefsData += F("\",\"mqttError\":\"");
-      prefsData += !mqttConnected;
+    if (ok) {
+      server.send(200, F("application/json"), String(jsonPrefs));
+    } else {
+      server.send(500, F("application/json"), String("{\"error\":\"buffer overflow\"}"));
     }
-    prefsData += F("\"}");
-    server.send(200, F("application/json"), prefsData);
   });
   server.on(F("/setldr"), []() {
     stopUDP();
@@ -698,7 +710,7 @@ void NetManager::setColor() {
  */
 void NetManager::setLeds() {
   String requestedEffect = bootstrapManager.jsonDoc[F("effect")];
-  ffeffect = bootstrapManager.jsonDoc[F("effect")].as<String>();
+  ffeffect = bootstrapManager.jsonDoc[F("effect")].as<String>().substring(0, FFEFFECT_MAX_LEN);
   if (requestedEffect == F("GlowWormWifi") || requestedEffect.indexOf("Music") > -1 || requestedEffect.indexOf("Bias") > -1) {
     bootstrapManager.jsonDoc[F("effect")].set(F("GlowWormWifi"));
     requestedEffect = "GlowWormWifi";
@@ -833,8 +845,14 @@ void NetManager::fromMqttStreamToStrip(char* payload) {
 
   uint16_t index = 0;
   ptr = strtok_r(payload, delimiters, &saveptr);
+  if (ptr == nullptr) {
+    return;
+  }
   uint16_t numLedFromLuciferin = strtoul(ptr, &ptrAtoi, 10);
   ptr = strtok_r(nullptr, delimiters, &saveptr);
+  if (ptr == nullptr) {
+    return;
+  }
   uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
   ptr = strtok_r(nullptr, delimiters, &saveptr);
   if (brightness != audioBrightness && !ldrEnabled) {
@@ -848,7 +866,8 @@ void NetManager::fromMqttStreamToStrip(char* payload) {
       LedManager::setNumLed(numLedFromLuciferin);
       ledManager.initLeds();
     }
-    while (ptr != nullptr) {
+    // Bound the writes to the declared LED count; setPixelColor also guards its index
+    while (ptr != nullptr && index < numLedFromLuciferin) {
       myLeds = strtoul(ptr, &ptrAtoi, 10);
       if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
         ledManager.setPixelColor(index, 0, 0, 0);
@@ -917,10 +936,10 @@ bool NetManager::processFirmwareConfigWithReboot() {
     }
 #endif
 
-    doc[F("deviceName")] = deviceName;
+    doc[F("deviceName")] = deviceName.substring(0, DEVICE_NAME_MAX_LEN);
     doc[F("microcontrollerIP")] = microcontrollerIP;
-    doc[F("qsid")] = (setSsid != NULL && !setSsid.isEmpty()) ? setSsid : qsid;
-    doc[F("qpass")] = (wifipwd != NULL && !wifipwd.isEmpty()) ? wifipwd : qpass;
+    doc[F("qsid")] = setSsid.isEmpty() ? qsid : setSsid;
+    doc[F("qpass")] = wifipwd.isEmpty() ? qpass : wifipwd;
     doc[F("OTApass")] = OTApass;
     if (mqttCheckbox.equals("true")) {
       doc[F("mqttIP")] = mqttIP;
@@ -1020,7 +1039,6 @@ bool NetManager::processFirmwareConfigWithReboot() {
  * @return true if message is correctly processed
  */
 bool NetManager::processFirmwareConfig() {
-  boolean espRestart = false;
   if (bootstrapManager.jsonDoc["MAC"].is<JsonVariant>()) {
     String macToUpdate = bootstrapManager.jsonDoc["MAC"];
     Serial.println(macToUpdate);
@@ -1098,19 +1116,16 @@ bool NetManager::processFirmwareConfig() {
       // BUILTIN LED
       if (bootstrapManager.jsonDoc[ledManager.LED_BUILTIN_PARAM].is<JsonVariant>()) {
         int ledBiParam = (int)bootstrapManager.jsonDoc[ledManager.LED_BUILTIN_PARAM];
-        if (sbPin != ledBiParam) {
+        if (ledBuiltin != ledBiParam) {
           ledBuiltin = ledBiParam;
           ledManager.setPins(relayPin, sbPin, ldrPin, relInv, ledBuiltin);
           ledManager.reinitLEDTriggered = true;
         }
       }
-      // Restart if needed
+      // Reinit LEDs if a pin/mode change was requested
       if (ledManager.reinitLEDTriggered) {
         ledManager.reinitLEDTriggered = false;
         ledManager.initLeds();
-      }
-      if (espRestart) {
-        Helpers::safeRestart();
       }
     }
   }
@@ -1175,10 +1190,11 @@ bool NetManager::processJson() {
       }
     }
     if (bootstrapManager.jsonDoc["ffeffect"].is<JsonVariant>()) {
-      ffeffect = bootstrapManager.jsonDoc["ffeffect"].as<String>();
+      ffeffect = bootstrapManager.jsonDoc["ffeffect"].as<String>().substring(0, FFEFFECT_MAX_LEN);
     }
+    boolean effectPresent = bootstrapManager.jsonDoc["effect"].is<JsonVariant>();
     String requestedEffect;
-    if (bootstrapManager.jsonDoc["effect"].is<JsonVariant>()) {
+    if (effectPresent) {
       boolean effectIsDifferent = (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi);
       requestedEffect = bootstrapManager.jsonDoc["effect"].as<String>();
       effect = Globals::stringToEffect(requestedEffect);
@@ -1202,10 +1218,13 @@ bool NetManager::processJson() {
         }
       }
     }
-    Effect reqEff = Globals::stringToEffect(requestedEffect);
+    // If the update has no "effect", keep the running effect: an empty string would map to
+    // "solid" and clobber the stored effect on every color-only update
+    Effect reqEff = effectPresent ? Globals::stringToEffect(requestedEffect) : effect;
+    String effectToSave = effectPresent ? requestedEffect : Globals::effectToString(effect);
     if ((autoSave && (ledManager.red != rStored || ledManager.green != gStored || ledManager.blue != bStored ||
       brightness != brightnessStored || reqEff != effectStored || ledManager.stateOn != toggleStored))) {
-      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness, requestedEffect,
+      Globals::saveColorBrightnessInfo(ledManager.red, ledManager.green, ledManager.blue, brightness, effectToSave,
                                        ledManager.stateOn);
     }
   }
@@ -1219,30 +1238,20 @@ bool NetManager::processJson() {
 void NetManager::sendStatus() {
   // Skip JSON framework for lighter processing during the stream
   if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
-    fpsData = F("{\"deviceName\":\"");
-    fpsData += deviceName;
-    fpsData += "\",\"color\": { \"r\": 255, \"g\": 190, \"b\": 140 }"; // Default for bias light
-    fpsData += F(",\"state\":\"");
-    fpsData += (ledManager.stateOn) ? ON_CMD : OFF_CMD;
-    fpsData += F("\",\"brightness\":");
-    fpsData += brightness;
-    fpsData += F(",\"MAC\":\"");
-    fpsData += MAC;
-    fpsData += F("\",\"color_mode\":\"");
-    fpsData += F("rgb");
-    fpsData += F("\",\"lednum\":\"");
-    fpsData += ledManager.dynamicLedNum;
-    fpsData += F("\",\"framerate\":\"");
-    fpsData += framerate > framerateSerial ? framerate : framerateSerial;
-    fpsData += F("\",\"wifi\":\"");
-    fpsData += BootstrapManager::getWifiQuality();
+    size_t len = 0;
+    jsonAppend(jsonStatus, sizeof(jsonStatus), len,
+               "{\"deviceName\":\"%s\",\"color\": { \"r\": 255, \"g\": 190, \"b\": 140 },"
+               "\"state\":\"%s\",\"brightness\":%d,\"MAC\":\"%s\",\"color_mode\":\"rgb\","
+               "\"lednum\":\"%d\",\"framerate\":\"%.2f\",\"wifi\":\"%d\"",
+               deviceName.c_str(), (ledManager.stateOn) ? ON_CMD.c_str() : OFF_CMD.c_str(),
+               (int) brightness, MAC.c_str(), (int) ledManager.dynamicLedNum,
+               maxFramerate(), (int) BootstrapManager::getWifiQuality());
     if (ldrEnabled) {
-      fpsData += F("\",\"ldr\":\"");
-      fpsData += ((ldrValue * 100) / ldrDivider);
+      jsonAppend(jsonStatus, sizeof(jsonStatus), len, ",\"ldr\":\"%d\"", (int) Globals::ldrPercent());
     }
-    fpsData += F("\"}");
+    jsonAppend(jsonStatus, sizeof(jsonStatus), len, "}");
     if (mqttIP.length() > 0) {
-      BootstrapManager::publish(netManager.lightStateTopic.c_str(), fpsData.c_str(), false);
+      BootstrapManager::publish(netManager.lightStateTopic.c_str(), jsonStatus, false);
     }
     else {
 #if defined(ESP8266)
@@ -1251,7 +1260,7 @@ void NetManager::sendStatus() {
       if (!netManager.remoteIpForUdp.toString().equals(F("0.0.0.0"))) {
 #endif
         netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdp, UDP_BROADCAST_PORT);
-        netManager.broadcastUDP.print(fpsData.c_str());
+        netManager.broadcastUDP.print(jsonStatus);
         netManager.broadcastUDP.endPacket();
       }
     }
@@ -1275,9 +1284,9 @@ void NetManager::sendStatus() {
     root[F("wifi")] = BootstrapManager::getWifiQuality();
     root[F("MAC")] = MAC;
     root[F("ver")] = VERSION;
-    root[F("framerate")] = framerate > framerateSerial ? framerate : framerateSerial;
+    root[F("framerate")] = maxFramerate(); // (2.13)
     if (ldrEnabled) {
-      root[F("ldr")] = ((ldrValue * 100) / ldrDivider);
+      root[F("ldr")] = Globals::ldrPercent();
     }
     root[F("relayPin")] = relayPin;
     root[F("relayInv")] = relInv;
@@ -1285,26 +1294,7 @@ void NetManager::sendStatus() {
     root[F("ldrPin")] = ldrPin;
     root[F("ledBuiltin")] = ledBuiltin;
     root[BAUDRATE_PARAM] = baudRateInUse;
-#if defined(ESP8266)
-    root[F("board")] = F("ESP8266");
-#endif
-#if CONFIG_IDF_TARGET_ESP32C3
-    root["board"] = "ESP32_C3";
-#elif CONFIG_IDF_TARGET_ESP32S2
-    root["board"] = "ESP32_S2";
-#elif CONFIG_IDF_TARGET_ESP32C6
-    root["board"] = "ESP32_C6";
-#elif CONFIG_IDF_TARGET_ESP32C5
-    root["board"] = "ESP32_C5";
-#elif CONFIG_IDF_TARGET_ESP32S3
-#if ARDUINO_USB_MODE==1
-    root["board"] = "ESP32_S3"; // CDC
-#else
-    root["board"] = "ESP32_S3";
-#endif
-#elif CONFIG_IDF_TARGET_ESP32
-    root["board"] = "ESP32";
-#endif
+    root[F("board")] = Globals::boardName();
     root[LED_NUM_PARAM] = String(ledManager.dynamicLedNum);
     root[F("gpio")] = gpioInUse;
     root[F("gpioClock")] = gpioClockInUse;
@@ -1319,15 +1309,22 @@ void NetManager::sendStatus() {
       BootstrapManager::publish(netManager.lightStateTopic.c_str(), root, true);
     }
     else {
+      const char *payload = jsonUdp;
       String output;
-      serializeJson(root, output);
+      if (measureJson(root) + 1 > sizeof(jsonUdp)) {
+        serializeJson(root, output);
+        payload = output.c_str();
+      }
+      else {
+        serializeJson(root, jsonUdp, sizeof(jsonUdp));
+      }
 #if defined(ESP8266)
       if (netManager.remoteIpForUdpBroadcast.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
       if (!netManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0"))) {
 #endif
         netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdpBroadcast, UDP_BROADCAST_PORT);
-        netManager.broadcastUDP.print(output.c_str());
+        netManager.broadcastUDP.print(payload);
         netManager.broadcastUDP.endPacket();
       }
     }
@@ -1485,7 +1482,7 @@ bool NetManager::processLDR() {
     ldrInterval = ldrIntervalMqtt.toInt();
     ldrMin = ldrMinMqtt.toInt();
     if (ldrActionMqtt.toInt() == 2) {
-      ldrDivider = ldrValue;
+      ldrDivider = ldrValue > 0 ? ldrValue : 1;
       ledManager.setLdr(ldrDivider);
       delay(DELAY_500);
     }
@@ -1550,18 +1547,18 @@ void NetManager::checkConnection() {
       ledManager.stateOn = false;
       Globals::turnOffRelay();
     }
-    framerate = framerateCounter > 0 ? framerateCounter / 1 : 0;
+    framerate = framerateCounter > 0 ? framerateCounter : 0;
     framerateCounter = 0;
     NetManager::sendStatus();
   }
-#elif  TARGET_GLOWWORMLUCIFERINLIGHT
+#elif defined(TARGET_GLOWWORMLUCIFERINLIGHT)
   currentMillisCheckConn = millis();
   if (currentMillisCheckConn - prevMillisCheckConn2 > 15000) {
     prevMillisCheckConn2 = currentMillisCheckConn;
     // No updates since 15 seconds, turn off LEDs
     if (currentMillisCheckConn > ledManager.lastLedUpdate + 10000) {
       LedManager::setColor(0, 0, 0);
-      globals.turnOffRelay();
+      Globals::turnOffRelay();
     }
   }
 #endif

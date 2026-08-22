@@ -27,8 +27,6 @@ BootstrapManager bootstrapManager;
 EffectsManager effectsManager;
 LedManager ledManager;
 NetManager netManager;
-Helpers helper;
-Globals globals;
 // DPsoftware checksum for serial
 byte config[CONFIG_NUM_PARAMS];
 byte pre[CONFIG_PREFIX_LENGTH];
@@ -60,7 +58,7 @@ uint8_t baudRateInUse = 3;
 bool relayState = false;
 bool breakLoop = false;
 bool ldrReading = false;
-int ldrValue;
+volatile int ldrValue;
 bool ldrEnabled = false;
 bool relInv = false;
 uint8_t ldrInterval = 30;
@@ -98,11 +96,11 @@ uint8_t sbPin = 1;
 uint8_t ldrPin = 2;
 int8_t ledBuiltin = 8;
 #elif CONFIG_IDF_TARGET_ESP32C5
-uint8_t gpioInUse = 5;
-uint8_t relayPin = 10; // don't use 15
+uint8_t gpioInUse = 0;
+uint8_t relayPin = 14; // don't use 15
 uint8_t sbPin = 1;
-uint8_t ldrPin = 2;
-int8_t ledBuiltin = 8;
+uint8_t ldrPin = 6;
+int8_t ledBuiltin = 27;
 #elif CONFIG_IDF_TARGET_ESP32
 uint8_t gpioInUse = 2;
 uint8_t relayPin = 12;
@@ -129,8 +127,6 @@ unsigned long prevMillisCheckConn2 = 0;
 unsigned long currentMillisSendSerial = 0;
 unsigned long prevMillisSendSerial = 0;
 unsigned long prevMillisPing = 0;
-
-String TRUE = "true";
 
 /**
  * Set gpio received by the Firefly Luciferin software
@@ -213,10 +209,10 @@ int Globals::setBaudRateInUse(int bdrate) {
       break;
     case 9:
       baudRateToUse = 4000000;
-    break;
+      break;
     case 10:
       baudRateToUse = 6000000;
-    break;
+      break;
     case 8:
       baudRateToUse = 115200;
       break;
@@ -263,6 +259,38 @@ void Globals::turnOffRelay() {
 }
 
 /**
+ * Return the LDR reading as a percentage, 0 if the divider is not valid
+ * @return ldr percentage (0..100)
+ */
+int Globals::ldrPercent() {
+  return ldrDivider > 0 ? (ldrValue * 100) / ldrDivider : 0;
+}
+
+/**
+ * Return the board name
+ * @return board name string
+ */
+const char *Globals::boardName() {
+#if defined(ESP8266)
+  return "ESP8266";
+#elif CONFIG_IDF_TARGET_ESP32C3
+  return "ESP32_C3";
+#elif CONFIG_IDF_TARGET_ESP32C6
+  return "ESP32_C6";
+#elif CONFIG_IDF_TARGET_ESP32C5
+  return "ESP32_C5";
+#elif CONFIG_IDF_TARGET_ESP32S2
+  return "ESP32_S2";
+#elif CONFIG_IDF_TARGET_ESP32S3
+  return "ESP32_S3";
+#elif CONFIG_IDF_TARGET_ESP32
+  return "ESP32";
+#else
+  return "UNKNOWN";
+#endif
+}
+
+/**
  * Send serial info
  */
 void Globals::sendSerialInfo() {
@@ -281,26 +309,7 @@ void Globals::sendSerialInfo() {
 #endif
         Serial.printf("ver:%s\r\n", VERSION);
         Serial.printf("lednum:%d\r\n", ledManager.dynamicLedNum);
-#if defined(ESP8266)
-        Serial.printf("board:%s\r\n", "ESP8266");
-#endif
-#if CONFIG_IDF_TARGET_ESP32C3
-      Serial.printf("board:%s\r\n", "ESP32_C3");
-#elif CONFIG_IDF_TARGET_ESP32C6
-      Serial.printf("board:%s\r\n", "ESP32_C6");
-#elif CONFIG_IDF_TARGET_ESP32C5
-      Serial.printf("board:%s\r\n", "ESP32_C5");
-#elif CONFIG_IDF_TARGET_ESP32S2
-        Serial.printf("board:%s\r\n", "ESP32_S2");
-#elif CONFIG_IDF_TARGET_ESP32S3
-#if ARDUINO_USB_MODE==1
-        Serial.printf("board:%s\r\n", "ESP32_S3");
-#else
-        Serial.printf("board:%s\r\n", "ESP32_S3");
-#endif
-#elif CONFIG_IDF_TARGET_ESP32
-        Serial.printf("board:%s\r\n", "ESP32");
-#endif
+        Serial.printf("board:%s\r\n", Globals::boardName());
         Serial.printf("MAC:%s\r\n", MAC.c_str());
         Serial.printf("gpio:%d\r\n", gpioInUse);
         Serial.printf("gpioClock:%d\r\n", gpioClockInUse);
@@ -310,7 +319,7 @@ void Globals::sendSerialInfo() {
         Serial.printf("colorOrder:%d\r\n", colorOrder);
         Serial.printf("white:%d\r\n", whiteTempInUse);
         if (ldrEnabled) {
-          Serial.printf("ldr:%d\r\n", ((ldrValue * 100) / ldrDivider));
+          Serial.printf("ldr:%d\r\n", ldrPercent());
       }
       Serial.printf("relayPin:%d\r\n", relayPin);
       Serial.printf("relInv:%d\r\n", relInv);
@@ -321,49 +330,43 @@ void Globals::sendSerialInfo() {
 }
 
 /**
+ * Effect table: index = Effect enum value, code = protocol value.
+ * Keep in sync with the Effect enum order in Globals.h.
+ */
+struct EffectDef {
+  const char *name;
+  uint8_t code;
+};
+static const EffectDef kEffects[] = {
+  { "GlowWormWifi", 0 },    // Effect::GlowWormWifi
+  { "GlowWorm", 1 },        // Effect::GlowWorm
+  { "Solid", 2 },           // Effect::solid
+  { "Fire", 3 },            // Effect::fire
+  { "Twinkle", 4 },         // Effect::twinkle
+  { "Bpm", 5 },             // Effect::bpm
+  { "Rainbow", 6 },         // Effect::rainbow
+  { "Chase rainbow", 7 },   // Effect::chase_rainbow
+  { "Solid rainbow", 8 },   // Effect::solid_rainbow
+  { "Slow rainbow", 9 },    // Effect::slowRainbow
+  { "Random colors", 10 },  // Effect::randomColors
+  { "Rainbow colors", 11 }, // Effect::rainbowColors
+  { "Meteor", 12 },         // Effect::meteor
+  { "Color waterfall", 13 },// Effect::colorWaterfall
+  { "Random marquee", 14 }, // Effect::randomMarquee
+  { "Rainbow marquee", 15 },// Effect::rainbowMarquee
+  { "Pulsing rainbow", 16 },// Effect::pulsing_rainbow
+  { "Christmas", 17 }       // Effect::christmas
+};
+static const size_t NUM_EFFECTS = sizeof(kEffects) / sizeof(kEffects[0]);
+
+/**
  * Return effect string
  * @param e effect enum
  * @return  effect string
  */
 const char *Globals::effectToString(Effect e) {
-  switch (e) {
-    case Effect::bpm:
-      return "Bpm";
-    case Effect::fire:
-      return "Fire";
-    case Effect::twinkle:
-      return "Twinkle";
-    case Effect::rainbow:
-      return "Rainbow";
-    case Effect::slowRainbow:
-      return "Slow rainbow";
-    case Effect::chase_rainbow:
-      return "Chase rainbow";
-    case Effect::solid_rainbow:
-      return "Solid rainbow";
-    case Effect::GlowWorm:
-      return "GlowWorm";
-    case Effect::GlowWormWifi:
-      return "GlowWormWifi";
-    case Effect::randomColors:
-      return "Random colors";
-    case Effect::rainbowColors:
-      return "Rainbow colors";
-    case Effect::meteor:
-      return "Meteor";
-    case Effect::colorWaterfall:
-      return "Color waterfall";
-    case Effect::randomMarquee:
-      return "Random marquee";
-    case Effect::rainbowMarquee:
-      return "Rainbow marquee";
-    case Effect::pulsing_rainbow:
-      return "Pulsing rainbow";
-    case Effect::christmas:
-      return "Christmas";
-    default:
-      return "Solid";
-  }
+  int idx = static_cast<int>(e);
+  return (idx >= 0 && idx < static_cast<int>(NUM_EFFECTS)) ? kEffects[idx].name : "Solid";
 }
 
 /**
@@ -372,65 +375,15 @@ const char *Globals::effectToString(Effect e) {
  * @return effect
  */
 Effect Globals::stringToEffect(String requestedEffect) {
-  Effect ef = Effect::solid;
-  if (requestedEffect == "Bpm") { ef = Effect::bpm; }
-  else if (requestedEffect == "Fire") { ef = Effect::fire; }
-  else if (requestedEffect == "Twinkle") { ef = Effect::twinkle; }
-  else if (requestedEffect == "Rainbow") { ef = Effect::rainbow; }
-  else if (requestedEffect == "Slow rainbow") { ef = Effect::slowRainbow; }
-  else if (requestedEffect == "Chase rainbow") { ef = Effect::chase_rainbow; }
-  else if (requestedEffect == "Solid rainbow") { ef = Effect::solid_rainbow; }
-  else if (requestedEffect == "GlowWorm") { ef = Effect::GlowWorm; }
-  else if (requestedEffect == "GlowWormWifi") { ef = Effect::GlowWormWifi; }
-  else if (requestedEffect == "Random colors") { ef = Effect::randomColors; }
-  else if (requestedEffect == "Rainbow colors") { ef = Effect::rainbowColors; }
-  else if (requestedEffect == "Meteor") { ef = Effect::meteor; }
-  else if (requestedEffect == "Color waterfall") { ef = Effect::colorWaterfall; }
-  else if (requestedEffect == "Random marquee") { ef = Effect::randomMarquee; }
-  else if (requestedEffect == "Rainbow marquee") { ef = Effect::rainbowMarquee; }
-  else if (requestedEffect == "Pulsing rainbow") { ef = Effect::pulsing_rainbow; }
-  else if (requestedEffect == "Christmas") { ef = Effect::christmas; }
-  else if (requestedEffect == "Solid") { ef = Effect::solid; }
-  return ef;
+  for (size_t i = 0; i < NUM_EFFECTS; i++) {
+    if (requestedEffect == kEffects[i].name) {
+      return static_cast<Effect>(i);
+    }
+  }
+  return Effect::solid;
 }
 
 const uint8_t Globals::effectToInt(Effect e) {
-  switch (e) {
-    case Effect::bpm:
-      return 5;
-    case Effect::fire:
-      return 3;
-    case Effect::twinkle:
-      return 4;
-    case Effect::rainbow:
-      return 6;
-    case Effect::chase_rainbow:
-      return 7;
-    case Effect::solid_rainbow:
-      return 8;
-    case Effect::slowRainbow:
-      return 9;
-    case Effect::randomColors:
-      return 10;
-    case Effect::rainbowColors:
-      return 11;
-    case Effect::meteor:
-      return 12;
-    case Effect::colorWaterfall:
-      return 13;
-    case Effect::randomMarquee:
-      return 14;
-    case Effect::rainbowMarquee:
-      return 15;
-    case Effect::pulsing_rainbow:
-      return 16;
-    case Effect::christmas:
-      return 17;
-    case Effect::GlowWorm:
-      return 1;
-    case Effect::GlowWormWifi:
-      return 0;
-    default:
-      return 2;
-  }
+  int idx = static_cast<int>(e);
+  return (idx >= 0 && idx < static_cast<int>(NUM_EFFECTS)) ? kEffects[idx].code : 2;
 }

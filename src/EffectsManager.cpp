@@ -20,10 +20,6 @@
 
 #include "EffectsManager.h"
 
-RgbColor color = EffectsManager::Wheel(random(0, 255));;
-unsigned long preMill = 0;
-int position = 0;
-
 /**
  * Fire effect
  * @param cooling config effect param
@@ -47,8 +43,8 @@ void EffectsManager::fire(int cooling, int sparking, int speedDelay) {
     heat[i] = (cooldown > heat[i]) ? 0 : heat[i] - cooldown;
   }
   // Heat from each cell drifts 'up' and diffuses a little
-  for (int k = ledManager.dynamicLedNum - 1; k >= 2; k--) {
-    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
+  for (int k = ledManager.dynamicLedNum - 1; k >= 3; k--) {
+    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 3]) / 3;
   }
   // Randomly ignite new 'sparks' near the bottom
   if (random(255) < sparking) {
@@ -96,7 +92,6 @@ void EffectsManager::rainbowColors() {
   unsigned long curMill = millis();
   if (curMill - preMill >= 20) {
     preMill = curMill;
-    static uint8_t hue = 0;
     for (uint16_t i = 0; i < ledManager.dynamicLedNum; i++) {
       RgbColor c = HslColor(hue / 255.0f, 1.0f, 0.5f);
       ledManager.setPixelColor(i, c.R, c.G, c.B);
@@ -129,8 +124,6 @@ void EffectsManager::colorWaterfall() {
   }
 }
 
-uint8_t hue = 0;
-int currentPixel = 0;
 void EffectsManager::randomMarquee() {
   unsigned long curMill = millis();
   if (curMill - preMill >= 150) {
@@ -167,7 +160,7 @@ void EffectsManager::rainbowMarquee() {
 
 void EffectsManager::pulsing_rainbow() {
   unsigned long curMill = millis();
-  if (curMill - preMill >= 20/10) {
+  if (curMill - preMill >= 20) {
     preMill = curMill;
     for (uint16_t i = 0; i < ledManager.dynamicLedNum; i++) {
       RgbColor c = HslColor(((i * 256 / ledManager.dynamicLedNum) + hue) / 255.0f, 1.0f, 0.5f);
@@ -249,7 +242,6 @@ RgbColor EffectsManager::Wheel(uint8_t WheelPos) {
   }
 }
 
-uint16_t iWipe;
 void EffectsManager::colorWipe(byte rw, byte gw, byte bw) {
   if (iWipe < ledManager.dynamicLedNum) {
     if (millis() - lastAnim >= 15) {
@@ -276,32 +268,30 @@ void EffectsManager::theaterChaseRainbow() {
  * Mixed Rainbow effect
 
  */
-uint16_t jMixed = 0;
-uint16_t Mixed = 0;
 void EffectsManager::mixedRainbow() {
   unsigned long curMill = millis();
   if (curMill - preMill >= 500) {
     preMill = curMill;
     byte *c;
-    if (Mixed == 3) {
+    if (mixed == 3) {
       jMixed++;
     }
     if (jMixed < 256) {     // cycle all 256 colors in the wheel
-      if (Mixed < 3) {
+      if (mixed < 3) {
         if (millis() - lastAnim >= 20) {
           lastAnim = millis();
           for (int z = 0; z < ledManager.dynamicLedNum; z = z + 3) {
             c = WheelByte((z + jMixed) % 255);
-            ledManager.setPixelColor(z + Mixed, *c, *(c + 1), *(c + 2));    //turn every third pixel on
+            ledManager.setPixelColor(z + mixed, *c, *(c + 1), *(c + 2));    //turn every third pixel on
           }
           ledManager.ledShow();
           for (int k = 0; k < ledManager.dynamicLedNum; k = k + 3) {
-            ledManager.setPixelColor(k + Mixed, 0, 0, 0);        //turn every third pixel off
+            ledManager.setPixelColor(k + mixed, 0, 0, 0);        //turn every third pixel off
           }
-          Mixed++;
+          mixed++;
         }
       } else {
-        Mixed = 0;
+        mixed = 0;
       }
     } else {
       jMixed = 0;
@@ -309,35 +299,33 @@ void EffectsManager::mixedRainbow() {
   }
 }
 
-void setAll(int dynamicLedNum, byte red, byte green, byte blue) {
-  for(int i = 0; i < dynamicLedNum; i++ ) {
+void EffectsManager::setAll(byte red, byte green, byte blue) {
+  for (int i = 0; i < ledManager.dynamicLedNum; i++) {
     ledManager.setPixelColor(i, red, green, blue);
   }
   ledManager.ledShow();
 }
 
-int kFade = 0;
-bool stepFadeIn = true;
-void FadeInOut(byte red, byte green, byte blue) {
+void EffectsManager::FadeInOut(byte red, byte green, byte blue) {
   float r, g, b;
   if (stepFadeIn && kFade == 255) {
     stepFadeIn = false;
   }
   if (!stepFadeIn && kFade <= 0) {
     stepFadeIn = true;
-    color = EffectsManager::Wheel(random(0, 255));
+    color = Wheel(random(0, 255));
   }
   if (kFade < 256 && stepFadeIn) {
     r = (kFade / 256.0) * red;
     g = (kFade / 256.0) * green;
     b = (kFade / 256.0) * blue;
-    setAll(ledManager.dynamicLedNum, r, g, b);
+    setAll(r, g, b);
     kFade = kFade + 1;
   } else if (kFade >= 0 && !stepFadeIn) {
     r = (kFade / 256.0) * red;
     g = (kFade / 256.0) * green;
     b = (kFade / 256.0) * blue;
-    setAll(ledManager.dynamicLedNum, r, g, b);
+    setAll(r, g, b);
     kFade = kFade - 2;
   }
 }
@@ -353,8 +341,6 @@ void EffectsManager::bpm() {
 /**
  * Rainbow effect
  */
-byte *cT;
-uint16_t iT, jT;
 void EffectsManager::rainbow(boolean slowdown) {
   unsigned long curMill = millis();
   int raindelay = slowdown ? 100 : 0;
@@ -379,8 +365,6 @@ void EffectsManager::rainbow(boolean slowdown) {
 /**
  * Solid rainbow effect
  */
-int xSolidRainbow = 0;
-int ySolidRainbow = 0;
 void EffectsManager::solidRainbow() {
   if (xSolidRainbow <= 9) { //9 cycles of rainbow color
     if (ySolidRainbow < 360) {//360 shades - NeoPixelBus uses float
@@ -392,10 +376,12 @@ void EffectsManager::solidRainbow() {
         }
         ledManager.ledShow();
         ySolidRainbow++;
-        xSolidRainbow++;
+        // count one full cycle only when the hue wraps around
+        if (ySolidRainbow >= 360) {
+          ySolidRainbow = 0;
+          xSolidRainbow++;
+        }
       }
-    } else {
-      ySolidRainbow = 0;
     }
   } else {
     xSolidRainbow = 0;

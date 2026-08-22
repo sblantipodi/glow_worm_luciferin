@@ -50,10 +50,6 @@ extern class LedManager ledManager;
 
 extern class NetManager netManager;
 
-extern class Helpers helper;
-
-extern class Globals globals;
-
 // Change this number if you increase/decrease the usb serial config variables
 extern byte config[CONFIG_NUM_PARAMS];
 extern byte pre[CONFIG_PREFIX_LENGTH];
@@ -85,18 +81,18 @@ extern float framerateSerial;
 extern float framerateCounter;
 extern float framerateCounterSerial;
 extern uint lastStream;
-const String GPIO_PARAM = "gpio";
-const String GPIO_CLOCK_PARAM = "gpioClock";
-const String GPIO_FILENAME = "gpio.json";
-const String GPIO_CLOCK_FILENAME = "gpioClock.json";
-const String AUTO_SAVE_FILENAME = "as.json";
-const String COLOR_BRIGHT_FILENAME = "cb.json";
-const String AP_FILENAME = "ap.json";
-const String BAUDRATE_PARAM = "baudrate";
-const String AP_PARAM = "ap";
-const String BAUDRATE_FILENAME = "baudrate.json";
+constexpr const char *GPIO_PARAM = "gpio";
+constexpr const char *GPIO_CLOCK_PARAM = "gpioClock";
+constexpr const char *GPIO_FILENAME = "gpio.json";
+constexpr const char *GPIO_CLOCK_FILENAME = "gpioClock.json";
+constexpr const char *AUTO_SAVE_FILENAME = "as.json";
+constexpr const char *COLOR_BRIGHT_FILENAME = "cb.json";
+constexpr const char *AP_FILENAME = "ap.json";
+constexpr const char *BAUDRATE_PARAM = "baudrate";
+constexpr const char *AP_PARAM = "ap";
+constexpr const char *BAUDRATE_FILENAME = "baudrate.json";
 extern bool ldrReading;
-extern int ldrValue;
+extern volatile int ldrValue;
 extern bool ldrEnabled;
 extern bool relInv;
 extern uint8_t ldrInterval;
@@ -126,7 +122,7 @@ extern bool relayState;
 extern bool breakLoop;
 extern bool apFileRead;
 
-extern String TRUE;
+constexpr const char *TRUE = "true";
 
 class Globals {
 
@@ -144,6 +140,10 @@ public:
     static void turnOffRelay();
 
     static void turnOnRelay();
+
+    static int ldrPercent();
+
+    static const char *boardName();
 
     static void sendSerialInfo();
 

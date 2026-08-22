@@ -88,7 +88,7 @@ void setup() {
   }
 
   Serial.print(F("\nUsing White temp="));
-  Serial.println(whiteTempToUse);
+  Serial.println(whiteTempInUse);
 
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
   MAC = WiFi.macAddress();
@@ -154,7 +154,7 @@ void setup() {
   String ldrMinFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_FILENAME, ledManager.MIN_LDR_PARAM);
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
   String relayPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_PIN_PARAM);
-  String relayInvStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_INV);
+  String relayInvStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_INV_PARAM);
   String sbPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.SB_PIN_PARAM);
   String ldrPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LDR_PIN_PARAM);
 
@@ -189,25 +189,29 @@ void setup() {
     }
   }
 
-  String r = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r"));
+  JsonDocument cbDoc = bootstrapManager.readLittleFS(COLOR_BRIGHT_FILENAME);
   String ef = Globals::effectToString(Effect::solid);
-  if (!r.isEmpty() && r != ERROR && r.toInt() != -1) {
-    ledManager.red = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("r")).toInt();
+  const JsonVariant rVar = cbDoc["r"];
+  if (rVar.is<int>() && rVar.as<int>() != -1) {
+    ledManager.red = rVar.as<int>();
     rStored = ledManager.red;
-    ledManager.green = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("g")).toInt();
+    ledManager.green = cbDoc["g"].as<int>();
     gStored = ledManager.green;
-    ledManager.blue = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("b")).toInt();
+    ledManager.blue = cbDoc["b"].as<int>();
     bStored = ledManager.blue;
-    brightness = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("brightness")).toInt();
+    brightness = cbDoc["brightness"].as<int>();
     brightnessStored = brightness;
-    ef = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("effect"));
+    const char *effectFromStorage = cbDoc["effect"].as<const char *>();
+    if (effectFromStorage != nullptr) {
+      ef = effectFromStorage;
+    }
     effectStored = Globals::stringToEffect(ef);
-    toggleStored = bootstrapManager.readValueFromFile(COLOR_BRIGHT_FILENAME, F("toggle")) == TRUE;
+    toggleStored = cbDoc["toggle"].as<bool>();
   }
-
-  String as = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave"));
-  if (!as.isEmpty() && r != ERROR && as.toInt() != -1) {
-    autoSave = bootstrapManager.readValueFromFile(AUTO_SAVE_FILENAME, F("autosave")).toInt();
+  JsonDocument asDoc = bootstrapManager.readLittleFS(AUTO_SAVE_FILENAME);
+  const JsonVariant asVar = asDoc["autosave"];
+  if (asVar.is<int>() && asVar.as<int>() != -1) {
+    autoSave = asVar.as<int>();
   }
 
   pinMode(relayPin, OUTPUT);
@@ -219,7 +223,6 @@ void setup() {
   netManager.broadcastUDP.begin(UDP_BROADCAST_PORT);
   Serial.print("Listening on UDP port ");
   Serial.println(UDP_PORT);
-  NetManager::fpsData.reserve(200);
   netManager.prefsData.reserve(200);
   netManager.listenOnHttpGet();
 
@@ -240,7 +243,9 @@ void setup() {
 #endif
 
 #if defined(ARDUINO_ARCH_ESP32)
-  xTaskCreatePinnedToCore(ldrTask, "ldr", 2048, NULL, 1, NULL, 0);
+  if (xTaskCreatePinnedToCore(ldrTask, "ldr", 2048, NULL, 1, NULL, 0) != pdPASS) {
+    Serial.println(F("ERROR: LDR task creation failed"));
+  }
 #endif
 }
 
@@ -304,14 +309,6 @@ void configureLeds() {
   Serial.println(colorOrder);
 
   ledManager.initLeds();
-}
-
-/**
- * Read serial or break the reading
- * @return -1 if loop must break
- */
-int serialRead() {
-  return !breakLoop ? Serial.read() : -1;
 }
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
@@ -393,10 +390,10 @@ void mainLoop() {
       gpioClock = config[i++];
       chk = config[i++];
 
-      if (!(!breakLoop &&
-        (chk != (hi ^ lo ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
+      if (breakLoop ||
+          (chk == (hi ^ lo ^ usbBrightness ^ gpio ^ baudRate ^ whiteTemp ^ fireflyEffect
           ^ ldrEn ^ ldrTo ^ ldrInt ^ ldrMn ^ ldrAction ^ fireflyColorMode ^ fireflyColorOrder
-          ^ relaySerialPin ^ relayInvPin ^ sbSerialPin ^ ldrSerialPin ^ gpioClock ^ 0x55)))) {
+          ^ relaySerialPin ^ relayInvPin ^ sbSerialPin ^ ldrSerialPin ^ gpioClock ^ 0x55))) {
         if (!breakLoop) {
 #ifdef TARGET_GLOWWORMLUCIFERINLIGHT
           if (!relayState) {
@@ -404,7 +401,7 @@ void mainLoop() {
           }
 #endif
 
-          if ((usbBrightness != brightness) & !ldrEnabled) {
+          if ((usbBrightness != brightness) && !ldrEnabled) {
             brightness = usbBrightness;
           }
 
@@ -555,13 +552,11 @@ void mainLoop() {
           byte rleMode = 0;
           bool rleReceived = false;
 
-          struct RleEntry {
-            uint8_t count;
-            uint8_t size;
-          };
-
           static RleEntry rle[RLE_GRP_MAP_SIZE];
           static uint8_t numRleEntries = 0;
+          // cumulative tables for O(1)/O(log) RLE lookups, rebuilt whenever rle[] is read
+          static uint16_t rleCumCount[RLE_GRP_MAP_SIZE + 1];
+          static uint16_t rleCumPhys[RLE_GRP_MAP_SIZE + 1];
 
           if (Serial.readBytes(&rleMode, 1) == 1) {
             if (rleMode == 1) {
@@ -576,6 +571,8 @@ void mainLoop() {
                   if (numRleEntries < RLE_GRP_MAP_SIZE) {
                     memset(&rle[numRleEntries], 0, (RLE_GRP_MAP_SIZE - numRleEntries) * sizeof(RleEntry));
                   }
+                  // rebuild cumulative tables before the totalPhys validation
+                  rleBuildCumTables(rle, numRleEntries, rleCumCount, rleCumPhys);
                   rleReceived = true;
                 } else {
                   while (Serial.available() > 0) Serial.read();
@@ -593,10 +590,7 @@ void mainLoop() {
           // RLE reading finished
 
           // RLE VALIDATION: ensure total physical LEDs match expected count
-          uint16_t totalPhys = 0;
-          for (uint8_t i = 0; i < numRleEntries; i++) {
-            totalPhys += (uint16_t)rle[i].count * (uint16_t)rle[i].size;
-          }
+          uint16_t totalPhys = rleTotalPhys(rleCumPhys, numRleEntries);
 
           if (totalPhys != numLedFromLuciferin) {
             // Invalid RLE map → avoid buffer overflow
@@ -604,31 +598,6 @@ void mainLoop() {
             return;
           }
           // --- END RLE VALIDATION ---
-
-          auto getGroupSize = [&](uint16_t index) {
-            uint16_t g = 0;
-            for (uint8_t i = 0; i < numRleEntries; i++) {
-              if (index < g + rle[i].count) return rle[i].size;
-              g += rle[i].count;
-            }
-            return (uint8_t)1;
-          };
-
-          auto computePhysOffset = [&](uint16_t colorIndex) {
-            uint16_t phys = 0;
-            uint16_t g = 0;
-
-            for (uint8_t i = 0; i < numRleEntries; i++) {
-              if (g + rle[i].count <= colorIndex) {
-                phys += rle[i].count * rle[i].size;
-                g += rle[i].count;
-              } else {
-                phys += (colorIndex - g) * rle[i].size;
-                break;
-              }
-            }
-            return phys;
-          };
 
           // Color readings
           uint16_t numColorsToRead = 0;
@@ -644,7 +613,7 @@ void mainLoop() {
             numColorsToRead = numLedFromLuciferin;
           }
 
-          uint16_t physIndex = computePhysOffset(0);
+          uint16_t physIndex = rleComputePhysOffset(rle, rleCumCount, rleCumPhys, numRleEntries, 0);
           uint16_t colorIndex = 0;
 
           while (colorIndex < numColorsToRead) {
@@ -661,7 +630,7 @@ void mainLoop() {
                 while (Serial.available() > 0) Serial.read();
                 return;
               }
-              uint8_t groupSize = rleReceived ? getGroupSize(colorIndex) : 1;
+              uint8_t groupSize = rleReceived ? rleGetGroupSize(rle, rleCumCount, numRleEntries, colorIndex) : 1;
               for (uint8_t rep = 0; rep < groupSize; rep++) {
                 if (physIndex >= ledManager.dynamicLedNum) {
                   break;
@@ -706,34 +675,34 @@ void mainLoop() {
     effectsManager.solidRainbow();
   }
   else if (effect == Effect::twinkle) {
-    EffectsManager::twinkleRandom();
+    effectsManager.twinkleRandom();
   }
   else if (effect == Effect::chase_rainbow) {
     effectsManager.theaterChaseRainbow();
   }
   else if (effect == Effect::randomColors) {
-    EffectsManager::randomColors();
+    effectsManager.randomColors();
   }
   else if (effect == Effect::rainbowColors) {
-    EffectsManager::rainbowColors();
+    effectsManager.rainbowColors();
   }
   else if (effect == Effect::meteor) {
-    EffectsManager::meteor();
+    effectsManager.meteor();
   }
   else if (effect == Effect::colorWaterfall) {
-    EffectsManager::colorWaterfall();
+    effectsManager.colorWaterfall();
   }
   else if (effect == Effect::randomMarquee) {
-    EffectsManager::randomMarquee();
+    effectsManager.randomMarquee();
   }
   else if (effect == Effect::rainbowMarquee) {
-    EffectsManager::rainbowMarquee();
+    effectsManager.rainbowMarquee();
   }
   else if (effect == Effect::pulsing_rainbow) {
-    EffectsManager::pulsing_rainbow();
+    effectsManager.pulsing_rainbow();
   }
   else if (effect == Effect::christmas) {
-    EffectsManager::christmas();
+    effectsManager.christmas();
   }
   if (effect != Effect::fire) {
     effectsManager.freeFireBuffer();
@@ -764,9 +733,9 @@ void debounceSmartButton() {
       // LOW = pressed (INPUT_PULLUP)
       if (buttonState == LOW) {
 #if defined(ARDUINO_ARCH_ESP32)
-        if (currentMillisMainLoop > esp32DebouceInitialPeriod) {
+        if (currentMillisMainLoop > esp32DebounceInitialPeriod) {
 #else
-          if (currentMillisMainLoop > esp8266DebouceInitialPeriod) {
+          if (currentMillisMainLoop > esp8266DebounceInitialPeriod) {
 #endif
           if (!ledManager.stateOn) {
             Globals::turnOnRelay();
@@ -839,10 +808,7 @@ void manageLdr() {
 
     // Calculate brightness scaled 0..255 using ldrDivider and ldrMin
     uint8_t minBright = (uint8_t)((ldrMin * 255) / 100);
-    int br = 0;
-    if (ldrDivider != 0) {
-      br = ((((ldrValue * 100) / ldrDivider) * 255) / 100);
-    }
+    int br = (Globals::ldrPercent() * 255) / 100;
 
     if (br > 255) {
       brightness = 255;

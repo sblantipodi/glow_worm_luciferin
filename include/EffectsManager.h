@@ -33,9 +33,29 @@ private:
     byte* heat = nullptr;
     int heatSize = 0;
 
+    // Effect state
+    RgbColor color = Wheel(random(0, 255));
+    unsigned long preMill = 0;
+    int position = 0;
+    uint8_t hue = 0;
+    int currentPixel = 0;
+    uint16_t iWipe = 0;
+    uint16_t jMixed = 0;
+    uint16_t mixed = 0;
+    int kFade = 0;
+    bool stepFadeIn = true;
+    byte *cT = nullptr;
+    uint16_t iT = 0;
+    uint16_t jT = 0;
+    int xSolidRainbow = 0;
+    int ySolidRainbow = 0;
+
+    static void setAll(byte red, byte green, byte blue);
+    void FadeInOut(byte red, byte green, byte blue);
+
 public:
 
-    static void twinkleRandom();
+    void twinkleRandom();
 
     void theaterChaseRainbow();
 
@@ -49,21 +69,21 @@ public:
 
     void solidRainbow();
 
-    static void randomColors();
+    void randomColors();
 
-    static void rainbowColors();
+    void rainbowColors();
 
-    static void meteor();
+    void meteor();
 
-    static void colorWaterfall();
+    void colorWaterfall();
 
-    static void randomMarquee();
+    void randomMarquee();
 
-    static void rainbowMarquee();
+    void rainbowMarquee();
 
-    static void pulsing_rainbow();
+    void pulsing_rainbow();
 
-    static void christmas();
+    void christmas();
 
     void fire(int cooling, int sparking, int speedDelay);
     void freeFireBuffer();
