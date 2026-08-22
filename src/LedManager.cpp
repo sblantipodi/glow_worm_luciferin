@@ -115,8 +115,10 @@ byte *colorKtoRGB(byte *rgb) {
  * @param b red channel
  * @return corrected brightness
  */
-uint8_t applyBrightnessCorrection(int c) {
-  return brightness == 0 ? 0 : (uint16_t(c) * brightness) / 255;
+uint8_t applyBrightnessCorrection(uint8_t c) {
+  if (brightness == 0) return 0;
+  uint16_t v = (uint16_t)c * brightness / 255;
+  return v > 255 ? 255 : (uint8_t)v;
 }
 
 /**
