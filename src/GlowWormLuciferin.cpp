@@ -52,7 +52,9 @@ void setup() {
   Serial.begin(baudRateToUse);
   Serial.setTimeout(SERIAL_TIMEOUT);
   Serial.setDebugOutput(false); // switch off kernel messages when using USBCDC
-
+#if defined(ARDUINO_ARCH_ESP32) && ARDUINO_USB_CDC_ON_BOOT
+  Serial.setTxTimeoutMs(0);
+#endif
 #if defined(ESP8266)
   while (!Serial);
 #elif defined(ARDUINO_ARCH_ESP32)
