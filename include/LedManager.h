@@ -78,9 +78,11 @@ public:
     RgbColor startColor;
     RgbColor endColor;
     RgbColor currentColor;
-    const uint8_t totalSteps = 100;
-    uint8_t currentStep = 0;
+    const uint16_t totalSteps = 100;
+    const uint16_t transitionDurationMs = 300;
+    uint16_t currentStep = 0;
     bool transitioning = false;
+    uint32_t transitionStartTime = 0;
 
     void cleanLEDs();
 

@@ -850,18 +850,27 @@ void LedManager::setColor(uint8_t inR, uint8_t inG, uint8_t inB) {
  * Update transition from one color to another
  */
 void LedManager::updateTransition() {
-  if (!transitioning || currentStep >= totalSteps) return;
+  if (!transitioning) return;
+  uint32_t elapsed = millis() - transitionStartTime;
+  uint32_t step = (elapsed * (uint32_t) totalSteps) / transitionDurationMs;
+  if (step >= totalSteps) {
+    ledManager.currentColor = ledManager.endColor;
+    for (int i = 0; i < ledManager.dynamicLedNum; i++) {
+      ledManager.setPixelColor(i, currentColor.R, currentColor.G, currentColor.B);
+    }
+    ledManager.ledShow();
+    ledManager.startColor = ledManager.endColor;
+    temporaryDisableImprove = transitioning = false;
+    return;
+  }
+  if (step <= currentStep) return; // next step not due yet
+  currentStep = (uint16_t) step;
   float ratio = (float) currentStep / (float) (totalSteps - 1);
   currentColor = RgbColor::LinearBlend(startColor, endColor, ratio);
   for (int i = 0; i < ledManager.dynamicLedNum; i++) {
     ledManager.setPixelColor(i, currentColor.R, currentColor.G, currentColor.B);
   }
   ledManager.ledShow();
-  currentStep++;
-  if (currentStep >= totalSteps) {
-    ledManager.startColor = ledManager.endColor;
-    temporaryDisableImprove = transitioning = false;
-  }
 }
 
 /**
@@ -883,6 +892,7 @@ void LedManager::setColorNoSolid(uint8_t inR, uint8_t inG, uint8_t inB) {
         }
         ledManager.endColor = RgbColor(inR, inG, inB);
         ledManager.currentStep = 0;
+        ledManager.transitionStartTime = millis();
         temporaryDisableImprove = ledManager.transitioning = true;
       }
   }
