@@ -1356,7 +1356,7 @@ bool NetManager::processUpdate() {
     []() {
     },
     []() {
-      HTTPUpload& upload = server.upload();
+      HTTPUpload &upload = server.upload();
 #if defined(ARDUINO_ARCH_ESP32)
       esp_task_wdt_reset();
 #endif
@@ -1372,23 +1372,20 @@ bool NetManager::processUpdate() {
           Update.printError(Serial);
           server.send(500, "text/plain", "Update begin failed");
         }
-      }
-      else if (upload.status == UPLOAD_FILE_WRITE) {
+      } else if (upload.status == UPLOAD_FILE_WRITE) {
 #if defined(ARDUINO_ARCH_ESP32)
         esp_task_wdt_reset();
 #endif
         if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
           Update.printError(Serial);
         }
-      }
-      else if (upload.status == UPLOAD_FILE_END) {
+      } else if (upload.status == UPLOAD_FILE_END) {
         server.sendHeader("Connection", "close");
         bool ok = Update.end(true);
         if (ok) {
           Serial.printf("Update success: %u bytes\n", upload.totalSize);
           server.send(200, "text/plain", "OK");
-        }
-        else {
+        } else {
           Update.printError(Serial);
           server.send(500, "text/plain", "KO");
         }
@@ -1403,8 +1400,7 @@ bool NetManager::processUpdate() {
               deviceName.c_str(),
               false
             );
-          }
-          else {
+          } else {
 #if defined(ESP8266)
             if (netManager.remoteIpForUdp.isSet()) {
 #elif defined(ARDUINO_ARCH_ESP32)
