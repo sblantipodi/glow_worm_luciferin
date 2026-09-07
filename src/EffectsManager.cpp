@@ -146,10 +146,12 @@ void EffectsManager::rainbowMarquee() {
     preMill = curMill;
     for (int i = 0; i < ledManager.dynamicLedNum; i++) {
       if (i % 3 == currentPixel % 3) {
-        RgbColor c = HslColor(((i * 256 / ledManager.dynamicLedNum) + hue) / 255.0f, 1.0f, 0.5f);
+        float h = (i * 256.0f / ledManager.dynamicLedNum + hue) / 256.0f;
+        h -= floorf(h);
+        RgbColor c = HslColor(h, 1.0f, 0.5f);
         ledManager.setPixelColor(i, c.R, c.G, c.B);
       } else {
-        ledManager.setPixelColor(i, 0,0,0);
+        ledManager.setPixelColor(i, 0, 0, 0);
       }
     }
     hue++;
@@ -158,12 +160,15 @@ void EffectsManager::rainbowMarquee() {
   }
 }
 
+
 void EffectsManager::pulsing_rainbow() {
   unsigned long curMill = millis();
   if (curMill - preMill >= 20) {
     preMill = curMill;
     for (uint16_t i = 0; i < ledManager.dynamicLedNum; i++) {
-      RgbColor c = HslColor(((i * 256 / ledManager.dynamicLedNum) + hue) / 255.0f, 1.0f, 0.5f);
+      float h = (hue + (i * 256.0f / ledManager.dynamicLedNum)) / 256.0f;
+      h = fmodf(h, 1.0f);
+      RgbColor c = HslColor(h, 1.0f, 0.5f);
       ledManager.setPixelColor(i, c.R, c.G, c.B);
     }
     ledManager.ledShow();
