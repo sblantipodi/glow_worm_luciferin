@@ -41,14 +41,12 @@ PingESP pingESP;
 
 // This must be a multiple of 3 (R;G;B). Serial buffer is read with a single block using Serial.readBytes(),
 // if there are many LEDs and buffer is too small, read the first block with Serial.readBytes() and then continue with Serial.read()
-const uint16_t LED_BUFF = 1500;
-byte ledBuffer[LED_BUFF];
 int buttonState;            // the current reading from the input pin
 int lastButtonState = LOW;  // the previous reading from the input pin
 #if defined(ARDUINO_ARCH_ESP32)
-unsigned long esp32DebouceInitialPeriod = 5000;
+unsigned long esp32DebounceInitialPeriod = 5000;
 #else
-unsigned long esp8266DebouceInitialPeriod = 5000;
+unsigned long esp8266DebounceInitialPeriod = 5000;
 #endif
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
