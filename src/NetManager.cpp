@@ -65,6 +65,25 @@ static float maxFramerate() {
   return framerate > framerateSerial ? framerate : framerateSerial;
 }
 
+
+/**
+ * Compute the subnet broadcast so this device can announce itself before receiving Firefly's discovery PING.
+ */
+static IPAddress localDiscoveryBroadcast() {
+#if defined(ARDUINO_ARCH_ESP32)
+  IPAddress localIp = ethConnected ? ETH.localIP() : WiFi.localIP();
+  IPAddress subnet = ethConnected ? ETH.subnetMask() : WiFi.subnetMask();
+#else
+  IPAddress localIp = WiFi.localIP();
+  IPAddress subnet = WiFi.subnetMask();
+#endif
+  if (localIp[0] == 0 || subnet[0] == 0) {
+    return IPAddress();
+  }
+  return IPAddress(localIp[0] | ~subnet[0], localIp[1] | ~subnet[1],
+                   localIp[2] | ~subnet[2], localIp[3] | ~subnet[3]);
+}
+
 bool udpFrameReady = false;
 RleEntry rle[RLE_GRP_MAP_SIZE];
 uint8_t numRleEntries = 0;
@@ -1237,7 +1256,9 @@ bool NetManager::processJson() {
  */
 void NetManager::sendStatus() {
   // Skip JSON framework for lighter processing during the stream
-  if (effect == Effect::GlowWorm || effect == Effect::GlowWormWifi) {
+  if ((effect == Effect::GlowWorm || effect == Effect::GlowWormWifi)
+      && (mqttIP.length() > 0 || (netManager.remoteIpForUdp.toString() != F("0.0.0.0")
+                                  && netManager.remoteIpForUdpBroadcast.toString() != F("0.0.0.0")))) {
     size_t len = 0;
     jsonAppend(jsonStatus, sizeof(jsonStatus), len,
                "{\"deviceName\":\"%s\",\"color\": { \"r\": 255, \"g\": 190, \"b\": 140 },"
@@ -1318,12 +1339,12 @@ void NetManager::sendStatus() {
       else {
         serializeJson(root, jsonUdp, sizeof(jsonUdp));
       }
-#if defined(ESP8266)
-      if (netManager.remoteIpForUdpBroadcast.isSet()) {
-#elif defined(ARDUINO_ARCH_ESP32)
-      if (!netManager.remoteIpForUdpBroadcast.toString().equals(F("0.0.0.0"))) {
-#endif
-        netManager.broadcastUDP.beginPacket(netManager.remoteIpForUdpBroadcast, UDP_BROADCAST_PORT);
+      IPAddress destination = netManager.remoteIpForUdpBroadcast;
+      if (destination.toString() == F("0.0.0.0")) {
+        destination = localDiscoveryBroadcast();
+      }
+      if (destination.toString() != F("0.0.0.0")) {
+        netManager.broadcastUDP.beginPacket(destination, UDP_BROADCAST_PORT);
         netManager.broadcastUDP.print(payload);
         netManager.broadcastUDP.endPacket();
       }
