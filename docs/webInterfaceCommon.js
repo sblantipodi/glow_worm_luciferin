@@ -32,6 +32,12 @@
         }
     }
 
+    function moveHeaderButtons(shell) {
+        document.querySelectorAll('body > .container .btn.back-btn, body > .container .btn.right-btn').forEach(function (button) {
+            shell.appendChild(button);
+        });
+    }
+
     function addThemeButton() {
         var header = document.querySelector('body > .container-fluid.sticky-top');
         if (!header || document.getElementById('themeToggle')) return;
@@ -52,6 +58,7 @@
             applyTheme();
         });
         shell.appendChild(button);
+        moveHeaderButtons(shell);
         applyTheme();
     }
 
@@ -76,6 +83,8 @@
     var pageContainer = document.querySelector('body > .container');
     if (saveButton) saveButton.disabled = true;
     function revealPage() {
+        var shell = document.querySelector('.luciferin-header-shell');
+        if (shell) moveHeaderButtons(shell);
         if (pageContainer) pageContainer.classList.add('page-ready');
     }
     var script = document.createElement('script');
