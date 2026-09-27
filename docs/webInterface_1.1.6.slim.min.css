@@ -204,6 +204,10 @@ body > .container.page-ready {
     top: 0;
     z-index: 1020;
 }
+.luciferin-header-shell > .btn.back-btn,
+.luciferin-header-shell > .btn.right-btn {
+    z-index: 2;
+}
 #themeToggle {
     position: absolute;
     top: calc(100% + 0.5rem);
