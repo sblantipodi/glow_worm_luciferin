@@ -142,9 +142,28 @@ body {
     }
 }
 .container {
-    animation: fi 0.8s .4s both;
     max-width: 1100px;
     margin: 0 auto;
+}
+/* Wait for the page-specific script before fading in the main content. */
+body > .container {
+    opacity: 0;
+}
+body > .container.page-ready {
+    animation: fi 0.8s both;
+}
+@keyframes fi {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body,
+    body > .container.page-ready {
+        animation: none;
+    }
+    body > .container.page-ready {
+        opacity: 1;
+    }
 }
 /* --- NEVE --- */
 #snow {
