@@ -73,14 +73,20 @@
 
     // Keep Save state inactive until the home page's asCBAction function is ready.
     var saveButton = path === '/' ? document.getElementById('autosave') : null;
+    var pageContainer = document.querySelector('body > .container');
     if (saveButton) saveButton.disabled = true;
+    function revealPage() {
+        if (pageContainer) pageContainer.classList.add('page-ready');
+    }
     var script = document.createElement('script');
     script.src = new URL(pageScript, commonScriptUrl).href;
     script.async = false;
     script.onload = function () {
         if (saveButton) saveButton.disabled = false;
+        revealPage();
     };
     script.onerror = function () {
+        revealPage();
         console.error('Unable to load ' + pageScript);
     };
     document.head.appendChild(script);
