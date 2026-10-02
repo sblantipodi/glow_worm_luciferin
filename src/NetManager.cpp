@@ -19,6 +19,7 @@
 */
 
 #include "NetManager.h"
+#include <cmath>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -552,6 +553,15 @@ void NetManager::listenOnHttpGet() {
     if (ldrEnabled) {
       jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"ldr\":\"%d\"", (int) Globals::ldrPercent());
     }
+#if defined(ARDUINO_ARCH_ESP32)
+    // Internal chip temperature in Celsius; keep /prefs available if the sensor fails.
+    const float chipTemp = temperatureRead();
+    if (std::isfinite(chipTemp)) {
+      jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"temp\":\"%.2f\"", chipTemp);
+    } else {
+      jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"temp\":null");
+    }
+#endif
     if (!mqttConnected && mqttIP.length() > 0) {
       jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"mqttError\":\"1\"");
     }
