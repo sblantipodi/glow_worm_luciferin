@@ -398,6 +398,9 @@ html[data-luciferin-theme="dark"] .form-select option {
     background: var(--theme-surface);
     color: var(--theme-text);
 }
+#tempgrp {
+    display: none;
+}
 @supports (appearance: base-select) {
     html[data-luciferin-theme="dark"] .form-select,
     html[data-luciferin-theme="dark"] .form-select::picker(select) {
