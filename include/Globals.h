@@ -21,24 +21,26 @@
 #define _DPSOFTWARE_GLOBALS_UTILS_H
 
 #include <Arduino.h>
-#include "BootstrapManager.h"
-#include "EffectsManager.h"
-#include "LedManager.h"
-#include "NetManager.h"
 
+#define SERIAL_TIMEOUT 5
 #if defined(ESP8266)
 #define LDR_DIVIDER 1024
 #endif
 #if defined(ARDUINO_ARCH_ESP32)
 #define LDR_DIVIDER 4096
 #endif
-#define SERIAL_SIZE_RX 2048
-#define CONFIG_NUM_PARAMS 21
+#define SERIAL_SIZE_RX 4096
+#define RLE_GRP_MAP_SIZE 250
+
+#define CONFIG_NUM_PARAMS 20
 #define CONFIG_PREFIX_LENGTH 6
-// This value must meet the one in Firefly Luciferin
-// We are transferring byte via Serial, the maximum decimal number that can be represented with 1 byte is 255.
-// Use a multiplier to set a much bigger number using only 2 bytes.
-const int SERIAL_CHUNK_SIZE = 250;
+
+#include "BootstrapManager.h"
+#include "EffectsManager.h"
+#include "LedManager.h"
+#include "NetManager.h"
+
+const int DROP_THRESHOLD = SERIAL_SIZE_RX * 3 / 4;
 
 extern class BootstrapManager bootstrapManager;
 
@@ -48,14 +50,10 @@ extern class LedManager ledManager;
 
 extern class NetManager netManager;
 
-extern class Helpers helper;
-
-extern class Globals globals;
-
 // Change this number if you increase/decrease the usb serial config variables
 extern byte config[CONFIG_NUM_PARAMS];
 extern byte pre[CONFIG_PREFIX_LENGTH];
-extern uint8_t prefix[], hi, lo, chk, loSecondPart, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
+extern uint8_t prefix[], hi, lo, chk, usbBrightness, gpio, baudRate, whiteTemp, fireflyEffect,
         fireflyColorMode, fireflyColorOrder, ldrEn, ldrTo, ldrInt, ldrMn, ldrAction, relaySerialPin, relayInvPin, sbSerialPin, ldrSerialPin, gpioClock;
 
 enum class Effect {
@@ -83,18 +81,18 @@ extern float framerateSerial;
 extern float framerateCounter;
 extern float framerateCounterSerial;
 extern uint lastStream;
-const String GPIO_PARAM = "gpio";
-const String GPIO_CLOCK_PARAM = "gpioClock";
-const String GPIO_FILENAME = "gpio.json";
-const String GPIO_CLOCK_FILENAME = "gpioClock.json";
-const String AUTO_SAVE_FILENAME = "as.json";
-const String COLOR_BRIGHT_FILENAME = "cb.json";
-const String AP_FILENAME = "ap.json";
-const String BAUDRATE_PARAM = "baudrate";
-const String AP_PARAM = "ap";
-const String BAUDRATE_FILENAME = "baudrate.json";
+constexpr const char *GPIO_PARAM = "gpio";
+constexpr const char *GPIO_CLOCK_PARAM = "gpioClock";
+constexpr const char *GPIO_FILENAME = "gpio.json";
+constexpr const char *GPIO_CLOCK_FILENAME = "gpioClock.json";
+constexpr const char *AUTO_SAVE_FILENAME = "as.json";
+constexpr const char *COLOR_BRIGHT_FILENAME = "cb.json";
+constexpr const char *AP_FILENAME = "ap.json";
+constexpr const char *BAUDRATE_PARAM = "baudrate";
+constexpr const char *AP_PARAM = "ap";
+constexpr const char *BAUDRATE_FILENAME = "baudrate.json";
 extern bool ldrReading;
-extern int ldrValue;
+extern volatile int ldrValue;
 extern bool ldrEnabled;
 extern bool relInv;
 extern uint8_t ldrInterval;
@@ -124,7 +122,7 @@ extern bool relayState;
 extern bool breakLoop;
 extern bool apFileRead;
 
-extern String TRUE;
+constexpr const char *TRUE = "true";
 
 class Globals {
 
@@ -142,6 +140,10 @@ public:
     static void turnOffRelay();
 
     static void turnOnRelay();
+
+    static int ldrPercent();
+
+    static const char *boardName();
 
     static void sendSerialInfo();
 

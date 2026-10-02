@@ -25,11 +25,11 @@
 #include <NeoPixelAnimator.h>
 #include "Globals.h"
 
-const String LED_NUM_PARAM = "lednum";
-const String LED_NUM_FILENAME = "led_number.json";
-const String WHITE_TEMP_PARAM = "whitetemp";
-const String WHITE_TEMP_FILENAME = "whitetemp.json";
-const uint8_t WHITE_TEMP_CORRECTION_DISABLE = 65;
+constexpr const char *LED_NUM_PARAM = "lednum";
+constexpr const char *LED_NUM_FILENAME = "led_number.json";
+constexpr const char *WHITE_TEMP_PARAM = "whitetemp";
+constexpr const char *WHITE_TEMP_FILENAME = "whitetemp.json";
+constexpr uint8_t WHITE_TEMP_CORRECTION_DISABLE = 65;
 
 class LedManager {
 
@@ -48,25 +48,24 @@ public:
     NeoPixelBus<NeoRgbwFeature, NeoEsp8266BitBangSk6812Method> *ledsStandardRgbw = NULL; // No hardware, ALL GPIO, yes serial read/write
     NeoPixelBus<DotStarRgbFeature, DotStarMethod> *ledsDotStar = NULL; // No hardware, ALL GPIO, yes serial read/write
 #endif
-    const String COLOR_MODE_FILENAME = "color_mode.json";
-    const String COLOR_ORDER_FILENAME = "color_order.json";
-    const String COLOR_MODE_PARAM = "colorMode";
-    const String COLOR_ORDER_PARAM = "colorOrder";
-    const String LDR_FILENAME = "ldr.json";
-    const String PIN_FILENAME = "pin.json";
-    const String LDR_CAL_FILENAME = "ldrCal.json";
-    const String LDR_PARAM = "ldr";
-    const String LDR_TO_PARAM = "ldrTurnOff";
-    const String LDR_INTER_PARAM = "ldrInterval";
-    const String MIN_LDR_PARAM = "minLdr";
-    const String MAX_LDR_PARAM = "maxLdr";
-    const String RELAY_PIN_PARAM = "relayPin";
-    const String RELAY_INV_PARAM = "relayInv";
-    const String LED_BUILTIN_PARAM = "ledBuiltin";
-    const String RELAY_INV = "relayInv";
-    const String SB_PIN_PARAM = "sbPin";
-    const String LDR_PIN_PARAM = "ldrPin";
-    const String EFFECT_FILENAME = "effect.json";
+    static constexpr const char *COLOR_MODE_FILENAME = "color_mode.json";
+    static constexpr const char *COLOR_ORDER_FILENAME = "color_order.json";
+    static constexpr const char *COLOR_MODE_PARAM = "colorMode";
+    static constexpr const char *COLOR_ORDER_PARAM = "colorOrder";
+    static constexpr const char *LDR_FILENAME = "ldr.json";
+    static constexpr const char *PIN_FILENAME = "pin.json";
+    static constexpr const char *LDR_CAL_FILENAME = "ldrCal.json";
+    static constexpr const char *LDR_PARAM = "ldr";
+    static constexpr const char *LDR_TO_PARAM = "ldrTurnOff";
+    static constexpr const char *LDR_INTER_PARAM = "ldrInterval";
+    static constexpr const char *MIN_LDR_PARAM = "minLdr";
+    static constexpr const char *MAX_LDR_PARAM = "maxLdr";
+    static constexpr const char *RELAY_PIN_PARAM = "relayPin";
+    static constexpr const char *RELAY_INV_PARAM = "relayInv";
+    static constexpr const char *LED_BUILTIN_PARAM = "ledBuiltin";
+    static constexpr const char *SB_PIN_PARAM = "sbPin";
+    static constexpr const char *LDR_PIN_PARAM = "ldrPin";
+    static constexpr const char *EFFECT_FILENAME = "effect.json";
     uint16_t dynamicLedNum = 511;
     byte red = 255;
     byte green = 82;
@@ -79,9 +78,11 @@ public:
     RgbColor startColor;
     RgbColor endColor;
     RgbColor currentColor;
-    const uint8_t totalSteps = 100;
-    uint8_t currentStep = 0;
+    const uint16_t totalSteps = 100;
+    const uint16_t transitionDurationMs = 300;
+    uint16_t currentStep = 0;
     bool transitioning = false;
+    uint32_t transitionStartTime = 0;
 
     void cleanLEDs();
 
