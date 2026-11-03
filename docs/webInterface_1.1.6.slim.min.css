@@ -325,6 +325,10 @@ html[data-luciferin-theme="dark"] .form-control::placeholder {
     color: var(--theme-muted);
     opacity: 1;
 }
+/* Floating labels replace placeholders, including when the input is focused. */
+html[data-luciferin-theme="dark"] .form-floating > .form-control::placeholder {
+    color: transparent;
+}
 html[data-luciferin-theme="dark"] .form-floating > label {
     color: var(--theme-muted);
 }
