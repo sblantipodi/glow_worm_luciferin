@@ -69,44 +69,44 @@ uint8_t gpioInUse = 2;
 uint8_t relayPin = 12;
 uint8_t sbPin = 0;
 uint8_t ldrPin = A0;
-int8_t ledBuiltin = -1;
+uint8_t ledBuiltin = GPIO_DISABLED;
 #endif
 #if CONFIG_IDF_TARGET_ESP32C3
 uint8_t gpioInUse = 6;
 uint8_t relayPin = 0;
 uint8_t sbPin = 9;
 uint8_t ldrPin = 3;
-int8_t ledBuiltin = 7;
+uint8_t ledBuiltin = 7;
 #elif CONFIG_IDF_TARGET_ESP32S2
 uint8_t gpioInUse = 16;
 uint8_t relayPin = 9;
 uint8_t sbPin = 0;
 uint8_t ldrPin = 3;
-int8_t ledBuiltin = 15;
+uint8_t ledBuiltin = 15;
 #elif CONFIG_IDF_TARGET_ESP32S3
 uint8_t gpioInUse = 16;
 uint8_t relayPin = 13;
 uint8_t sbPin = 0;
 uint8_t ldrPin = 2;
-int8_t ledBuiltin = 47;
+uint8_t ledBuiltin = 47;
 #elif CONFIG_IDF_TARGET_ESP32C6
 uint8_t gpioInUse = 5;
 uint8_t relayPin = 15;
 uint8_t sbPin = 1;
 uint8_t ldrPin = 2;
-int8_t ledBuiltin = 8;
+uint8_t ledBuiltin = 8;
 #elif CONFIG_IDF_TARGET_ESP32C5
 uint8_t gpioInUse = 0;
-uint8_t relayPin = -1; // don't use 13, 14, 15, reserved
+uint8_t relayPin = GPIO_DISABLED; // don't use 13, 14, 15, reserved
 uint8_t sbPin = 1;
 uint8_t ldrPin = 6;
-int8_t ledBuiltin = 27;
+uint8_t ledBuiltin = 27;
 #elif CONFIG_IDF_TARGET_ESP32
 uint8_t gpioInUse = 2;
 uint8_t relayPin = 12;
 uint8_t sbPin = 0;
 uint8_t ldrPin = 36;
-int8_t ledBuiltin = -1;
+uint8_t ledBuiltin = GPIO_DISABLED;
 #endif
 uint8_t gpioClockInUse = 2;
 
@@ -240,6 +240,8 @@ void Globals::setBaudRate(int bdRate) {
  * Turn ON the relay
  */
 void Globals::turnOnRelay() {
+  if (relayPin == GPIO_DISABLED) return;
+
   if (!relayState) {
     relayState = true;
     digitalWrite(relayPin, relInv ? LOW : HIGH);
@@ -251,6 +253,8 @@ void Globals::turnOnRelay() {
  * Turn OFF the relay
  */
 void Globals::turnOffRelay() {
+  if (relayPin == GPIO_DISABLED) return;
+
   if (relayState) {
     relayState = false;
     delay(10);
@@ -259,11 +263,18 @@ void Globals::turnOffRelay() {
 }
 
 /**
- * Return the LDR reading as a percentage, 0 if the divider is not valid
+ * Whether LDR readings and brightness control are enabled.
+ */
+bool Globals::isLdrEnabled() {
+  return ldrEnabled && ldrPin != GPIO_DISABLED;
+}
+
+/**
+ * Return the LDR reading as a percentage, 0 if disabled or the divider is not valid
  * @return ldr percentage (0..100)
  */
 int Globals::ldrPercent() {
-  return ldrDivider > 0 ? (ldrValue * 100) / ldrDivider : 0;
+  return isLdrEnabled() && ldrDivider > 0 ? (ldrValue * 100) / ldrDivider : 0;
 }
 
 /**
@@ -318,7 +329,7 @@ void Globals::sendSerialInfo() {
         Serial.printf("colorMode:%d\r\n", colorMode);
         Serial.printf("colorOrder:%d\r\n", colorOrder);
         Serial.printf("white:%d\r\n", whiteTempInUse);
-        if (ldrEnabled) {
+        if (isLdrEnabled()) {
           Serial.printf("ldr:%d\r\n", ldrPercent());
       }
       Serial.printf("relayPin:%d\r\n", relayPin);

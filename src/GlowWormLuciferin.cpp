@@ -29,6 +29,10 @@ void setup() {
   if (!ledBiFromStorage.isEmpty() && ledBiFromStorage != ERROR) {
     ledBuiltin = ledBiFromStorage.toInt();
   }
+  String sbPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.SB_PIN_PARAM);
+  if (!sbPinFromStorage.isEmpty() && sbPinFromStorage != ERROR) {
+    sbPin = sbPinFromStorage.toInt();
+  }
   BootstrapManager::isWifiConfigured();
   LedManager::manageBuiltInLed(0, 240, 255);
 
@@ -68,7 +72,9 @@ void setup() {
   Serial.println(baudRateToUse);
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
-  pinMode(sbPin, INPUT_PULLUP);
+  if (sbPin != GPIO_DISABLED) {
+    pinMode(sbPin, INPUT_PULLUP);
+  }
 #endif
 
   // LED number from configuration storage
@@ -157,7 +163,6 @@ void setup() {
   String ldrMaxFromStorage = bootstrapManager.readValueFromFile(ledManager.LDR_CAL_FILENAME, ledManager.MAX_LDR_PARAM);
   String relayPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_PIN_PARAM);
   String relayInvStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.RELAY_INV_PARAM);
-  String sbPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.SB_PIN_PARAM);
   String ldrPinFromStorage = bootstrapManager.readValueFromFile(ledManager.PIN_FILENAME, ledManager.LDR_PIN_PARAM);
 
   if (!ldrFromStorage.isEmpty() && ldrFromStorage != ERROR) {
@@ -177,9 +182,6 @@ void setup() {
   }
   if (!relayInvStorage.isEmpty() && relayInvStorage != ERROR) {
     relInv = relayInvStorage == TRUE;
-  }
-  if (!sbPinFromStorage.isEmpty() && sbPinFromStorage != ERROR) {
-    sbPin = sbPinFromStorage.toInt();
   }
   if (!ldrPinFromStorage.isEmpty() && ldrPinFromStorage != ERROR) {
     ldrPin = ldrPinFromStorage.toInt();
@@ -216,8 +218,10 @@ void setup() {
     autoSave = asVar.as<int>();
   }
 
-  pinMode(relayPin, OUTPUT);
-  digitalWrite(relayPin, LOW);
+  if (relayPin != GPIO_DISABLED) {
+    pinMode(relayPin, OUTPUT);
+    digitalWrite(relayPin, LOW);
+  }
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   // Begin listening to UDP port
@@ -272,7 +276,7 @@ void configureLeds() {
   if (!gpioFromStorage.isEmpty() && gpioFromStorage != ERROR) {
     gpioInUse = gpioFromStorage.toInt();
 #if defined(ESP8266)
-    if (LED_BUILTIN != gpioInUse) {
+    if (ledBuiltin != GPIO_DISABLED && LED_BUILTIN != gpioInUse) {
       pinMode(LED_BUILTIN, OUTPUT);
     }
 #endif
@@ -403,7 +407,7 @@ void mainLoop() {
           }
 #endif
 
-          if ((usbBrightness != brightness) && !ldrEnabled) {
+          if ((usbBrightness != brightness) && !Globals::isLdrEnabled()) {
             brightness = usbBrightness;
           }
 
@@ -424,7 +428,7 @@ void mainLoop() {
             ldrMin = ldrMn;
             ledManager.setLdr(ldrEn == 1, ldrTo == 1, ldrInt, ldrMn);
             delay(DELAY_500);
-            if (ldrAction == 2) {
+            if (ldrAction == 2 && ldrPin != GPIO_DISABLED) {
               ldrDivider = ldrValue;
               ledManager.setLdr(ldrDivider);
             }
@@ -713,7 +717,7 @@ void mainLoop() {
 
 // Helper used by serial stream processing
 void setSerialPixel(int j, byte r, byte g, byte b) {
-  if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
+  if (ldrInterval != 0 && Globals::isLdrEnabled() && ldrReading && ldrTurnOff) {
     r = g = b = 0;
   }
   if (ledManager.fireflyEffectInUse <= 6) {
@@ -723,6 +727,8 @@ void setSerialPixel(int j, byte r, byte g, byte b) {
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
 void debounceSmartButton() {
+  if (sbPin == GPIO_DISABLED) return;
+
   int reading = digitalRead(sbPin);
 
   if (reading != lastButtonState) {
@@ -769,7 +775,10 @@ void debounceSmartButton() {
  */
 void manageLdr() {
   // if LDR disabled, nothing to do
-  if (!ldrEnabled) return;
+  if (!Globals::isLdrEnabled()) {
+    ldrReading = false;
+    return;
+  }
 
   // Ensure currentMillisMainLoop is up-to-date when called from elsewhere
   // (loop() already updates it; if invoked from a task, consider setting it here too)

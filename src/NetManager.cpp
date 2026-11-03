@@ -279,7 +279,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
 
   ptr = strtok_r(nullptr, delimiters, &saveptr);
   uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
-  if (brightness != audioBrightness && !ldrEnabled) {
+  if (brightness != audioBrightness && !Globals::isLdrEnabled()) {
     brightness = audioBrightness;
   }
 
@@ -397,7 +397,7 @@ void NetManager::fromUDPStreamToStrip(char (&payload)[UDP_MAX_BUFFER_SIZE]) {
       if (physIndex >= ledManager.dynamicLedNum) {
         break;
       }
-      if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
+      if (ldrInterval != 0 && Globals::isLdrEnabled() && ldrReading && ldrTurnOff) {
         ledManager.setPixelColor(physIndex, 0, 0, 0);
       }
       else {
@@ -550,7 +550,7 @@ void NetManager::listenOnHttpGet() {
     }
     jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"framerate\":\"%.2f\",\"autosave\":\"%s\"",
                maxFramerate(), autoSave ? "1" : "0");
-    if (ldrEnabled) {
+    if (Globals::isLdrEnabled()) {
       jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"ldr\":\"%d\"", (int) Globals::ldrPercent());
     }
 #if defined(ARDUINO_ARCH_ESP32)
@@ -884,7 +884,7 @@ void NetManager::fromMqttStreamToStrip(char* payload) {
   }
   uint8_t audioBrightness = strtoul(ptr, &ptrAtoi, 10);
   ptr = strtok_r(nullptr, delimiters, &saveptr);
-  if (brightness != audioBrightness && !ldrEnabled) {
+  if (brightness != audioBrightness && !Globals::isLdrEnabled()) {
     brightness = audioBrightness;
   }
   if (numLedFromLuciferin == 0) {
@@ -898,7 +898,7 @@ void NetManager::fromMqttStreamToStrip(char* payload) {
     // Bound the writes to the declared LED count; setPixelColor also guards its index
     while (ptr != nullptr && index < numLedFromLuciferin) {
       myLeds = strtoul(ptr, &ptrAtoi, 10);
-      if (ldrInterval != 0 && ldrEnabled && ldrReading && ldrTurnOff) {
+      if (ldrInterval != 0 && Globals::isLdrEnabled() && ldrReading && ldrTurnOff) {
         ledManager.setPixelColor(index, 0, 0, 0);
       }
       else {
@@ -1277,7 +1277,7 @@ void NetManager::sendStatus() {
                deviceName.c_str(), (ledManager.stateOn) ? ON_CMD.c_str() : OFF_CMD.c_str(),
                (int) brightness, MAC.c_str(), (int) ledManager.dynamicLedNum,
                maxFramerate(), (int) BootstrapManager::getWifiQuality());
-    if (ldrEnabled) {
+    if (Globals::isLdrEnabled()) {
       jsonAppend(jsonStatus, sizeof(jsonStatus), len, ",\"ldr\":\"%d\"", (int) Globals::ldrPercent());
     }
     jsonAppend(jsonStatus, sizeof(jsonStatus), len, "}");
@@ -1316,7 +1316,7 @@ void NetManager::sendStatus() {
     root[F("MAC")] = MAC;
     root[F("ver")] = VERSION;
     root[F("framerate")] = maxFramerate(); // (2.13)
-    if (ldrEnabled) {
+    if (Globals::isLdrEnabled()) {
       root[F("ldr")] = Globals::ldrPercent();
     }
     root[F("relayPin")] = relayPin;
@@ -1508,7 +1508,8 @@ bool NetManager::processLDR() {
     ldrTurnOff = ldrTurnOffMqtt == "true";
     ldrInterval = ldrIntervalMqtt.toInt();
     ldrMin = ldrMinMqtt.toInt();
-    if (ldrActionMqtt.toInt() == 2) {
+    if (ldrActionMqtt.toInt() == 2 && ldrPin != GPIO_DISABLED &&
+        (lPin.isEmpty() || lPin.toInt() != GPIO_DISABLED)) {
       ldrDivider = ldrValue > 0 ? ldrValue : 1;
       ledManager.setLdr(ldrDivider);
       delay(DELAY_500);

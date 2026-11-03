@@ -961,7 +961,7 @@ void LedManager::setWhiteTemp(int wt) {
  */
 void LedManager::manageBuiltInLed(uint8_t r, uint8_t g, uint8_t b) {
 #if !defined(false)
-  if (ledBuiltin != -1) {
+  if (ledBuiltin != GPIO_DISABLED) {
     if (ledBuiltin != gpioInUse) {
 #if defined(ARDUINO_ARCH_ESP32)
       int values[4];
