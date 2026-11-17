@@ -1050,11 +1050,7 @@ bool NetManager::processFirmwareConfigWithReboot() {
   }
 #endif
   if (!bootstrapManager.jsonDoc[F("of")].isNull()) {
-#if defined(ARDUINO_ARCH_ESP32)
-    ESP.restart();
-#elif defined(ESP8266)
-    EspClass::restart();
-#endif
+    Helpers::restart();
   }
   else {
     Helpers::safeRestart();

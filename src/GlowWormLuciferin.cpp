@@ -20,6 +20,9 @@
 
 #include <FS.h> // this needs to be first, or it all crashes and burns...
 #include "GlowWormLuciferin.h"
+#if defined(ARDUINO_ARCH_ESP32)
+#include <esp_system.h>
+#endif
 
 /**
  * Setup function
@@ -70,6 +73,9 @@ void setup() {
 
   Serial.print(F("BAUDRATE IN USE="));
   Serial.println(baudRateToUse);
+#if defined(ARDUINO_ARCH_ESP32)
+  Serial.printf("ESP reset reason: %d\n", static_cast<int>(esp_reset_reason()));
+#endif
 
 #ifdef TARGET_GLOWWORMLUCIFERINFULL
   if (sbPin != GPIO_DISABLED) {
