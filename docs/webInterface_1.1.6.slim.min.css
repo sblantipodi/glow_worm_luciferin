@@ -43,6 +43,12 @@ button {
     position: relative;
 }
 
+@media (max-width: 767.98px) {
+    #picker {
+        margin-top: 4vw;
+    }
+}
+
 /* A few tiny embers rise from the wheel's rim, inheriting its live glow color. */
 #picker .picker-embers {
     position: absolute;
