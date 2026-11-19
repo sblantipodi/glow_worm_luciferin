@@ -65,6 +65,15 @@
           "offset": 0
         }
       ]
+    },
+    {
+      "chipFamily": "ESP32-S31",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_S31_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
     }
   ],
   "funding_url": "https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A"

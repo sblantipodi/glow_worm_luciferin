@@ -89,6 +89,13 @@ uint8_t relayPin = 13;
 uint8_t sbPin = 0;
 uint8_t ldrPin = 2;
 uint8_t ledBuiltin = 47;
+#elif CONFIG_IDF_TARGET_ESP32S31
+// Temporary defaults copied from the ESP32-S3.
+uint8_t gpioInUse = 16;
+uint8_t relayPin = 13;
+uint8_t sbPin = 0;
+uint8_t ldrPin = 2;
+uint8_t ledBuiltin = 47;
 #elif CONFIG_IDF_TARGET_ESP32C6
 uint8_t gpioInUse = 5;
 uint8_t relayPin = 15;
@@ -294,6 +301,8 @@ const char *Globals::boardName() {
   return "ESP32_S2";
 #elif CONFIG_IDF_TARGET_ESP32S3
   return "ESP32_S3";
+#elif CONFIG_IDF_TARGET_ESP32S31
+  return "ESP32_S31";
 #elif CONFIG_IDF_TARGET_ESP32
   return "ESP32";
 #else
