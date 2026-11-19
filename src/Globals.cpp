@@ -91,11 +91,11 @@ uint8_t ldrPin = 2;
 uint8_t ledBuiltin = 47;
 #elif CONFIG_IDF_TARGET_ESP32S31
 // Temporary defaults copied from the ESP32-S3.
-uint8_t gpioInUse = 16;
-uint8_t relayPin = 13;
-uint8_t sbPin = 0;
-uint8_t ldrPin = 2;
-uint8_t ledBuiltin = 47;
+uint8_t gpioInUse = 0;
+uint8_t relayPin = 50;
+uint8_t sbPin = 1;
+uint8_t ldrPin = 49;
+uint8_t ledBuiltin = 60;
 #elif CONFIG_IDF_TARGET_ESP32C6
 uint8_t gpioInUse = 5;
 uint8_t relayPin = 15;
