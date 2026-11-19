@@ -1,6 +1,6 @@
 {
   "name": "Glow Worm Luciferin FULL",
-  "version": "5.99.0",
+  "version": "6.0.14",
   "new_install_improv_wait_time": 20,
   "builds": [
     {
@@ -62,6 +62,15 @@
       "parts": [
         {
           "path": "GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-S31",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_S31_firmware-factory.bin",
           "offset": 0
         }
       ]
