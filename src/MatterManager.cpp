@@ -196,9 +196,8 @@ void requestPairingReset() {
 }
 
 bool startMatter() {
-  // Keep BLE commissioning enabled for discovery by phone commissioners.
-  // Arduino Matter releases its BLE memory after successful commissioning.
-  if (!Matter.selectNetwork(MATTER_NETWORK_WIFI) || !configurePairing()) {
+  // Commission over the already-connected Wi-Fi network to keep BLE off during streaming.
+  if (!Matter.selectNetwork(MATTER_NETWORK_WIFI, true) || !configurePairing()) {
     return false;
   }
   Matter.setVendorName(AUTHOR);
