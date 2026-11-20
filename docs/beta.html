@@ -19,35 +19,34 @@
     <style>
         :root {
             color-scheme: light dark;
-            --page: #f7f6f3;
+            --page: #f8f8f8;
             --surface: #fff;
-            --surface-muted: #f7f5f1;
-            --text: #24201e;
-            --muted: #655d58;
-            --line: #ddd6ce;
-            --accent: #934019;
-            --accent-bg: #fff4e9;
-            --accent-line: #ebc4a3;
-            --button: #ffae72;
-            --button-hover: #ffc397;
-            --button-text: #28150c;
-            --md-sys-color-primary: var(--accent);
-            --mdc-theme-primary: var(--accent);
+            --surface-muted: #f1f3f5;
+            --surface-featured: #edf1f5;
+            --text: #212529;
+            --muted: #565e64;
+            --line: #dee2e6;
+            --accent-on-light: #c04300;
+            --accent: var(--accent-on-light);
+            --button: #ffa500;
+            --button-hover: #ff8c00;
+            --button-text: #252b32;
             --esp-tools-button-color: var(--button);
             --esp-tools-button-text-color: var(--button-text);
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --page: #151412;
-                --surface: #201e1b;
-                --surface-muted: #292622;
-                --text: #f7f2ec;
-                --muted: #c4b9af;
-                --line: #454038;
-                --accent: #ffc196;
-                --accent-bg: #30231c;
-                --accent-line: #72513a;
+                --page: #252b32;
+                --surface: #303840;
+                --surface-muted: #39434c;
+                --surface-featured: #343f4a;
+                --text: #edf0f2;
+                --muted: #b8c2ca;
+                --line: #53606a;
+                --accent: var(--button);
+                --button: #f59a20;
+                --button-hover: #ffae42;
             }
         }
 
@@ -166,11 +165,11 @@
             min-height: 19rem;
             overflow: hidden;
             background:
-                radial-gradient(ellipse at 90% 106%, #3e292e 0, transparent 65%),
-                #211b19;
-            border: 1px solid #3d302b;
+                radial-gradient(ellipse at 90% 106%, #303840 0, transparent 65%),
+                #20262d;
+            border: 1px solid #53606a;
             border-radius: 1.35rem;
-            color: #fff5ec;
+            color: #edf0f2;
         }
 
         .hero-copy {
@@ -182,7 +181,7 @@
         }
 
         .eyebrow {
-            color: #ffc196;
+            color: var(--button);
             font-size: 0.76rem;
             font-weight: 750;
             letter-spacing: 0.13em;
@@ -199,7 +198,7 @@
 
         .hero-copy > p:last-child {
             max-width: 35ch;
-            color: #e3cec1;
+            color: #b8c2ca;
             font-size: clamp(0.95rem, 2vw, 1.1rem);
         }
 
@@ -260,6 +259,43 @@
             font: inherit;
         }
 
+        .release-control select:hover {
+            border-color: var(--accent);
+        }
+
+        @supports (appearance: base-select) {
+            .release-control select,
+            .release-control select::picker(select) {
+                appearance: base-select;
+            }
+
+            .release-control select::picker-icon {
+                margin-inline-start: 0.5rem;
+                color: var(--accent);
+            }
+
+            .release-control select::picker(select) {
+                border: 1px solid var(--line);
+                border-radius: 0.6rem;
+                background: var(--surface);
+                color: var(--text);
+            }
+
+            .release-control option {
+                padding: 0.4rem 0.6rem;
+            }
+
+            .release-control option:checked {
+                background: var(--surface-muted);
+                color: var(--accent);
+            }
+
+            .release-control option:is(:hover, :focus-visible) {
+                background: var(--button);
+                color: var(--button-text);
+            }
+        }
+
         .install-options {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -278,8 +314,8 @@
         }
 
         .install-card--full {
-            border-color: var(--accent-line);
-            background: var(--accent-bg);
+            border-inline-start: 3px solid var(--button);
+            background: var(--surface-featured);
         }
 
         .install-card h3 {
@@ -299,6 +335,14 @@
 
         esp-web-install-button:not(:defined) > [slot] {
             display: none;
+        }
+
+        ewt-install-dialog,
+        ewt-no-port-picked-dialog {
+            --label-text-color: var(--accent-on-light);
+            --mdc-theme-primary: var(--accent-on-light);
+            --md-sys-color-primary: var(--accent-on-light);
+            --md-sys-color-secondary-container: #ffe5bf;
         }
 
         .button {
