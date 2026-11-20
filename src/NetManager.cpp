@@ -19,6 +19,7 @@
 */
 
 #include "NetManager.h"
+#include "MatterManager.h"
 #include <cmath>
 #include <stdarg.h>
 #include <stdio.h>
@@ -633,6 +634,9 @@ void NetManager::listenOnHttpGet() {
   server.on(F("/setip"), [this]() {
     httpCallback(processSetIp);
   });
+#ifdef GLOW_WORM_MATTER
+  MatterManager::registerHttpHandlers();
+#endif
   server.onNotFound([]() {
     server.send(404, F("text/plain"), ("Glow Worm Luciferin: Uri not found ") + server.uri());
   });
@@ -711,7 +715,11 @@ void NetManager::manageAPSetting(bool isSettingRoot) {
       }
     }
 #endif
+#ifdef GLOW_WORM_MATTER
+    prefsData += F("\",\"matter\":true}");
+#else
     prefsData += F("\"}");
+#endif
     server.send(200, F("application/json"), prefsData);
     startUDP();
   });
@@ -738,13 +746,17 @@ void NetManager::setColor() {
  * Set LEDs state, used by HTTP and MQTT requests
  */
 void NetManager::setLeds() {
-  String requestedEffect = bootstrapManager.jsonDoc[F("effect")];
-  ffeffect = bootstrapManager.jsonDoc[F("effect")].as<String>().substring(0, FFEFFECT_MAX_LEN);
+  setLeds(bootstrapManager.jsonDoc);
+}
+
+void NetManager::setLeds(JsonDocument &command) {
+  String requestedEffect = command[F("effect")];
+  ffeffect = command[F("effect")].as<String>().substring(0, FFEFFECT_MAX_LEN);
   if (requestedEffect == F("GlowWormWifi") || requestedEffect.indexOf("Music") > -1 || requestedEffect.indexOf("Bias") > -1) {
-    bootstrapManager.jsonDoc[F("effect")].set(F("GlowWormWifi"));
+    command[F("effect")].set(F("GlowWormWifi"));
     requestedEffect = "GlowWormWifi";
   }
-  processJson();
+  processJson(command);
   if (mqttIP.length() > 0) {
     if (requestedEffect == F("GlowWormWifi")) {
       BootstrapManager::publish(netManager.effectToFw.c_str(), ffeffect.c_str(), false);
@@ -1184,12 +1196,16 @@ bool NetManager::processUnSubscribeStream() {
  * @return true if message is correctly processed
  */
 bool NetManager::processJson() {
+  return processJson(bootstrapManager.jsonDoc);
+}
+
+bool NetManager::processJson(JsonDocument &command) {
   ledManager.lastLedUpdate = millis();
-  boolean skipMacCheck = ((bootstrapManager.jsonDoc["MAC"].is<JsonVariant>() && bootstrapManager.jsonDoc["MAC"] == MAC)
-    || bootstrapManager.jsonDoc["allInstances"].is<JsonVariant>());
-  if (!bootstrapManager.jsonDoc["MAC"].is<JsonVariant>() || skipMacCheck) {
-    if (bootstrapManager.jsonDoc["state"].is<JsonVariant>()) {
-      String state = bootstrapManager.jsonDoc["state"];
+  boolean skipMacCheck = ((command["MAC"].is<JsonVariant>() && command["MAC"] == MAC)
+    || command["allInstances"].is<JsonVariant>());
+  if (!command["MAC"].is<JsonVariant>() || skipMacCheck) {
+    if (command["state"].is<JsonVariant>()) {
+      String state = command["state"];
       if (state == ON_CMD) {
         Globals::turnOnRelay();
         ledManager.stateOn = true;
@@ -1198,30 +1214,30 @@ bool NetManager::processJson() {
         ledManager.stateOn = false;
       }
     }
-    if (bootstrapManager.jsonDoc["color"].is<JsonVariant>()) {
-      ledManager.red = bootstrapManager.jsonDoc["color"]["r"];
-      ledManager.green = bootstrapManager.jsonDoc["color"]["g"];
-      ledManager.blue = bootstrapManager.jsonDoc["color"]["b"];
+    if (command["color"].is<JsonVariant>()) {
+      ledManager.red = command["color"]["r"];
+      ledManager.green = command["color"]["g"];
+      ledManager.blue = command["color"]["b"];
     }
-    if (bootstrapManager.jsonDoc["brightness"].is<JsonVariant>()) {
-      brightness = bootstrapManager.jsonDoc["brightness"];
+    if (command["brightness"].is<JsonVariant>()) {
+      brightness = command["brightness"];
     }
     if (skipMacCheck) {
-      if (bootstrapManager.jsonDoc["whitetemp"].is<JsonVariant>()) {
-        uint8_t wt = bootstrapManager.jsonDoc["whitetemp"];
+      if (command["whitetemp"].is<JsonVariant>()) {
+        uint8_t wt = command["whitetemp"];
         if (wt != 0 && whiteTempInUse != wt) {
           LedManager::setWhiteTemp(wt);
         }
       }
     }
-    if (bootstrapManager.jsonDoc["ffeffect"].is<JsonVariant>()) {
-      ffeffect = bootstrapManager.jsonDoc["ffeffect"].as<String>().substring(0, FFEFFECT_MAX_LEN);
+    if (command["ffeffect"].is<JsonVariant>()) {
+      ffeffect = command["ffeffect"].as<String>().substring(0, FFEFFECT_MAX_LEN);
     }
-    boolean effectPresent = bootstrapManager.jsonDoc["effect"].is<JsonVariant>();
+    boolean effectPresent = command["effect"].is<JsonVariant>();
     String requestedEffect;
     if (effectPresent) {
       boolean effectIsDifferent = (effect != Effect::GlowWorm && effect != Effect::GlowWormWifi);
-      requestedEffect = bootstrapManager.jsonDoc["effect"].as<String>();
+      requestedEffect = command["effect"].as<String>();
       effect = Globals::stringToEffect(requestedEffect);
       if (effect == Effect::solid) {
         breakLoop = true;

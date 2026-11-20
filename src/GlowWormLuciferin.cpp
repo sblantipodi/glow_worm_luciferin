@@ -20,6 +20,7 @@
 
 #include <FS.h> // this needs to be first, or it all crashes and burns...
 #include "GlowWormLuciferin.h"
+#include "MatterManager.h"
 #if defined(ARDUINO_ARCH_ESP32)
 #include <esp_system.h>
 #endif
@@ -815,7 +816,22 @@ void manageLdr() {
     yield();
 #endif
     // Read ADC
+#if CONFIG_IDF_TARGET_ESP32S31
+    // analogRead() is unsupported on S31; its raw result is a comparator vector.
+    // The calibrated API also handles the P/N side of the selected channel.
+    if (ldrPin < 42 || ldrPin > 57) {
+      log_e("Invalid LDR ADC pin: GPIO%u", ldrPin);
+      ldrReading = false;
+      return;
+    }
+    constexpr int adcFullScaleMv = 2000;
+    int millivolts = analogReadMilliVolts(ldrPin);
+    millivolts = constrain(millivolts, 0, adcFullScaleMv);
+    // Keep the existing LDR percentage and stored calibration on a 12-bit scale.
+    int raw = (millivolts * (LDR_DIVIDER - 1)) / adcFullScaleMv;
+#else
     int raw = analogRead(ldrPin);
+#endif
 #if defined(ESP8266)
     yield();
 #endif
@@ -899,6 +915,10 @@ void loop() {
   }
 
   ledManager.updateTransition();
+
+#ifdef GLOW_WORM_MATTER
+  MatterManager::loop();
+#endif
 
   Helpers::safeRestartGuard();
 }

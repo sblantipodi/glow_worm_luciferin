@@ -196,11 +196,16 @@ public:
 
     static void setLeds();
 
+    static void setLeds(JsonDocument &command);
+
     static void setColor();
 
     void manageAPSetting(bool isSettingRoot);
 
     static void parseRleGroupMap(char* saveptr);
+
+private:
+    static bool processJson(JsonDocument &command);
 
 };
 
