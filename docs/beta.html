@@ -19,6 +19,11 @@
     <style>
         :root {
             color-scheme: light dark;
+            --slate-surface: #303840;
+            --slate-raised: #39434c;
+            --slate-text: #edf0f2;
+            --slate-muted: #b8c2ca;
+            --firefly-orange: #f59a20;
             --page: #f8f8f8;
             --surface: #fff;
             --surface-muted: #f1f3f5;
@@ -26,8 +31,8 @@
             --text: #212529;
             --muted: #565e64;
             --line: #dee2e6;
-            --accent-on-light: #c04300;
-            --accent: var(--accent-on-light);
+            --accent: #dd6200;
+            --accent-text: var(--text);
             --button: #ffa500;
             --button-hover: #ff8c00;
             --button-text: #252b32;
@@ -38,14 +43,15 @@
         @media (prefers-color-scheme: dark) {
             :root {
                 --page: #252b32;
-                --surface: #303840;
-                --surface-muted: #39434c;
+                --surface: var(--slate-surface);
+                --surface-muted: var(--slate-raised);
                 --surface-featured: #343f4a;
-                --text: #edf0f2;
-                --muted: #b8c2ca;
+                --text: var(--slate-text);
+                --muted: var(--slate-muted);
                 --line: #53606a;
                 --accent: var(--button);
-                --button: #f59a20;
+                --accent-text: var(--accent);
+                --button: var(--firefly-orange);
                 --button-hover: #ffae42;
             }
         }
@@ -72,7 +78,8 @@
         }
 
         a {
-            color: var(--accent);
+            color: var(--accent-text);
+            text-decoration-color: var(--accent);
             text-underline-offset: 0.23em;
         }
 
@@ -129,11 +136,11 @@
         }
 
         .brand:hover {
-            color: var(--accent);
+            color: var(--accent-text);
         }
 
         .brand:hover span {
-            text-decoration: underline;
+            text-decoration: underline var(--accent);
         }
 
         .brand img {
@@ -148,8 +155,8 @@
         }
 
         .links a:hover {
-            color: var(--accent);
-            text-decoration: underline;
+            color: var(--accent-text);
+            text-decoration: underline var(--accent);
         }
 
         main.shell {
@@ -287,7 +294,7 @@
 
             .release-control option:checked {
                 background: var(--surface-muted);
-                color: var(--accent);
+                color: var(--accent-text);
             }
 
             .release-control option:is(:hover, :focus-visible) {
@@ -337,12 +344,24 @@
             display: none;
         }
 
+        /* The slate surface keeps Firefly's orange labels legible in either page theme. */
         ewt-install-dialog,
         ewt-no-port-picked-dialog {
-            --label-text-color: var(--accent-on-light);
-            --mdc-theme-primary: var(--accent-on-light);
-            --md-sys-color-primary: var(--accent-on-light);
-            --md-sys-color-secondary-container: #ffe5bf;
+            color-scheme: dark;
+            --md-sys-color-primary: var(--firefly-orange);
+            --md-sys-color-on-primary: var(--button-text);
+            --md-sys-color-surface: var(--slate-surface);
+            --md-sys-color-surface-container: var(--slate-surface);
+            --md-sys-color-surface-container-high: var(--slate-surface);
+            --md-sys-color-surface-container-highest: var(--slate-raised);
+            --md-sys-color-on-surface: var(--slate-text);
+            --md-sys-color-on-surface-variant: var(--slate-muted);
+            --md-sys-color-outline-variant: var(--slate-muted);
+            --md-sys-color-secondary-container: var(--slate-raised);
+            --md-sys-color-on-secondary-container: var(--slate-text);
+            --md-sys-color-error: #ff9389;
+            --danger-color: var(--md-sys-color-error);
+            --text-color: var(--slate-muted);
         }
 
         .button {
@@ -392,7 +411,9 @@
 
         .release-note {
             margin-block-start: 0.55rem;
-            color: var(--accent);
+            padding-inline-start: 0.55rem;
+            border-inline-start: 2px solid var(--button);
+            color: var(--accent-text);
             font-size: 0.9rem;
         }
 
@@ -411,7 +432,8 @@
         }
 
         .support summary:hover {
-            color: var(--accent);
+            color: var(--accent-text);
+            text-decoration: underline var(--accent);
         }
 
         .support details > :last-child {
