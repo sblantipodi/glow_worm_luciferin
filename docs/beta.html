@@ -144,7 +144,7 @@
         }
 
         .brand img {
-            border-radius: 0.5rem;
+            border-radius: 0.25rem;
         }
 
         .links a {
@@ -172,10 +172,10 @@
             min-height: 19rem;
             overflow: hidden;
             background:
-                radial-gradient(ellipse at 90% 106%, #303840 0, transparent 65%),
-                #20262d;
+                    radial-gradient(ellipse at 90% 106%, #303840 0, transparent 65%),
+                    #20262d;
             border: 1px solid #53606a;
-            border-radius: 1.35rem;
+            border-radius: 0.5rem;
             color: #edf0f2;
         }
 
@@ -214,15 +214,15 @@
             width: 100%;
             height: auto;
             mask-image:
-                linear-gradient(to right, transparent, #000 18%, #000 82%, transparent),
-                linear-gradient(to bottom, transparent, #000 16%, #000 88%, transparent);
+                    linear-gradient(to right, transparent, #000 18%, #000 82%, transparent),
+                    linear-gradient(to bottom, transparent, #000 16%, #000 88%, transparent);
             mask-composite: intersect;
         }
 
         .panel {
             padding: clamp(1rem, 3.5vw, 1.8rem);
             border: 1px solid var(--line);
-            border-radius: 1.25rem;
+            border-radius: 0.5rem;
             background: var(--surface);
         }
 
@@ -260,7 +260,7 @@
             min-height: 2.65rem;
             padding: 0.35rem 0.6rem;
             border: 1px solid var(--line);
-            border-radius: 0.6rem;
+            border-radius: 0.3rem;
             background: var(--surface-muted);
             color: var(--text);
             font: inherit;
@@ -283,7 +283,7 @@
 
             .release-control select::picker(select) {
                 border: 1px solid var(--line);
-                border-radius: 0.6rem;
+                border-radius: 0.3rem;
                 background: var(--surface);
                 color: var(--text);
             }
@@ -316,7 +316,7 @@
             gap: 0.4rem;
             padding: clamp(0.95rem, 2.5vw, 1.3rem);
             border: 1px solid var(--line);
-            border-radius: 0.9rem;
+            border-radius: 0.375rem;
             background: var(--surface-muted);
         }
 
@@ -371,7 +371,7 @@
             min-height: 2.75rem;
             padding: 0.5rem 0.9rem;
             border: 1px solid var(--line);
-            border-radius: 0.65rem;
+            border-radius: 0.3rem;
             background: var(--surface);
             color: var(--text);
             font: inherit;
@@ -454,7 +454,7 @@
             margin-block: 0.35rem 0.7rem;
             padding: 0.55rem 0.7rem;
             overflow-x: auto;
-            border-radius: 0.45rem;
+            border-radius: 0.25rem;
             background: var(--surface-muted);
         }
 
@@ -787,7 +787,58 @@
         }
     };
 
-    import('https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module')
+    // Temporary workaround for ESP Web Tools 10.5.2 until esptool-js handles the S31 watchdogs.
+    // PR by Davide Perini here -> https://github.com/espressif/esptool-js/pull/282
+    let esploader;
+    Object.defineProperty(window, 'esploader', {
+        configurable: true,
+        enumerable: true,
+        get() {
+            return esploader;
+        },
+        set(loader) {
+            if (loader === esploader) {
+                return;
+            }
+            esploader = loader;
+            if (typeof loader?.detectChip !== 'function') {
+                return;
+            }
+
+            const detectChip = loader.detectChip.bind(loader);
+            loader.detectChip = async (...args) => {
+                const result = await detectChip(...args);
+                const { chip, transport } = loader;
+                if (chip.CHIP_NAME !== 'ESP32-S31' || transport.getVid() !== 0x303a ||
+                    transport.getPid() !== 0x1001 || loader.secureDownloadMode || loader.syncStubDetected) {
+                    return result;
+                }
+
+                const postConnect = chip.postConnect.bind(chip);
+                chip.postConnect = async (esp) => {
+                    await postConnect(esp);
+                    const base = 0x20801000;
+                    const key = 0x50d83aa1;
+
+                    // Disable the RTC watchdog.
+                    await esp.writeReg(base + 0x18, key);
+                    await esp.writeReg(base, 0);
+                    await esp.writeReg(base + 0x18, 0);
+
+                    // Enable automatic feeding of the Super Watchdog.
+                    await esp.writeReg(base + 0x20, key);
+                    const swd = await esp.readReg(base + 0x1c);
+                    await esp.writeReg(base + 0x1c, (swd | (1 << 18)) >>> 0);
+                    await esp.writeReg(base + 0x20, 0);
+
+                    console.info('S31: watchdogs prepared for USB Serial/JTAG flashing');
+                };
+                return result;
+            };
+        }
+    });
+
+    import('https://unpkg.com/esp-web-tools@10.5.2/dist/web/install-button.js?module')
         .then(() => {
             installerStatus.hidden = true;
         })
