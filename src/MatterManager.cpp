@@ -25,8 +25,12 @@
 #include <Matter.h>
 #include <Preferences.h>
 #include <WiFi.h>
+#include <app/server/Server.h>
 #include <esp_random.h>
 #include <platform/PlatformManager.h>
+#include <qrcode.h>
+#include <setup_payload/OnboardingCodesUtil.h>
+#include <setup_payload/QRCodeSetupPayloadGenerator.h>
 #include <setup_payload/SetupPayload.h>
 
 #include "Globals.h"
@@ -128,6 +132,25 @@ bool authorizePairingReset() {
   return true;
 }
 
+bool pairingWindowOpen() {
+  return chip::Server::GetInstance().GetCommissioningWindowManager().IsCommissioningWindowOpen();
+}
+
+void writeQrRows(esp_qrcode_handle_t qr, void *context) {
+  auto &response = *static_cast<JsonDocument *>(context);
+  JsonArray rows = response["qrRows"].to<JsonArray>();
+  const int size = esp_qrcode_get_size(qr);
+  String row;
+  row.reserve(size);
+  for (int y = 0; y < size; ++y) {
+    row.clear();
+    for (int x = 0; x < size; ++x) {
+      row += esp_qrcode_get_module(qr, x, y) ? '1' : '0';
+    }
+    rows.add(row);
+  }
+}
+
 void sendPairingCode() {
   server.sendHeader(F("Cache-Control"), F("no-store"));
   if (pairingReset != PairingReset::idle) {
@@ -140,17 +163,32 @@ void sendPairingCode() {
     return;
   }
   const bool paired = Matter.isDeviceCommissioned();
-  const String code = paired ? String() : Matter.getManualPairingCode();
+  const bool open = !paired && pairingWindowOpen();
+  const String code = open ? Matter.getManualPairingCode() : String();
+  char qrText[chip::QRCodeBasicSetupPayloadGenerator::kMaxQRCodeBase38RepresentationLength + 1]{};
+  chip::MutableCharSpan qr(qrText);
+  const chip::RendezvousInformationFlags discovery(chip::RendezvousInformationFlag::kOnNetwork);
+  const bool hasQr = open && GetQRCode(qr, discovery) == CHIP_NO_ERROR;
   platform.UnlockChipStack();
 
   if (paired) {
     server.send(200, F("application/json"), F("{\"status\":\"paired\"}"));
-  } else if (code.isEmpty()) {
-    server.send(503, F("application/json"), F("{\"status\":\"unavailable\"}"));
+  } else if (!open) {
+    server.send(409, F("application/json"), F("{\"status\":\"closed\"}"));
   } else {
     JsonDocument response;
     response["status"] = "ready";
     response["pairingCode"] = code;
+    if (hasQr) {
+      esp_qrcode_config_t config = ESP_QRCODE_CONFIG_DEFAULT();
+      config.display_func_with_cb = writeQrRows;
+      config.user_data = &response;
+      esp_qrcode_generate(&config, qrText);
+    }
+    if (code.isEmpty() && response["qrRows"].isNull()) {
+      server.send(503, F("application/json"), F("{\"status\":\"unavailable\"}"));
+      return;
+    }
     String payload;
     serializeJson(response, payload);
     server.send(200, F("application/json"), payload);
@@ -210,12 +248,6 @@ bool startMatter() {
                    DAYLIGHT_WHITE_COLOR_TEMPERATURE.ctMireds)) {
     return false;
   }
-  Matter.begin();
-  if (!Matter.isStackStarted()) {
-    return false;
-  }
-
-  esp_matter::lock::ScopedChipStackLock lock(portMAX_DELAY);
   light.onChangeOnOff([](bool on) {
     if (!publishing) {
       pending.power = true;
@@ -245,7 +277,8 @@ bool startMatter() {
     }
     return true;
   });
-  return true;
+  Matter.begin();
+  return Matter.isStackStarted();
 }
 
 void publishLight(const LightState &state) {
@@ -358,7 +391,7 @@ void MatterManager::loop() {
     publishLight(state);
   }
   String pairingCode;
-  if (!Serial || Matter.isDeviceCommissioned()) {
+  if (!Serial || Matter.isDeviceCommissioned() || !pairingWindowOpen()) {
     pairingCodePrinted = false;
   } else if (!pairingCodePrinted) {
     pairingCode = Matter.getManualPairingCode();

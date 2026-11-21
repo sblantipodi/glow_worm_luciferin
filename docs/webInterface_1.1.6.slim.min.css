@@ -222,6 +222,19 @@ button.btn.btn-orange:hover {
     color: white;
     font-weight: bold;
 }
+.btn-outline-orange {
+    color: var(--theme-orange, #a84a00);
+    border-color: currentColor;
+}
+.btn-outline-orange:hover,
+.btn-outline-orange:active {
+    color: #212529;
+    background-color: var(--theme-orange, orange);
+    border-color: var(--theme-orange, orange);
+}
+.btn-outline-orange:focus {
+    box-shadow: 0 0 0 0.25rem rgba(245, 154, 32, 0.35);
+}
 footer.ldrfoot {
     margin: 0px;
 }
