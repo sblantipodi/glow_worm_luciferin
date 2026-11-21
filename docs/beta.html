@@ -203,6 +203,44 @@
             line-height: 0.98;
         }
 
+        .title-line {
+            position: relative;
+            display: inline-block;
+            text-shadow: 0 0 0.09em #ffc77a99, 0 0 0.32em #f59a2055;
+        }
+
+        .title-ember {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            width: var(--ember-size);
+            height: var(--ember-size);
+            background: #ffcf89;
+            box-shadow: 0 0 4px var(--firefly-orange);
+            opacity: 0;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            body {
+                animation: page-fade-in 1.5s ease;
+            }
+
+            .title-ember {
+                animation: title-ember-rise linear infinite;
+            }
+        }
+
+        @keyframes page-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes title-ember-rise {
+            0% { opacity: 0; transform: translate(0, 0); }
+            12% { opacity: 0.9; }
+            60%, 100% { opacity: 0; transform: translate(var(--drift), var(--rise)) scale(0.25); }
+        }
+
         .hero-copy > p:last-child {
             max-width: 45ch;
             color: #b8c2ca;
@@ -590,7 +628,7 @@
     <section class="hero" aria-labelledby="page-title">
         <div class="hero-copy">
             <p class="eyebrow">Firmware Web Installer</p>
-            <h1 id="page-title">Glow Worm<br>Luciferin</h1>
+            <h1 id="page-title"><span class="title-line">Glow Worm</span><br><span class="title-line">Luciferin</span></h1>
             <p>Real time LED control firmware designed to work with Firefly Luciferin to deliver a fast, responsive Ambient Lighting System.</p>
         </div>
         <img class="hero-art" src="static/luciferin-bias-lighting.webp" width="1655" height="950"
@@ -714,6 +752,28 @@
         ? navigator.userAgentData.platform === 'Windows'
         : navigator.userAgent.toLowerCase().includes('windows');
     document.getElementById('linux-block').hidden = isWindows;
+
+    function positionTitleEmber(ember) {
+        ember.style.left = (2 + Math.random() * 96) + '%';
+        ember.style.top = (22 + Math.random() * 50) + '%';
+        ember.style.setProperty('--ember-size', (1 + Math.random() ** 2 * 3) + 'px');
+        ember.style.setProperty('--drift', (Math.random() - 0.5) * 0.5 + 'em');
+        ember.style.setProperty('--rise', -(0.35 + Math.random() * 0.4) + 'em');
+    }
+
+    document.querySelectorAll('.title-line').forEach(line => {
+        for (let i = 0; i < 54; i++) {
+            const ember = document.createElement('span');
+            ember.className = 'title-ember';
+            ember.setAttribute('aria-hidden', 'true');
+            const duration = 4 + Math.random() * 2;
+            ember.style.animationDuration = duration + 's';
+            ember.style.animationDelay = -Math.random() * duration + 's';
+            positionTitleEmber(ember);
+            ember.addEventListener('animationiteration', () => positionTitleEmber(ember));
+            line.appendChild(ember);
+        }
+    });
 
     function showChristmasSnow() {
         var now = new Date();
