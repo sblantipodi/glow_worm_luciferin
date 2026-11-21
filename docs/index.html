@@ -1,356 +1,528 @@
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <title>Luciferin</title>
-    <meta name="description" content="Bias Lighting and Ambient Light firmware, designed for Firefly Luciferin"/>
-    <meta name="viewport" content="width=device-width"/>
-    <link rel="icon" type="image/png"
-          href="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png">
-
-    <meta property="og:title" content="Luciferin"/>
-    <meta property="og:site_name" content="Luciferin"/>
-    <meta property="og:url" content="https://sblantipodi.github.io/glow_worm_luciferin/"/>
-    <meta property="og:type" content="website"/>
-    <meta property="og:description"
-          content="Easily allow users to install Luciferin firmware for their ESP-devices on the web."/>
-    <meta property="og:image"
-          content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
-    <meta name="twitter:card" content="summary_large_image"/>
-    <meta name="twitter:title" content="Luciferin"/>
-    <meta name="twitter:description"
-          content="Easily allow users to flash Luciferin firmware for their ESP-devices on the web."/>
-    <meta name="twitter:image"
-          content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png"/>
-    <script module>
-        // https://unpkg.com/esp-web-tools@9.4.2/dist/web/install-button.js?module
-        // https://unpkg.com/tasmota-esp-web-tools@8.1.4/dist/web/install-button.js?module
-        // https://unpkg.com/tasmota-esp-web-tools/dist/web/install-button.js?module
-        // https://unpkg.com/esp-web-tools@8.0.6/dist/web/install-button.js?module
-        import(
-            "https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"
-            );
-        window.addEventListener("load", function (event) {
-            try {
-                const button = document.querySelector("esp-web-install-button");
-                button.overrides = {
-                    checkSameFirmware(manifest, improvInfo) {
-                        const manifestFirmware = manifest.name.toLowerCase();
-                        const deviceFirmware = improvInfo.firmware.toLowerCase();
-                        return (manifestFirmware.includes("glow worm") && deviceFirmware.includes("firm"));
-                    }
-                };
-            } catch (e) {
-                console.log(e);
-            }
-        }, {once: true});
-    </script>
+    <meta charset="utf-8">
+    <title>Glow Worm Luciferin · Firmware Web Installer</title>
+    <meta name="description" content="Install Glow Worm Luciferin, the ESP8266 and ESP32 ambient lighting firmware for Firefly Luciferin.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="static/logos/luciferin_logo.png">
+    <meta property="og:title" content="Glow Worm Luciferin · Firmware Web Installer">
+    <meta property="og:site_name" content="Luciferin">
+    <meta property="og:url" content="https://sblantipodi.github.io/glow_worm_luciferin/">
+    <meta property="og:type" content="website">
+    <meta property="og:description" content="Install Glow Worm Luciferin firmware on your ESP device from the browser.">
+    <meta property="og:image" content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Glow Worm Luciferin · Firmware Web Installer">
+    <meta name="twitter:description" content="Install Glow Worm Luciferin firmware on your ESP device from the browser.">
+    <meta name="twitter:image" content="https://sblantipodi.github.io/glow_worm_luciferin/static/logos/luciferin_logo.png">
     <style>
-        body {
-            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
-            Roboto, Ubuntu, sans-serif;
-            padding: 0;
-            margin: 0;
-            line-height: 1.4;
-            background-color: #f8f8f8;
-            color: #212529;
+        :root {
+            color-scheme: light dark;
+            --slate-surface: #303840;
+            --slate-raised: #39434c;
+            --slate-text: #edf0f2;
+            --slate-muted: #b8c2ca;
+            --firefly-orange: #f59a20;
+            --page: #f8f8f8;
+            --surface: #fff;
+            --surface-muted: #f1f3f5;
+            --surface-featured: #edf1f5;
+            --text: #212529;
+            --muted: #565e64;
+            --line: #dee2e6;
+            --accent: #dd6200;
+            --accent-text: var(--text);
+            --button: #ffa500;
+            --button-hover: #ff8c00;
+            --button-text: #252b32;
+            --esp-tools-button-color: var(--button);
+            --esp-tools-button-text-color: var(--button-text);
         }
 
         @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #2f333a;
-                color: #d1d8e4;
+            :root {
+                --page: #252b32;
+                --surface: var(--slate-surface);
+                --surface-muted: var(--slate-raised);
+                --surface-featured: #343f4a;
+                --text: var(--slate-text);
+                --muted: var(--slate-muted);
+                --line: #53606a;
+                --accent: var(--button);
+                --accent-text: var(--accent);
+                --button: var(--firefly-orange);
+                --button-hover: #ffae42;
             }
         }
 
-        .content {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 12px;
+        *, *::before, *::after {
+            box-sizing: border-box;
         }
 
         body {
-            animation: content 1.5s;
+            margin: 0;
+            background: var(--page);
+            color: var(--text);
+            font: 1rem/1.6 system-ui, sans-serif;
         }
 
-        @keyframes content {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+        h1, h2, h3, p {
+            margin: 0;
         }
 
-        .content {
-            animation: fi 1.5s .7s both;
-        }
-
-        .logo {
-            float: right;
-            margin: 0px 0px 15px 15px;
-        }
-
-        .project .logo img {
-            max-height: 50px;
+        h2 {
+            font-size: clamp(1.35rem, 3vw, 1.75rem);
+            letter-spacing: -0.035em;
+            line-height: 1.2;
         }
 
         a {
-            color: orange;
+            color: var(--accent-text);
+            text-decoration-color: var(--accent);
+            text-underline-offset: 0.23em;
         }
 
-        .content pre {
-            max-width: 100%;
-            overflow-y: scroll;
+        a:hover {
+            text-decoration-thickness: 0.13em;
         }
 
-        .footer {
-            margin-top: 24px;
-            border-top: 1px solid #ccc;
-            padding-top: 24px;
-            text-align: center;
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 4px;
         }
 
-        .footer .initiative {
-            font-style: italic;
-            margin-top: 16px;
+        [hidden] {
+            display: none !important;
         }
 
-        table {
-            border-spacing: 0;
+        .shell {
+            width: min(100% - 2 * clamp(1rem, 4vw, 2.5rem), 71rem);
+            margin-inline: auto;
         }
 
-        td {
-            padding: 8px;
-            border-bottom: 1px solid #ccc;
+        .site-header {
+            border-bottom: 1px solid var(--line);
+            background: var(--surface);
         }
 
-        button {
+        .header-inner, .site-footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.65rem 1.5rem;
+        }
+
+        .header-inner {
+            min-height: 4rem;
+            padding-block: 0.65rem;
+        }
+
+        .brand, .links {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem 1.25rem;
+        }
+
+        .brand {
+            flex-wrap: nowrap;
+            gap: 0.65rem;
+            color: inherit;
+            font-weight: 750;
+            letter-spacing: -0.025em;
+            text-decoration: none;
+        }
+
+        .brand:hover {
+            color: var(--accent-text);
+        }
+
+        .brand:hover span {
+            text-decoration: underline var(--accent);
+        }
+
+        .brand img {
+            border-radius: 0.25rem;
+        }
+
+        .links a {
+            color: var(--muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .links a:hover {
+            color: var(--accent-text);
+            text-decoration: underline var(--accent);
+        }
+
+        main.shell {
+            display: grid;
+            gap: clamp(1.1rem, 3vw, 1.6rem);
+            padding-block: clamp(1.25rem, 4vw, 2.5rem);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+            align-items: center;
+            min-height: 19rem;
+            overflow: hidden;
+            background:
+                    radial-gradient(ellipse at 90% 106%, #303840 0, transparent 65%),
+                    #20262d;
+            border: 1px solid #53606a;
+            border-radius: 0.5rem;
+            color: #edf0f2;
+        }
+
+        .hero-copy {
             position: relative;
-            cursor: pointer;
-            font-size: 24px;
-            padding: 8px 58px;
-            color: var(--esp-tools-button-text-color, #fff);
-            background-color: var(--esp-tools-button-color, orange);
-            border: none;
-            border-radius: 4px;
-            box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .12), 0 1px 5px 0 rgba(0, 0, 0, .2);
-            width: 290px;
+            z-index: 1;
+            padding: clamp(1.5rem, 4.5vw, 3.8rem);
+            padding-block: clamp(1.5rem, 3vw, 2.75rem);
+            padding-inline-end: 0;
         }
 
-        button::before {
-            content: " ";
+        .eyebrow {
+            color: var(--button);
+            font-size: 0.76rem;
+            font-weight: 750;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin-block: 0.55rem 0.9rem;
+            font-size: clamp(2.5rem, 5.9vw, 4.7rem);
+            font-weight: 780;
+            letter-spacing: -0.055em;
+            line-height: 0.98;
+        }
+
+        .title-line {
+            position: relative;
+            display: inline-block;
+            text-shadow: 0 0 0.09em #ffc77a99, 0 0 0.32em #f59a2055;
+        }
+
+        .title-ember {
             position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            opacity: 0.2;
-            border-radius: 4px;
-        }
-
-        button:hover {
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .14), 0 1px 7px 0 rgba(0, 0, 0, .12), 0 3px 1px -1px rgba(0, 0, 0, .2);
-        }
-
-        button:hover::before {
-            background-color: rgba(255, 255, 255, .8);
-        }
-
-        button:focus {
-            outline: none;
-        }
-
-        button:focus::before {
-            background-color: white;
-        }
-
-        button:active::before {
-            background-color: grey;
-        }
-
-        :host([active]) button {
-            color: rgba(0, 0, 0, 0.38);
-            background-color: rgba(0, 0, 0, 0.12);
-            box-shadow: none;
-            cursor: unset;
             pointer-events: none;
+            border-radius: 50%;
+            width: var(--ember-size);
+            height: var(--ember-size);
+            background: #ffcf89;
+            box-shadow: 0 0 4px var(--firefly-orange);
+            opacity: 0;
         }
 
-        improv-wifi-launch-button {
+        @media (prefers-reduced-motion: no-preference) {
+            body {
+                animation: page-fade-in 1.5s ease;
+            }
+
+            .title-ember {
+                animation: title-ember-rise linear infinite;
+            }
+        }
+
+        @keyframes page-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes title-ember-rise {
+            0% { opacity: 0; transform: translate(0, 0); }
+            12% { opacity: 0.9; }
+            60%, 100% { opacity: 0; transform: translate(var(--drift), var(--rise)) scale(0.25); }
+        }
+
+        .hero-copy > p:last-child {
+            max-width: 45ch;
+            color: #b8c2ca;
+            font-size: clamp(0.95rem, 2vw, 1.1rem);
+        }
+
+        .hero-art {
             display: block;
-            margin-top: 16px;
+            width: 100%;
+            height: auto;
+            mask-image:
+                    linear-gradient(to right, transparent, #000 18%, #000 82%, transparent),
+                    linear-gradient(to bottom, transparent, #000 16%, #000 88%, transparent);
+            mask-composite: intersect;
         }
 
-        input[type="checkbox"] {
-            height: 10px;
-            width: 10px;
-            position: relative;
-            -webkit-appearance: none;
-            cursor: pointer;
-            margin-right: 10px;
+        .panel {
+            padding: clamp(1rem, 3.5vw, 1.8rem);
+            border: 1px solid var(--line);
+            border-radius: 0.5rem;
+            background: var(--surface);
         }
 
-        input[type="checkbox"]:before {
-            content: "";
-            display: inline-block;
-            position: absolute;
-            box-sizing: border-box;
-            height: 14px;
-            width: 14px;
-            border-radius: 1px;
-            border: 2px solid orange;
-            background-color: #ffdca7;
+        .installer-header, .companion {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.9rem 1.5rem;
         }
 
-        input[type="checkbox"]:hover::before {
-            border: 1px solid #4f4f4f;
+        .description, .install-card p, .support p, .support li, .compatibility-message {
+            color: var(--muted);
         }
 
-        input[type="checkbox"]:checked:hover::before {
-            filter: brightness(90%);
+        .description {
+            margin-block-start: 0.35rem;
+            font-size: 0.96rem;
         }
 
-        input[type="checkbox"]:checked:disabled:hover::before {
-            filter: none;
+        .release-control {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.65rem;
         }
 
-        input[type="checkbox"]:checked:before {
-            content: "";
-            display: inline-block;
-            position: absolute;
-            box-sizing: border-box;
-            height: 14px;
-            width: 14px;
-            border-radius: 2px;
-            border: 1px solid #ffdca7;
-            background-color: #ffdca7;
+        .release-control label {
+            font-size: 0.86rem;
+            font-weight: 650;
         }
 
-        input[type="checkbox"]:checked:after {
-            content: "";
-            display: inline-block;
-            position: absolute;
-            top: 5px;
-            left: 2px;
-            box-sizing: border-box;
-            height: 5px;
-            width: 10px;
-            border-left: 2px solid orange;
-            border-bottom: 2px solid orange;
-            -webkit-transform: translateY(-1.5px) rotate(-45deg);
-            transform: translateY(-1.5px) rotate(-45deg);
+        .release-control select {
+            max-width: 100%;
+            min-height: 2.65rem;
+            padding: 0.35rem 0.6rem;
+            border: 1px solid var(--line);
+            border-radius: 0.3rem;
+            background: var(--surface-muted);
+            color: var(--text);
+            font: inherit;
         }
 
-        input[type="checkbox"]:disabled::before {
-            border: 2px solid orange;
-            border-radius: 2px;
-            background-color: orange;
+        .release-control select:hover {
+            border-color: var(--accent);
         }
 
-        input[type="checkbox"]:checked:disabled::before {
-            border: 3px solid orange;
-            border-radius: 2px;
-            background-color: orange;
+        @supports (appearance: base-select) {
+            .release-control select,
+            .release-control select::picker(select) {
+                appearance: base-select;
+            }
+
+            .release-control select::picker-icon {
+                margin-inline-start: 0.5rem;
+                color: var(--accent);
+            }
+
+            .release-control select::picker(select) {
+                border: 1px solid var(--line);
+                border-radius: 0.3rem;
+                background: var(--surface);
+                color: var(--text);
+            }
+
+            .release-control option {
+                padding: 0.4rem 0.6rem;
+            }
+
+            .release-control option:checked {
+                background: var(--surface-muted);
+                color: var(--accent-text);
+            }
+
+            .release-control option:is(:hover, :focus-visible) {
+                background: var(--button);
+                color: var(--button-text);
+            }
         }
 
-        .action_btn {
-            display: inline-block;
-            width: calc(50% - 4px);
-            margin: 0 auto;
+        .install-options {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.8rem;
+            margin-top: 1.25rem;
         }
 
-        :root {
-            --mdc-theme-primary: #795548;
+        .install-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            padding: clamp(0.95rem, 2.5vw, 1.3rem);
+            border: 1px solid var(--line);
+            border-radius: 0.375rem;
+            background: var(--surface-muted);
         }
 
-        ewt-install-dialog, ewt-no-port-picked-dialog {
-            --label-text-color: orange;
-            --mdc-theme-primary: orange;
-            --esp-tools-button-color: orange;
-            --esp-tools-button-text-color: orange;
-            --mdc-text-field-fill-color: #f8f8f8;
-            --md-sys-color-primary: orange;
+        .install-card--full {
+            border-inline-start: 3px solid var(--button);
+            background: var(--surface-featured);
         }
 
-        .dropdown-container {
-            width: 290px;
-            position: relative;
+        .install-card h3 {
+            font-size: 1.2rem;
+            letter-spacing: -0.025em;
         }
 
-        select {
-            width: 290px;
-            height: 30px;
-            font-size: 100%;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 0;
-            background-color: #ffb73d;
-            border: none;
-            border-bottom: 2px solid #ffb73d;
-            color: white;
-            appearance: none;
-            text-align: center;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            transition: color 0.3s ease, background-color 0.3s ease, border-bottom-color 0.3s ease;
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .12), 0 1px 5px 0 rgba(0, 0, 0, .2);
+        .install-card p {
+            flex: 1;
+            font-size: 0.92rem;
         }
 
-        /* For IE <= 11 */
-        select::-ms-expand {
+        esp-web-install-button {
+            display: block;
+            margin-top: 0.6rem;
+        }
+
+        esp-web-install-button:not(:defined) > [slot] {
             display: none;
         }
 
-        .select-icon {
-            position: absolute;
-            top: 0px;
-            right: 190px;
-            width: 0px;
-            pointer-events: none;
-            padding-left: 5px;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+        /* The slate surface keeps Firefly's orange labels legible in either page theme. */
+        ewt-install-dialog,
+        ewt-no-port-picked-dialog {
+            color-scheme: dark;
+            --md-sys-color-primary: var(--firefly-orange);
+            --md-sys-color-on-primary: var(--button-text);
+            --md-sys-color-surface: var(--slate-surface);
+            --md-sys-color-surface-container: var(--slate-surface);
+            --md-sys-color-surface-container-high: var(--slate-surface);
+            --md-sys-color-surface-container-highest: var(--slate-raised);
+            --md-sys-color-on-surface: var(--slate-text);
+            --md-sys-color-on-surface-variant: var(--slate-muted);
+            --md-sys-color-outline-variant: var(--slate-muted);
+            --md-sys-color-secondary-container: var(--slate-raised);
+            --md-sys-color-on-secondary-container: var(--slate-text);
+            --md-sys-color-error: #ff9389;
+            --danger-color: var(--md-sys-color-error);
+            --text-color: var(--slate-muted);
         }
 
-        .select-icon svg.icon {
-            transition: fill 0.3s ease;
-            fill: white;
-        }
-
-        select:hover,
-        select:focus {
-            color: orange;
-            background-color: white;
-            border-bottom-color: #DCDCDC;
-        }
-
-        select:hover ~ .select-icon,
-        select:focus ~ .select-icon {
-            background-color: white;
-            border-color: #DCDCDC;
-        }
-
-        select:hover ~ .select-icon svg.icon,
-        select:focus ~ .select-icon svg.icon {
-            fill: gray;
-        }
-
-        .container {
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 2.75rem;
+            padding: 0.5rem 0.9rem;
+            border: 1px solid var(--line);
+            border-radius: 0.3rem;
+            background: var(--surface);
+            color: var(--text);
+            font: inherit;
+            font-weight: 700;
             text-align: center;
-            width: 100%;
-        }
-
-
-        .dropdown-container {
-            text-align: center;
-            width: 100%;
-        }
-
-
-        a {
+            text-decoration: none;
             cursor: pointer;
-            text-decoration: underline;
+        }
+
+        .button:hover {
+            border-color: var(--accent);
+            background: var(--surface-muted);
+        }
+
+        .button--primary {
+            border-color: transparent;
+            background: var(--button);
+            color: var(--button-text);
+        }
+
+        .button--primary:hover {
+            background: var(--button-hover);
+        }
+
+        .compatibility-message, .installer-status {
+            font-size: 0.86rem;
+        }
+
+        .installer-status {
+            margin-block-start: 0.65rem;
+            color: var(--muted);
+        }
+
+        .companion > div {
+            flex: 1 1 18rem;
+        }
+
+        .release-note {
+            margin-block-start: 0.55rem;
+            padding-inline-start: 0.55rem;
+            border-inline-start: 2px solid var(--button);
+            color: var(--accent-text);
+            font-size: 0.9rem;
+        }
+
+        .support > .description {
+            margin-block-end: 0.8rem;
+        }
+
+        .support details {
+            border-top: 1px solid var(--line);
+        }
+
+        .support summary {
+            padding-block: 0.65rem;
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        .support summary:hover {
+            color: var(--accent-text);
+            text-decoration: underline var(--accent);
+        }
+
+        .support details > :last-child {
+            margin-block-end: 0.85rem;
+        }
+
+        .support p, .support li {
+            font-size: 0.92rem;
+        }
+
+        .support ol {
+            margin-block: 0.5rem;
+            padding-inline-start: 1.5rem;
+        }
+
+        .support pre {
+            max-width: 100%;
+            margin-block: 0.35rem 0.7rem;
+            padding: 0.55rem 0.7rem;
+            overflow-x: auto;
+            border-radius: 0.25rem;
+            background: var(--surface-muted);
+        }
+
+        .site-footer {
+            padding-block: 1rem 1.6rem;
+            border-top: 1px solid var(--line);
+        }
+
+        .release-links {
+            gap: 0.6rem;
+        }
+
+        .release-links img {
+            display: block;
+            height: 1.25rem;
+        }
+
+        @media (max-width: 39rem) {
+            .hero, .install-options {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-copy {
+                padding: 1.35rem 1.25rem 0;
+            }
+
+            .hero-art {
+                max-width: 28rem;
+                justify-self: center;
+            }
         }
 
         /* Seasonal snow overlay. */
@@ -436,169 +608,170 @@
                 filter: drop-shadow(0 0 5px rgba(225, 244, 255, 0.65));
             }
         }
-
     </style>
-
 </head>
 <body>
-<div class="content">
-    <h1>Glow Worm Luciferin</h1><a href="https://github.com/sblantipodi/firefly_luciferin" class="logo"><img
-        src="static/logos/luciferin_logo.png" alt="Luciferin"/></a>
+<header class="site-header">
+    <div class="shell header-inner">
+        <a class="brand" href="https://github.com/sblantipodi/firefly_luciferin" aria-label="Firefly Luciferin on GitHub">
+            <img src="static/logos/luciferin_logo.png" alt="" width="32" height="32">
+            <span>Luciferin</span>
+        </a>
+        <nav class="links" aria-label="Project">
+            <a href="https://github.com/sblantipodi/firefly_luciferin/wiki">Wiki</a>
+            <a href="https://github.com/sblantipodi/glow_worm_luciferin">GitHub</a>
+        </nav>
+    </div>
+</header>
 
-    <p>
-        <b>Luciferin</b> is a generic term for the light-emitting compound found in organisms that generate
-        bioluminescence
-        like Fireflies and Glow Worms. <br/>
-        <a href="https://github.com/sblantipodi/glow_worm_luciferin">Glow Worm Luciferin</a> is a firmware for
-        ESP8266/ESP32 boards designed for the
-        <a href="https://github.com/sblantipodi/firefly_luciferin">Firefly Luciferin</a> software, the combination of
-        these software create the perfect
-        Bias Lighting and Ambient Light system for PC.
-    </p>
+<main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+            <p class="eyebrow">Firmware Web Installer</p>
+            <h1 id="page-title"><span class="title-line">Glow Worm</span><br><span class="title-line">Luciferin</span></h1>
+            <p>Real time LED control firmware designed to work with Firefly Luciferin to deliver a fast, responsive Ambient Lighting System.</p>
+        </div>
+        <img class="hero-art" src="static/luciferin-bias-lighting.webp" width="1655" height="950"
+             alt="Monitor showing colorful Luciferin bias lighting">
+    </section>
 
-    <p><b>FULL firmware</b> version adds support for remote control, if you flash FULL version you MUST configure WiFi.
-        With FULL firmware USB connection is optional.
-        If you flash <b>LIGHT firmware</b> you MUST use USB cable.</p>
-    <p>
-        To try it out and install <b>Glow Worm Luciferin firmware</b>, connect an ESP to
-        your computer and hit the button:
-    </p>
-    <div class="container">
-        <p>
-            <esp-web-install-button id="inst_full"
-                                    manifest="static/firmware_build/manifest_full.json">
-                <button slot="activate">INSTALL FULL</button>
-                <span slot="unsupported"><b>Your browser is not supported!</b></span>
-                <span slot="not-allowed">Ah snap, you are not allowed to use this on HTTP!</span>
-            </esp-web-install-button>
-            <br>
-        </p>
-        <p>
-            <esp-web-install-button id="inst_light"
-                                    manifest="static/firmware_build/manifest_light.json">
-                <button slot="activate">INSTALL LIGHT</button>
-            </esp-web-install-button>
-        </p>
-        <div class="demo">
-            <div class="dropdown-container">
-                <select id="version" class="btn" onchange="setManifest()">
-                    <option data-manifest="static/firmware_build/manifest_full.json"
-                    >Latest stable version
-                    </option>
-                    <option data-manifest="static/firmware_build_beta/manifest_full.json"
-                    >Beta version
-                    </option>
-                    <option data-manifest="static/firmware_build_previous/manifest_full.json"
-                    >Previous stable version
-                    </option>
+    <section class="panel" aria-labelledby="install-title">
+        <div class="installer-header">
+            <div>
+                <h2 id="install-title">Install firmware</h2>
+                <p class="description">Connect your ESP board to your computer with a USB data cable.</p>
+            </div>
+            <div class="release-control">
+                <label for="version">Release</label>
+                <select id="version">
+                    <option value="stable" data-directory="firmware_build">Latest stable</option>
+                    <option value="beta" data-directory="firmware_build_beta">Beta</option>
+                    <option value="previous" data-directory="firmware_build_previous">Previous stable</option>
                 </select>
-                <div class="select-icon">
-                    <svg focusable="false" viewBox="0 0 104 128" width="25" height="30" class="icon">
-                        <path d="m2e1 95a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm14 55h68v1e1h-68zm0-3e1h68v1e1h-68zm0-3e1h68v1e1h-68z"></path>
-                    </svg>
-                </div>
             </div>
         </div>
-        <p>
-        <div id="firefly-download"><b>Firefly Luciferin <u>latest version</u> can be downloaded <a
-                href="https://github.com/sblantipodi/firefly_luciferin/releases">here</a></b></div>
-        </p>
-    </div>
+        <div class="install-options">
+            <article class="install-card install-card--full">
+                <h3>Full firmware</h3>
+                <p>Supports remote control and requires Wi-Fi setup. After setup, a USB connection to your computer is optional.</p>
+                <esp-web-install-button id="inst_full" manifest="static/firmware_build/manifest_full.json">
+                    <button class="button button--primary" type="button" slot="activate">Install Full</button>
+                    <span class="compatibility-message" slot="unsupported">Open this page in a browser with Web Serial support.</span>
+                    <span class="compatibility-message" slot="not-allowed">Open this page over HTTPS to install firmware.</span>
+                </esp-web-install-button>
+            </article>
+            <article class="install-card">
+                <h3>Light firmware</h3>
+                <p>Runs over USB. Keep the board connected to the computer running Firefly Luciferin.</p>
+                <esp-web-install-button id="inst_light" manifest="static/firmware_build/manifest_light.json">
+                    <button class="button" type="button" slot="activate">Install Light</button>
+                    <span class="compatibility-message" slot="unsupported">Open this page in a browser with Web Serial support.</span>
+                    <span class="compatibility-message" slot="not-allowed">Open this page over HTTPS to install firmware.</span>
+                </esp-web-install-button>
+            </article>
+        </div>
+        <p class="installer-status" id="installer-status" role="status" hidden>Loading the installer…</p>
+        <noscript><p class="installer-status">Enable JavaScript to use the firmware installer.</p></noscript>
+    </section>
 
-    <p>
-        <i>
-            If you don't see your ESP device, please check your ad blocker and your drivers.
-        </i>
-    </p>
-    <p>
-        <b>If you are flashing a newer ESP device like the ESP32-[C3,C5,C6,S2,S3] <span id="esp-family"><a onClick="showHelp()">please read here.</a></span></b>
-        <br>
-    </p>
-    <p id="linux-block">
-        <b>If you are running Linux <span id="linux-family"><a onClick="showLinuxHelp()">please read here.</a></span></b><br>
-    </p>
-    <div class="footer">
+    <section class="panel companion" aria-labelledby="companion-title">
         <div>
-            <a href="https://github.com/sblantipodi/firefly_luciferin"><img
-                    src="https://img.shields.io/github/v/release/sblantipodi/firefly_luciferin.svg?label=Firefly%20Luciferin&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAD1BMVEUAAAD%2F%2F%2F%2F%2F%2F%2F%2F%2FVyL%2F%2F%2F8bK2t7AAAAA3RSTlMAARYXuUDOAAAAhklEQVR42u3WyQ2AMAwEQAz9lxxCCRCuONHse2XPy3JsS98EAAAAAAAAQDpAfLywAgAADAuoJ716dw4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAwgLcCAACQH%2FB3AAAAAAAAAPoDWovrxYdjBwAAmA7QerAKAADANICnD0sBAADIDjgAPijZuQgZskEAAAAASUVORK5CYII%3D"></a>
-            <a href="https://github.com/sblantipodi/glow_worm_luciferin"><img
-                    src="https://img.shields.io/github/v/release/sblantipodi/glow_worm_luciferin.svg?label=Glow%20Worm%20Luciferin&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAABBVBMVEUAAAD/////////VyL/WSf/Wiv/XTL/XjX/YTr/ZUL/Z0T/aEf/aUn/bU//clj/dFn/d17/eWH/emP/e2T/fGb/fmj/gm7/g2//iHb/inn/i3r/jHv/j3//lIT/lIX/l4j/mIn/m43/nI//npH/npL/pZr/ppr/qp//tKv/taz/tq7/t67/t6//wbr/wbv/wrv/w73/xL3/xb7/xb//x8L/ycP/ysT/ysX/zsn/z8r/1tL/19P/3Nj/3Nn/3dn/4d7/4+D/5eP/5+X/7Or/7ev/7uz/7u3/7+7/8O7/8O//8vH/8/L/9vX/9vb/9/b/+fj/+fn/+/r/+/v//Pz//f3//v7///9aJEoJAAAAA3RSTlMAARYXuUDOAAACr0lEQVR42u2aaVvaQBSFaUuQ2kbKomyiLUpdW0VtJaZVIVWQLZoY/v9PKZZksk1iEhJi2zOfmMyB8z6ZmTv3zkPiTcwtAQAAAAAAAAAAAF4cwCTiBgAAAAAAAAAAAP5agMG0efVw1QYAeGwfr5eehsq1Zuc5806zVn7SltaP24+hAIxPs8bhwrno7C6eF4za7Ol4bgCFZ62ClbMHuv3D2YpVy35X5gMYbSQpeWT9luZ/W6dIkxvCPAAdlp7JZgS7v5Cha9lOcAAn/ylB2+rfzjhpLQQ+AO5M/qs5Y49pmf1bjHE0t2oiuAsGcF8jE1k9uRFlSRSOSmRJMJxxqXLEP1k6EkRJFm9OqkRbuw8E0CLLnlMom4LZlbWncoN4sbyu/Uk2xZcgAP1ljd+08YcVomzImj95VBmawoL2Dt/2AwDsUf2nBB91gj92vS3yYGdoCUwawZ5/AEldc2u2wKccEm2+N/XPk+6hLeqM1BnLSb4BrtUub9/xygFZcvmu7s8cKHYtrw5e+wbYV1+ARAt6l2lNvfRB+5S+pCmltdnovm+A7Vnvgh72dQJ3/8nkYjZc9g0w66S6DufeVdH8reIvB2E3Zdnd/gAKzkmHiaDonIAUIgKYDDb172y6JEv/LMCCpsD7IrwKexHGvg09BqJUKqpA5BaKv6b1UNyNKhRrhxE7CuMwykohHsc7RLrV83ocN2NOSJb7EaRkyYaeku0ytJTsB0nJuEiSUuOEuyelnxaRlr8LPy33V5gIERQm8Zdm/opTsU7Tfh4trjxXOHt5zsd6QVH9Nv8FRZArmsr7aS1UCe2KJsAl1XgwGOKeEAAAAAAAAAAAAAAgOAD+SQUAAAAAAAAAwP8H4LW9UttzP/habYmwGwAAAIDYASILMAAAAABePMDCEg4AAAAAcQH8BmpkuUqa4Ih2AAAAAElFTkSuQmCC"></a>
-            <a href="https://github.com/sblantipodi/firefly_luciferin/wiki"><img
-                    src="https://img.shields.io/website/https/sblantipodi.github.io/glow_worm_luciferin.svg?label=Wiki&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs"></a>
+            <h2 id="companion-title">Firefly Luciferin</h2>
+            <p class="description" id="firefly-release">Download the latest stable version of the companion desktop app.</p>
+            <p class="release-note" id="beta-note" role="status" hidden>Glow Worm beta requires the latest Firefly Luciferin beta.</p>
         </div>
-        <div>
-            <a href="https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A"><img
-                    src="https://img.shields.io/badge/donate-PayPal-blue"></a>
-            <a href="https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A"><img
-                    src="https://img.shields.io/static/v1?label=DP&message=Software&color=orange"></a>
-            <a href="https://discord.gg/aXf9jeN"><img
-                    src="https://img.shields.io/discord/747247942074892328.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2"></a>
-        </div>
-    </div>
-</div>
+        <a class="button" id="firefly-download" href="https://github.com/sblantipodi/firefly_luciferin/releases">Download Firefly Luciferin</a>
+    </section>
+
+    <section class="panel support" aria-labelledby="support-title">
+        <h2 id="support-title">Troubleshooting</h2>
+        <p class="description">If your device doesn’t appear, check your USB serial drivers and ad blocker.</p>
+        <details>
+            <summary>Boot mode for newer ESP32 boards</summary>
+            <p>If the first installation fails on an ESP32-C3, C5, C6, S2, S3 or S31, try entering download mode before installing:</p>
+            <ol>
+                <li>Press and hold BOOT.</li>
+                <li>Press RESET while holding BOOT.</li>
+                <li>Release BOOT after the device reconnects over USB.</li>
+                <li>Click the install button again.</li>
+            </ol>
+            <p>If Wi-Fi setup doesn’t appear after installing the Full firmware, press RESET and reopen the installer. <br>Alternatively, you can configure the device’s Wi-Fi <a href="https://github.com/sblantipodi/toremove/wiki/Remote-Access#provision-directly-from-firefly-luciferin">directly from Firefly Luciferin.</a></p>
+        </details>
+        <details id="linux-block">
+            <summary>USB serial permissions on Linux</summary>
+            <p>On most distributions, add your user to the <code>dialout</code> group:</p>
+            <pre><code>sudo usermod -aG dialout "$USER"</code></pre>
+            <p>On Arch Linux, use the <code>uucp</code> group:</p>
+            <pre><code>sudo usermod -aG uucp "$USER"</code></pre>
+            <p>Log out and back in for the change to take effect. If you installed Firefly Luciferin as a Snap, grant it USB access:</p>
+            <pre><code>sudo snap connect fireflyluciferin:raw-usb</code></pre>
+        </details>
+    </section>
+</main>
+
+<footer class="shell site-footer">
+    <nav class="links release-links" aria-label="Project releases">
+        <a href="https://github.com/sblantipodi/firefly_luciferin/releases">
+            <img src="https://img.shields.io/github/v/release/sblantipodi/firefly_luciferin?style=flat-square&amp;label=Firefly%20Luciferin"
+                 alt="Firefly Luciferin releases" loading="lazy">
+        </a>
+        <a href="https://github.com/sblantipodi/glow_worm_luciferin/releases">
+            <img src="https://img.shields.io/github/v/release/sblantipodi/glow_worm_luciferin?style=flat-square&amp;label=Glow%20Worm%20Luciferin"
+                 alt="Glow Worm Luciferin releases" loading="lazy">
+        </a>
+    </nav>
+    <nav class="links" aria-label="Community">
+        <a href="https://discord.gg/aXf9jeN">Discord</a>
+        <a href="https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A">Support on PayPal</a>
+    </nav>
+</footer>
+
 <script>
-    function setManifest() {
-        var sel = document.getElementById('version');
-        var opt = sel.options[sel.selectedIndex];
-        var full_manifest = opt.dataset.manifest;
-        console.log(full_manifest);
-        var light_manifest = full_manifest;
-        light_manifest = light_manifest.replace("manifest_full.json", "manifest_light.json");
-        if (full_manifest.includes("beta")) {
-            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>beta version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/actions\">here</a><br>NOTE: Using Glow Worm Luciferin beta version requires the latest Firefly Luciferin beta version. Please prefer the latest stable version unless you know exactly what you are doing.</b>";
-        } else if (full_manifest.includes("prev")) {
-            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>previous stable version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/releases\">here</a></b>";
-        } else {
-            document.getElementById("firefly-download").innerHTML = "<b>Firefly Luciferin <u>latest stable version</u> can be downloaded <a href=\"https://github.com/sblantipodi/firefly_luciferin/releases\">here</a></b>";
-        }
-        document.getElementById('inst_full').setAttribute('manifest', full_manifest);
-        document.getElementById('inst_light').setAttribute('manifest', light_manifest);
+    const releaseSelect = document.getElementById('version');
+    const fireflyDownload = document.getElementById('firefly-download');
+    const fireflyRelease = document.getElementById('firefly-release');
+    const betaNote = document.getElementById('beta-note');
+    const fireflyRepository = 'https://github.com/sblantipodi/firefly_luciferin';
+    const releaseNames = {stable: 'latest stable', beta: 'latest beta', previous: 'previous stable'};
+
+    function updateRelease() {
+        const release = releaseSelect.value;
+        const directory = releaseSelect.selectedOptions[0].dataset.directory;
+        document.getElementById('inst_full').setAttribute('manifest', 'static/' + directory + '/manifest_full.json');
+        document.getElementById('inst_light').setAttribute('manifest', 'static/' + directory + '/manifest_light.json');
+        fireflyDownload.href = fireflyRepository + (release === 'beta' ? '/actions' : '/releases');
+        fireflyRelease.textContent = 'Download the ' + releaseNames[release] + ' version of the companion desktop app.';
+        betaNote.hidden = release !== 'beta';
     }
 
-    function showHelp() {
-        document.getElementById('esp-family').innerHTML = `</br></br>
-            If you are flashing a brand-new ESP32-[C3, C5, C6, S2, S3] and the installation fails, you may need to put the device into Device Firmware Upgrade (DFU) mode.</br>
-            To do this, follow these steps:
-            <ul>
-                <li>Press and hold the BOOT button</li>
-                <li>Press the RESET button</li>
-                <li>Release the BOOT button when you hear the prompt tone after USB reconnection</li>
-                <li>The device is now in DFU mode. You can now click the Install button.</li>
-            </ul>
-            NOTE: If you are installing the FULL firmware and you do not see the option to configure WiFi after the installation completes,
-            press the RESET button and click the Install button again. You should now see the option to set up WiFi.
-        `;
+    releaseSelect.addEventListener('change', updateRelease);
+    window.addEventListener('pageshow', updateRelease);
+    updateRelease();
+
+    const isWindows = navigator.userAgentData
+        ? navigator.userAgentData.platform === 'Windows'
+        : navigator.userAgent.toLowerCase().includes('windows');
+    document.getElementById('linux-block').hidden = isWindows;
+
+    function positionTitleEmber(ember) {
+        ember.style.left = (2 + Math.random() * 96) + '%';
+        ember.style.top = (22 + Math.random() * 50) + '%';
+        ember.style.setProperty('--ember-size', (1 + Math.random() ** 2 * 3) + 'px');
+        ember.style.setProperty('--drift', (Math.random() - 0.5) * 0.5 + 'em');
+        ember.style.setProperty('--rise', -(0.35 + Math.random() * 0.4) + 'em');
     }
 
-    function showLinuxHelp() {
-        document.getElementById('linux-family').innerHTML = `</br></br>
-            Your user may not be part of the groups required to access USB serial devices.</br>
-            This may prevent communication with the device.</br></br>
-
-            On most Linux distributions:</br>
-            sudo usermod -aG dialout $USER</br></br>
-
-            On Arch Linux:</br>
-             sudo usermod -aG uucp $USER</br></br>
-
-            After running the command, log out and log back in (or reboot the system).</br></br>
-
-            In addition to this, if you are running Firefly Luciferin as a Snap package. </br>
-            To enable USB access, please run the following command: </br>
-            sudo snap connect fireflyluciferin:raw-usb
-
-        `;
-    }
-
-    function isWindows() {
-        if (navigator.userAgentData) {
-            return navigator.userAgentData.platform === "Windows";
-        }
-        return navigator.userAgent.toLowerCase().includes("windows");
-    }
-    document.addEventListener("DOMContentLoaded", () => {
-        if (isWindows()) {
-            document.getElementById("linux-block").style.display = "none";
+    document.querySelectorAll('.title-line').forEach(line => {
+        for (let i = 0; i < 54; i++) {
+            const ember = document.createElement('span');
+            ember.className = 'title-ember';
+            ember.setAttribute('aria-hidden', 'true');
+            const duration = 4 + Math.random() * 2;
+            ember.style.animationDuration = duration + 's';
+            ember.style.animationDelay = -Math.random() * duration + 's';
+            positionTitleEmber(ember);
+            ember.addEventListener('animationiteration', () => positionTitleEmber(ember));
+            line.appendChild(ember);
         }
     });
 
@@ -662,7 +835,77 @@
     }
 
     showChristmasSnow();
+</script>
+<script type="module">
+    const installerStatus = document.getElementById('installer-status');
+    installerStatus.hidden = false;
+    document.getElementById('inst_full').overrides = {
+        checkSameFirmware(manifest, improvInfo) {
+            const manifestFirmware = manifest.name.toLowerCase();
+            const deviceFirmware = improvInfo.firmware.toLowerCase();
+            return manifestFirmware.includes('glow worm') && deviceFirmware.includes('firm');
+        }
+    };
 
+    // Temporary workaround for ESP Web Tools 10.5.2 until esptool-js handles the S31 watchdogs.
+    // PR by Davide Perini here -> https://github.com/espressif/esptool-js/pull/282
+    let esploader;
+    Object.defineProperty(window, 'esploader', {
+        configurable: true,
+        enumerable: true,
+        get() {
+            return esploader;
+        },
+        set(loader) {
+            if (loader === esploader) {
+                return;
+            }
+            esploader = loader;
+            if (typeof loader?.detectChip !== 'function') {
+                return;
+            }
+
+            const detectChip = loader.detectChip.bind(loader);
+            loader.detectChip = async (...args) => {
+                const result = await detectChip(...args);
+                const { chip, transport } = loader;
+                if (chip.CHIP_NAME !== 'ESP32-S31' || transport.getVid() !== 0x303a ||
+                    transport.getPid() !== 0x1001 || loader.secureDownloadMode || loader.syncStubDetected) {
+                    return result;
+                }
+
+                const postConnect = chip.postConnect.bind(chip);
+                chip.postConnect = async (esp) => {
+                    await postConnect(esp);
+                    const base = 0x20801000;
+                    const key = 0x50d83aa1;
+
+                    // Disable the RTC watchdog.
+                    await esp.writeReg(base + 0x18, key);
+                    await esp.writeReg(base, 0);
+                    await esp.writeReg(base + 0x18, 0);
+
+                    // Enable automatic feeding of the Super Watchdog.
+                    await esp.writeReg(base + 0x20, key);
+                    const swd = await esp.readReg(base + 0x1c);
+                    await esp.writeReg(base + 0x1c, (swd | (1 << 18)) >>> 0);
+                    await esp.writeReg(base + 0x20, 0);
+
+                    console.info('S31: watchdogs prepared for USB Serial/JTAG flashing');
+                };
+                return result;
+            };
+        }
+    });
+
+    import('https://unpkg.com/esp-web-tools@10.5.2/dist/web/install-button.js?module')
+        .then(() => {
+            installerStatus.hidden = true;
+        })
+        .catch(error => {
+            installerStatus.textContent = 'The installer could not load. Check your connection and reload this page.';
+            console.error(error);
+        });
 </script>
 </body>
 </html>
