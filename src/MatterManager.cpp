@@ -27,6 +27,7 @@
 #include <WiFi.h>
 #include <app/server/Server.h>
 #include <esp_random.h>
+#include <mdns.h>
 #include <platform/PlatformManager.h>
 #include <qrcode.h>
 #include <setup_payload/OnboardingCodesUtil.h>
@@ -67,6 +68,34 @@ struct LightChanges {
 LightChanges pending;
 LightState reported{};
 bool publishing = false;
+
+// Matter sets the shared mDNS responder's primary hostname when it publishes its services.
+// Keep the configured Glow Worm name reachable at the current Wi-Fi IPv4 address as well.
+void updateMdnsAlias() {
+  static unsigned long lastCheck = 0;
+  const unsigned long now = millis();
+  if (now - lastCheck < 2000) return;
+  lastCheck = now;
+
+  static uint32_t publishedIp = 0;
+  const uint32_t ip = WiFi.status() == WL_CONNECTED ? uint32_t(WiFi.localIP()) : 0;
+  const char *name = deviceName.c_str();
+  if (!ip) {
+    if (publishedIp && mdns_delegate_hostname_remove(name) == ESP_OK) publishedIp = 0;
+    return;
+  }
+  char primary[MDNS_NAME_BUF_LEN];
+  if (mdns_hostname_get(primary) != ESP_OK || !strcasecmp(primary, name)) return;
+
+  const bool exists = mdns_hostname_exists(name);
+  if (exists && publishedIp == ip) return;
+  mdns_ip_addr_t address{};
+  address.addr.type = ESP_IPADDR_TYPE_V4;
+  address.addr.u_addr.ip4.addr = ip;
+  const esp_err_t result = exists ? mdns_delegate_hostname_set_address(name, &address)
+                                  : mdns_delegate_hostname_add(name, &address);
+  if (result == ESP_OK) publishedIp = ip;
+}
 
 LightState readLight() {
   return {ledManager.stateOn, brightness, {ledManager.red, ledManager.green, ledManager.blue}};
@@ -367,6 +396,7 @@ void MatterManager::loop() {
     return;
   }
 
+  updateMdnsAlias();
   static unsigned long lastSync = 0;
   static bool pairingCodePrinted = false;
   const unsigned long now = millis();

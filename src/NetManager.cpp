@@ -23,6 +23,10 @@
 #include <cmath>
 #include <stdarg.h>
 #include <stdio.h>
+#if defined(ARDUINO_ARCH_ESP32)
+#include <esp_system.h>
+#include <esp_timer.h>
+#endif
 
 static constexpr const char *PING = "PING";
 static constexpr const char *DN = "DN";
@@ -555,6 +559,32 @@ void NetManager::listenOnHttpGet() {
       jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"ldr\":\"%d\"", (int) Globals::ldrPercent());
     }
 #if defined(ARDUINO_ARCH_ESP32)
+    // /prefs and the boot log report the numeric ESP-IDF esp_reset_reason_t value.
+    // Availability depends on the chip.
+    //  0 ESP_RST_UNKNOWN    Reset cause could not be determined
+    //  1 ESP_RST_POWERON    Power-on reset
+    //  2 ESP_RST_EXT        Reset through an external pin
+    //  3 ESP_RST_SW         Software restart via esp_restart()
+    //  4 ESP_RST_PANIC      Reset after an exception or panic
+    //  5 ESP_RST_INT_WDT    Interrupt watchdog timeout
+    //  6 ESP_RST_TASK_WDT   Task watchdog timeout
+    //  7 ESP_RST_WDT        Another watchdog triggered
+    //  8 ESP_RST_DEEPSLEEP  Wake from deep sleep
+    //  9 ESP_RST_BROWNOUT   Supply voltage dropped below the brownout threshold
+    // 10 ESP_RST_SDIO       Reset over SDIO
+    // 11 ESP_RST_USB        Reset by the USB peripheral
+    // 12 ESP_RST_JTAG       Reset via JTAG
+    // 13 ESP_RST_EFUSE      Reset due to an eFuse error
+    // 14 ESP_RST_PWR_GLITCH Power supply glitch detected
+    // 15 ESP_RST_CPU_LOCKUP CPU lockup due to a double exception
+    jsonAppend(jsonPrefs, sizeof(jsonPrefs), len,
+               ",\"resetReason\":%d,\"uptimeSeconds\":%lu",
+               static_cast<int>(esp_reset_reason()), static_cast<unsigned long>(esp_timer_get_time() / 1000000));
+    const auto mqttWriteTimeouts = espClient.writeTimeouts();
+    if (mqttWriteTimeouts > 0) {
+      jsonAppend(jsonPrefs, sizeof(jsonPrefs), len, ",\"mqttWriteTimeouts\":%lu",
+                 static_cast<unsigned long>(mqttWriteTimeouts));
+    }
     // Internal chip temperature in Celsius; keep /prefs available if the sensor fails.
     const float chipTemp = temperatureRead();
     if (std::isfinite(chipTemp)) {
