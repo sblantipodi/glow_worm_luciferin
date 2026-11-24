@@ -242,6 +242,31 @@ jobs:
           name: GlowWormLuciferinFULL_ESP32_S31_firmware.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32s31/firmware.bin
 
+  build_esp32_full_8mb:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: python -m pip install platformio intelhex
+      - name: Set up firmware build
+        run: |
+          cp secrets.ini.template secrets.ini
+          touch .version_no_increment_update_date
+      - name: Build Full 8 MB Matter variants
+        run: python scripts/flash_variants.py build full-flash-variants
+      - uses: actions/upload-artifact@v7
+        with:
+          name: full-flash-variants
+          path: full-flash-variants/*_8MB_*.bin
+          if-no-files-found: error
+
   build_esp32_light:
     runs-on: ubuntu-24.04
 
@@ -384,7 +409,7 @@ jobs:
 
   web_tools_update:
     runs-on: ubuntu-24.04
-    needs: [ build_esp8266_full, build_esp8266_light, build_esp32_full, build_esp32_light ]
+    needs: [ build_esp8266_full, build_esp8266_light, build_esp32_full, build_esp32_full_8mb, build_esp32_light ]
 
     steps:
       - uses: actions/checkout@v7
@@ -402,7 +427,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y jq 
-          jq --arg v "${{ steps.vars.outputs.TAG_NAME }}" '.version = $v' /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_full.json > tmp.json && mv tmp.json /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_full.json
+          jq --arg v "${{ steps.vars.outputs.TAG_NAME }}" '.version = $v' ./beta/docs/static/firmware_build_beta/manifest_full.json > tmp.json && mv tmp.json ./currentbranch/docs/static/firmware_build_beta/manifest_full.json
           jq --arg v "${{ steps.vars.outputs.TAG_NAME }}" '.version = $v' /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_light.json > tmp.json && mv tmp.json /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/docs/static/firmware_build_beta/manifest_light.json
       - name: Save JSON file to GIT
         continue-on-error: true
@@ -458,7 +483,10 @@ jobs:
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S31_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build_beta/GlowWormLuciferinLIGHT_ESP32_S31_firmware.bin
-          
+
+          cp ci_artifacts/full-flash-variants/*_8MB_*.bin ./currentbranch/docs/static/firmware_build_beta/
+          python ./beta/scripts/flash_variants.py manifest ./currentbranch/docs/static/firmware_build_beta
+
           cd currentbranch;
           ls ./docs/static/firmware_build_beta/;
           git config --global user.email "perini.davide@dpsoftware.org";

@@ -76,5 +76,61 @@
       ]
     }
   ],
+  "builds_8mb": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-C3",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_C3_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-C6",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_C6_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-C5",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_C5_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_S3_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-S31",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_S31_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    }
+  ],
   "funding_url": "https://www.paypal.com/donate?hosted_button_id=ZEJM8ZLQW5E4A"
 }

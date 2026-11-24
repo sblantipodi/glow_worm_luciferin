@@ -35,9 +35,11 @@ static constexpr const char *DNStatic = "DNStatic";
 [[maybe_unused]] boolean NetManager::firmwareUpgrade = false;
 size_t NetManager::updateSize = 0;
 
+#ifndef NET_MANAGER_JSON_BUFFERS_ON_STACK
 static char jsonStatus[512];
 static char jsonUdp[512];
 static char jsonPrefs[512];
+#endif
 
 // ffeffect is written from the network (setLeds/processJson); clamping it makes the
 // /prefs fixed buffer overflow-proof (same treatment as deviceName / DEVICE_NAME_MAX_LEN)
@@ -542,6 +544,9 @@ void NetManager::listenOnHttpGet() {
   server.on(F("/prefs"), [this]() {
     // All fields are bounded (ffeffect clamped to FFEFFECT_MAX_LEN at every write site),
     // so the fixed buffer cannot overflow: same style as the GlowWorm branch of sendStatus
+#ifdef NET_MANAGER_JSON_BUFFERS_ON_STACK
+    char jsonPrefs[512]{};
+#endif
     size_t len = 0;
     jsonAppend(jsonPrefs, sizeof(jsonPrefs), len,
                "{\"VERSION\":\"%s\",\"cp\":\"%d,%d,%d\",\"toggle\":\"%s\",\"effect\":\"%s\","
@@ -600,6 +605,9 @@ void NetManager::listenOnHttpGet() {
     server.send(200, F("application/json"), String(jsonPrefs));
   });
   server.on(F("/getLdr"), [this]() {
+#ifdef NET_MANAGER_JSON_BUFFERS_ON_STACK
+    char jsonPrefs[512]{};
+#endif
     size_t len = 0;
     bool ok = jsonAppend(jsonPrefs, sizeof(jsonPrefs), len,
                          "{\"ldrEnabled\":\"%s\",\"ldrInterval\":\"%d\",\"ldrTurnOff\":\"%s\","
@@ -1311,6 +1319,9 @@ void NetManager::sendStatus() {
   if ((effect == Effect::GlowWorm || effect == Effect::GlowWormWifi)
       && (mqttIP.length() > 0 || (netManager.remoteIpForUdp.toString() != F("0.0.0.0")
                                   && netManager.remoteIpForUdpBroadcast.toString() != F("0.0.0.0")))) {
+#ifdef NET_MANAGER_JSON_BUFFERS_ON_STACK
+    char jsonStatus[512]{};
+#endif
     size_t len = 0;
     jsonAppend(jsonStatus, sizeof(jsonStatus), len,
                "{\"deviceName\":\"%s\",\"color\": { \"r\": 255, \"g\": 190, \"b\": 140 },"
@@ -1382,6 +1393,9 @@ void NetManager::sendStatus() {
       BootstrapManager::publish(netManager.lightStateTopic.c_str(), root, true);
     }
     else {
+#ifdef NET_MANAGER_JSON_BUFFERS_ON_STACK
+      char jsonUdp[512];
+#endif
       const char *payload = jsonUdp;
       String output;
       if (measureJson(root) + 1 > sizeof(jsonUdp)) {
