@@ -1,6 +1,6 @@
 {
   "name": "Glow Worm Luciferin FULL",
-  "version": "5.99.18",
+  "version": "5.99.1",
   "new_install_improv_wait_time": 20,
   "builds": [
     {
@@ -71,6 +71,62 @@
       "parts": [
         {
           "path": "GlowWormLuciferinFULL_ESP32_S31_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    }
+  ],
+  "builds_8mb": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-C3",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_C3_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-C6",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_C6_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-C5",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_C5_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_S3_8MB_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-S31",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinFULL_ESP32_S31_8MB_firmware-factory.bin",
           "offset": 0
         }
       ]
