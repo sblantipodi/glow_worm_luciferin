@@ -1379,6 +1379,9 @@ void NetManager::sendStatus() {
     root[F("ledBuiltin")] = ledBuiltin;
     root[BAUDRATE_PARAM] = baudRateInUse;
     root[F("board")] = Globals::boardName();
+#ifdef GLOW_WORM_MATTER
+    root[F("matter")] = true;
+#endif
     root[LED_NUM_PARAM] = String(ledManager.dynamicLedNum);
     root[F("gpio")] = gpioInUse;
     root[F("gpioClock")] = gpioClockInUse;

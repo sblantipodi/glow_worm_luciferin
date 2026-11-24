@@ -330,6 +330,9 @@ void Globals::sendSerialInfo() {
         Serial.printf("ver:%s\r\n", VERSION);
         Serial.printf("lednum:%d\r\n", ledManager.dynamicLedNum);
         Serial.printf("board:%s\r\n", Globals::boardName());
+#ifdef GLOW_WORM_MATTER
+        Serial.println(F("matter:true"));
+#endif
         Serial.printf("MAC:%s\r\n", MAC.c_str());
         Serial.printf("gpio:%d\r\n", gpioInUse);
         Serial.printf("gpioClock:%d\r\n", gpioClockInUse);

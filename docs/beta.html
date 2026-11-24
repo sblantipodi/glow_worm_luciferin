@@ -639,7 +639,7 @@
         <div class="installer-header">
             <div>
                 <h2 id="install-title">Install firmware</h2>
-                <p class="description">Connect your ESP board to your computer with a USB data cable.</p>
+                <p class="description">Connect your ESP board to your computer (or Android phone) using a USB data cable.</p>
             </div>
             <div class="release-control">
                 <label for="version">Release</label>
@@ -654,7 +654,15 @@
             <article class="install-card install-card--full">
                 <h3>Full firmware</h3>
                 <p>Supports remote control and requires Wi-Fi setup. After setup, a USB connection to your computer is optional.</p>
-                <esp-web-install-button id="inst_full" manifest="static/firmware_build/manifest_full.json">
+                <div class="release-control">
+                    <label for="flash-size">Flash size</label>
+                    <select id="flash-size">
+                        <option value="4mb">4 MB</option>
+                        <option value="8mb">8 MB (Matter enabled)</option>
+                    </select>
+                </div>
+                <p class="compatibility-message" id="full-firmware-status" role="status" hidden></p>
+                <esp-web-install-button id="inst_full" hidden>
                     <button class="button button--primary" type="button" slot="activate">Install Full</button>
                     <span class="compatibility-message" slot="unsupported">Open this page in a browser with Web Serial support.</span>
                     <span class="compatibility-message" slot="not-allowed">Open this page over HTTPS to install firmware.</span>
@@ -728,22 +736,76 @@
 
 <script>
     const releaseSelect = document.getElementById('version');
+    const flashSizeSelect = document.getElementById('flash-size');
+    const fullInstaller = document.getElementById('inst_full');
+    const fullFirmwareStatus = document.getElementById('full-firmware-status');
     const fireflyDownload = document.getElementById('firefly-download');
     const fireflyRelease = document.getElementById('firefly-release');
     const betaNote = document.getElementById('beta-note');
     const fireflyRepository = 'https://github.com/sblantipodi/firefly_luciferin';
     const releaseNames = {stable: 'latest stable', beta: 'latest beta', previous: 'previous stable'};
+    let fullManifestRequest = 0;
+    let legacyManifestUrl;
+
+    async function updateFullInstaller() {
+        const request = ++fullManifestRequest;
+        const directory = releaseSelect.selectedOptions[0].dataset.directory;
+        const flashSize = flashSizeSelect.value;
+        const manifestPath = 'static/' + directory + '/manifest_full';
+        let manifestUrl = new URL(manifestPath + '_' + flashSize + '.json', location.href);
+        fullInstaller.hidden = true;
+        fullFirmwareStatus.hidden = true;
+
+        try {
+            let response = await fetch(manifestUrl);
+            const useLegacyManifest = response.status === 404 && flashSize === '4mb';
+            if (useLegacyManifest) {
+                manifestUrl = new URL(manifestPath + '.json', location.href);
+                response = await fetch(manifestUrl);
+            }
+            if (request !== fullManifestRequest) return;
+
+            if (response.status === 404 && flashSize === '8mb') {
+                fullFirmwareStatus.textContent = 'This release does not offer the 8 MB Matter firmware.';
+                fullFirmwareStatus.hidden = false;
+                return;
+            }
+            if (!response.ok) throw new Error('Could not load Full firmware manifest: ' + response.status);
+
+            let installerManifest = manifestUrl.href;
+            if (useLegacyManifest) {
+                const manifest = await response.json();
+                if (request !== fullManifestRequest) return;
+                // Older releases declared an S31 file for a different layout or lacked the file.
+                manifest.builds = manifest.builds.filter(build => build.chipFamily !== 'ESP32-S31');
+                for (const build of manifest.builds) {
+                    for (const part of build.parts) part.path = new URL(part.path, manifestUrl).href;
+                }
+                installerManifest = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type: 'application/json'}));
+            }
+            if (legacyManifestUrl) URL.revokeObjectURL(legacyManifestUrl);
+            legacyManifestUrl = useLegacyManifest ? installerManifest : undefined;
+            fullInstaller.setAttribute('manifest', installerManifest);
+            fullInstaller.hidden = false;
+        } catch (error) {
+            if (request !== fullManifestRequest) return;
+            fullFirmwareStatus.textContent = 'Could not load the Full firmware for this release.';
+            fullFirmwareStatus.hidden = false;
+            console.error(error);
+        }
+    }
 
     function updateRelease() {
         const release = releaseSelect.value;
         const directory = releaseSelect.selectedOptions[0].dataset.directory;
-        document.getElementById('inst_full').setAttribute('manifest', 'static/' + directory + '/manifest_full.json');
+        updateFullInstaller();
         document.getElementById('inst_light').setAttribute('manifest', 'static/' + directory + '/manifest_light.json');
         fireflyDownload.href = fireflyRepository + (release === 'beta' ? '/actions' : '/releases');
         fireflyRelease.textContent = 'Download the ' + releaseNames[release] + ' version of the companion desktop app.';
         betaNote.hidden = release !== 'beta';
     }
 
+    flashSizeSelect.addEventListener('change', updateFullInstaller);
     releaseSelect.addEventListener('change', updateRelease);
     window.addEventListener('pageshow', updateRelease);
     updateRelease();
