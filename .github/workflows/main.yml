@@ -9,7 +9,7 @@ on:
 jobs:
 
   build_esp8266_full:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
       - uses: actions/checkout@v7
@@ -58,7 +58,7 @@ jobs:
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp8266/firmware.bin
 
   build_esp8266_light:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
       - uses: actions/checkout@v7
@@ -107,7 +107,7 @@ jobs:
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinlight_esp8266/firmware.bin
 
   build_esp32_full:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
       - uses: actions/checkout@v7
@@ -243,7 +243,7 @@ jobs:
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/currentbranch/.pio/build/glowwormluciferinfull_esp32s31/firmware.bin
 
   build_esp32_full_8mb:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
@@ -268,7 +268,7 @@ jobs:
           if-no-files-found: error
 
   build_esp32_light:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
       - uses: actions/checkout@v7
@@ -408,7 +408,7 @@ jobs:
 
 
   web_tools_update:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [ build_esp8266_full, build_esp8266_light, build_esp32_full, build_esp32_full_8mb, build_esp32_light ]
 
     steps:
