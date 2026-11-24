@@ -899,6 +899,8 @@
     showChristmasSnow();
 </script>
 <script type="module">
+    import {guardMatterFlashSize} from './static/matter-flash-size.js';
+
     const installerStatus = document.getElementById('installer-status');
     installerStatus.hidden = false;
     document.getElementById('inst_full').overrides = {
@@ -926,6 +928,8 @@
             if (typeof loader?.detectChip !== 'function') {
                 return;
             }
+
+            guardMatterFlashSize(loader);
 
             const detectChip = loader.detectChip.bind(loader);
             loader.detectChip = async (...args) => {
