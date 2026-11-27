@@ -657,8 +657,8 @@
                 <div class="release-control">
                     <label for="flash-size">Flash size</label>
                     <select id="flash-size">
-                        <option value="4mb">4 MB (or less)</option>
-                        <option value="8mb">8 MB (Matter enabled)</option>
+                        <option value="4mb">4 MB or less</option>
+                        <option value="8mb">8 MB or more (with Matter)</option>
                     </select>
                 </div>
                 <p class="compatibility-message" id="full-firmware-status" role="status" hidden></p>
@@ -800,7 +800,7 @@
         const directory = releaseSelect.selectedOptions[0].dataset.directory;
         updateFullInstaller();
         document.getElementById('inst_light').setAttribute('manifest', 'static/' + directory + '/manifest_light.json');
-        fireflyDownload.href = fireflyRepository + (release === 'beta' ? '/actions' : '/releases');
+        fireflyDownload.href = fireflyRepository + (release === 'beta' ? '/actions/workflows/build.yml' : '/releases');
         fireflyRelease.textContent = 'Download the ' + releaseNames[release] + ' version of the companion desktop app.';
         betaNote.hidden = release !== 'beta';
     }

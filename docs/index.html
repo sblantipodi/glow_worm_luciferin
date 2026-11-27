@@ -800,7 +800,7 @@
         const directory = releaseSelect.selectedOptions[0].dataset.directory;
         updateFullInstaller();
         document.getElementById('inst_light').setAttribute('manifest', 'static/' + directory + '/manifest_light.json');
-        fireflyDownload.href = fireflyRepository + (release === 'beta' ? '/actions' : '/releases');
+        fireflyDownload.href = fireflyRepository + (release === 'beta' ? '/actions/workflows/build.yml' : '/releases');
         fireflyRelease.textContent = 'Download the ' + releaseNames[release] + ' version of the companion desktop app.';
         betaNote.hidden = release !== 'beta';
     }
