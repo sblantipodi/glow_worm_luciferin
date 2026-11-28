@@ -13,7 +13,7 @@ jobs:
   create_draft_release:
     env:
       commitmsg: ${{ github.event.head_commit.message }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - name: Set env
@@ -38,7 +38,7 @@ jobs:
 
 
   build_esp8266_firmware_full:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
@@ -103,7 +103,7 @@ jobs:
 
 
   build_esp8266_firmware_light:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
@@ -156,7 +156,7 @@ jobs:
 
 
   build_esp32_firmware_full:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
@@ -199,6 +199,7 @@ jobs:
           platformio run -e glowwormluciferinfull_esp32c5
           platformio run -e glowwormluciferinfull_esp32s2
           platformio run -e glowwormluciferinfull_esp32s3
+          platformio run -e glowwormluciferinfull_esp32s31
       - name: Save artifact (glowwormluciferinfull_esp32)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -209,18 +210,21 @@ jobs:
           cp .pio/build/glowwormluciferinfull_esp32c5/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_C5_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s2/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin
           cp .pio/build/glowwormluciferinfull_esp32s3/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
+          cp .pio/build/glowwormluciferinfull_esp32s31/firmware-factory.bin ./GlowWormLuciferinFULL_ESP32_S31_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinFULL_ESP32_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinFULL_ESP32_C3_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinFULL_ESP32_C6_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinFULL_ESP32_C5_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
+          gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinFULL_ESP32_S31_firmware-factory.bin
           cp -i .pio/build/glowwormluciferinfull_esp32/firmware.bin ./GlowWormLuciferinFULL_ESP32_firmware.bin
           cp -i .pio/build/glowwormluciferinfull_esp32c3/firmware.bin ./GlowWormLuciferinFULL_ESP32_C3_firmware.bin
           cp -i .pio/build/glowwormluciferinfull_esp32c6/firmware.bin ./GlowWormLuciferinFULL_ESP32_C6_firmware.bin
           cp -i .pio/build/glowwormluciferinfull_esp32c5/firmware.bin ./GlowWormLuciferinFULL_ESP32_C5_firmware.bin
           cp -i .pio/build/glowwormluciferinfull_esp32s2/firmware.bin ./GlowWormLuciferinFULL_ESP32_S2_firmware.bin
           cp -i .pio/build/glowwormluciferinfull_esp32s3/firmware.bin ./GlowWormLuciferinFULL_ESP32_S3_firmware.bin
+          cp -i .pio/build/glowwormluciferinfull_esp32s31/firmware.bin ./GlowWormLuciferinFULL_ESP32_S31_firmware.bin
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v7.0.2
         with:
@@ -254,6 +258,11 @@ jobs:
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v7.0.2
         with:
+          name: GlowWormLuciferinFULL_ESP32_S31_firmware-factory.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/.pio/build/glowwormluciferinfull_esp32s31/firmware-factory.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v7.0.1
+        with:
           name: GlowWormLuciferinFULL_ESP32_firmware.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/.pio/build/glowwormluciferinfull_esp32/firmware.bin
       - name: Creating artifact from BIN file
@@ -281,11 +290,48 @@ jobs:
         with:
           name: GlowWormLuciferinFULL_ESP32_S3_firmware.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/.pio/build/glowwormluciferinfull_esp32s3/firmware.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: GlowWormLuciferinFULL_ESP32_S31_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/.pio/build/glowwormluciferinfull_esp32s31/firmware.bin
 
 
+
+  build_esp32_firmware_full_8mb:
+    runs-on: ubuntu-26.04
+    needs: [ create_draft_release ]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: master
+          submodules: true
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: python -m pip install platformio intelhex
+      - name: Set up firmware build
+        run: |
+          cp secrets.ini.template secrets.ini
+          touch .version_no_increment_update_date
+          printf '%s\n' "$GITHUB_REF_NAME" | cut -dv -f2 > version
+      - name: Build Full 8 MB Matter variants
+        run: python scripts/flash_variants.py build full-flash-variants
+      - uses: actions/upload-artifact@v7
+        with:
+          name: full-flash-variants
+          path: full-flash-variants/*_8MB_*.bin
+          if-no-files-found: error
+      - name: Upload Full 8 MB Matter release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" full-flash-variants/*_8MB_*.bin
 
   build_esp32_firmware_light:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [ create_draft_release ]
     steps:
       - name: Checkout code
@@ -328,6 +374,7 @@ jobs:
           platformio run -e glowwormluciferinlight_esp32c5;
           platformio run -e glowwormluciferinlight_esp32s2;
           platformio run -e glowwormluciferinlight_esp32s3;
+          platformio run -e glowwormluciferinlight_esp32s31;
       - name: Save artifact (glowwormluciferinlight_esp32)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -338,18 +385,21 @@ jobs:
           cp .pio/build/glowwormluciferinlight_esp32c5/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_C5_firmware-factory.bin
           cp .pio/build/glowwormluciferinlight_esp32s2/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin
           cp .pio/build/glowwormluciferinlight_esp32s3/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin
+          cp .pio/build/glowwormluciferinlight_esp32s31/firmware-factory.bin ./GlowWormLuciferinLIGHT_ESP32_S31_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinLIGHT_ESP32_C6_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinLIGHT_ESP32_C5_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin
           gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin
+          gh release upload "${{ env.RELEASE_VERSION }}" GlowWormLuciferinLIGHT_ESP32_S31_firmware-factory.bin
           cp -i .pio/build/glowwormluciferinlight_esp32/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_firmware.bin
           cp -i .pio/build/glowwormluciferinlight_esp32c3/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin
           cp -i .pio/build/glowwormluciferinlight_esp32c6/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_C6_firmware.bin
           cp -i .pio/build/glowwormluciferinlight_esp32c5/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_C5_firmware.bin
           cp -i .pio/build/glowwormluciferinlight_esp32s2/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
           cp -i .pio/build/glowwormluciferinlight_esp32s3/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
+          cp -i .pio/build/glowwormluciferinlight_esp32s31/firmware.bin ./GlowWormLuciferinLIGHT_ESP32_S31_firmware.bin
 
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v7.0.2
@@ -381,6 +431,11 @@ jobs:
         with:
           name: GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/.pio/build/glowwormluciferinlight_esp32s3/firmware-factory.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: GlowWormLuciferinLIGHT_ESP32_S31_firmware-factory.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/.pio/build/glowwormluciferinlight_esp32s31/firmware-factory.bin
 
       - name: Creating artifact from BIN file
         uses: actions/upload-artifact@v7.0.2
@@ -412,12 +467,17 @@ jobs:
         with:
           name: GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
           path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/.pio/build/glowwormluciferinlight_esp32s3/firmware.bin
+      - name: Creating artifact from BIN file
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: GlowWormLuciferinLIGHT_ESP32_S31_firmware.bin
+          path: /home/runner/work/glow_worm_luciferin/glow_worm_luciferin/.pio/build/glowwormluciferinlight_esp32s31/firmware.bin
 
 
 
   web_tools_update:
-    runs-on: ubuntu-24.04
-    needs: [ build_esp8266_firmware_full, build_esp8266_firmware_light, build_esp32_firmware_full, build_esp32_firmware_light ]
+    runs-on: ubuntu-26.04
+    needs: [ build_esp8266_firmware_full, build_esp8266_firmware_light, build_esp32_firmware_full, build_esp32_firmware_full_8mb, build_esp32_firmware_light ]
 
     steps:
       - uses: actions/checkout@v7
@@ -487,12 +547,14 @@ jobs:
           cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_C5_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C5_firmware-factory.bin
           cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S2_firmware-factory.bin
           cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_firmware-factory.bin
+          cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_S31_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S31_firmware-factory.bin
           cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_C3_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C3_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_C6_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C6_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_C5_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_C5_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_S2_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S2_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_S3_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S3_firmware.bin
+          cp -rf ci_artifacts/GlowWormLuciferinFULL_ESP32_S31_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinFULL_ESP32_S31_firmware.bin
           
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware-factory.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C3_firmware-factory.bin
@@ -500,13 +562,18 @@ jobs:
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_C5_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C5_firmware-factory.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S2_firmware-factory.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S3_firmware-factory.bin
+          cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S31_firmware-factory.bin/firmware-factory.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S31_firmware-factory.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C3_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_C6_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C6_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_C5_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_C5_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S2_firmware.bin
           cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S3_firmware.bin
-          
+          cp -rf ci_artifacts/GlowWormLuciferinLIGHT_ESP32_S31_firmware.bin/firmware.bin ./currentbranch/docs/static/firmware_build/GlowWormLuciferinLIGHT_ESP32_S31_firmware.bin
+
+          cp ci_artifacts/full-flash-variants/*_8MB_*.bin ./currentbranch/docs/static/firmware_build/
+          python ./currentbranch/scripts/flash_variants.py manifest ./currentbranch/docs/static/firmware_build
+
           cd currentbranch;
           ls ./docs/static/firmware_build/;
           git config --global user.email "perini.davide@dpsoftware.org";
@@ -523,8 +590,8 @@ jobs:
 
 
   create_release:
-    needs: [build_esp8266_firmware_full, build_esp8266_firmware_light, build_esp32_firmware_full, build_esp32_firmware_light, web_tools_update]
-    runs-on: ubuntu-24.04
+    needs: [build_esp8266_firmware_full, build_esp8266_firmware_light, build_esp32_firmware_full, build_esp32_firmware_full_8mb, build_esp32_firmware_light, web_tools_update]
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - name: Set env

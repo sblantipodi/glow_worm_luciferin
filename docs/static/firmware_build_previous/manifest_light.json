@@ -64,6 +64,15 @@
           "offset": 0
         }
       ]
+    },
+    {
+      "chipFamily": "ESP32-S31",
+      "parts": [
+        {
+          "path": "GlowWormLuciferinLIGHT_ESP32_S31_firmware-factory.bin",
+          "offset": 0
+        }
+      ]
     }
   ],
   "new_install_prompt_erase": true,
